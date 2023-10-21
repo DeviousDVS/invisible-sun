@@ -6,7 +6,9 @@
     "templateVersion": 2,
     "author": "DeviousDVS",
     "scripts": [],
-    "esmodules": ["scripts/system.js"],
+    "esmodules": [
+        "scripts/system.js"
+    ],
     "styles": [],
     "packs": [],
     "languages": [],
@@ -20,6 +22,6 @@
     "compatibleCoreVersion": "9",
     "url": "https://github.com/DeviousDVS/is-vtt",
     "bugs": "https://github.com/DeviousDVS/is-vtt/issues",
-    "manifest": "https://raw.githubusercontent.com/DeviousDVS/is-vtt/master/system.json",
-    "download": "https://github.com/DeviousDVS/is-vtt/archive/refs/tags/is-vtt-v0.0.4-alpha.zip"
+    "manifest": "https://deviousdvs.github.io/is-vtt/system.json",
+    "download": "https://github.com/DeviousDVS/is-vtt/archive/refs/heads/master.zip"
 }
