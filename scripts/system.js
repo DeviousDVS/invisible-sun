@@ -12,7 +12,7 @@
 
 // import { FateX } from "./config";
 // import { ActorFate } from "./module/actor/ActorFate";
-import { CharacterSheet } from "../templates/actor/character.html";
+import { CharacterSheet } from "../templates/actor/vislae.html";
 // import { HandlebarsHelpers } from "./module/helper/HandlebarsHelpers";
 // import { TemplatePreloader } from "./module/helper/TemplatePreloader";
 // import { AspectSheet } from "./module/item/aspect/AspectSheet";
@@ -60,7 +60,7 @@ import { CharacterSheet } from "../templates/actor/character.html";
 
 // Register FateX actor sheets
 Actors.registerSheet("IS", CharacterSheet, {
-    types: ["character"],
+    types: ["Vislae"],
     makeDefault: true,
 });
 
