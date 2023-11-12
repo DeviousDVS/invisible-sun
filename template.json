@@ -1,60 +1,73 @@
 {
-    "Actor": {
-        "types": ["Vislae", "NPC"],
-        "templates": {
-            "vertula-kada": {
-                "order": "",
-                "heart": "",
-                "forte": "",
-                "soul": "",
-                "foundation": "",
-                "arc": ""
-            },
-            "background": {
-                "biography": "",
-                "hairColor": ""
-            },
-            "statistics": {
-                "certes": {
-                    "accuracy": "",
-                    "movement": "",
-                    "physicality": "",
-                    "perception": ""
-                },
-                "qualia": {
-                    "sorcery": "",
-                    "interaction": "",
-                    "intellect": "",
-                    "sortilege": ""
-                }
-            }
+  "Actor": {
+    "types": ["character", "npc"],
+    "templates": {
+      "base": {
+        "health": {
+          "value": 10,
+          "min": 0,
+          "max": 10
         },
-        "Vislae": {
-            "templates": ["vertula-kada", "statistics", "background"],
-            "goodness": {
-                "value": 5,
-                "max": 10
-            }
+        "power": {
+          "value": 5,
+          "min": 0,
+          "max": 5
         },
-        "NPC": {
-            "templates": ["statistics", "background"]
-        }
+        "biography": ""
+      }
     },
-    "Item": {
-        "types": ["weapon", "spell"],
-        "templates": {
-            "rarity": {
-                "rarity": "Common",
-                "price": 20
-            }
-        },
-        "weapon": {
-            "templates": ["rarity"],
-            "damage": 5
-        },
-        "spell": {
-            "templates": ["rarity"],
-            "cost": 2
+    "character": {
+      "templates": ["base"],
+      "attributes": {
+        "level": {
+          "value": 1
         }
+      },
+      "abilities": {
+        "str": {
+          "value": 10
+        },
+        "dex": {
+          "value": 10
+        },
+        "con": {
+          "value": 10
+        },
+        "int": {
+          "value": 10
+        },
+        "wis": {
+          "value": 10
+        },
+        "cha": {
+          "value": 10
+        }
+      }
+    },
+    "npc": {
+      "templates": ["base"],
+      "cr": 0
     }
+  },
+  "Item": {
+    "types": ["item", "feature", "spell"],
+    "templates": {
+      "base": {
+        "description": ""
+      }
+    },
+    "item": {
+      "templates": ["base"],
+      "quantity": 1,
+      "weight": 0,
+      "formula": "d20 + @str.mod + ceil(@lvl / 2)"
+    },
+    "feature": {
+      "templates": ["base"]
+    },
+    "spell": {
+      "templates": ["base"],
+      "spellLevel": 1
+    }
+  }
 }
