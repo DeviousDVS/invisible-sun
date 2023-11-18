@@ -1,73 +1,149 @@
 {
-  "Actor": {
-    "types": ["character", "npc"],
-    "templates": {
-      "base": {
-        "health": {
-          "value": 10,
-          "min": 0,
-          "max": 10
+    "Actor": {
+        "types": [
+            "vislae",
+            "npc"
+        ],
+        "templates": {
+            "base": {
+                "biography": ""
+            }
         },
-        "power": {
-          "value": 5,
-          "min": 0,
-          "max": 5
+        "vislae": {
+            "templates": [
+                "base"
+            ],
+            "testament": {
+                "order": {
+                    "value": ""
+                },
+                "heart": {
+                    "value": ""
+                },
+                "forte": {
+                    "value": ""
+                },
+                "soul": {
+                    "value": ""
+                },
+                "foundation": {
+                    "value": ""
+                }
+            },
+            "attributes": {
+                "level": {
+                    "value": 1
+                }
+            },
+            "statistics": {
+                "certes": {
+                    "value": 0,
+                    "pool": {
+                        "accuracy": {
+                            "value": 0,
+                            "max": 0
+                        },
+                        "movement": {
+                            "value": 0,
+                            "max": 0
+                        },
+                        "physicality": {
+                            "value": 0,
+                            "max": 0
+                        },
+                        "perception": {
+                            "value": 0,
+                            "max": 0
+                        }
+                    }
+                },
+                "qualia": {
+                    "value": 0,
+                    "pool": {
+                        "sorcery": {
+                            "value": 0,
+                            "max": 0
+                        },
+                        "interact": {
+                            "value": 0,
+                            "max": 0
+                        },
+                        "intellect": {
+                            "value": 0,
+                            "max": 0
+                        },
+                        "sortilege": {
+                            "value": 0,
+                            "max": 0
+                        }
+                    }
+                }
+            },
+            "health": {
+                "injuries": [
+                    "",
+                    "",
+                    ""
+                ],
+                "wounds": [
+                    "",
+                    "",
+                    ""
+                ],
+                "anguish": [
+                    "",
+                    "",
+                    ""
+                ]
+            }
         },
-        "biography": ""
-      }
-    },
-    "character": {
-      "templates": ["base"],
-      "attributes": {
-        "level": {
-          "value": 1
+        "npc": {
+            "templates": [
+                "base"
+            ],
+            "cr": 0
         }
-      },
-      "abilities": {
-        "str": {
-          "value": 10
+    },
+    "Item": {
+        "types": [
+            "item",
+            "feature",
+            "spell",
+            "order",
+            "heart",
+            "forte",
+            "soul",
+            "foundation"
+        ],
+        "templates": {
+            "base": {
+                "description": ""
+            }
         },
-        "dex": {
-          "value": 10
+        "item": {
+            "templates": [
+                "base"
+            ],
+            "quantity": 1,
+            "weight": 0,
+            "formula": "d20 + @str.mod + ceil(@lvl / 2)"
         },
-        "con": {
-          "value": 10
+        "feature": {
+            "templates": [
+                "base"
+            ]
         },
-        "int": {
-          "value": 10
+        "spell": {
+            "templates": [
+                "base"
+            ],
+            "spellLevel": 1
         },
-        "wis": {
-          "value": 10
-        },
-        "cha": {
-          "value": 10
+        "order": {
+            "templates": [
+                "base"
+            ],
+            "name": ""
         }
-      }
-    },
-    "npc": {
-      "templates": ["base"],
-      "cr": 0
     }
-  },
-  "Item": {
-    "types": ["item", "feature", "spell"],
-    "templates": {
-      "base": {
-        "description": ""
-      }
-    },
-    "item": {
-      "templates": ["base"],
-      "quantity": 1,
-      "weight": 0,
-      "formula": "d20 + @str.mod + ceil(@lvl / 2)"
-    },
-    "feature": {
-      "templates": ["base"]
-    },
-    "spell": {
-      "templates": ["base"],
-      "spellLevel": 1
-    }
-  }
 }

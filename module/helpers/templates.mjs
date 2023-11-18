@@ -7,9 +7,9 @@
   return loadTemplates([
 
     // Actor partials.
-    "systems/boilerplate/templates/actor/parts/actor-features.html",
-    "systems/boilerplate/templates/actor/parts/actor-items.html",
-    "systems/boilerplate/templates/actor/parts/actor-spells.html",
-    "systems/boilerplate/templates/actor/parts/actor-effects.html",
+    "systems/invisible-sun/templates/actor/parts/actor-features.html",
+    "systems/invisible-sun/templates/actor/parts/actor-items.html",
+    "systems/invisible-sun/templates/actor/parts/actor-spells.html",
+    "systems/invisible-sun/templates/actor/parts/actor-effects.html",
   ]);
 };

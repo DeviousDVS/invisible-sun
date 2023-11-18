@@ -4,13 +4,13 @@ import {onManageActiveEffect, prepareActiveEffectCategories} from "../helpers/ef
  * Extend the basic ActorSheet with some very simple modifications
  * @extends {ActorSheet}
  */
-export class BoilerplateActorSheet extends ActorSheet {
+export class InvisibleSunActorSheet extends ActorSheet {
 
   /** @override */
   static get defaultOptions() {
     return mergeObject(super.defaultOptions, {
-      classes: ["boilerplate", "sheet", "actor"],
-      template: "systems/boilerplate/templates/actor/actor-sheet.html",
+      classes: ["invisiblesun", "sheet", "actor"],
+      template: "systems/invisible-sun/templates/actor/actor-sheet.html",
       width: 600,
       height: 600,
       tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "features" }]
@@ -19,7 +19,7 @@ export class BoilerplateActorSheet extends ActorSheet {
 
   /** @override */
   get template() {
-    return `systems/boilerplate/templates/actor/actor-${this.actor.type}-sheet.html`;
+    return `systems/invisible-sun/templates/actor/actor-${this.actor.type}-sheet.html`;
   }
 
   /* -------------------------------------------- */
@@ -39,10 +39,10 @@ export class BoilerplateActorSheet extends ActorSheet {
     context.system = actorData.system;
     context.flags = actorData.flags;
 
-    // Prepare character data and items.
-    if (actorData.type == 'character') {
+    // Prepare vislae data and items.
+    if (actorData.type == 'vislae') {
       this._prepareItems(context);
-      this._prepareCharacterData(context);
+      this._prepareVislaeData(context);
     }
 
     // Prepare NPC data and items.
@@ -60,21 +60,28 @@ export class BoilerplateActorSheet extends ActorSheet {
   }
 
   /**
-   * Organize and classify Items for Character sheets.
+   * Organize and classify Items for Vislae sheets.
    *
    * @param {Object} actorData The actor to prepare.
    *
    * @return {undefined}
    */
-  _prepareCharacterData(context) {
+  _prepareVislaeData(context) {
     // Handle ability scores.
-    for (let [k, v] of Object.entries(context.system.abilities)) {
-      v.label = game.i18n.localize(CONFIG.BOILERPLATE.abilities[k]) ?? k;
+    // for (let [k, v] of Object.entries(context.system.abilities)) {
+    //   v.label = game.i18n.localize(CONFIG.INVISIBLESUN.abilities[k]) ?? k;
+    // }
+    for (let key in context.system.statistics) {
+        for (let [k, v] of Object.entries(context.system.statistics[key].pool)) {
+            v.label = game.i18n.localize(CONFIG.INVISIBLESUN.abilities[k]) ?? k;
+        }
     }
+
+    // context.system.testament.foundation.value = "test"
   }
 
   /**
-   * Organize and classify Items for Character sheets.
+   * Organize and classify Items for Vislae sheets.
    *
    * @param {Object} actorData The actor to prepare.
    *
