@@ -4,9 +4,9 @@
     "description": "Invisible Sun for FoundryVTT",
     "version": "0.1",
     "compatibility": {
-        "minimum": 10,
-        "verified": "10.287",
-        "maximum": 11
+        "minimum": 12,
+        "verified": "12.331",
+        "maximum": 12
     },
     "authors": [
         {
