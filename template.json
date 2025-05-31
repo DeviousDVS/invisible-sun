@@ -27,7 +27,7 @@
                     "value": ""
                 },
                 "foundation": {
-                    "value": ""
+                    "value": {}
                 }
             },
             "attributes": {
@@ -113,7 +113,8 @@
             "heart",
             "forte",
             "soul",
-            "foundation"
+            "foundation",
+            "currency"
         ],
         "templates": {
             "base": {
@@ -144,6 +145,56 @@
                 "base"
             ],
             "name": ""
+        },
+        "heart": {
+            "templates": [
+                "base"
+            ],
+            "name": ""
+        },
+        "forte": {
+            "templates": [
+                "base"
+            ],
+            "name": ""
+        },
+        "soul": {
+            "templates": [
+                "base"
+            ],
+            "name": ""
+        },
+        "foundation": {
+            "templates": [
+                "base"
+            ],
+            "name": "",
+            "income": {
+                "value": 0,
+                "type": "crystal orbs"
+            },
+            "initialSavings": {
+                "value": 0,
+                "type": "crystal orbs"
+            },
+            "hiddenKnowledge": 0,
+            "house": {
+                "types": "",
+                "level": 0
+            },
+            "connections": "",
+            "special": "",
+            "initialMotivtions": ""
+        },
+        "currency": {
+            "templates": [
+                "base"
+            ],
+            "name": "",
+            "value": {
+                "number": 0,
+                "type": ""
+            }
         }
     }
 }
