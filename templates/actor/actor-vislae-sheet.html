@@ -5,19 +5,9 @@
         <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" />
         <div class="header-fields">
             <h1 class="charname"><input name="name" type="text" value="{{actor.name}}" placeholder="Name" /></h1>
-            {{!-- The grid classes are defined in scss/global/_grid.scss. To use,
-            use both the "grid" and "grid-Ncol" class where "N" can be any number
-            from 1 to 12 and will create that number of columns. --}}
 
-            <div class="testament">A
-                {{#if system.testament.foundation.value}}
-                <span>{{system.testament.foundation.value}}</span>
-                {{else}}
-                <span class="item-control item-create" title="Create item" data-type="foundation">Foundation</span>
-                {{/if}}
-                <span>Heart</span> of the Order of <span>Order</span> who
-                <span>Forte</span>
-            </div>
+            {{!-- The Vislae's Testament --}}
+            {{> "systems/invisible-sun/templates/actor/parts/actor-testament.html"}}
 
             <div class="resources grid grid-3col">
 
@@ -147,12 +137,7 @@
 
 
             </section>
-            {{!-- For the main features list, span the right two columns --}}
-            <section class="main grid-span-2">
-                {{!-- This is a Handlebars partial. They're stored in the `/parts` folder next to this sheet, and
-                defined in module/helpers/templates.mjs --}}
-                {{> "systems/invisible-sun/templates/actor/parts/actor-features.html"}}
-            </section>
+
         </div>
 
         {{!-- Biography Tab --}}
