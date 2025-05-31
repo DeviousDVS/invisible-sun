@@ -10,6 +10,13 @@ import {
 export class InvisibleSunActorSheet extends ActorSheet {
     /** @override */
     static get defaultOptions() {
+        // let newoptions = super.defaultOptions;
+        // newoptions.dragDrop.push({
+        //     dragSelector: ".item",
+        //     dropSelector: ".item",
+        //     hoverClass: "drop-target",
+        //     activeClass: "dropped",
+        // });
         return foundry.utils.mergeObject(super.defaultOptions, {
             classes: ["invisiblesun", "sheet", "actor"],
             template: "systems/invisible-sun/templates/actor/actor-sheet.html",
@@ -87,8 +94,6 @@ export class InvisibleSunActorSheet extends ActorSheet {
                     game.i18n.localize(CONFIG.INVISIBLESUN.abilities[k]) ?? k;
             }
         }
-
-        // context.system.testament.foundation.value = "test";
     }
 
     /**
@@ -114,6 +119,13 @@ export class InvisibleSunActorSheet extends ActorSheet {
             8: [],
             9: [],
         };
+        let aOrAn = "A";
+        let testament = {
+            foundation: [],
+            heart: [],
+            order: [],
+            forte: [],
+        };
 
         // Iterate through items, allocating to containers
         for (let i of context.items) {
@@ -132,12 +144,53 @@ export class InvisibleSunActorSheet extends ActorSheet {
                     spells[i.system.spellLevel].push(i);
                 }
             }
+            // Append to testament
+            else if (
+                i.type === "foundation" ||
+                i.type === "heart" ||
+                i.type === "order" ||
+                i.type === "forte"
+            ) {
+                if (testament[i.type].length === 0) {
+                    // If this is the first foundation, add it to the array.
+                    testament[i.type].push(i);
+                } else if (
+                    i._stats.createdTime >
+                    testament[i.type][0]._stats.createdTime
+                ) {
+                    // If this foundation is newer than the first, remove the first and add this one.
+                    testament[i.type].splice(0, 1);
+                    testament[i.type].push(i);
+                } else {
+                    // If this foundation is older than the first, remove this one.
+                    let index = context.items.indexOf(i);
+                    context.items.splice(index, 1);
+                }
+            }
+        }
+
+        // Check if the first foundation starts with a vowel.
+        // If it does, set aOrAn to "An", otherwise set it to "A".
+        let vowels = ["a", "e", "i", "o", "u"];
+        if (testament.foundation.length > 0) {
+            if (
+                vowels.includes(testament.foundation[0].name[0].toLowerCase())
+            ) {
+                aOrAn = "An";
+            }
+        } else {
+            aOrAn = "A";
         }
 
         // Assign and return
         context.gear = gear;
         context.features = features;
         context.spells = spells;
+        context.foundations = testament.foundation;
+        context.hearts = testament.heart;
+        context.orders = testament.order;
+        context.fortes = testament.forte;
+        context.aOrAn = aOrAn;
     }
 
     /* -------------------------------------------- */
@@ -145,6 +198,13 @@ export class InvisibleSunActorSheet extends ActorSheet {
     /** @override */
     activateListeners(html) {
         super.activateListeners(html);
+
+        // Render the testament sheet for viewing/editing.
+        html.find(".testament-sheet").click((ev) => {
+            const item = $(ev.currentTarget);
+            const testament = this.actor.items.get(item.data("itemId"));
+            testament.sheet.render(true);
+        });
 
         // Render the item sheet for viewing/editing prior to the editable check.
         html.find(".item-edit").click((ev) => {
