@@ -1,0 +1,37 @@
+<div class="item testament">{{aOrAn}}
+    {{#if foundations}}
+    {{#each foundations as |foundation|}}
+    <span class="testament-sheet" data-item-id="{{foundation._id}}">{{foundation.name}}</span>
+    {{/each}}
+    {{else}}
+    <span class="item">Foundation</span>
+    {{/if}}
+
+    {{#if hearts}}
+    {{#each hearts as |heart|}}
+    <span class="testament-sheet" data-item-id="{{heart._id}}">{{heart.name}}</span>
+    {{/each}}
+    {{else}}
+    <span class="item">Heart</span>
+    {{/if}}
+
+    of the Order of
+
+    {{#if orders}}
+    {{#each orders as |order|}}
+    <span class="testament-sheet" data-item-id="{{order._id}}">{{order.name}}</span>
+    {{/each}}
+    {{else}}
+    <span>Order</span>
+    {{/if}}
+
+    who
+
+    {{#if fortes}}
+    {{#each fortes as |forte|}}
+    <span class="testament-sheet" data-item-id="{{forte._id}}">{{forte.name}}</span>
+    {{/each}}
+    {{else}}
+    <span>Forte</span>
+    {{/if}}
+</div>
