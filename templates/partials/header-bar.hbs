@@ -1,0 +1,13 @@
+<header class="sheet-header">
+  <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}"/>
+  <div class="header-fields">
+    <h1 class="charname"><input name="name" type="text" value="{{actor.name}}" placeholder="Name"/></h1>
+    <div class="character-identity">
+      {{#if (eq actor.type "Vislae")}}
+        <!-- Will be populated by character sentence or input fields -->
+      {{else}}
+        <div class="sub-header">Level <input type="number" name="system.level" value="{{system.level}}"></div>
+      {{/if}}
+    </div>
+  </div>
+</header>

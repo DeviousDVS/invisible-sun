@@ -1,0 +1,58 @@
+<div class="arcs-container">
+  <div class="arcs-header">
+    <h2>Character Arcs</h2>
+    <a class="item-create" data-type="CharacterArc" title="Create Arc"><i class="fa-solid fa-plus"></i> New Arc</a>
+  </div>
+  
+  {{#each arcs as |arc|}}
+    <div class="arc-card item" data-item-id="{{arc.id}}">
+      <div class="arc-header">
+        <h3>{{arc.name}} <span class="arc-status {{arc.system.status}}">{{localize (concat "ISUN.Arc" (capitalize arc.system.status))}}</span></h3>
+        <div class="arc-actions">
+          <a class="item-edit" title="Edit Arc"><i class="fa-solid fa-edit"></i></a>
+          <a class="item-delete" title="Delete Arc"><i class="fa-solid fa-trash"></i></a>
+        </div>
+      </div>
+      <p class="arc-desc">{{arc.system.description}}</p>
+      
+      <div class="arc-timeline">
+        <div class="timeline-step {{#if arc.system.opening.completed}}completed{{/if}}">
+          <div class="step-indicator"></div>
+          <div class="step-content">
+            <span class="step-title">Opening</span>
+            <span class="step-reward">{{arc.system.opening.reward}}</span>
+          </div>
+        </div>
+        
+        {{#each arc.system.steps as |step index|}}
+          <div class="timeline-step {{#if step.completed}}completed{{/if}}">
+            <div class="step-indicator"></div>
+            <div class="step-content">
+              <span class="step-title">Step {{add index 1}}</span>
+              <span class="step-desc">{{step.description}}</span>
+              <span class="step-reward">{{step.reward}}</span>
+            </div>
+          </div>
+        {{/each}}
+        
+        <div class="timeline-step {{#if arc.system.climax.completed}}completed{{/if}}">
+          <div class="step-indicator climax"></div>
+          <div class="step-content">
+            <span class="step-title">Climax</span>
+            <span class="step-reward">{{arc.system.climax.reward}}</span>
+          </div>
+        </div>
+        
+        <div class="timeline-step {{#if arc.system.resolution.completed}}completed{{/if}}">
+          <div class="step-indicator"></div>
+          <div class="step-content">
+            <span class="step-title">Resolution</span>
+            <span class="step-reward">{{arc.system.resolution.reward}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  {{else}}
+    <div class="empty-state">No character arcs.</div>
+  {{/each}}
+</div>

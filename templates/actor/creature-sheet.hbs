@@ -1,0 +1,26 @@
+<div class="{{cssClass}} flexcol" autocomplete="off">
+  {{> "systems/invisible-sun/templates/partials/header-bar.hbs"}}
+
+  <section class="sheet-body single-page">
+    <div class="npc-stats">
+      <div class="health-tracker">
+        <label>Wounds</label> <input type="number" name="system.health.wounds.value" value="{{system.health.wounds.value}}"> / {{system.health.wounds.max}}
+        <label>Anguish</label> <input type="number" name="system.health.anguish.value" value="{{system.health.anguish.value}}"> / {{system.health.anguish.max}}
+      </div>
+      <div class="defenses">
+        <label>Armor</label> <input type="number" name="system.armor" value="{{system.armor}}">
+        <label>Ward</label> <input type="number" name="system.ward" value="{{system.ward}}">
+      </div>
+    </div>
+
+    <div class="creature-combat">
+      <h3>Combat</h3>
+      {{editor system.combat target="system.combat" button=true owner=owner editable=editable}}
+    </div>
+
+    <div class="creature-description">
+      <h3>Description</h3>
+      {{editor system.description target="system.description" button=true owner=owner editable=editable}}
+    </div>
+  </section>
+</div>

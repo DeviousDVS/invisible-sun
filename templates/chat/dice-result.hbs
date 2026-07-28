@@ -1,0 +1,36 @@
+<div class="dice-result {{#if success}}success{{else}}failure{{/if}}">
+  <div class="roll-title">{{label}}</div>
+  
+  <div class="roll-stats">
+    <div class="stat"><label>Challenge</label> <span>{{challenge}}</span></div>
+    <div class="stat"><label>Venture</label> <span>{{venture}}</span></div>
+    <div class="stat"><label>Target</label> <span>{{target}}</span></div>
+  </div>
+
+  {{#if impossible}}
+    <div class="failure-banner">Impossible Action (Target >= 10 with no magic dice)</div>
+  {{else if autoSuccess}}
+    <div class="success-banner">Automatic Success! (Target <= 0)</div>
+  {{else}}
+    
+    <div class="dice-display">
+      <div class="die mundane-die" title="Mundane Die">{{mundaneResult}}</div>
+      
+      {{#each magicResults as |res|}}
+        <div class="die magic-die {{#if (eq res 0)}}flux-die{{/if}}" title="Magic Die">{{res}}</div>
+      {{/each}}
+    </div>
+
+    {{#if hasFlux}}
+      <div class="flux-warning">
+        <i class="fa-solid fa-burst"></i> {{localize "ISUN.MagicalFlux"}}
+        <p>{{localize "ISUN.FluxWarning"}}</p>
+      </div>
+    {{/if}}
+    
+    <div class="{{#if success}}success-banner{{else}}failure-banner{{/if}}">
+      {{#if success}}{{localize "ISUN.Success"}}{{else}}{{localize "ISUN.Failure"}}{{/if}}
+    </div>
+
+  {{/if}}
+</div>

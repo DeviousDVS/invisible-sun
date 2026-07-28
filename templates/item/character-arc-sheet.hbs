@@ -1,0 +1,54 @@
+<div class="{{cssClass}} flexcol" autocomplete="off">
+  <header class="sheet-header">
+    <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}"/>
+    <div class="header-fields">
+      <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Arc Name"/></h1>
+      <div class="item-subtitle">
+        <select name="system.status">
+          {{selectOptions config.arcStatuses selected=system.status localize=true}}
+        </select>
+        <span>Cost:</span>
+        <input type="text" name="system.cost" value="{{system.cost}}" />
+      </div>
+    </div>
+  </header>
+
+  <section class="sheet-body item-sheet-body">
+    
+    <div class="form-group full-width">
+      <label>Description</label>
+      <input type="text" name="system.description" value="{{system.description}}" />
+    </div>
+
+    <!-- Opening -->
+    <div class="arc-step-edit">
+      <h3>Opening</h3>
+      <div class="grid-3col">
+        <div class="form-group"><label>Description</label><input type="text" name="system.opening.description" value="{{system.opening.description}}"></div>
+        <div class="form-group"><label>Reward</label><input type="text" name="system.opening.reward" value="{{system.opening.reward}}"></div>
+        <div class="form-group checkbox"><label>Completed</label><input type="checkbox" name="system.opening.completed" {{checked system.opening.completed}}></div>
+      </div>
+    </div>
+
+    <!-- Climax -->
+    <div class="arc-step-edit">
+      <h3>Climax</h3>
+      <div class="grid-3col">
+        <div class="form-group"><label>Description</label><input type="text" name="system.climax.description" value="{{system.climax.description}}"></div>
+        <div class="form-group"><label>Reward</label><input type="text" name="system.climax.reward" value="{{system.climax.reward}}"></div>
+        <div class="form-group checkbox"><label>Completed</label><input type="checkbox" name="system.climax.completed" {{checked system.climax.completed}}></div>
+      </div>
+    </div>
+
+    <!-- Resolution -->
+    <div class="arc-step-edit">
+      <h3>Resolution</h3>
+      <div class="grid-3col">
+        <div class="form-group"><label>Description</label><input type="text" name="system.resolution.description" value="{{system.resolution.description}}"></div>
+        <div class="form-group"><label>Reward</label><input type="text" name="system.resolution.reward" value="{{system.resolution.reward}}"></div>
+        <div class="form-group checkbox"><label>Completed</label><input type="checkbox" name="system.resolution.completed" {{checked system.resolution.completed}}></div>
+      </div>
+    </div>
+
+  </section>
+</div>

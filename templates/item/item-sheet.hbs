@@ -1,0 +1,22 @@
+<div class="{{cssClass}}" autocomplete="off">
+  <header class="sheet-header">
+    <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}"/>
+    <div class="header-fields">
+      <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Name"/></h1>
+      <div class="item-subtitle">{{item.type}}</div>
+    </div>
+  </header>
+
+  <section class="sheet-body item-sheet-body">
+    <div class="item-description">
+      <h3>Description</h3>
+      {{#if system.description includeZero=true}}
+        {{editor system.description target="system.description" button=true owner=owner editable=editable}}
+      {{else}}
+        <!-- Just an empty fallback, we assume most items have a description field. 
+             If they don't, we wouldn't show this, but Handlebars will just gracefully fail if it doesn't exist. -->
+        <p class="notes">This item type does not have a rich description field.</p>
+      {{/if}}
+    </div>
+  </section>
+</div>

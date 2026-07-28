@@ -1,0 +1,24 @@
+<div class="pool-row" data-pool="{{poolName}}">
+  <div class="pool-label">{{localize label}}</div>
+  
+  <div class="pool-pips">
+    {{#times (poolRemaining pool)}}
+      <span class="bene-pip empty"></span>
+    {{/times}}
+    {{#times pool.value}}
+      <span class="bene-pip full" data-action="spend-bene" data-pool="{{poolName}}" title="{{localize 'ISUN.Spend'}}"></span>
+    {{/times}}
+  </div>
+  
+  <div class="pool-inputs">
+    <input type="number" name="system.stats.{{#if (or (eq poolName 'accuracy') (eq poolName 'movement') (eq poolName 'physicality') (eq poolName 'perception'))}}certes{{else}}qualia{{/if}}.pools.{{poolName}}.value" value="{{pool.value}}" />
+    <span>/</span>
+    <input type="number" name="system.stats.{{#if (or (eq poolName 'accuracy') (eq poolName 'movement') (eq poolName 'physicality') (eq poolName 'perception'))}}certes{{else}}qualia{{/if}}.pools.{{poolName}}.max" value="{{pool.max}}" />
+  </div>
+  
+  <div class="pool-actions">
+    <a class="btn-refresh" data-action="refresh-pool" data-pool="{{poolName}}" title="{{localize 'ISUN.Refresh'}}">
+      <i class="fa-solid fa-arrows-rotate"></i>
+    </a>
+  </div>
+</div>

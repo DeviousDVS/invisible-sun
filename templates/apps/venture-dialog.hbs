@@ -1,0 +1,29 @@
+<form class="venture-dialog">
+  <div class="form-group">
+    <label>Action Challenge (0-17)</label>
+    <input type="number" name="challenge" value="0" min="0" max="17" autofocus />
+  </div>
+
+  <div class="form-group">
+    <label>Skill / Modifier Venture</label>
+    <input type="number" name="skillVenture" value="0" />
+  </div>
+
+  <div class="form-group">
+    <label>Magic Dice (from spells/abilities)</label>
+    <input type="number" name="magicDice" value="0" min="0" />
+  </div>
+
+  <div class="form-group">
+    <label>Sortilege Enhancements</label>
+    <input type="number" name="sortilege" value="0" min="0" />
+  </div>
+
+  <!-- Space for dynamic bene spend UI -->
+
+  <div class="dialog-buttons">
+    <button class="dialog-button" data-button="roll">
+      <i class="fas fa-dice"></i> Roll
+    </button>
+  </div>
+</form>

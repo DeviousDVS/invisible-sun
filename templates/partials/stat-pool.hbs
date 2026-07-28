@@ -1,0 +1,50 @@
+<div class="stat-group">
+  <div class="stat-column certes">
+    <div class="stat-header">
+      <h2>{{localize "ISUN.StatCertes"}}</h2>
+      <div class="stat-totals">
+        <input type="number" name="system.stats.certes.value" value="{{system.stats.certes.value}}" />
+        <span>/</span>
+        <input type="number" name="system.stats.certes.max" value="{{system.stats.certes.max}}" />
+      </div>
+    </div>
+    
+    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="accuracy" pool=system.stats.certes.pools.accuracy label="ISUN.PoolAccuracy"}}
+    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="movement" pool=system.stats.certes.pools.movement label="ISUN.PoolMovement"}}
+    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="physicality" pool=system.stats.certes.pools.physicality label="ISUN.PoolPhysicality"}}
+    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="perception" pool=system.stats.certes.pools.perception label="ISUN.PoolPerception"}}
+  </div>
+
+  <div class="stat-column qualia">
+    <div class="stat-header">
+      <h2>{{localize "ISUN.StatQualia"}}</h2>
+      <div class="stat-totals">
+        <input type="number" name="system.stats.qualia.value" value="{{system.stats.qualia.value}}" />
+        <span>/</span>
+        <input type="number" name="system.stats.qualia.max" value="{{system.stats.qualia.max}}" />
+      </div>
+    </div>
+    
+    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="sorcery" pool=system.stats.qualia.pools.sorcery label="ISUN.PoolSorcery"}}
+    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="interaction" pool=system.stats.qualia.pools.interaction label="ISUN.PoolInteraction"}}
+    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="intellect" pool=system.stats.qualia.pools.intellect label="ISUN.PoolIntellect"}}
+    
+    {{!-- Sortilege uses enhancements instead of bene --}}
+    <div class="pool-row sortilege">
+      <div class="pool-label">{{localize "ISUN.PoolSortilege"}}</div>
+      <div class="pool-pips">
+        {{#times (poolRemaining system.stats.qualia.pools.sortilege)}}
+          <span class="enhancement-pip empty"></span>
+        {{/times}}
+        {{#times system.stats.qualia.pools.sortilege.value}}
+          <span class="enhancement-pip full"></span>
+        {{/times}}
+      </div>
+      <div class="pool-inputs">
+        <input type="number" name="system.stats.qualia.pools.sortilege.value" value="{{system.stats.qualia.pools.sortilege.value}}" />
+        <span>/</span>
+        <input type="number" name="system.stats.qualia.pools.sortilege.max" value="{{system.stats.qualia.pools.sortilege.max}}" />
+      </div>
+    </div>
+  </div>
+</div>

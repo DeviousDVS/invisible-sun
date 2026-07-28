@@ -1,0 +1,90 @@
+:root {
+  /* === INVISIBLE SUN DESIGN TOKENS === */
+  
+  /* Core palette */
+  --isun-bg-primary:      #08080e;     /* Near-black */
+  --isun-bg-secondary:    #0f0f1a;     /* Dark navy-black */
+  --isun-bg-surface:      #16162a;     /* Card surfaces */
+  --isun-bg-elevated:     #1e1e3a;     /* Elevated panels */
+  --isun-border:          #2a2a4a;     /* Subtle borders */
+  --isun-border-accent:   #d4af37;     /* Gold accent */
+  
+  /* Text */
+  --isun-text-primary:    #e8e4dc;     /* Warm off-white */
+  --isun-text-secondary:  #9a9590;     /* Muted warm grey */
+  --isun-text-accent:     #d4af37;     /* Gold headings */
+  
+  /* Sun colors (exact game suns) */
+  --isun-sun-silver:      #c0c0c0;
+  --isun-sun-green:       #2ecc71;
+  --isun-sun-blue:        #5b9bd5;
+  --isun-sun-red:         #e74c3c;
+  --isun-sun-indigo:      #8e6fbf;
+  --isun-sun-gold:        #f0c040;
+  --isun-sun-grey:        #7f8c8d;
+  --isun-sun-pale:        #ecf0f1;
+  --isun-sun-invisible:   linear-gradient(135deg, #d4af37, #8e6fbf, #f0c040);
+  
+  /* Semantic colors */
+  --isun-wound:           #c0392b;
+  --isun-anguish:         #8e44ad;
+  --isun-joy:             #f0c040;
+  --isun-despair:         #5b5ea6;
+  --isun-acumen:          #27ae60;
+  --isun-crux:            #e67e22;
+  --isun-flux:            #e74c3c;
+  
+  /* Typography */
+  --isun-font-heading:    'Cinzel', 'Georgia', serif;
+  --isun-font-body:       'Crimson Text', 'Georgia', serif;
+  --isun-font-ui:         'Inter', 'Segoe UI', sans-serif;
+  
+  /* Spacing */
+  --isun-space-xs: 4px;
+  --isun-space-sm: 8px;
+  --isun-space-md: 16px;
+  --isun-space-lg: 24px;
+  --isun-space-xl: 32px;
+  
+  /* Effects */
+  --isun-glow-gold:       0 0 10px rgba(212, 175, 55, 0.3);
+  --isun-glow-flux:       0 0 15px rgba(231, 76, 60, 0.5);
+}
+
+/* Global Foundry Overrides for ISUN System */
+.invisible-sun.sheet .window-content {
+  background: var(--isun-bg-primary);
+  color: var(--isun-text-primary);
+  font-family: var(--isun-font-body);
+  padding: 0;
+}
+
+.invisible-sun.sheet input, 
+.invisible-sun.sheet select,
+.invisible-sun.sheet textarea {
+  background: var(--isun-bg-secondary);
+  color: var(--isun-text-primary);
+  border: 1px solid var(--isun-border);
+  font-family: var(--isun-font-ui);
+}
+
+.invisible-sun.sheet input:focus, 
+.invisible-sun.sheet select:focus,
+.invisible-sun.sheet textarea:focus {
+  border-color: var(--isun-border-accent);
+  box-shadow: var(--isun-glow-gold);
+}
+
+.invisible-sun.sheet h1,
+.invisible-sun.sheet h2,
+.invisible-sun.sheet h3 {
+  font-family: var(--isun-font-heading);
+  color: var(--isun-text-accent);
+  border-bottom: 1px solid var(--isun-border);
+}
+
+.invisible-sun.sheet .editor-content {
+  background: var(--isun-bg-secondary);
+  padding: var(--isun-space-sm);
+  border: 1px solid var(--isun-border);
+}

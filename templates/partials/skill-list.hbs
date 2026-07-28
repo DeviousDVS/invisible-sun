@@ -1,0 +1,23 @@
+<div class="skill-list item-list">
+  <div class="list-header">
+    <span class="name">Skill</span>
+    <span class="level">Level</span>
+    <span class="actions">
+      <a class="item-create" data-type="Skill" title="Create Skill"><i class="fa-solid fa-plus"></i></a>
+    </span>
+  </div>
+  
+  {{#each skills as |item|}}
+    <div class="item" data-item-id="{{item.id}}">
+      <div class="name rollable" data-action="roll-skill">
+        <img src="{{item.img}}" title="{{item.name}}" width="24" height="24"/>
+        <span>{{item.name}}</span>
+      </div>
+      <div class="level">{{item.system.level}}</div>
+      <div class="actions">
+        <a class="item-edit" title="Edit Item"><i class="fa-solid fa-edit"></i></a>
+        <a class="item-delete" title="Delete Item"><i class="fa-solid fa-trash"></i></a>
+      </div>
+    </div>
+  {{/each}}
+</div>

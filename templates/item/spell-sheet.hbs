@@ -1,0 +1,61 @@
+<div class="{{cssClass}}" autocomplete="off">
+  <header class="sheet-header">
+    <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}"/>
+    <div class="header-fields">
+      <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Name"/></h1>
+      <div class="item-subtitle">
+        <select name="system.spellType">
+          {{selectOptions config.spellTypes selected=system.spellType localize=true}}
+        </select>
+        <span>Level</span>
+        <input type="number" name="system.level" value="{{system.level}}" min="0" />
+      </div>
+    </div>
+  </header>
+
+  <section class="sheet-body item-sheet-body">
+    <div class="spell-properties grid-2col">
+      <div class="form-group">
+        <label>Color</label>
+        <select name="system.color">
+          {{selectOptions config.spellColorChoices selected=system.color}}
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Cost</label>
+        <input type="text" name="system.cost" value="{{system.cost}}" />
+      </div>
+      
+      <div class="form-group">
+        <label>Range</label>
+        <input type="text" name="system.range" value="{{system.range}}" />
+      </div>
+      
+      <div class="form-group">
+        <label>Duration</label>
+        <input type="text" name="system.duration" value="{{system.duration}}" />
+      </div>
+      
+      <div class="form-group">
+        <label>Dice</label>
+        <input type="text" name="system.dice" value="{{system.dice}}" />
+      </div>
+      
+      <div class="form-group">
+        <label>Facets</label>
+        <input type="text" name="system.facets" value="{{system.facets}}" />
+      </div>
+      
+      <div class="form-group full-width">
+        <label>Depletion</label>
+        <input type="text" name="system.depletion" value="{{system.depletion}}" />
+      </div>
+    </div>
+    
+    <div class="item-description">
+      <h3>Description</h3>
+      {{editor system.description target="system.description" button=true owner=owner editable=editable}}
+    </div>
+  </section>
+</div>

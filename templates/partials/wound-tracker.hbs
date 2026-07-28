@@ -1,0 +1,54 @@
+<div class="health-tracking">
+  <div class="health-row wounds-row">
+    <label>{{localize "ISUN.Wounds"}}</label>
+    <div class="health-pips">
+      {{#times (subtract system.status.wounds.max system.status.wounds.value)}}
+        <span class="wound-pip empty" data-action="add-wound"></span>
+      {{/times}}
+      {{#times system.status.wounds.value}}
+        <span class="wound-pip full" data-action="remove-wound"></span>
+      {{/times}}
+    </div>
+  </div>
+
+  <div class="health-row anguish-row">
+    <label>{{localize "ISUN.Anguish"}}</label>
+    <div class="health-pips">
+      {{#times (subtract system.status.anguish.max system.status.anguish.value)}}
+        <span class="anguish-pip empty" data-action="add-anguish"></span>
+      {{/times}}
+      {{#times system.status.anguish.value}}
+        <span class="anguish-pip full" data-action="remove-anguish"></span>
+      {{/times}}
+    </div>
+  </div>
+
+  <div class="injuries-row">
+    <label>{{localize "ISUN.Injuries"}}</label>
+    <div class="injury-inputs">
+      <div class="injury-group">
+        <i class="fa-solid fa-droplet" title="Physical"></i>
+        <input type="number" name="system.status.injuries.physical" value="{{system.status.injuries.physical}}" min="0" max="2" />
+      </div>
+      <div class="injury-group">
+        <i class="fa-solid fa-brain" title="Mental"></i>
+        <input type="number" name="system.status.injuries.mental" value="{{system.status.injuries.mental}}" min="0" max="2" />
+      </div>
+    </div>
+  </div>
+
+  <div class="defenses-row">
+    <div class="defense-group">
+      <label>{{localize "ISUN.Armor"}}</label>
+      <input type="number" name="system.status.armor" value="{{system.status.armor}}" min="0" />
+    </div>
+    <div class="defense-group">
+      <label>{{localize "ISUN.Ward"}}</label>
+      <input type="number" name="system.status.ward" value="{{system.status.ward}}" min="0" />
+    </div>
+    <div class="defense-group">
+      <label>{{localize "ISUN.Scourge"}}</label>
+      <input type="number" name="system.status.scourge" value="{{system.status.scourge}}" min="0" />
+    </div>
+  </div>
+</div>
