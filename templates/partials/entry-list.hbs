@@ -1,0 +1,25 @@
+{{!-- Repeatable title + description rows. Callers pass `entries`, `path`,
+      `heading` and optionally `hint`. --}}
+<div class="narrative-section mt-4">
+  <div class="entry-list-header">
+    <h3>{{heading}}</h3>
+    <a class="entry-add" data-path="{{path}}" title="{{localize 'ISUN.AddEntry'}}">
+      <i class="fa-solid fa-plus"></i>
+    </a>
+  </div>
+  {{#if hint}}<p class="hint">{{hint}}</p>{{/if}}
+
+  {{#each entries as |entry i|}}
+    <div class="titled-entry">
+      <input type="text" class="entry-title" name="{{../path}}.{{i}}.title"
+             value="{{entry.title}}" placeholder="{{localize 'ISUN.EntryTitle'}}" />
+      <input type="text" class="entry-desc" name="{{../path}}.{{i}}.description"
+             value="{{entry.description}}" placeholder="{{localize 'ISUN.EntryDescription'}}" />
+      <a class="entry-delete" data-path="{{../path}}" data-index="{{i}}" title="{{localize 'ISUN.RemoveEntry'}}">
+        <i class="fa-solid fa-trash"></i>
+      </a>
+    </div>
+  {{else}}
+    <div class="empty-state">{{localize "ISUN.NoEntries"}}</div>
+  {{/each}}
+</div>

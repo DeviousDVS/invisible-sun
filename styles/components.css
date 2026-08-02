@@ -541,6 +541,63 @@
 .item-delete:hover { color: var(--isun-wound); }
 
 /* ════════════════════════════════════════════════════════
+ * NARRATIVE
+ * ════════════════════════════════════════════════════════ */
+
+.narrative-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.narrative-section > h3 {
+  margin-top: 0;
+}
+
+/* The soul is secret; mark it so it reads as privileged at a glance. */
+.narrative-section.secret {
+  border-left: 3px solid var(--isun-sun-indigo);
+  padding-left: var(--isun-space-md);
+}
+
+.narrative-section.secret > h3 {
+  color: var(--isun-sun-indigo);
+  border-bottom-color: var(--isun-sun-indigo);
+}
+
+.entry-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--isun-space-sm);
+}
+
+.entry-list-header h3 {
+  flex: 1;
+  margin: 0;
+}
+
+.entry-add,
+.entry-delete {
+  color: var(--isun-text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.entry-add:hover { color: var(--isun-text-accent); }
+.entry-delete:hover { color: var(--isun-wound); }
+
+.titled-entry {
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-sm);
+  padding: var(--isun-space-xs) 0;
+  border-bottom: 1px solid var(--isun-border);
+}
+
+.titled-entry .entry-title { flex: 0 0 30%; }
+.titled-entry .entry-desc  { flex: 1; min-width: 0; }
+
+/* ════════════════════════════════════════════════════════
  * CHARACTER ARCS
  * ════════════════════════════════════════════════════════ */
 

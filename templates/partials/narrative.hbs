@@ -1,0 +1,65 @@
+<div class="narrative-container">
+
+  <div class="narrative-section">
+    <h3>{{localize "ISUN.Appearance"}}</h3>
+    {{editor system.narrative.appearance target="system.narrative.appearance" button=true owner=owner editable=editable}}
+    <div class="form-group full-width mt-4">
+      <label>{{localize "ISUN.Quirk"}}</label>
+      <input type="text" name="system.narrative.quirk" value="{{system.narrative.quirk}}"
+             placeholder="{{localize 'ISUN.QuirkPlaceholder'}}" />
+    </div>
+  </div>
+
+  <div class="narrative-section mt-4">
+    <h3>{{localize "ISUN.ShadowLife"}}</h3>
+    <p class="hint">{{localize "ISUN.ShadowLifeHint"}}</p>
+    {{editor system.narrative.shadowLife target="system.narrative.shadowLife" button=true owner=owner editable=editable}}
+  </div>
+
+  {{> "systems/invisible-sun/templates/partials/entry-list.hbs"
+      entries=system.narrative.memories path="system.narrative.memories"
+      heading=(localize "ISUN.Memories") hint=(localize "ISUN.MemoriesHint")}}
+
+  {{> "systems/invisible-sun/templates/partials/entry-list.hbs"
+      entries=system.narrative.personality path="system.narrative.personality"
+      heading=(localize "ISUN.Personality") hint=(localize "ISUN.PersonalityHint")}}
+
+  {{!-- The soul is secret: shown to owners and GMs, hidden from observers. --}}
+  {{#if showSecrets}}
+    <div class="narrative-section secret mt-4">
+      <h3><i class="fa-solid fa-eye-slash"></i> {{localize "ISUN.SecretSoul"}}</h3>
+      <p class="hint">{{localize "ISUN.SecretSoulHint"}}</p>
+      <div class="grid-2col">
+        <div class="form-group">
+          <label>{{localize "ISUN.SoulName"}}</label>
+          <input type="text" name="system.meta.soulName" value="{{system.meta.soulName}}" />
+        </div>
+        <div class="form-group">
+          <label>{{localize "ISUN.SecretName"}}</label>
+          <input type="text" name="system.meta.secretName" value="{{system.meta.secretName}}" />
+        </div>
+      </div>
+    </div>
+  {{/if}}
+
+  <div class="narrative-section mt-4">
+    <h3>{{localize "ISUN.Notes"}}</h3>
+    {{editor system.biography target="system.biography" button=true owner=owner editable=editable}}
+  </div>
+
+  <div class="narrative-section mt-4">
+    <h3>{{localize "ISUN.PlayerInfo"}}</h3>
+    <div class="grid-2col">
+      <div class="form-group">
+        <label>{{localize "ISUN.PlayerName"}}</label>
+        <input type="text" name="system.player.name" value="{{system.player.name}}" />
+      </div>
+      <div class="form-group">
+        <label>{{localize "ISUN.RpStyle"}}</label>
+        <input type="text" name="system.player.rpStyle" value="{{system.player.rpStyle}}"
+               placeholder="{{localize 'ISUN.RpStylePlaceholder'}}" />
+      </div>
+    </div>
+  </div>
+
+</div>

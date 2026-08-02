@@ -86,6 +86,10 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     // Config for template dropdowns
     context.config = CONFIG.ISUN;
 
+    // A vislae's soul is secret — the fan sheet this was modelled on keeps it
+    // in a hidden row. Owners and GMs see it; observers with read access do not.
+    context.showSecrets = this.document.isOwner;
+
     // Character Sentence derivation
     context.characterSentence = {
       foundation: context.foundations[0]?.name || "[Foundation]",
@@ -106,10 +110,49 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     });
   }
 
+  /** Narrative lists the sheet can add rows to. */
+  static ENTRY_LISTS = ["system.narrative.memories", "system.narrative.personality"];
+
+  /**
+   * expandObject turns `foo.0.title` into `{foo: {0: {...}}}`, which an
+   * ArrayField rejects. Convert those numeric-keyed objects back into arrays.
+   */
+  _processFormData(event, form, formData) {
+    const submitData = super._processFormData(event, form, formData);
+
+    for (const path of ISUNVislaeSheet.ENTRY_LISTS) {
+      const raw = foundry.utils.getProperty(submitData, path);
+      if (!raw || Array.isArray(raw) || typeof raw !== "object") continue;
+      const list = Object.keys(raw)
+        .sort((a, b) => Number(a) - Number(b))
+        .map(k => raw[k]);
+      foundry.utils.setProperty(submitData, path, list);
+    }
+
+    return submitData;
+  }
+
   // Application V2 Event Listeners
   _attachPartListeners(partId, htmlElement, options) {
     super._attachPartListeners(partId, htmlElement, options);
     this._attachCustomListeners(htmlElement);
+  }
+
+  async _onEntryAdd(event) {
+    event.preventDefault();
+    const path = event.currentTarget.dataset.path;
+    if (!path) return;
+    const list = foundry.utils.getProperty(this.document, path) ?? [];
+    return this.document.update({ [path]: [...list, { title: "", description: "" }] });
+  }
+
+  async _onEntryDelete(event) {
+    event.preventDefault();
+    const { path, index } = event.currentTarget.dataset;
+    if (!path) return;
+    const list = [...(foundry.utils.getProperty(this.document, path) ?? [])];
+    list.splice(Number(index), 1);
+    return this.document.update({ [path]: list });
   }
   
   _attachCustomListeners(html) {
@@ -127,6 +170,10 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     html.querySelectorAll('[data-action^="roll-"], [data-action="use-ability"]').forEach(el => {
       el.addEventListener('click', this._onItemRoll.bind(this));
     });
+
+    // Repeatable narrative entries
+    html.querySelectorAll('.entry-add').forEach(el => el.addEventListener('click', this._onEntryAdd.bind(this)));
+    html.querySelectorAll('.entry-delete').forEach(el => el.addEventListener('click', this._onEntryDelete.bind(this)));
   }
 
   async _onSpendBene(event) {

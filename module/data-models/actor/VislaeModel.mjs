@@ -123,9 +123,34 @@ export class VislaeModel extends foundry.abstract.DataModel {
       arcs:           nullableCap(),
     });
 
+    /* ── Narrative ──
+     * Prompts a vislae is actually asked at the table, kept apart rather than
+     * folded into one biography blob. "Shadow life" is the exile before
+     * returning to the Actuality; "memories" is a prompt rather than a rules
+     * term, but earns its place for the same reason the others do. */
+    const titledEntry = () => new fields.SchemaField({
+      title:       new fields.StringField({ required: false, initial: "" }),
+      description: new fields.StringField({ required: false, initial: "" }),
+    });
+
+    const narrative = new fields.SchemaField({
+      appearance:  new fields.HTMLField({ required: false, initial: "" }),
+      quirk:       new fields.StringField({ required: false, initial: "" }),
+      shadowLife:  new fields.HTMLField({ required: false, initial: "" }),
+      memories:    new fields.ArrayField(titledEntry()),
+      personality: new fields.ArrayField(titledEntry()),
+    });
+
+    /* ── Player ── */
+    const player = new fields.SchemaField({
+      name:    new fields.StringField({ required: false, initial: "" }),
+      rpStyle: new fields.StringField({ required: false, initial: "" }),
+    });
+
     /* ── Biography ── */
     const biography = new fields.HTMLField({ required: false, initial: "" });
 
-    return { stats, status, advancement, meta, economy, house, rests, limitOverrides, biography };
+    return { stats, status, advancement, meta, economy, house, rests, limitOverrides,
+             narrative, player, biography };
   }
 }
