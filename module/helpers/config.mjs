@@ -5,17 +5,34 @@
  * constants live here so they can be referenced throughout the system.
  */
 
+/**
+ * The nine suns, declared in Path order.
+ *
+ * The Path runs Silver → Green → Blue → Indigo → Grey → Pale → Red → Gold; the
+ * Nightside Path is that sequence reversed. The Invisible Sun sits outside the
+ * Path entirely, so it carries no position.
+ *
+ * This ordering is mechanically load-bearing: a Sooth card's effect is doubled
+ * when its sun matches its position on the Path, so a wrong sequence silently
+ * produces wrong magic.
+ */
 const suns = {
   silver: { label: "ISUN.SunSilver", color: "#c0c0c0", order: 0 },
   green: { label: "ISUN.SunGreen", color: "#2ecc71", order: 1 },
   blue: { label: "ISUN.SunBlue", color: "#5b9bd5", order: 2 },
-  red: { label: "ISUN.SunRed", color: "#e74c3c", order: 3 },
-  indigo: { label: "ISUN.SunIndigo", color: "#8e6fbf", order: 4 },
-  gold: { label: "ISUN.SunGold", color: "#f0c040", order: 5 },
-  grey: { label: "ISUN.SunGrey", color: "#7f8c8d", order: 6 },
-  pale: { label: "ISUN.SunPale", color: "#ecf0f1", order: 7 },
-  invisible: { label: "ISUN.SunInvisible", color: "#d4af37", order: 8 },
+  indigo: { label: "ISUN.SunIndigo", color: "#8e6fbf", order: 3 },
+  grey: { label: "ISUN.SunGrey", color: "#7f8c8d", order: 4 },
+  pale: { label: "ISUN.SunPale", color: "#ecf0f1", order: 5 },
+  red: { label: "ISUN.SunRed", color: "#e74c3c", order: 6 },
+  gold: { label: "ISUN.SunGold", color: "#f0c040", order: 7 },
+  invisible: { label: "ISUN.SunInvisible", color: "#d4af37", order: null, offPath: true },
 };
+
+/** The Path in traversal order. Reverse this for the Nightside Path. */
+const pathOfSuns = Object.entries(suns)
+  .filter(([, s]) => !s.offPath)
+  .sort((a, b) => a[1].order - b[1].order)
+  .map(([key]) => key);
 
 export const ISUN = Object.freeze({
 
@@ -24,6 +41,10 @@ export const ISUN = Object.freeze({
    * ────────────────────────────────────────────── */
 
   suns,
+  pathOfSuns,
+
+  /** Nightside traverses the Path in reverse. */
+  nightsidePath: [...pathOfSuns].reverse(),
 
   /** Map spell colour strings (as stored in data) to sun keys. */
   spellColors: Object.fromEntries(
@@ -59,6 +80,64 @@ export const ISUN = Object.freeze({
     "Short": "ISUN.RangeShort",
     "Long": "ISUN.RangeLong",
     "VeryLong": "ISUN.RangeVeryLong",
+  },
+
+  /** Distances behind each range band, and the area of the matching size. */
+  rangeDetails: {
+    "Close":    { distance: 10,  area: 10,  hint: "ISUN.RangeCloseHint" },
+    "Short":    { distance: 50,  area: 50,  hint: "ISUN.RangeShortHint" },
+    "Long":     { distance: 100, area: 100, hint: "ISUN.RangeLongHint" },
+    "VeryLong": { distance: 500, area: 500, hint: "ISUN.RangeVeryLongHint" },
+  },
+
+  /* ──────────────────────────────────────────────
+   * CAPS
+   * ────────────────────────────────────────────── */
+
+  /**
+   * Base values only. The effective limit is derived per-actor as
+   * base + item contributions + GM override — see ISUNActor#_prepareLimits.
+   *
+   *  - objectsOfPower: The Key p3825; raised by the Magical Management secret
+   *  - ephemera:       The Key p4268; Maker 6th degree raises this to 6
+   *  - incantations:   a sub-cap *within* the ephemera limit, not additional
+   *  - arcs:           The Key p166 — GM advice rather than a rule, so this is
+   *                    also exposed as a world setting
+   *
+   * Kindled items count toward none of these (The Key p16051).
+   */
+  limits: {
+    objectsOfPower: 3,
+    ephemera: 3,
+    incantations: 3,
+    arcs: 3,
+  },
+
+  /* ──────────────────────────────────────────────
+   * ADVANCEMENT
+   * ────────────────────────────────────────────── */
+
+  /** What Acumen and Crux can be spent on. */
+  advancementPurchases: {
+    spell: "ISUN.PurchaseSpell",
+    characterSecret: "ISUN.PurchaseCharacterSecret",
+    houseSecret: "ISUN.PurchaseHouseSecret",
+    orderSecret: "ISUN.PurchaseOrderSecret",
+    forteAbility: "ISUN.PurchaseForteAbility",
+    orderDegree: "ISUN.PurchaseOrderDegree",
+    skill: "ISUN.PurchaseSkill",
+    connection: "ISUN.PurchaseConnection",
+    npcBond: "ISUN.PurchaseNpcBond",
+    aggregate: "ISUN.PurchaseAggregate",
+    minorMagic: "ISUN.PurchaseMinorMagic",
+  },
+
+  /** Minor magics are a category distinct from ephemera. */
+  minorMagicTypes: {
+    cantrip: "ISUN.MinorMagicCantrip",
+    charm: "ISUN.MinorMagicCharm",
+    hex: "ISUN.MinorMagicHex",
+    sign: "ISUN.MinorMagicSign",
   },
 
   /* ──────────────────────────────────────────────

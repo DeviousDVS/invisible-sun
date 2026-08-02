@@ -137,6 +137,19 @@ Hooks.once("init", () => {
     label: "ISUN.SheetForte",
   });
 
+  // ── Settings ─────────────────────────────────────────
+  // The Key (p166) frames the arc limit as GM advice rather than a rule, so
+  // the table gets to set it. The other caps are in-fiction and derived.
+  game.settings.register("invisible-sun", "arcLimit", {
+    name: "ISUN.SettingArcLimit",
+    hint: "ISUN.SettingArcLimitHint",
+    scope: "world",
+    config: true,
+    type: new foundry.data.fields.NumberField({
+      required: true, integer: true, min: 0, initial: ISUN.limits.arcs
+    })
+  });
+
   // ── Handlebars ───────────────────────────────────────
   registerHandlebarsHelpers();
   preloadHandlebarsTemplates();

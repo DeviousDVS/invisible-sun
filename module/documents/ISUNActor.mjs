@@ -80,7 +80,71 @@ export class ISUNActor extends Actor {
   /**
    * Derivation logic for Vislae characters
    */
+  /**
+   * Derive the effective caps as base + item contributions + GM override.
+   *
+   * Any owned item may raise a limit by declaring `system.grants.limits.<key>`.
+   * Nothing does so yet — the Magical Management secret, Maker degree
+   * progression and forte abilities each need their item type modelled first —
+   * but the summing is in place so those only have to supply the number.
+   *
+   * Caps are advisory: `over` is reported for the sheet to flag, and nothing is
+   * blocked. A limit we compute too low must never stop a player recording what
+   * the rules allow.
+   */
+  _prepareLimits(system) {
+    const base = { ...(CONFIG.ISUN?.limits ?? {}) };
+
+    // The arc limit is GM advice rather than a rule, so the table can set it.
+    const arcSetting = game.settings?.get?.("invisible-sun", "arcLimit");
+    if (Number.isInteger(arcSetting)) base.arcs = arcSetting;
+
+    // Sum contributions from owned items.
+    const mods = { objectsOfPower: 0, ephemera: 0, incantations: 0, arcs: 0 };
+    for (const item of this.items) {
+      const granted = item.system?.grants?.limits;
+      if (!granted) continue;
+      for (const key of Object.keys(mods)) {
+        const n = Number(granted[key]);
+        if (Number.isFinite(n)) mods[key] += n;
+      }
+    }
+
+    const count = type => this.items.filter(i => i.type === type).length;
+    const incantations = count("Incantation");
+
+    // Kindled items count toward neither limit (The Key, p16051).
+    const objectsOfPower = this.items.filter(i =>
+      i.type === "ObjectOfPower" && i.system?.objectType !== "kindled").length;
+
+    const used = {
+      // Incantations are held *within* the ephemera limit, not beside it.
+      ephemera: count("Ephemera") + incantations,
+      incantations,
+      objectsOfPower,
+      arcs: this.items.filter(i => i.type === "CharacterArc" && i.system?.status === "active").length,
+    };
+
+    const overrides = system.limitOverrides ?? {};
+    system.limits = {};
+
+    for (const key of Object.keys(mods)) {
+      const override = overrides[key];
+      const value = Number.isInteger(override) ? override : (base[key] ?? 0) + mods[key];
+      system.limits[key] = {
+        base: base[key] ?? 0,
+        mods: mods[key],
+        override: Number.isInteger(override) ? override : null,
+        value,
+        used: used[key],
+        over: used[key] > value,
+      };
+    }
+  }
+
   _prepareVislaeData(system) {
+    this._prepareLimits(system);
+
     // 1. Crux Calculation: You can only have Crux equal to the pairs of Joy & Despair
     // Actually in IS, you "spend" Joy and Despair to get Crux, so this might be manually managed.
     // However, if we want to auto-calculate available crux pairs:

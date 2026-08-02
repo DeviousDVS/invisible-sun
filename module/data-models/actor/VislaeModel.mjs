@@ -97,9 +97,24 @@ export class VislaeModel extends foundry.abstract.DataModel {
       hourUsed:   new fields.NumberField({ required: true, initial: 0, integer: true, min: 0, max: 1 }),
     });
 
+    /* ── Limit overrides ──
+     * The effective cap is derived (base + item contributions + override).
+     * These are the GM's manual escape hatch for entitlements the system does
+     * not yet compute — null means "no override", not zero. */
+    const nullableCap = () => new fields.NumberField({
+      required: false, nullable: true, initial: null, integer: true, min: 0
+    });
+
+    const limitOverrides = new fields.SchemaField({
+      ephemera:       nullableCap(),
+      incantations:   nullableCap(),
+      objectsOfPower: nullableCap(),
+      arcs:           nullableCap(),
+    });
+
     /* ── Biography ── */
     const biography = new fields.HTMLField({ required: false, initial: "" });
 
-    return { stats, status, advancement, meta, economy, house, rests, biography };
+    return { stats, status, advancement, meta, economy, house, rests, limitOverrides, biography };
   }
 }

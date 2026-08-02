@@ -1,5 +1,7 @@
 import { ISUN } from "../../helpers/config.mjs";
 
+import { grantsSchema } from "../_fields.mjs";
+
 /**
  * Invisible Sun — Forte Ability Item Data Model
  */
@@ -13,6 +15,7 @@ export class ForteAbilityModel extends foundry.abstract.DataModel {
       color:       new fields.StringField({ required: false, initial: "", blank: true, choices: Object.keys(ISUN.spellColorChoices) }),
       depletion:   new fields.StringField({ required: false, initial: "" }),
       parentForte: new fields.StringField({ required: false, initial: "" }),
+      grants:      grantsSchema(),
     };
   }
 }
