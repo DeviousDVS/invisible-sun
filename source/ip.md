@@ -483,20 +483,123 @@ computations, with a world setting for the arc limit.
 
 ### The injury pipeline is substantially unimplemented
 
-The Gate (p2405–2470) specifies a damage sequence we mostly skip:
+Damage runs Injuries → Wounds *or* Anguish, and our implementation gets the
+central branch wrong. Sources: The Gate p2405–2470 (damage, Wounds), p2490–2520
+(Anguish), p2540–2570 (the third-injury rule), p2600–2615 (recovery).
 
-1. **Armor reduces damage point-by-point**, before anything is recorded
-2. Surviving damage becomes Injuries; **3 Injuries = 1 Wound**; **3 Wounds = death**
-3. **1 Wound inflicts a scourge in *every* Certes pool; 2 Wounds inflict 2** —
-   `status.scourge` is currently a single hand-entered number when it should be
-   derived from wounds and applied per pool
-4. **Physicality bene may negate a Wound, but only as the damage arrives** —
-   never retroactively (the *Expansive Endeavor* secret allows several)
-5. **Healing Injuries does nothing to Wounds or Anguish**; the overflow is
-   strictly one-directional
+#### One Injury track, not two
 
-`ISUNActor._handleVislaeInjuryOverflow` also calls `this.updateSource()` inside
-`_preUpdate`, where the `changed` object should be mutated instead.
+This is the correction that matters most. `VislaeModel` currently declares
+`status.injuries.physical` and `status.injuries.mental` as **separate**
+counters, and `_handleVislaeInjuryOverflow` converts each independently once it
+reaches three. That is not the rule.
+
+There is a **single Injury track**. Each Injury remembers whether it came from
+a physical or a mental source, and on the third Injury **the type of that third
+Injury decides** what the set becomes (The Gate, p2547):
+
+> If a character has 1 Injury from a mental attack and 1 Injury from a physical
+> attack, the third Injury sustained determines whether the Injuries translate
+> to a Wound or an Anguish. So if you suffer 2 points of mental damage and then
+> 1 point of physical damage, those Injuries become 1 Wound.
+
+So two mental plus one physical yields a **Wound**, not an Anguish and not two
+part-filled tracks. Our model cannot represent that state at all. Note this is
+also not the "whichever is dominant" reading the fan sheet gives — it is
+strictly the most recent Injury that decides.
+
+The track resets to empty after converting.
+
+#### Wounds and Anguish are siblings, not tiers
+
+They differ in more than flavour:
+
+| | Wound | Anguish |
+|---|---|---|
+| Inflicted by | physical damage | mental and spiritual attacks |
+| 1 sustained | scourge in **all Certes** pools | scourge in **all Qualia** pools |
+| 2 sustained | 2 scourges in all Certes pools | 2 scourges in all Qualia pools |
+| 3 sustained | **death** | long-term catatonia, madness, utter suggestibility, **or** death, as circumstances suggest |
+| Negated by | 1 bene from **Physicality** | 1 bene from **Intellect** |
+| Armor applies | yes, point-by-point | **no — armor does not protect against mental damage** |
+
+Three Anguish is therefore *not* automatically fatal the way three Wounds are;
+it is a GM call among several bad outcomes. Intellect bene can never negate a
+Wound.
+
+`status.scourge` is currently one hand-entered number. It should be derived —
+wounds scourging the Certes pools, anguish scourging the Qualia pools.
+
+#### Order of application
+
+1. **Armor** reduces physical damage point-by-point. It does nothing against
+   mental damage.
+2. What remains becomes Injuries on the shared track, each tagged by source.
+3. Every third Injury converts, per the third-Injury rule above.
+4. **Physicality bene may negate a Wound only as the damage arrives** — never
+   afterwards. The *Expansive Endeavor* secret allows several at once.
+5. Some powerful magical attacks inflict Wounds or Anguish **directly**,
+   bypassing both Armor and the Injury track.
+
+#### Recovery is asymmetric
+
+- **Physicality bene** recovers already-sustained Injuries one for one. This is
+  distinct from spending Physicality to negate a Wound as it lands, and it
+  cannot touch a Wound once sustained.
+- A **ten-minute or one-hour rest** recovers 1 Wound *or* 1 Anguish. A PC has
+  one rest of each type per day; they are otherwise used to refresh pools.
+- A **full night's sleep** also recovers 1 Wound or Anguish.
+- **Healing Injuries never affects Wounds or Anguish.** Once either is
+  sustained it must be healed on its own terms.
+
+#### Shadow characters
+
+Shadow characters take Injuries, Wounds and Anguish exactly as vislae do and
+have the same four rests, but having no pools they spend the one-action rests
+to heal 1 Injury and the longer rests to heal 1 Wound or Anguish (The Gate,
+p3664).
+
+#### NPCs and creatures (Teratology)
+
+Teratology corroborates the shared track — *"boxes represent damage sustained
+as Injuries, and when Injuries are all checked, they become a Wound or Anguish,
+as appropriate (and then reset)"* — and adds rules of its own.
+
+**The Injury threshold is not fixed at three for NPCs.** It scales with level:
+
+| NPC level | Injuries per Wound |
+|---|---|
+| 1–2 | 1–2 |
+| 3–5 (general case) | 3 |
+| 6+ | 4–6 |
+
+`baseNonPlayerSchema` currently has no Injury track at all and no threshold, so
+both need adding, with the threshold defaulting from level but remaining
+editable — Teratology treats these as guidelines a GM adjusts per creature.
+
+**NPC Armor is not quite PC Armor.** It *"reduces the damage sustained by any
+attack (physical, unless otherwise mentioned)"*, so it defaults to physical but
+individual creatures may declare otherwise. For PCs, armor never applies to
+mental damage.
+
+Two further things worth modelling eventually, both currently absent:
+
+- **Defenses** are modifiers to Withstand, Dodge and Resist, added to level to
+  give a per-defence effective level. A creature may also have magic defences
+  requiring two or more successes, or outright immunities.
+- **Regeneration and healing** abilities are expressed as "heals 1 Wound or
+  Anguish", which the same recovery path can serve.
+
+#### Implementation notes
+
+`ISUNActor._handleVislaeInjuryOverflow` calls `this.updateSource()` inside
+`_preUpdate`, where the `changed` object should be mutated instead. It will
+need rewriting regardless, since the separate-counters model it implements is
+not the rule.
+
+The schema needs to change shape, not just behaviour — something along the
+lines of an ordered list of Injuries tagged `physical` or `mental`, so the
+third one can be inspected when it lands.
 
 ## What the fan sheet does that we don't
 
@@ -590,9 +693,27 @@ the derived limit.
 
 ### Phase 3 — Mechanics
 
-The damage pipeline — armor, injuries, wounds, per-pool scourge, and the
-Physicality-bene negation window; `_preUpdate` corrected; death and incapacity
-status effects.
+The damage pipeline, per the specification above. In order:
+
+1. **Reshape the Injury schema.** Replace the separate `injuries.physical` and
+   `injuries.mental` counters with a single ordered list of Injuries tagged by
+   source, so the third-Injury rule can be applied. Add an Injury track and a
+   level-derived `injuriesPerWound` threshold to NPCs and creatures.
+2. **Conversion.** On the third Injury (or the NPC's threshold), convert to a
+   Wound or an Anguish according to that Injury's source, then reset the track.
+3. **Derive scourge.** Wounds scourge every Certes pool, Anguish every Qualia
+   pool, one per point. Retire the hand-entered `status.scourge`.
+4. **Damage application.** Armor first, point-by-point, physical only; then
+   Injuries; with a window to spend Physicality bene to negate an arriving
+   Wound, or Intellect bene an arriving Anguish.
+5. **Recovery.** Physicality bene against standing Injuries; rests and sleep
+   against Wounds and Anguish; never across the boundary.
+6. **Outcomes.** Three Wounds is death. Three Anguish is a GM choice among
+   catatonia, madness, suggestibility or death — so it should prompt rather
+   than resolve itself.
+
+Also: correct `_preUpdate` to mutate `changed` rather than calling
+`updateSource`, and apply status effects for death and incapacity.
 
 ## Open questions
 
