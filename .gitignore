@@ -1,4 +1,9 @@
 source/books/
 trash/
 node_modules/
-packs/
+
+# Compendia are compiled from packs/_source by scripts/compile_packs.js.
+# The LevelDB output is a binary build artifact that rewrites itself whenever
+# Foundry runs; the JSON it is built from is worth reviewing, so keep that.
+packs/*
+!packs/_source/
