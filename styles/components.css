@@ -211,7 +211,7 @@
   padding: var(--isun-space-md);
   text-align: center;
   font-family: var(--isun-font-heading);
-  font-size: 1.2em;
+  font-size: 1.35em;
   border-radius: 4px;
   margin-bottom: var(--isun-space-md);
 }
@@ -230,4 +230,331 @@
 .rollable:hover {
   text-shadow: var(--isun-glow-gold);
   color: var(--isun-text-primary);
+}
+
+/* ════════════════════════════════════════════════════════
+ * PANELS & FIELD GROUPS
+ * ════════════════════════════════════════════════════════ */
+
+.isun-panel,
+.overview-health,
+.overview-advancement,
+.inventory-section,
+.economy-section,
+.house-section {
+  background: var(--isun-bg-surface);
+  border: 1px solid var(--isun-border);
+  border-radius: 4px;
+  padding: var(--isun-space-md);
+}
+
+/* Labelled field: caption above a control, sized by its container rather than
+   stretching to the full sheet width. */
+.form-group,
+.economy-field,
+.house-field,
+.defense-group,
+.injury-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.form-group > label,
+.economy-field > label,
+.house-field > label,
+.defense-group > label {
+  font-family: var(--isun-font-heading);
+  font-size: 0.75em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--isun-text-secondary);
+}
+
+.form-group.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--isun-space-xs);
+}
+
+.mt-4 { margin-top: var(--isun-space-md); }
+
+/* ════════════════════════════════════════════════════════
+ * OVERVIEW TAB
+ * ════════════════════════════════════════════════════════ */
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--isun-space-md);
+  align-items: start;
+}
+
+.health-tracking {
+  display: flex;
+  flex-direction: column;
+  gap: var(--isun-space-sm);
+}
+
+.health-row {
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-sm);
+}
+
+.health-row > label {
+  flex: 0 0 70px;
+  font-family: var(--isun-font-heading);
+  font-size: 0.8em;
+  text-transform: uppercase;
+  color: var(--isun-text-secondary);
+}
+
+.health-pips {
+  display: flex;
+  gap: 6px;
+}
+
+.injuries-row,
+.defenses-row {
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-md);
+  padding-top: var(--isun-space-sm);
+  border-top: 1px solid var(--isun-border);
+}
+
+.injuries-row > label {
+  flex: 0 0 70px;
+  font-family: var(--isun-font-heading);
+  font-size: 0.8em;
+  text-transform: uppercase;
+  color: var(--isun-text-secondary);
+}
+
+.injury-inputs {
+  display: flex;
+  gap: var(--isun-space-md);
+}
+
+.injury-group {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--isun-space-xs);
+}
+
+/* Numeric stat entry stays compact — without a width these stretch to fill
+   the sheet and the label/field pairing becomes unreadable. */
+.injury-group input,
+.defense-group input {
+  width: 52px;
+  text-align: center;
+}
+
+.overview-advancement h3 {
+  margin-top: 0;
+}
+
+/* ════════════════════════════════════════════════════════
+ * IDENTITY TAB
+ * ════════════════════════════════════════════════════════ */
+
+.identity-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--isun-space-md);
+}
+
+/* ════════════════════════════════════════════════════════
+ * INVENTORY / ECONOMY / HOUSE
+ * ════════════════════════════════════════════════════════ */
+
+.inventory-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--isun-space-md);
+}
+
+.inventory-section > h3,
+.economy-section > h3,
+.house-section > h3 {
+  margin-top: 0;
+}
+
+.economy-grid,
+.house-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--isun-space-md);
+}
+
+.economy-field.full-width,
+.house-field.full-width {
+  grid-column: 1 / -1;
+}
+
+/* ════════════════════════════════════════════════════════
+ * LISTS
+ * ════════════════════════════════════════════════════════ */
+
+.list-title {
+  font-family: var(--isun-font-heading);
+  color: var(--isun-text-accent);
+  margin: var(--isun-space-md) 0 var(--isun-space-xs) 0;
+}
+
+.spell-list,
+.skill-list,
+.forte-abilities-list {
+  margin-bottom: var(--isun-space-md);
+}
+
+.empty-state {
+  padding: var(--isun-space-md);
+  text-align: center;
+  color: var(--isun-text-secondary);
+  font-style: italic;
+}
+
+.item-create,
+.item-edit,
+.item-delete,
+.btn-cast,
+.btn-use,
+.btn-refresh {
+  color: var(--isun-text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.item-create:hover,
+.btn-cast:hover,
+.btn-use:hover,
+.btn-refresh:hover {
+  color: var(--isun-text-accent);
+  text-shadow: var(--isun-glow-gold);
+}
+
+.item-edit:hover { color: var(--isun-text-primary); }
+.item-delete:hover { color: var(--isun-wound); }
+
+/* ════════════════════════════════════════════════════════
+ * CHARACTER ARCS
+ * ════════════════════════════════════════════════════════ */
+
+.arcs-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--isun-space-md);
+}
+
+.arcs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.arcs-header h2 {
+  margin: 0;
+  border: none;
+}
+
+.arc-card {
+  background: var(--isun-bg-surface);
+  border: 1px solid var(--isun-border);
+  border-left: 3px solid var(--isun-border-accent);
+  border-radius: 4px;
+  padding: var(--isun-space-md);
+}
+
+.arc-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--isun-space-sm);
+}
+
+.arc-header h3 {
+  margin: 0;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-sm);
+}
+
+.arc-status {
+  font-family: var(--isun-font-ui);
+  font-size: 0.6em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--isun-border);
+  color: var(--isun-text-secondary);
+}
+
+.arc-status.active {
+  color: var(--isun-acumen);
+  border-color: var(--isun-acumen);
+}
+
+.arc-status.completed {
+  color: var(--isun-text-secondary);
+  opacity: 0.7;
+}
+
+.arc-actions {
+  display: flex;
+  gap: var(--isun-space-xs);
+  flex: 0 0 auto;
+}
+
+.arc-desc {
+  color: var(--isun-text-secondary);
+  margin: var(--isun-space-xs) 0 0 0;
+}
+
+.step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.step-title {
+  font-family: var(--isun-font-heading);
+  color: var(--isun-text-primary);
+  font-size: 0.9em;
+}
+
+.step-desc {
+  color: var(--isun-text-secondary);
+  font-size: 0.9em;
+}
+
+.step-reward {
+  color: var(--isun-text-accent);
+  font-size: 0.8em;
+}
+
+/* ════════════════════════════════════════════════════════
+ * HEADER SUBTITLE (NPC / Creature level)
+ * ════════════════════════════════════════════════════════ */
+
+.character-identity {
+  color: var(--isun-text-secondary);
+}
+
+.sub-header {
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-xs);
+  font-family: var(--isun-font-heading);
+  text-transform: uppercase;
+  font-size: 0.85em;
+}
+
+.sub-header input {
+  width: 60px;
+  text-align: center;
 }
