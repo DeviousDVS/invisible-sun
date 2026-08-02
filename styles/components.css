@@ -421,6 +421,75 @@
   gap: var(--isun-space-md);
 }
 
+/* Purse: many small denominations, so narrower columns than the field grids */
+.purse-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: var(--isun-space-sm);
+}
+
+.coin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.coin-field > label {
+  font-family: var(--isun-font-heading);
+  font-size: 0.72em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--isun-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.coin-field input { text-align: center; }
+
+.coin-field.cursed > label { color: var(--isun-wound); }
+.coin-field.cursed input { border-color: rgba(192, 57, 43, 0.5) !important; }
+
+.purse-grid.magical .coin-field > label { color: var(--isun-sun-indigo); }
+
+.wealth-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-md);
+  margin-top: var(--isun-space-sm);
+  padding-top: var(--isun-space-sm);
+  border-top: 1px solid var(--isun-border);
+}
+
+.wealth-label {
+  font-family: var(--isun-font-heading);
+  font-size: 0.75em;
+  text-transform: uppercase;
+  color: var(--isun-text-secondary);
+}
+
+.wealth-value {
+  font-family: var(--isun-font-heading);
+  color: var(--isun-text-accent);
+}
+
+.wealth-value abbr {
+  font-size: 0.7em;
+  color: var(--isun-text-secondary);
+  margin: 0 var(--isun-space-sm) 0 1px;
+  text-decoration: none;
+}
+
+.curse-warning {
+  margin-left: auto;
+  color: var(--isun-wound);
+  font-size: 0.85em;
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-xs);
+}
+
 .economy-field.full-width,
 .house-field.full-width {
   grid-column: 1 / -1;

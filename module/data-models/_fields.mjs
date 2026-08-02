@@ -19,6 +19,25 @@ export const grantsSchema = () => new fields.SchemaField({
   }),
 });
 
+/* ── Purse ──
+ * One counter per denomination. Mundane orbs convert into each other at fixed
+ * rates; magecoins and demontears do not convert to orbs at all, and are held
+ * for their power rather than their price. */
+export const purseSchema = () => {
+  const coin = () => new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 });
+  return new fields.SchemaField({
+    bitsAndBobs: coin(),
+    glass:       coin(),
+    crystal:     coin(),
+    gem:         coin(),
+    trueorb:     coin(),
+    bloodsilver: coin(),
+    vim:         coin(),
+    lumin:       coin(),
+    demontear:   coin(),
+  });
+};
+
 /* ── Base Schema for NPCs and Creatures ── */
 export function baseNonPlayerSchema(defaultWoundMax = 1) {
   return {

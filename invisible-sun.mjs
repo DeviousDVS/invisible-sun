@@ -160,8 +160,42 @@ Hooks.once("init", () => {
 /* ═══════════════════════════════════════════════════════════
  * READY HOOK — Post-init setup
  * ═══════════════════════════════════════════════════════════ */
-Hooks.once("ready", () => {
+/**
+ * economy.savings was a single number of crystal orbs, matching the Foundation
+ * entries in The Key ("Initial Savings: 100 crystal orbs"). It is now one
+ * denomination among nine in economy.purse.
+ *
+ * The legacy field is deliberately still declared in VislaeModel: Foundry
+ * prunes keys that are absent from the schema, so dropping it outright would
+ * make the stored value unreadable here and silently lose a character's money.
+ * Migrated actors are left with null, which is the signal not to re-run.
+ */
+async function migrateSavingsToPurse() {
+  if (!game.user.isGM) return;
+
+  const updates = [];
+  for (const actor of game.actors) {
+    if (actor.type !== "Vislae") continue;
+    const legacy = actor.system?.economy?.savings;
+    if (typeof legacy !== "number") continue;
+
+    updates.push({
+      _id: actor.id,
+      "system.economy.purse.crystal": (actor.system.economy.purse?.crystal ?? 0) + legacy,
+      "system.economy.savings": null
+    });
+  }
+
+  if (!updates.length) return;
+  await Actor.updateDocuments(updates);
+  console.log(`invisible-sun | moved economy.savings into economy.purse.crystal on ${updates.length} actor(s)`);
+  ui.notifications?.info(`Invisible Sun: moved savings into the purse on ${updates.length} character(s).`);
+}
+
+Hooks.once("ready", async () => {
   console.log("invisible-sun | System ready");
+
+  await migrateSavingsToPurse();
 
   // Migration for ForteAbility level (String -> Number)
   for (const pack of game.packs) {

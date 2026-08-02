@@ -129,7 +129,27 @@
     "MinorMagicCantrip": "Cantrip",
     "MinorMagicCharm": "Charm",
     "MinorMagicHex": "Hex",
-    "MinorMagicSign": "Sign"
+    "MinorMagicSign": "Sign",
+    "CurrencyBitsAndBobs": "Bits & Bobs",
+    "CurrencyGlass": "Glass",
+    "CurrencyCrystal": "Crystal",
+    "CurrencyGem": "Gem",
+    "CurrencyTrueorb": "Trueorb",
+    "CurrencyBloodsilver": "Bloodsilver",
+    "CurrencyVim": "Vim",
+    "CurrencyLumin": "Lumins",
+    "CurrencyDemontear": "Demontears",
+    "CurrencyTrueorbHint": "Worth a gem orb. A vislae can consume one to gain +1 Hidden Knowledge.",
+    "CurrencyBloodsilverHint": "Worth about a crystal orb, but cursed and widely refused. Ownership alone can trigger the curse.",
+    "CurrencyVimHint": "Drawn on as an action to restore any one Certes pool. Cannot be recharged.",
+    "CurrencyLuminHint": "Drawn on as an action to restore any one Qualia pool. Cannot be recharged.",
+    "CurrencyDemontearHint": "Works like a magecoin but restores any pool. Some fear using them invites demonic influence.",
+    "Magecoins": "Magecoins & Demontears",
+    "MagecoinsHint": "Magical goods and services are paid for in magecoins, never in orbs. There is no standard exchange rate between them.",
+    "Spendable": "Spendable",
+    "WeeklyIncome": "Weekly Income (crystal)",
+    "BloodsilverRisk": "Curse challenge",
+    "BloodsilverRiskHint": "Holding more than one bloodsilver coin risks the curse. The GM may call for a Withstand or Resist action between once a week and once a month."
   },
   "TYPES": {
     "Actor": {

@@ -53,18 +53,80 @@
     </div>
   </div>
 
+  {{!-- Orbs and magecoins are separate economies that do not convert into one
+        another, so they are totalled and displayed apart. --}}
   <div class="economy-section mt-4">
-    <h3>Economy</h3>
+    <h3>Orbs</h3>
+    <div class="purse-grid">
+      <div class="coin-field">
+        <label>{{localize "ISUN.CurrencyBitsAndBobs"}}</label>
+        <input type="number" min="0" name="system.economy.purse.bitsAndBobs" value="{{system.economy.purse.bitsAndBobs}}" />
+      </div>
+      <div class="coin-field">
+        <label>{{localize "ISUN.CurrencyGlass"}}</label>
+        <input type="number" min="0" name="system.economy.purse.glass" value="{{system.economy.purse.glass}}" />
+      </div>
+      <div class="coin-field">
+        <label>{{localize "ISUN.CurrencyCrystal"}}</label>
+        <input type="number" min="0" name="system.economy.purse.crystal" value="{{system.economy.purse.crystal}}" />
+      </div>
+      <div class="coin-field">
+        <label>{{localize "ISUN.CurrencyGem"}}</label>
+        <input type="number" min="0" name="system.economy.purse.gem" value="{{system.economy.purse.gem}}" />
+      </div>
+      <div class="coin-field">
+        <label title="{{localize 'ISUN.CurrencyTrueorbHint'}}">{{localize "ISUN.CurrencyTrueorb"}}</label>
+        <input type="number" min="0" name="system.economy.purse.trueorb" value="{{system.economy.purse.trueorb}}" />
+      </div>
+      <div class="coin-field cursed">
+        <label title="{{localize 'ISUN.CurrencyBloodsilverHint'}}">{{localize "ISUN.CurrencyBloodsilver"}}</label>
+        <input type="number" min="0" name="system.economy.purse.bloodsilver" value="{{system.economy.purse.bloodsilver}}" />
+      </div>
+    </div>
+
+    <div class="wealth-summary">
+      <span class="wealth-label">{{localize "ISUN.Spendable"}}</span>
+      <span class="wealth-value">
+        {{system.economy.wealth.gem}}<abbr>g</abbr>
+        {{system.economy.wealth.crystal}}<abbr>c</abbr>
+        {{system.economy.wealth.remainder}}<abbr>gl</abbr>
+      </span>
+      {{#if system.economy.bloodsilver.atRisk}}
+        <span class="curse-warning" title="{{localize 'ISUN.BloodsilverRiskHint'}}">
+          <i class="fa-solid fa-skull"></i>
+          {{localize "ISUN.BloodsilverRisk"}} {{system.economy.bloodsilver.challenge}}
+        </span>
+      {{/if}}
+    </div>
+  </div>
+
+  <div class="economy-section mt-4">
+    <h3>{{localize "ISUN.Magecoins"}}</h3>
+    <div class="purse-grid magical">
+      <div class="coin-field">
+        <label title="{{localize 'ISUN.CurrencyVimHint'}}">{{localize "ISUN.CurrencyVim"}}</label>
+        <input type="number" min="0" name="system.economy.purse.vim" value="{{system.economy.purse.vim}}" />
+      </div>
+      <div class="coin-field">
+        <label title="{{localize 'ISUN.CurrencyLuminHint'}}">{{localize "ISUN.CurrencyLumin"}}</label>
+        <input type="number" min="0" name="system.economy.purse.lumin" value="{{system.economy.purse.lumin}}" />
+      </div>
+      <div class="coin-field">
+        <label title="{{localize 'ISUN.CurrencyDemontearHint'}}">{{localize "ISUN.CurrencyDemontear"}}</label>
+        <input type="number" min="0" name="system.economy.purse.demontear" value="{{system.economy.purse.demontear}}" />
+      </div>
+    </div>
+    <p class="hint">{{localize "ISUN.MagecoinsHint"}}</p>
+  </div>
+
+  <div class="economy-section mt-4">
+    <h3>Income &amp; Debts</h3>
     <div class="economy-grid">
       <div class="economy-field">
-        <label>Savings (Orbs)</label>
-        <input type="number" name="system.economy.savings" value="{{system.economy.savings}}" />
+        <label>{{localize "ISUN.WeeklyIncome"}}</label>
+        <input type="number" min="0" name="system.economy.income" value="{{system.economy.income}}" />
       </div>
       <div class="economy-field">
-        <label>Weekly Income</label>
-        <input type="number" name="system.economy.income" value="{{system.economy.income}}" />
-      </div>
-      <div class="economy-field full-width">
         <label>Debts</label>
         <input type="text" name="system.economy.debts" value="{{system.economy.debts}}" />
       </div>

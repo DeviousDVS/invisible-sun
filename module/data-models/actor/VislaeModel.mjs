@@ -10,7 +10,7 @@
  *   - Economy & House
  *   - Rest tracking
  */
-import { pool } from "../_fields.mjs";
+import { pool, purseSchema } from "../_fields.mjs";
 
 export class VislaeModel extends foundry.abstract.DataModel {
   static defineSchema() {
@@ -76,11 +76,22 @@ export class VislaeModel extends foundry.abstract.DataModel {
       orderType:   new fields.StringField({ required: false, initial: "" }),
     });
 
-    /* ── Economy ── */
+    /* ── Economy ──
+     * `income` is weekly, denominated in crystal orbs to match the Foundation
+     * entries in The Key ("Initial Savings: 100 crystal orbs"). Coin on hand
+     * lives in `purse`, which replaced a single `savings` number. */
     const economy = new fields.SchemaField({
-      income:  new fields.NumberField({ required: true, initial: 50, integer: true, min: 0 }),
-      savings: new fields.NumberField({ required: true, initial: 100, min: 0 }),
-      debts:   new fields.StringField({ required: false, initial: "" }),
+      income: new fields.NumberField({ required: true, initial: 50, integer: true, min: 0 }),
+      purse:  purseSchema(),
+      debts:  new fields.StringField({ required: false, initial: "" }),
+
+      /**
+       * @deprecated Superseded by `purse`. Retained only so the migration can
+       * read it — Foundry prunes keys absent from the schema, so removing this
+       * outright would make the old value unreadable and silently lost. Null
+       * once migrated; delete the field once no world holds a number here.
+       */
+      savings: new fields.NumberField({ required: false, nullable: true, initial: null, min: 0 }),
     });
 
     /* ── House ── */

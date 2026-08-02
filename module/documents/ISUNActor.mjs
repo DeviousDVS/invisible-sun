@@ -142,8 +142,46 @@ export class ISUNActor extends Actor {
     }
   }
 
+  /**
+   * Derive spendable wealth and the bloodsilver curse level.
+   *
+   * Only the mundane orb economy is totalled. Magecoins and demontears are
+   * deliberately excluded: The Key is explicit that magical goods are never
+   * paid for with orbs and that no standard exchange rate exists, so summing
+   * the two together would invent a number the game refuses to supply.
+   * Bloodsilver is excluded too — it is worth about a crystal orb but is
+   * widely refused, so counting it as spendable would overstate what a
+   * character can actually buy.
+   */
+  _prepareEconomy(system) {
+    const purse = system.economy?.purse ?? {};
+    const currencies = CONFIG.ISUN?.currencies ?? {};
+
+    let glass = 0;
+    for (const [key, def] of Object.entries(currencies)) {
+      if (def.economy !== "mundane" || def.spendable === false) continue;
+      glass += (purse[key] ?? 0) * def.glass;
+    }
+
+    system.economy.wealth = {
+      glass: Math.floor(glass),
+      // Largest-denomination-first breakdown, for display.
+      gem:     Math.floor(glass / 10000),
+      crystal: Math.floor((glass % 10000) / 100),
+      remainder: Math.floor(glass % 100),
+    };
+
+    const coins = purse.bloodsilver ?? 0;
+    system.economy.bloodsilver = {
+      coins,
+      challenge: CONFIG.ISUN?.bloodsilverChallenge?.(coins) ?? 0,
+      atRisk: coins > 1,
+    };
+  }
+
   _prepareVislaeData(system) {
     this._prepareLimits(system);
+    this._prepareEconomy(system);
 
     // 1. Crux Calculation: You can only have Crux equal to the pairs of Joy & Despair
     // Actually in IS, you "spend" Joy and Despair to get Crux, so this might be manually managed.

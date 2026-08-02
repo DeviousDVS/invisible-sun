@@ -91,6 +91,45 @@ export const ISUN = Object.freeze({
   },
 
   /* ──────────────────────────────────────────────
+   * CURRENCY
+   * ────────────────────────────────────────────── */
+
+  /**
+   * Invisible Sun runs two economies that deliberately do not convert into one
+   * another (The Key, p181–182). Mundane goods are bought with orbs; magical
+   * goods and services are "paid for with magecoins or sometimes barter... but
+   * never with orbs or other nonmagical currencies". There is no standard
+   * exchange rate — when a trade is possible at all it is roughly 1 magecoin
+   * for 1–2 gem orbs, and rarely for more than a coin or two. So `glass` is
+   * only defined for the mundane side; magical currency is never totalled into
+   * a monetary value.
+   *
+   * `glass` is the value in glass orbs, the base unit.
+   */
+  currencies: {
+    bitsAndBobs: { label: "ISUN.CurrencyBitsAndBobs", glass: 0.2,   economy: "mundane" },
+    glass:       { label: "ISUN.CurrencyGlass",       glass: 1,     economy: "mundane" },
+    crystal:     { label: "ISUN.CurrencyCrystal",     glass: 100,   economy: "mundane" },
+    gem:         { label: "ISUN.CurrencyGem",         glass: 10000, economy: "mundane" },
+    // Same value as a gem orb, but a vislae can consume one for +1 Hidden Knowledge.
+    trueorb:     { label: "ISUN.CurrencyTrueorb",     glass: 10000, economy: "mundane", consumes: "hiddenKnowledge" },
+    // Worth about a crystal orb, but cursed and widely refused, so it is
+    // tracked apart from spendable wealth.
+    bloodsilver: { label: "ISUN.CurrencyBloodsilver", glass: 100,   economy: "mundane", cursed: true, spendable: false },
+
+    vim:         { label: "ISUN.CurrencyVim",       economy: "magical", restores: "certes" },
+    lumin:       { label: "ISUN.CurrencyLumin",     economy: "magical", restores: "qualia" },
+    demontear:   { label: "ISUN.CurrencyDemontear", economy: "magical", restores: "any" },
+  },
+
+  /**
+   * Challenge level for the bloodsilver curse, by number of coins owned.
+   * The Key p182: one coin is rarely a problem; 2–10 is level 1, 11–20 level 2,
+   * and so on. Ownership alone triggers it — the coins need not be carried.
+   */
+  bloodsilverChallenge: coins => (coins <= 1 ? 0 : Math.ceil(coins / 10)),
+
+  /* ──────────────────────────────────────────────
    * CAPS
    * ────────────────────────────────────────────── */
 
