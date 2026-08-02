@@ -41,6 +41,24 @@ Hooks.once("init", () => {
   // Store config on the global CONFIG object
   CONFIG.ISUN = ISUN;
 
+  // Make the bundled Duvall faces available in Foundry's font pickers
+  // (journals, drawings, text tiles) alongside the sheet CSS.
+  Object.assign(CONFIG.fontDefinitions, {
+    Duvall: {
+      editor: true,
+      fonts: [
+        { urls: ["systems/invisible-sun/fonts/duvall-regular.woff2"] },
+        { urls: ["systems/invisible-sun/fonts/duvall-bold.woff2"], weight: "700" }
+      ]
+    },
+    "Duvall Small Caps": {
+      editor: true,
+      fonts: [
+        { urls: ["systems/invisible-sun/fonts/duvall-smallcaps.woff2"] }
+      ]
+    }
+  });
+
   // System namespace for shared state
   game.invisibleSun = {
     ISUNActor,

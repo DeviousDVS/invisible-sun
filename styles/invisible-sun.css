@@ -1,6 +1,41 @@
+/* === FONTS ===
+ * Duvall by Paul Lloyd — public domain / GPL / OFL (dafont.com/duvall.font).
+ * Bundled as WOFF2 under fonts/.
+ *
+ * Palatino Linotype is proprietary (Monotype) and cannot be bundled, so the
+ * body stack resolves to whatever the *player's* OS provides:
+ *   Windows → Palatino Linotype / Book Antiqua
+ *   macOS   → Palatino
+ *   Linux   → URW Palladio L / P052 (ghostscript fonts)
+ *   else    → Georgia
+ */
+@font-face {
+  font-family: 'Duvall';
+  src: url('../fonts/duvall-regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Duvall';
+  src: url('../fonts/duvall-bold.woff2') format('woff2');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Duvall Small Caps';
+  src: url('../fonts/duvall-smallcaps.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* === INVISIBLE SUN DESIGN TOKENS === */
-  
+
   /* Core palette */
   --isun-bg-primary:      #08080e;     /* Near-black */
   --isun-bg-secondary:    #0f0f1a;     /* Dark navy-black */
@@ -35,9 +70,11 @@
   --isun-flux:            #e74c3c;
   
   /* Typography */
-  --isun-font-heading:    'Cinzel', 'Georgia', serif;
-  --isun-font-body:       'Crimson Text', 'Georgia', serif;
-  --isun-font-ui:         'Inter', 'Segoe UI', sans-serif;
+  --isun-font-heading:    'Duvall', 'Georgia', serif;
+  --isun-font-smallcaps:  'Duvall Small Caps', 'Duvall', 'Georgia', serif;
+  --isun-font-body:       'Palatino Linotype', 'Book Antiqua', Palatino,
+                          'URW Palladio L', 'P052', Georgia, serif;
+  --isun-font-ui:         var(--isun-font-body);
   
   /* Spacing */
   --isun-space-xs: 4px;
