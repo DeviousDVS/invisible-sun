@@ -11,7 +11,7 @@
   "url": "",
   "compatibility": {
     "minimum": "14.354",
-    "verified": "14.364"
+    "verified": "14.365"
   },
   "version": "0.1.0",
   "esmodules": [
