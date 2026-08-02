@@ -171,6 +171,14 @@ export const ISUN = Object.freeze({
     minorMagic: "ISUN.PurchaseMinorMagic",
   },
 
+  /** How a person relates to the character. */
+  bondTypes: {
+    connection: "ISUN.BondConnection",
+    pcBond:     "ISUN.BondPc",
+    npcBond:    "ISUN.BondNpc",
+    other:      "ISUN.BondOther",
+  },
+
   /** Minor magics are a category distinct from ephemera. */
   minorMagicTypes: {
     cantrip: "ISUN.MinorMagicCantrip",
@@ -304,6 +312,9 @@ export const ISUN = Object.freeze({
     SoothCard: "icons/svg/card-hand.svg",
     Ephemera: "icons/svg/item-bag.svg",
     ObjectOfPower: "icons/svg/mage-shield.svg",
+    Thread: "icons/svg/net.svg",
+    MinorMagic: "icons/svg/daze.svg",
+    Connection: "icons/svg/village.svg",
   },
 
   actorTypeIcons: {

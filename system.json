@@ -2,67 +2,218 @@
   "id": "invisible-sun",
   "title": "Invisible Sun",
   "description": "A system for the Invisible Sun RPG by Monte Cook Games. Vislae wield magic across the suns of the Actuality in a surreal world where ideas have power and the ordinary is extraordinary.",
-  "authors": [{ "name": "DeviousDVS", "flags": {} }],
+  "authors": [
+    {
+      "name": "DeviousDVS",
+      "flags": {}
+    }
+  ],
   "url": "",
   "compatibility": {
     "minimum": "14.354",
     "verified": "14.364"
   },
   "version": "0.1.0",
-  "esmodules": ["invisible-sun.mjs"],
+  "esmodules": [
+    "invisible-sun.mjs"
+  ],
   "styles": [
     "styles/invisible-sun.css",
     "styles/sheets.css",
     "styles/components.css"
   ],
   "languages": [
-    { "lang": "en", "name": "English", "path": "lang/en.json", "flags": {} }
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json",
+      "flags": {}
+    }
   ],
   "packs": [
-    { "name": "character-arcs", "label": "Character Arcs", "path": "packs/character-arcs", "type": "Item" },
-    { "name": "forte-abilities", "label": "Forte Abilities", "path": "packs/forte-abilities", "type": "Item" },
-    { "name": "fortes", "label": "Fortes", "path": "packs/fortes", "type": "Item" },
-    { "name": "foundations", "label": "Foundations", "path": "packs/foundations", "type": "Item" },
-    { "name": "hearts", "label": "Hearts", "path": "packs/hearts", "type": "Item" },
-    { "name": "incantations", "label": "Incantations", "path": "packs/incantations", "type": "Item" },
-    { "name": "orders", "label": "Orders", "path": "packs/orders", "type": "Item" },
-    { "name": "souls", "label": "Souls", "path": "packs/souls", "type": "Item" },
-    { "name": "spells", "label": "Spells", "path": "packs/spells", "type": "Item" }
+    {
+      "name": "character-arcs",
+      "label": "Character Arcs",
+      "path": "packs/character-arcs",
+      "type": "Item"
+    },
+    {
+      "name": "forte-abilities",
+      "label": "Forte Abilities",
+      "path": "packs/forte-abilities",
+      "type": "Item"
+    },
+    {
+      "name": "fortes",
+      "label": "Fortes",
+      "path": "packs/fortes",
+      "type": "Item"
+    },
+    {
+      "name": "foundations",
+      "label": "Foundations",
+      "path": "packs/foundations",
+      "type": "Item"
+    },
+    {
+      "name": "hearts",
+      "label": "Hearts",
+      "path": "packs/hearts",
+      "type": "Item"
+    },
+    {
+      "name": "incantations",
+      "label": "Incantations",
+      "path": "packs/incantations",
+      "type": "Item"
+    },
+    {
+      "name": "orders",
+      "label": "Orders",
+      "path": "packs/orders",
+      "type": "Item"
+    },
+    {
+      "name": "souls",
+      "label": "Souls",
+      "path": "packs/souls",
+      "type": "Item"
+    },
+    {
+      "name": "spells",
+      "label": "Spells",
+      "path": "packs/spells",
+      "type": "Item"
+    }
   ],
   "socket": true,
   "flags": {
     "hotReload": {
-      "extensions": ["css", "hbs", "json"],
-      "paths": ["styles", "templates", "lang"]
+      "extensions": [
+        "css",
+        "hbs",
+        "json"
+      ],
+      "paths": [
+        "styles",
+        "templates",
+        "lang"
+      ]
     }
   },
   "documentTypes": {
     "Actor": {
       "Vislae": {
-        "htmlFields": ["biography"]
+        "htmlFields": [
+          "biography"
+        ]
       },
       "NPC": {
-        "htmlFields": ["description", "notes"]
+        "htmlFields": [
+          "description",
+          "notes"
+        ]
       },
       "Creature": {
-        "htmlFields": ["combat", "description"]
+        "htmlFields": [
+          "combat",
+          "description"
+        ]
       }
     },
     "Item": {
-      "Heart": { "htmlFields": ["description"] },
-      "Foundation": { "htmlFields": ["description", "specialRules", "initialMotivations"] },
-      "Soul": { "htmlFields": ["description", "guardianGift"] },
-      "Order": { "htmlFields": ["description", "philosophy"] },
-      "Forte": { "htmlFields": ["description", "background", "appearance", "pathToJoy", "pathToDespair"] },
-      "ForteAbility": { "htmlFields": ["description"] },
-      "Spell": { "htmlFields": ["description"] },
-      "Incantation": { "htmlFields": ["description"] },
-      "Secret": { "htmlFields": ["description"] },
-      "Skill": { "htmlFields": ["description"] },
-      "CharacterArc": { "htmlFields": [] },
-      "SoothCard": { "htmlFields": ["effectText"] },
-      "Ephemera": { "htmlFields": ["description"] },
-      "ObjectOfPower": { "htmlFields": ["description"] }
+      "Heart": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "Foundation": {
+        "htmlFields": [
+          "description",
+          "specialRules",
+          "initialMotivations"
+        ]
+      },
+      "Soul": {
+        "htmlFields": [
+          "description",
+          "guardianGift"
+        ]
+      },
+      "Order": {
+        "htmlFields": [
+          "description",
+          "philosophy"
+        ]
+      },
+      "Forte": {
+        "htmlFields": [
+          "description",
+          "background",
+          "appearance",
+          "pathToJoy",
+          "pathToDespair"
+        ]
+      },
+      "ForteAbility": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "Spell": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "Incantation": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "Secret": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "Skill": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "CharacterArc": {
+        "htmlFields": []
+      },
+      "SoothCard": {
+        "htmlFields": [
+          "effectText"
+        ]
+      },
+      "Ephemera": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "ObjectOfPower": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "Thread": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "MinorMagic": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "Connection": {
+        "htmlFields": [
+          "description",
+          "notes"
+        ]
+      }
     }
   }
 }

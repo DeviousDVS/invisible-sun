@@ -11,7 +11,8 @@ import {
   HeartModel, FoundationModel, SoulModel, OrderModel,
   ForteModel, ForteAbilityModel, SpellModel, IncantationModel,
   SecretModel, SkillModel, CharacterArcModel, SoothCardModel,
-  EphemeraModel, ObjectOfPowerModel
+  EphemeraModel, ObjectOfPowerModel,
+  ThreadModel, MinorMagicModel, ConnectionModel
 } from "./module/data-models/index.mjs";
 
 // ── Custom Documents ─────────────────────────────────────
@@ -88,7 +89,10 @@ Hooks.once("init", () => {
     CharacterArc: CharacterArcModel,
     SoothCard: SoothCardModel,
     Ephemera: EphemeraModel,
-    ObjectOfPower: ObjectOfPowerModel
+    ObjectOfPower: ObjectOfPowerModel,
+    Thread: ThreadModel,
+    MinorMagic: MinorMagicModel,
+    Connection: ConnectionModel
   });
 
   // ── Custom Document Classes ──────────────────────────

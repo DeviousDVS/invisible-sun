@@ -172,7 +172,11 @@
     "RemoveEntry": "Remove",
     "EntryTitle": "Title",
     "EntryDescription": "Description",
-    "NoEntries": "Nothing recorded yet."
+    "NoEntries": "Nothing recorded yet.",
+    "BondConnection": "Connection",
+    "BondPc": "PC Bond",
+    "BondNpc": "NPC Bond",
+    "BondOther": "Other"
   },
   "TYPES": {
     "Actor": {
@@ -194,7 +198,10 @@
       "CharacterArc": "Character Arc",
       "SoothCard": "Sooth Card",
       "Ephemera": "Ephemera",
-      "ObjectOfPower": "Object of Power"
+      "ObjectOfPower": "Object of Power",
+      "Thread": "Thread",
+      "MinorMagic": "Minor Magic",
+      "Connection": "Connection"
     }
   }
 }
