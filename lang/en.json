@@ -225,7 +225,14 @@
     "Dead": "Dead",
     "DeadHint": "Three Wounds. The character is dead.",
     "Broken": "Broken",
-    "BrokenHint": "Three Anguish: long-term catatonia, madness, utter suggestibility, or death, as circumstances suggest. The GM decides."
+    "BrokenHint": "Three Anguish: long-term catatonia, madness, utter suggestibility, or death, as circumstances suggest. The GM decides.",
+    "Scourges": "Scourges",
+    "ScourgeAll": "All pools",
+    "ScourgeCertes": "All Certes",
+    "ScourgeQualia": "All Qualia",
+    "ScourgeAllHint": "Scourges affecting every pool, such as the debt owed after a Goetic pact.",
+    "Worst": "Worst",
+    "WorstScourgeHint": "The heaviest scourge on any one pool. Some effects turn on holding three at once."
   },
   "TYPES": {
     "Actor": {

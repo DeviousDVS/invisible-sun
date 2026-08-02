@@ -1,3 +1,27 @@
+{{!-- Scourges inflicted at a wider scope than one pool. Those from Wounds and
+      Anguish are derived and appear on the pools themselves. --}}
+<div class="scourge-bar">
+  <span class="scourge-bar-label" title="{{localize 'ISUN.ScourgeHint'}}">{{localize "ISUN.Scourges"}}</span>
+  <div class="scourge-scope">
+    <label title="{{localize 'ISUN.ScourgeAllHint'}}">{{localize "ISUN.ScourgeAll"}}</label>
+    <input type="number" min="0" name="system.status.scourge.all" value="{{system.status.scourge.all}}" />
+  </div>
+  <div class="scourge-scope">
+    <label>{{localize "ISUN.ScourgeCertes"}}</label>
+    <input type="number" min="0" name="system.status.scourge.certes" value="{{system.status.scourge.certes}}" />
+  </div>
+  <div class="scourge-scope">
+    <label>{{localize "ISUN.ScourgeQualia"}}</label>
+    <input type="number" min="0" name="system.status.scourge.qualia" value="{{system.status.scourge.qualia}}" />
+  </div>
+  {{#if system.status.worstScourge}}
+    <span class="scourge-worst{{#if (gte system.status.worstScourge 3)}} critical{{/if}}"
+          title="{{localize 'ISUN.WorstScourgeHint'}}">
+      {{localize "ISUN.Worst"}} −{{system.status.worstScourge}}
+    </span>
+  {{/if}}
+</div>
+
 <div class="stat-group">
   <div class="stat-column certes">
     <div class="stat-header">

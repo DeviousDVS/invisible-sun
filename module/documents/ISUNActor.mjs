@@ -72,12 +72,21 @@ export class ISUNActor extends Actor {
 
     if (this.type !== "Vislae") return;
 
-    // Wounds scourge the body, Anguish the mind.
-    for (const [group, source] of [["certes", h.wounds.value], ["qualia", h.anguish.value]]) {
+    // A pool's scourge is the sum of every scope that reaches it: one applied
+    // to that pool alone, one to its half of the stats, one to all pools, and
+    // one per Wound (Certes) or Anguish (Qualia).
+    const wide = h.scourge ?? {};
+    let worst = 0;
+    for (const [group, fromHealth] of [["certes", h.wounds.value], ["qualia", h.anguish.value]]) {
       for (const p of Object.values(system.stats?.[group]?.pools ?? {})) {
-        p.scourgeTotal = (p.scourge ?? 0) + source;
+        p.scourgeTotal = (p.scourge ?? 0) + (wide.all ?? 0) + (wide[group] ?? 0) + fromHealth;
+        worst = Math.max(worst, p.scourgeTotal);
       }
     }
+
+    // The Gate's Goetic pact turns on holding three scourges at once, so the
+    // heaviest-hit pool is worth surfacing rather than making players count.
+    h.worstScourge = worst;
 
     // Three Wounds is death. Three Anguish is a GM call among catatonia,
     // madness, utter suggestibility or death, so it is only flagged.

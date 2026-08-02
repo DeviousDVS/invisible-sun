@@ -970,3 +970,49 @@
   color: var(--isun-wound);
   border: 1px solid var(--isun-wound);
 }
+
+/* Scourges applied more widely than a single pool. */
+.scourge-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--isun-space-md);
+  padding-bottom: var(--isun-space-sm);
+  margin-bottom: var(--isun-space-md);
+  border-bottom: 1px solid var(--isun-border);
+}
+
+.scourge-bar-label {
+  font-family: var(--isun-font-heading);
+  font-size: 0.75em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--isun-text-secondary);
+  padding-bottom: 4px;
+}
+
+.scourge-scope { display: flex; flex-direction: column; gap: 2px; }
+
+.scourge-scope > label {
+  font-size: 0.68em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--isun-text-secondary);
+  white-space: nowrap;
+}
+
+.scourge-scope input { width: 52px; text-align: center; }
+
+.scourge-worst {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.8em;
+  color: var(--isun-text-secondary);
+  border: 1px solid var(--isun-border);
+}
+
+/* Three scourges at once is a threshold several effects turn on. */
+.scourge-worst.critical {
+  color: var(--isun-wound);
+  border-color: var(--isun-wound);
+}

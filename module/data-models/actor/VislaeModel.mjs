@@ -43,9 +43,10 @@ export class VislaeModel extends foundry.abstract.DataModel {
         ...Array(mental).fill("mental")
       ];
     }
-    // A single number is no longer meaningful: scourges sit in individual
-    // pools. Drop it rather than guess which pools it applied to.
-    if (source?.status && "scourge" in source.status) delete source.status.scourge;
+    // status.scourge was a bare number, which cannot say which pools it applied
+    // to; it is now a {all, certes, qualia} object. Only drop the old numeric
+    // form — testing for the key alone would wipe the new object on every load.
+    if (typeof source?.status?.scourge === "number") delete source.status.scourge;
     return super.migrateData(source);
   }
 
@@ -90,6 +91,19 @@ export class VislaeModel extends foundry.abstract.DataModel {
       injuryThreshold: new fields.NumberField({ required: true, initial: 3, integer: true, min: 1 }),
       armor:    new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
       ward:     new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+
+      /**
+       * Scourges applied at a wider scope than one pool. The books inflict them
+       * at three: "1 scourge in all my pools" (The Gate, the Goetic soul-debt),
+       * "1 scourge in all Certes pools" and "1 scourge to all Qualia"
+       * (Teratology). Those arising from Wounds and Anguish are derived and do
+       * not live here.
+       */
+      scourge: new fields.SchemaField({
+        all:    new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+        certes: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+        qualia: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+      }),
     });
 
     /* ── Advancement ── */
