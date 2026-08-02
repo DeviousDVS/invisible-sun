@@ -32,13 +32,16 @@ export const ActorSheetMixin = (Base) => class extends SheetMixin(Base) {
   _attachPartListeners(partId, htmlElement, options) {
     super._attachPartListeners(partId, htmlElement, options);
     
-    htmlElement.querySelectorAll('[data-action="item-create"]').forEach(el => {
+    // Bound by class, matching the markup the templates actually emit. These
+    // were previously bound to [data-action="item-create"], an attribute no
+    // template sets, so no listener was ever attached.
+    htmlElement.querySelectorAll('.item-create').forEach(el => {
       el.addEventListener('click', ev => this._onItemCreate(ev));
     });
-    htmlElement.querySelectorAll('[data-action="item-edit"]').forEach(el => {
+    htmlElement.querySelectorAll('.item-edit').forEach(el => {
       el.addEventListener('click', ev => this._onItemEdit(ev));
     });
-    htmlElement.querySelectorAll('[data-action="item-delete"]').forEach(el => {
+    htmlElement.querySelectorAll('.item-delete').forEach(el => {
       el.addEventListener('click', ev => this._onItemDelete(ev));
     });
   }
@@ -46,7 +49,13 @@ export const ActorSheetMixin = (Base) => class extends SheetMixin(Base) {
   async _onItemCreate(event) {
     event.preventDefault();
     const type = event.currentTarget.dataset.type;
-    const itemData = { name: `New ${type}`, type };
+    if (!type) return;
+    const label = game.i18n.localize(`TYPES.Item.${type}`);
+    const itemData = {
+      name: game.i18n.format("DOCUMENT.New", { type: label.startsWith("TYPES.") ? type : label }),
+      type,
+      img: CONFIG.ISUN?.itemTypeIcons?.[type]
+    };
     return this.document.createEmbeddedDocuments("Item", [itemData]);
   }
 

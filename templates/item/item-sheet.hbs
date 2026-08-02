@@ -3,20 +3,35 @@
     <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}"/>
     <div class="header-fields">
       <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Name"/></h1>
-      <div class="item-subtitle">{{item.type}}</div>
+      <div class="item-subtitle">{{localize (concat "TYPES.Item." item.type)}}</div>
     </div>
   </header>
 
+  {{!-- Fields are derived from the data model schema, so a new item type is
+        editable as soon as its DataModel exists. --}}
   <section class="sheet-body item-sheet-body">
-    <div class="item-description">
-      <h3>Description</h3>
-      {{#if system.description includeZero=true}}
-        {{editor system.description target="system.description" button=true owner=owner editable=editable}}
-      {{else}}
-        <!-- Just an empty fallback, we assume most items have a description field. 
-             If they don't, we wouldn't show this, but Handlebars will just gracefully fail if it doesn't exist. -->
-        <p class="notes">This item type does not have a rich description field.</p>
-      {{/if}}
-    </div>
+
+    {{#if simpleFields.length}}
+      <div class="schema-fields grid-2col">
+        {{#each simpleFields as |f|}}
+          {{formGroup f.field value=f.value name=f.name label=f.label localize=true}}
+        {{/each}}
+      </div>
+    {{/if}}
+
+    {{#each listFields as |f|}}
+      <div class="form-group full-width">
+        <label>{{f.label}}</label>
+        <textarea name="{{f.name}}" rows="4" placeholder="One per line">{{f.text}}</textarea>
+      </div>
+    {{/each}}
+
+    {{#each htmlFields as |f|}}
+      <div class="item-description">
+        <h3>{{f.label}}</h3>
+        {{editor f.value target=f.name button=true owner=../owner editable=../editable}}
+      </div>
+    {{/each}}
+
   </section>
 </div>

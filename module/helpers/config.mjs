@@ -172,7 +172,7 @@ export const ISUN = Object.freeze({
    * ────────────────────────────────────────────── */
 
   itemTypeIcons: {
-    Heart: "icons/svg/heart.svg",
+    Heart: "icons/svg/blood.svg",
     Foundation: "icons/svg/house.svg",
     Soul: "icons/svg/sun.svg",
     Order: "icons/svg/tower.svg",

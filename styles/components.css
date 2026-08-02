@@ -280,6 +280,38 @@
 
 .mt-4 { margin-top: var(--isun-space-md); }
 
+/* Foundry's {{formGroup}} emits .form-group > label + .form-fields, so the
+   generic schema-driven item sheet needs the inner wrapper styled too. */
+.form-fields {
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-xs);
+  min-width: 0;
+}
+
+.form-fields > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.schema-fields {
+  align-items: start;
+  margin-bottom: var(--isun-space-md);
+}
+
+.invisible-sun.sheet textarea {
+  width: 100%;
+  resize: vertical;
+  font-family: var(--isun-font-body);
+  padding: var(--isun-space-xs);
+}
+
+.invisible-sun.sheet .hint {
+  font-size: 0.8em;
+  color: var(--isun-text-secondary);
+  margin: 0;
+}
+
 /* ════════════════════════════════════════════════════════
  * OVERVIEW TAB
  * ════════════════════════════════════════════════════════ */

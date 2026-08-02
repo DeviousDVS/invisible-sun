@@ -3,7 +3,6 @@
     "ActorTypeVislae": "Vislae",
     "ActorTypeNPC": "NPC",
     "ActorTypeCreature": "Creature",
-    
     "TabOverview": "Overview",
     "TabStats": "Stats & Pools",
     "TabMagic": "Magic",
@@ -11,11 +10,9 @@
     "TabArcs": "Character Arcs",
     "TabInventory": "Inventory",
     "TabBiography": "Biography",
-    
     "StatCertes": "Certes",
     "StatQualia": "Qualia",
     "StatHiddenKnowledge": "Hidden Knowledge",
-    
     "PoolAccuracy": "Accuracy",
     "PoolMovement": "Movement",
     "PoolPhysicality": "Physicality",
@@ -24,24 +21,20 @@
     "PoolInteraction": "Interaction",
     "PoolIntellect": "Intellect",
     "PoolSortilege": "Sortilege",
-    
     "Wounds": "Wounds",
     "Anguish": "Anguish",
     "Injuries": "Injuries",
     "Armor": "Armor",
     "Ward": "Ward",
     "Scourge": "Scourge",
-    
     "Joy": "Joy",
     "Despair": "Despair",
     "Acumen": "Acumen",
     "Crux": "Crux",
-    
     "ChallengeRoutine": "Routine (0)",
     "ChallengeNormal": "Normal (1-10)",
     "ChallengeTrained": "Trained (11-13)",
     "ChallengeMagical": "Magical (14-17)",
-    
     "Challenge": "Challenge",
     "Venture": "Venture",
     "Target": "Target",
@@ -53,67 +46,54 @@
     "FluxWarning": "A 0 on a magic die has caused a magical flux!",
     "MundaneDie": "Mundane Die",
     "MagicDie": "Magic Die",
-    
     "Bene": "Bene",
     "Enhancement": "Enhancement",
     "Spend": "Spend",
     "Refresh": "Refresh",
     "Cast": "Cast",
     "Use": "Use",
-    
     "Heart": "Heart",
     "Order": "Order",
     "Forte": "Forte",
     "Soul": "Soul",
     "Foundation": "Foundation",
-    
     "HeartGalant": "Galant",
     "HeartStoic": "Stoic",
     "HeartEmpath": "Empath",
     "HeartArdent": "Ardent",
-    
     "OrderVance": "Vance",
     "OrderWeaver": "Weaver",
     "OrderGoetic": "Goetic",
     "OrderMaker": "Maker",
     "OrderApostate": "Apostate",
-    
     "FamilySecrets": "Secrets",
     "FamilyMysteries": "Mysteries",
     "FamilyVisions": "Visions",
     "FamilyNotions": "Notions",
-    
     "CharacterSentence": "I am a {foundation} {heart} of the {order} who {forte}",
-    
     "ArcPlanned": "Planned",
     "ArcActive": "Active",
     "ArcCompleted": "Completed",
-    
     "RangeClose": "Close",
     "RangeShort": "Short",
     "RangeLong": "Long",
     "RangeVeryLong": "Very Long",
-    
     "SpellGeneral": "General",
     "SpellVance": "Vance",
     "SpellWeaver": "Weaver",
     "SpellGoetic": "Goetic",
     "SpellMaker": "Maker",
-    
     "EphemeraConflux": "Conflux",
     "EphemeraCharm": "Charm",
     "EphemeraCypher": "Cypher",
     "EphemeraOddity": "Oddity",
-    
     "ObjectArtifact": "Artifact",
     "ObjectKindled": "Kindled",
     "ObjectInstallation": "Installation",
-    
     "SecretCharacter": "Character",
     "SecretHouse": "House",
     "SecretOrder": "Order",
     "SecretApostate": "Apostate",
-    
     "SunSilver": "Silver",
     "SunGreen": "Green",
     "SunBlue": "Blue",
@@ -123,12 +103,34 @@
     "SunGrey": "Grey",
     "SunPale": "Pale",
     "SunInvisible": "Invisible",
-    
     "SheetVislae": "Vislae Sheet",
     "SheetNPC": "NPC Sheet",
     "SheetCreature": "Creature Sheet",
     "SheetSpell": "Spell Sheet",
     "SheetCharacterArc": "Character Arc Sheet",
     "SheetItem": "Item Sheet"
+  },
+  "TYPES": {
+    "Actor": {
+      "Vislae": "Vislae",
+      "NPC": "NPC",
+      "Creature": "Creature"
+    },
+    "Item": {
+      "Heart": "Heart",
+      "Foundation": "Foundation",
+      "Soul": "Soul",
+      "Order": "Order",
+      "Forte": "Forte",
+      "ForteAbility": "Forte Ability",
+      "Spell": "Spell",
+      "Incantation": "Incantation",
+      "Secret": "Secret",
+      "Skill": "Skill",
+      "CharacterArc": "Character Arc",
+      "SoothCard": "Sooth Card",
+      "Ephemera": "Ephemera",
+      "ObjectOfPower": "Object of Power"
+    }
   }
 }

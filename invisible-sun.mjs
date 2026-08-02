@@ -117,8 +117,12 @@ Hooks.once("init", () => {
     makeDefault: true,
     label: "ISUN.SheetItem",
   });
+  // Spell only. Incantation and ForteAbility were previously routed here too,
+  // but spell-sheet.hbs edits spellType/cost/range/duration — fields neither
+  // model defines — so they submitted keys their schema rejects. The generic
+  // sheet renders each of their real fields instead.
   foundry.applications.apps.DocumentSheetConfig.registerSheet(Item, "invisible-sun", ISUNSpellSheet, {
-    types: ["Spell", "Incantation", "ForteAbility"],
+    types: ["Spell"],
     makeDefault: true,
     label: "ISUN.SheetSpell",
   });
