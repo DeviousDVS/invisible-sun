@@ -1,3 +1,5 @@
+import { ISUN } from "../../helpers/config.mjs";
+
 import { grantsSchema } from "../_fields.mjs";
 
 /**
@@ -10,7 +12,7 @@ export class SecretModel extends foundry.abstract.DataModel {
     return {
       cost:        new fields.StringField({ required: false, initial: "" }),
       description: new fields.HTMLField({ required: false, initial: "" }),
-      secretType:  new fields.StringField({ required: true, initial: "character", choices: ["character","house","order","apostate"] }),
+      secretType:  new fields.StringField({ required: true, initial: "character", choices: ISUN.secretTypes }),
       grants:      grantsSchema(),
     };
   }
