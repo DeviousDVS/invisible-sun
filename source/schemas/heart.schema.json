@@ -1,0 +1,73 @@
+{
+  "": "http://json-schema.org/draft-07/schema#",
+  "title": "Heart",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "alternative_name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "adjectives": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "starting_stats": {
+      "type": "object",
+      "properties": {
+        "certes": {
+          "type": "integer"
+        },
+        "qualia": {
+          "type": "integer"
+        },
+        "pool_points_to_divide": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "certes",
+        "qualia",
+        "pool_points_to_divide"
+      ]
+    },
+    "card_family": {
+      "type": "string"
+    },
+    "associated_animal": {
+      "type": "string"
+    },
+    "associated_object": {
+      "type": "string"
+    },
+    "starting_skills_options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "starting_skills_granted": {
+      "type": "integer"
+    },
+    "starting_skills_level": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "name",
+    "alternative_name",
+    "description",
+    "starting_stats",
+    "card_family",
+    "starting_skills_options"
+  ]
+}

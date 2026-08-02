@@ -1,0 +1,31 @@
+{
+  "": "http://json-schema.org/draft-07/schema#",
+  "title": "Soul",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "symbol_image": {
+      "type": "string"
+    },
+    "guardian_gift": {
+      "type": "string"
+    },
+    "cost": {
+      "type": "string"
+    },
+    "revelation_penalty": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "description",
+    "symbol_image",
+    "guardian_gift"
+  ]
+}

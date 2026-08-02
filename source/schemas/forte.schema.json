@@ -1,0 +1,62 @@
+{
+  "": "http://json-schema.org/draft-07/schema#",
+  "title": "Forte",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "background": {
+      "type": "string"
+    },
+    "appearance": {
+      "type": "string"
+    },
+    "character_arcs": {
+      "type": "string"
+    },
+    "path_to_joy": {
+      "type": "string"
+    },
+    "path_to_despair": {
+      "type": "string"
+    },
+    "abilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "level": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "depletion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "level",
+          "description",
+          "color"
+        ]
+      }
+    }
+  },
+  "required": [
+    "name",
+    "description",
+    "abilities"
+  ]
+}
