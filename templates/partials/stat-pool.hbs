@@ -29,22 +29,7 @@
     {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="interaction" pool=system.stats.qualia.pools.interaction label="ISUN.PoolInteraction"}}
     {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="intellect" pool=system.stats.qualia.pools.intellect label="ISUN.PoolIntellect"}}
     
-    {{!-- Sortilege uses enhancements instead of bene --}}
-    <div class="pool-row sortilege">
-      <div class="pool-label">{{localize "ISUN.PoolSortilege"}}</div>
-      <div class="pool-pips">
-        {{#times (poolRemaining system.stats.qualia.pools.sortilege)}}
-          <span class="enhancement-pip empty"></span>
-        {{/times}}
-        {{#times system.stats.qualia.pools.sortilege.value}}
-          <span class="enhancement-pip full"></span>
-        {{/times}}
-      </div>
-      <div class="pool-inputs">
-        <input type="number" name="system.stats.qualia.pools.sortilege.value" value="{{system.stats.qualia.pools.sortilege.value}}" />
-        <span>/</span>
-        <input type="number" name="system.stats.qualia.pools.sortilege.max" value="{{system.stats.qualia.pools.sortilege.max}}" />
-      </div>
-    </div>
+    {{!-- Sortilege holds enhancements rather than bene, hence the pip override --}}
+    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="sortilege" pool=system.stats.qualia.pools.sortilege label="ISUN.PoolSortilege" pipClass="enhancement-pip"}}
   </div>
 </div>

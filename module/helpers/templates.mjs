@@ -9,11 +9,13 @@ export function registerHandlebarsHelpers() {
 
   /* Removed ifEquals, eq, unlessEquals as they are built-in */
 
-  /** Loop N times: {{#times 5}}...{{/times}} */
+  /** Loop N times: {{#times 5}}...{{/times}}, index available as {{@index}}.
+   *  The surrounding context is preserved — passing a fresh {index} object
+   *  instead would hide outer values like poolName from the block body. */
   Handlebars.registerHelper("times", function (n, block) {
     let out = "";
     for (let i = 0; i < n; i++) {
-      out += block.fn({ index: i });
+      out += block.fn(this, { data: { index: i } });
     }
     return out;
   });

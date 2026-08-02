@@ -3,10 +3,11 @@
   
   <div class="pool-pips">
     {{#times (poolRemaining pool)}}
-      <span class="bene-pip empty"></span>
+      <span class="{{#if pipClass}}{{pipClass}}{{else}}bene-pip{{/if}} empty"></span>
     {{/times}}
     {{#times pool.value}}
-      <span class="bene-pip full" data-action="spend-bene" data-pool="{{poolName}}" title="{{localize 'ISUN.Spend'}}"></span>
+      <span class="{{#if pipClass}}{{pipClass}}{{else}}bene-pip{{/if}} full"
+            data-action="spend-bene" data-pool="{{poolName}}" title="{{localize 'ISUN.Spend'}}"></span>
     {{/times}}
   </div>
   
