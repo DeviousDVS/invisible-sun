@@ -10,10 +10,24 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   static DEFAULT_OPTIONS = {
     tag: "form",
     classes: ["invisible-sun", "sheet", "actor", "vislae"],
-    position: { width: 900, height: 750 },
+    position: { width: 1010, height: 755 },
     window: { resizable: true },
-    form: { submitOnChange: true, closeOnSubmit: false },
-    tabs: { primary: { navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "overview" } }
+    form: { submitOnChange: true, closeOnSubmit: false }
+  };
+
+  static TABS = {
+    primary: {
+      initial: "overview",
+      tabs: [
+        { id: "overview",  label: "ISUN.TabOverview" },
+        { id: "stats",     label: "ISUN.TabStats" },
+        { id: "magic",     label: "ISUN.TabMagic" },
+        { id: "identity",  label: "ISUN.TabIdentity" },
+        { id: "arcs",      label: "ISUN.TabArcs" },
+        { id: "inventory", label: "ISUN.TabInventory" },
+        { id: "biography", label: "ISUN.TabBiography" }
+      ]
+    }
   };
 
   static PARTS = {
@@ -79,6 +93,17 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       order: context.orders[0]?.name || "[Order]",
       forte: context.fortes[0]?.name || "[Forte]"
     };
+
+    // Pre-render the sentence as markup. Item names are user-supplied, so each
+    // part is escaped before being wrapped — the template emits this with {{{ }}}.
+    const part = (cls, value) =>
+      `<span class="sentence-part ${cls}">${Handlebars.escapeExpression(value)}</span>`;
+    context.characterSentenceHTML = game.i18n.format("ISUN.CharacterSentence", {
+      foundation: part("foundation", context.characterSentence.foundation),
+      heart:      part("heart", context.characterSentence.heart),
+      order:      part("order", context.characterSentence.order),
+      forte:      part("forte", context.characterSentence.forte)
+    });
   }
 
   // Application V2 Event Listeners

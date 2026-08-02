@@ -1,3 +1,6 @@
+const { ItemSheetV2 } = foundry.applications.sheets;
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+
 import { SheetMixin } from "../SheetMixin.mjs";
 
 export class ISUNItemSheet extends SheetMixin(HandlebarsApplicationMixin(ItemSheetV2)) {
