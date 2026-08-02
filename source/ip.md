@@ -693,27 +693,41 @@ the derived limit.
 
 ### Phase 3 — Mechanics
 
+Steps 1–3 are done, 4 and 6 partly; see the status notes on each.
+
 The damage pipeline, per the specification above. In order:
 
-1. **Reshape the Injury schema.** Replace the separate `injuries.physical` and
-   `injuries.mental` counters with a single ordered list of Injuries tagged by
-   source, so the third-Injury rule can be applied. Add an Injury track and a
-   level-derived `injuriesPerWound` threshold to NPCs and creatures.
-2. **Conversion.** On the third Injury (or the NPC's threshold), convert to a
-   Wound or an Anguish according to that Injury's source, then reset the track.
-3. **Derive scourge.** Wounds scourge every Certes pool, Anguish every Qualia
-   pool, one per point. Retire the hand-entered `status.scourge`.
-4. **Damage application.** Armor first, point-by-point, physical only; then
-   Injuries; with a window to spend Physicality bene to negate an arriving
-   Wound, or Intellect bene an arriving Anguish.
-5. **Recovery.** Physicality bene against standing Injuries; rests and sleep
-   against Wounds and Anguish; never across the boundary.
-6. **Outcomes.** Three Wounds is death. Three Anguish is a GM choice among
-   catatonia, madness, suggestibility or death — so it should prompt rather
-   than resolve itself.
+1. ~~**Reshape the Injury schema.**~~ **Done.** One ordered `injuries` track
+   tagged by source, replacing the two counters. NPCs and creatures carry the
+   same track with a `injuryThreshold` deriving from level (1–2 → 2, 3–5 → 3,
+   6+ → 5) and overridable per creature. Migrated in `VislaeModel.migrateData`,
+   which runs against the raw source — a type change cannot use the
+   deprecate-the-field approach, since an ArrayField handed an object just
+   falls back to empty.
+2. ~~**Conversion.**~~ **Done.** `_convertFilledInjuries` folds each completed
+   set, the last Injury deciding Wound or Anguish, and mutates `changed` rather
+   than calling `updateSource`.
+3. ~~**Derive scourge.**~~ **Done.** Per pool, since a scourge is "a lingering
+   type of vex that forces you to subtract 1 from your venture for every action
+   you take related to that pool". `pool()` gained a `scourge` field for those
+   applied directly; `scourgeTotal` adds the wounds or anguish contribution.
+   The single `status.scourge` number is gone.
+4. **Damage application.** *Armor and the track are done* — `applyDamage()`
+   takes armor off physical damage point by point, ignores it for mental, and
+   supports `direct` for magic that inflicts Wounds or Anguish outright.
+   **Outstanding:** the window to spend Physicality bene to negate an arriving
+   Wound, or Intellect bene an arriving Anguish. That is a prompt at the moment
+   damage lands, so it needs a dialog rather than a data change.
+5. **Recovery.** `healInjuries()` exists and never touches Wounds or Anguish.
+   **Outstanding:** wiring rests and sleep to recover 1 Wound or Anguish, and
+   spending Physicality bene against standing Injuries.
+6. **Outcomes.** *Flags are done* — `dead` at three Wounds, `broken` at three
+   Anguish, shown on the sheet. **Outstanding:** applying Foundry status
+   effects, and prompting on three Anguish, which is a GM choice among
+   catatonia, madness, suggestibility or death rather than an automatic result.
 
-Also: correct `_preUpdate` to mutate `changed` rather than calling
-`updateSource`, and apply status effects for death and incapacity.
+Not yet modelled: for an NPC a scourge is −1 to their *level* rather than to a
+pool, since NPCs have no pools.
 
 ## Open questions
 

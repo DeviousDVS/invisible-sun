@@ -176,6 +176,23 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     this._attachCustomListeners(htmlElement);
   }
 
+  /** Add one Injury of the given source; conversion happens in _preUpdate. */
+  async _onAddInjury(event) {
+    event.preventDefault();
+    const source = event.currentTarget.dataset.source === "mental" ? "mental" : "physical";
+    return this.document.applyDamage({ amount: 1, type: source, ignoreArmor: true });
+  }
+
+  /** Remove a single Injury from the track — healing, not negation. */
+  async _onRemoveInjury(event) {
+    event.preventDefault();
+    const idx = Number(event.currentTarget.dataset.index);
+    const track = [...(this.document.system.status.injuries ?? [])];
+    if (!Number.isInteger(idx) || idx < 0 || idx >= track.length) return;
+    track.splice(idx, 1);
+    return this.document.update({ "system.status.injuries": track });
+  }
+
   async _onEntryAdd(event) {
     event.preventDefault();
     const path = event.currentTarget.dataset.path;
@@ -208,6 +225,12 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     html.querySelectorAll('[data-action^="roll-"], [data-action="use-ability"]').forEach(el => {
       el.addEventListener('click', this._onItemRoll.bind(this));
     });
+
+    // Injury track
+    html.querySelectorAll('[data-action="add-injury"]').forEach(el =>
+      el.addEventListener('click', this._onAddInjury.bind(this)));
+    html.querySelectorAll('[data-action="remove-injury"]').forEach(el =>
+      el.addEventListener('click', this._onRemoveInjury.bind(this)));
 
     // Repeatable narrative entries
     html.querySelectorAll('.entry-add').forEach(el => el.addEventListener('click', this._onEntryAdd.bind(this)));

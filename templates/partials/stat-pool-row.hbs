@@ -1,5 +1,10 @@
 <div class="pool-row" data-pool="{{poolName}}">
-  <div class="pool-label">{{localize label}}</div>
+  <div class="pool-label">
+    {{localize label}}
+    {{#if pool.scourgeTotal}}
+      <span class="scourge-mark" title="{{localize 'ISUN.ScourgeHint'}}">−{{pool.scourgeTotal}}</span>
+    {{/if}}
+  </div>
   
   <div class="pool-pips">
     {{#times (poolRemaining pool)}}

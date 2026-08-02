@@ -909,3 +909,64 @@
   width: 60px;
   text-align: center;
 }
+
+/* ════════════════════════════════════════════════════════
+ * INJURY TRACK
+ * ════════════════════════════════════════════════════════ */
+
+.injury-track {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Pips carry their source, because the one that fills the track decides
+   whether the set becomes a Wound or an Anguish. */
+.injury-pip {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 2px solid var(--isun-border);
+}
+
+.injury-pip.empty { border-color: var(--isun-border); }
+.injury-pip.full { cursor: pointer; }
+.injury-pip.full.physical { background: var(--isun-wound); border-color: var(--isun-wound); }
+.injury-pip.full.mental { background: var(--isun-anguish); border-color: var(--isun-anguish); }
+.injury-pip.full:hover { transform: scale(1.15); }
+
+.injury-add {
+  display: inline-flex;
+  gap: var(--isun-space-sm);
+  margin-left: var(--isun-space-sm);
+}
+
+.injury-add a { color: var(--isun-text-secondary); cursor: pointer; }
+.injury-add a:hover { color: var(--isun-text-primary); }
+
+.injury-hint { margin-top: 2px; }
+
+.health-flag {
+  margin-left: auto;
+  font-size: 0.8em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.health-flag.dead { color: var(--isun-wound); }
+.health-flag.broken { color: var(--isun-anguish); }
+
+/* A scourge is a standing −1 to venture for actions using this pool. */
+.scourge-mark {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  line-height: 1.4;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: 0.75em;
+  color: var(--isun-wound);
+  border: 1px solid var(--isun-wound);
+}

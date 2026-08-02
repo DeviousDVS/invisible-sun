@@ -28,11 +28,13 @@ export class ISUNActor extends Actor {
 
   /** @override */
   async _preUpdate(changed, options, user) {
-    await super._preUpdate(changed, options, user);
-    
-    if (this.type === "Vislae") {
-      this._handleVislaeInjuryOverflow(changed);
-    }
+    const allowed = await super._preUpdate(changed, options, user);
+    if (allowed === false) return false;
+
+    // Convert a track that has been filled by direct editing. Damage applied
+    // through applyDamage() has already converted; this is the safety net for
+    // someone ticking boxes on the sheet.
+    this._convertFilledInjuries(changed);
   }
 
   /** @override */
@@ -40,46 +42,166 @@ export class ISUNActor extends Actor {
     super.prepareDerivedData();
     const system = this.system;
 
+    this._prepareHealth(system);
+
     if (this.type === "Vislae") {
       this._prepareVislaeData(system);
     }
   }
 
-  _handleVislaeInjuryOverflow(changed) {
-    const currentStatus = this.system.status;
-    const changedStatus = changed.system?.status || {};
-    
-    const newPhysicalInjuries = changedStatus.injuries?.physical ?? currentStatus.injuries.physical;
-    const newMentalInjuries = changedStatus.injuries?.mental ?? currentStatus.injuries.mental;
+  /**
+   * Derive scourges and the state of the Injury track.
+   *
+   * A scourge is a lingering vex sitting in a pool: −1 to venture for every
+   * action drawing on that pool (The Gate, glossary). Wounds put one in every
+   * Certes pool and Anguish one in every Qualia pool, per point sustained, so
+   * these are computed per pool rather than held as a single number.
+   */
+  _prepareHealth(system) {
+    const h = this.type === "Vislae" ? system.status : system.health;
+    if (!h) return;
 
-    const updates = {};
-    
-    if (newPhysicalInjuries >= 3) {
-      const extraWounds = Math.floor(newPhysicalInjuries / 3);
-      const currentWounds = changedStatus.wounds?.value ?? currentStatus.wounds.value;
-      const maxWounds = currentStatus.wounds.max;
-      
-      updates["system.status.wounds.value"] = Math.min(maxWounds, currentWounds + extraWounds);
-      updates["system.status.injuries.physical"] = newPhysicalInjuries % 3;
-    }
-    
-    if (newMentalInjuries >= 3) {
-      const extraAnguish = Math.floor(newMentalInjuries / 3);
-      const currentAnguish = changedStatus.anguish?.value ?? currentStatus.anguish.value;
-      const maxAnguish = currentStatus.anguish.max;
-      
-      updates["system.status.anguish.value"] = Math.min(maxAnguish, currentAnguish + extraAnguish);
-      updates["system.status.injuries.mental"] = newMentalInjuries % 3;
+    const threshold = this.injuryThreshold;
+    const track = h.injuries ?? [];
+    h.injuryProgress = {
+      count: track.length,
+      threshold,
+      // What the set would become if the next Injury landed now.
+      pending: track.length ? (track[track.length - 1] === "mental" ? "anguish" : "wounds") : null
+    };
+
+    if (this.type !== "Vislae") return;
+
+    // Wounds scourge the body, Anguish the mind.
+    for (const [group, source] of [["certes", h.wounds.value], ["qualia", h.anguish.value]]) {
+      for (const p of Object.values(system.stats?.[group]?.pools ?? {})) {
+        p.scourgeTotal = (p.scourge ?? 0) + source;
+      }
     }
 
-    if (Object.keys(updates).length > 0) {
-      this.updateSource(updates);
-    }
+    // Three Wounds is death. Three Anguish is a GM call among catatonia,
+    // madness, utter suggestibility or death, so it is only flagged.
+    h.dead = h.wounds.value >= h.wounds.max;
+    h.broken = h.anguish.value >= h.anguish.max;
+  }
+
+  /* ──────────────────────────────────────────────
+   * INJURIES, WOUNDS AND ANGUISH
+   * ────────────────────────────────────────────── */
+
+  /** Where this actor's health lives: Vislae use `status`, others `health`. */
+  get healthPath() {
+    return this.type === "Vislae" ? "system.status" : "system.health";
+  }
+
+  get health() {
+    return this.type === "Vislae" ? this.system.status : this.system.health;
   }
 
   /**
-   * Derivation logic for Vislae characters
+   * How many Injuries this actor takes before one becomes a Wound or Anguish.
+   *
+   * Three for a vislae. Teratology scales it by level for NPCs and creatures —
+   * level 1–2 take a Wound after only one or two, level 6 and above after four
+   * to six — so an explicit threshold wins, and otherwise it derives from level.
    */
+  get injuryThreshold() {
+    const h = this.health;
+    if (Number.isInteger(h?.injuryThreshold)) return h.injuryThreshold;
+    if (this.type === "Vislae") return 3;
+    const level = this.system.level ?? 1;
+    if (level <= 2) return 2;
+    if (level >= 6) return 5;
+    return 3;
+  }
+
+  /**
+   * Fold any completed sets of Injuries into Wounds or Anguish.
+   *
+   * The last Injury of each set decides which it becomes (The Gate, p2547):
+   * "the third Injury sustained determines whether the Injuries translate to a
+   * Wound or an Anguish", so two mental plus one physical is a Wound.
+   *
+   * Mutates `changed` rather than calling updateSource, which is what
+   * _preUpdate expects.
+   */
+  _convertFilledInjuries(changed) {
+    const path = this.healthPath;
+    const h = this.health;
+    if (!h) return;
+
+    const incoming = foundry.utils.getProperty(changed, `${path}.injuries`);
+    let track = [...(incoming ?? h.injuries ?? [])];
+    const threshold = this.injuryThreshold;
+    if (track.length < threshold) return;
+
+    let wounds = foundry.utils.getProperty(changed, `${path}.wounds.value`) ?? h.wounds.value;
+    let anguish = foundry.utils.getProperty(changed, `${path}.anguish.value`) ?? h.anguish.value;
+
+    while (track.length >= threshold) {
+      const set = track.splice(0, threshold);
+      if (set[set.length - 1] === "mental") anguish = Math.min(h.anguish.max, anguish + 1);
+      else wounds = Math.min(h.wounds.max, wounds + 1);
+    }
+
+    foundry.utils.setProperty(changed, `${path}.injuries`, track);
+    foundry.utils.setProperty(changed, `${path}.wounds.value`, wounds);
+    foundry.utils.setProperty(changed, `${path}.anguish.value`, anguish);
+  }
+
+  /**
+   * Apply damage through the full sequence (The Gate, p2405–2470).
+   *
+   * Armor reduces physical damage point by point before anything is recorded;
+   * it does nothing against mental damage. Some powerful magical attacks
+   * inflict Wounds or Anguish directly and bypass both armor and the track —
+   * pass `direct` for those.
+   *
+   * @param {object} options
+   * @param {number} options.amount    points of damage
+   * @param {"physical"|"mental"} options.type
+   * @param {boolean} [options.ignoreArmor]
+   * @param {boolean} [options.direct] inflict Wounds/Anguish rather than Injuries
+   */
+  async applyDamage({ amount = 0, type = "physical", ignoreArmor = false, direct = false } = {}) {
+    const h = this.health;
+    const path = this.healthPath;
+    if (!h || amount <= 0) return null;
+
+    if (direct) {
+      const key = type === "mental" ? "anguish" : "wounds";
+      const value = Math.min(h[key].max, h[key].value + amount);
+      await this.update({ [`${path}.${key}.value`]: value });
+      return { absorbed: 0, injuries: 0, direct: amount };
+    }
+
+    // Armor is physical only; Ward is the magical counterpart and does not
+    // reduce damage point-for-point, so it is not applied here.
+    const armor = (type === "physical" && !ignoreArmor) ? (this.system.armor ?? h.armor ?? 0) : 0;
+    const got = Math.max(0, amount - armor);
+    if (!got) return { absorbed: amount, injuries: 0, direct: 0 };
+
+    const changed = { [`${path}.injuries`]: [...(h.injuries ?? []), ...Array(got).fill(type)] };
+    await this.update(changed);
+    return { absorbed: Math.min(armor, amount), injuries: got, direct: 0 };
+  }
+
+  /**
+   * Heal Injuries that have not yet become Wounds or Anguish.
+   *
+   * Healing Injuries never touches a Wound or an Anguish: "A process or effect
+   * that heals Injuries has no effect on Wounds or Anguish" (The Gate, p2468).
+   */
+  async healInjuries(count = 1) {
+    const h = this.health;
+    const track = [...(h?.injuries ?? [])];
+    if (!track.length) return null;
+    track.splice(-Math.min(count, track.length));
+    return this.update({ [`${this.healthPath}.injuries`]: track });
+  }
+
+  /* ────────────────────────────────────────────── */
+
   /**
    * Derive the effective caps as base + item contributions + GM override.
    *

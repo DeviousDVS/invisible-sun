@@ -204,7 +204,12 @@
 }
 
 .pool-label {
-  flex: 0 0 100px;
+  /* Wide enough for the longest pool name plus a scourge mark, which would
+     otherwise wrap onto a second line and be crushed. */
+  flex: 0 0 148px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-family: var(--isun-font-heading);
   color: var(--isun-text-secondary);
 }

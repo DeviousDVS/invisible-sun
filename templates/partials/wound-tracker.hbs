@@ -9,6 +9,11 @@
         <span class="wound-pip full" data-action="remove-wound"></span>
       {{/times}}
     </div>
+    {{#if system.status.dead}}
+      <span class="health-flag dead" title="{{localize 'ISUN.DeadHint'}}">
+        <i class="fa-solid fa-skull"></i> {{localize "ISUN.Dead"}}
+      </span>
+    {{/if}}
   </div>
 
   <div class="health-row anguish-row">
@@ -21,21 +26,37 @@
         <span class="anguish-pip full" data-action="remove-anguish"></span>
       {{/times}}
     </div>
+    {{#if system.status.broken}}
+      <span class="health-flag broken" title="{{localize 'ISUN.BrokenHint'}}">
+        <i class="fa-solid fa-brain"></i> {{localize "ISUN.Broken"}}
+      </span>
+    {{/if}}
   </div>
 
+  {{!-- One shared Injury track. Each pip records where it came from, because
+        the pip that fills the track decides whether the set becomes a Wound or
+        an Anguish. --}}
   <div class="injuries-row">
     <label>{{localize "ISUN.Injuries"}}</label>
-    <div class="injury-inputs">
-      <div class="injury-group">
-        <i class="fa-solid fa-droplet" title="Physical"></i>
-        <input type="number" name="system.status.injuries.physical" value="{{system.status.injuries.physical}}" min="0" max="2" />
-      </div>
-      <div class="injury-group">
-        <i class="fa-solid fa-brain" title="Mental"></i>
-        <input type="number" name="system.status.injuries.mental" value="{{system.status.injuries.mental}}" min="0" max="2" />
-      </div>
+    <div class="injury-track">
+      {{#each system.status.injuries as |source i|}}
+        <span class="injury-pip full {{source}}" data-action="remove-injury" data-index="{{i}}"
+              title="{{localize (concat "ISUN.Injury" (capitalize source))}}"></span>
+      {{/each}}
+      {{#times (subtract system.status.injuryProgress.threshold system.status.injuryProgress.count)}}
+        <span class="injury-pip empty"></span>
+      {{/times}}
+      <span class="injury-add">
+        <a data-action="add-injury" data-source="physical" title="{{localize 'ISUN.AddPhysicalInjury'}}">
+          <i class="fa-solid fa-droplet"></i>
+        </a>
+        <a data-action="add-injury" data-source="mental" title="{{localize 'ISUN.AddMentalInjury'}}">
+          <i class="fa-solid fa-brain"></i>
+        </a>
+      </span>
     </div>
   </div>
+  <p class="hint injury-hint">{{localize "ISUN.InjuryTrackHint"}}</p>
 
   <div class="defenses-row">
     <div class="defense-group">
@@ -45,10 +66,6 @@
     <div class="defense-group">
       <label>{{localize "ISUN.Ward"}}</label>
       <input type="number" name="system.status.ward" value="{{system.status.ward}}" min="0" />
-    </div>
-    <div class="defense-group">
-      <label>{{localize "ISUN.Scourge"}}</label>
-      <input type="number" name="system.status.scourge" value="{{system.status.scourge}}" min="0" />
     </div>
   </div>
 </div>

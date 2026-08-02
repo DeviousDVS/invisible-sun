@@ -10,9 +10,45 @@
  *   - Economy & House
  *   - Rest tracking
  */
-import { pool, purseSchema } from "../_fields.mjs";
+import { pool, purseSchema, injuryTrack } from "../_fields.mjs";
 
 export class VislaeModel extends foundry.abstract.DataModel {
+
+  /**
+   * `status.injuries` changed shape from `{physical, mental}` counters to an
+   * ordered track. That is a type change rather than a removal, so the
+   * deprecate-the-old-field approach does not apply — an ArrayField handed an
+   * object simply falls back to empty and the values are gone. migrateData runs
+   * against the raw source before cleaning, which is the only point the old
+   * shape is still readable.
+   *
+   * Order within the rebuilt track is unknowable, so physical Injuries are
+   * placed first. That only matters if the old counters summed to the
+   * threshold, in which case the last entry decides Wound versus Anguish.
+   *
+   * Note this can change a character's standing: under the old two-counter
+   * model, 2 physical and 1 mental were two part-full tracks converting
+   * nothing, whereas one shared track of three is full and converts on the next
+   * update. The old behaviour was not the rule, so the new reading is correct,
+   * but a character carrying injuries across the upgrade may gain a Wound or an
+   * Anguish they did not have.
+   */
+  static migrateData(source) {
+    const inj = source?.status?.injuries;
+    if (inj && !Array.isArray(inj) && typeof inj === "object") {
+      const physical = Number(inj.physical) || 0;
+      const mental = Number(inj.mental) || 0;
+      source.status.injuries = [
+        ...Array(physical).fill("physical"),
+        ...Array(mental).fill("mental")
+      ];
+    }
+    // A single number is no longer meaningful: scourges sit in individual
+    // pools. Drop it rather than guess which pools it applied to.
+    if (source?.status && "scourge" in source.status) delete source.status.scourge;
+    return super.migrateData(source);
+  }
+
   static defineSchema() {
     const fields = foundry.data.fields;
 
@@ -41,17 +77,19 @@ export class VislaeModel extends foundry.abstract.DataModel {
       hiddenKnowledge: pool(10, 99),
     });
 
-    /* ── Status (health) ── */
+    /* ── Status (health) ──
+     * Injuries are one ordered track shared by physical and mental damage, not
+     * two counters. Each entry records where it came from, because when the
+     * track fills it is the *last* Injury that decides whether the set becomes
+     * a Wound or an Anguish (The Gate, p2547). Two counters cannot express
+     * that: 2 mental + 1 physical is a single Wound, not two part-full tracks. */
     const status = new fields.SchemaField({
       wounds:   pool(0, 3),
       anguish:  pool(0, 3),
-      injuries: new fields.SchemaField({
-        physical: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
-        mental:   new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
-      }),
-      armor:   new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
-      ward:    new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
-      scourge: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+      injuries: injuryTrack(),
+      injuryThreshold: new fields.NumberField({ required: true, initial: 3, integer: true, min: 1 }),
+      armor:    new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+      ward:     new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
     });
 
     /* ── Advancement ── */
