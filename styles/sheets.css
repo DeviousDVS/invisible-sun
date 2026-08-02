@@ -99,15 +99,24 @@
 }
 
 /* Tabs */
+/* Nine tabs no longer fit one row at the default width, so let them wrap
+   rather than overflow off the edge of the sheet. */
 .sheet-tabs {
   display: flex;
+  flex-wrap: wrap;
+  /* Core styles the tab strip for a single row; without these the wrapped
+     row spreads its items across the full width instead of sitting left. */
+  justify-content: flex-start;
+  row-gap: 2px;
   background: var(--isun-bg-secondary);
   border-bottom: 1px solid var(--isun-border);
   padding: 0 var(--isun-space-md);
 }
 
 .sheet-tabs .item {
-  padding: var(--isun-space-sm) var(--isun-space-md);
+  padding: var(--isun-space-sm) var(--isun-space-sm);
+  white-space: nowrap;
+  flex: 0 0 auto;
   font-family: var(--isun-font-heading);
   color: var(--isun-text-secondary);
   text-transform: uppercase;

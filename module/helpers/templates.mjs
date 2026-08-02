@@ -96,6 +96,10 @@ export async function preloadHandlebarsTemplates() {
     "systems/invisible-sun/templates/partials/forte-abilities.hbs",
     "systems/invisible-sun/templates/partials/character-arc-tracker.hbs",
     "systems/invisible-sun/templates/partials/inventory-list.hbs",
+    "systems/invisible-sun/templates/partials/cap-badge.hbs",
+    "systems/invisible-sun/templates/partials/identity.hbs",
+    "systems/invisible-sun/templates/partials/order.hbs",
+    "systems/invisible-sun/templates/partials/connections.hbs",
     "systems/invisible-sun/templates/partials/narrative.hbs",
     "systems/invisible-sun/templates/partials/entry-list.hbs",
   ]);

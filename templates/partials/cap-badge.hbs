@@ -1,0 +1,10 @@
+{{!-- Usage against a derived limit. Advisory: a cap we compute too low must
+      never stop a player recording what the rules allow, so this warns and
+      does not block. --}}
+{{#if cap}}
+  <span class="cap-badge{{#if cap.over}} over{{/if}}"
+        title="{{#if cap.over}}{{localize 'ISUN.OverCapHint'}}{{else}}{{localize 'ISUN.CapHint'}}{{/if}}">
+    {{cap.used}}/{{cap.value}}
+    {{#if cap.over}}<i class="fa-solid fa-triangle-exclamation"></i>{{/if}}
+  </span>
+{{/if}}

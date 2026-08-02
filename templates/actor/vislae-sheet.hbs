@@ -43,11 +43,19 @@
       {{> "systems/invisible-sun/templates/partials/forte-abilities.hbs"}}
     </div>
 
+    {{!-- Order Tab --}}
+    <div class="tab order {{tabs.order.cssClass}}" data-group="primary" data-tab="order">
+      {{> "systems/invisible-sun/templates/partials/order.hbs"}}
+    </div>
+
     {{!-- Identity Tab --}}
     <div class="tab identity {{tabs.identity.cssClass}}" data-group="primary" data-tab="identity">
-      <div class="identity-cards">
-        <!-- Render Hearts, Orders, Fortes, Souls attached to actor -->
-      </div>
+      {{> "systems/invisible-sun/templates/partials/identity.hbs"}}
+    </div>
+
+    {{!-- Connections Tab --}}
+    <div class="tab connections {{tabs.connections.cssClass}}" data-group="primary" data-tab="connections">
+      {{> "systems/invisible-sun/templates/partials/connections.hbs"}}
     </div>
 
     {{!-- Arcs Tab --}}

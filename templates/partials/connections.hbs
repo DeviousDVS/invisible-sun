@@ -1,0 +1,29 @@
+{{!-- People a vislae knows. One item type, grouped by bondType — connections
+      from a Foundation or bought with advancement, and bonds with other PCs
+      and with NPCs. --}}
+<div class="connections-container">
+  {{#each connectionGroups as |group|}}
+    <div class="isun-panel {{#unless @first}}mt-4{{/unless}}">
+      <div class="entry-list-header">
+        <h3>{{localize group.label}}</h3>
+        <a class="item-create connection-create" data-type="Connection" data-preset='{"bondType":"{{group.key}}"}'
+           title="{{localize 'ISUN.AddConnection'}}"><i class="fa-solid fa-plus"></i></a>
+      </div>
+      <div class="item-list">
+        {{#each group.items as |c|}}
+          <div class="item" data-item-id="{{c.id}}">
+            <div class="level"><span class="level-badge">{{c.system.level}}</span></div>
+            <div class="name">{{c.name}}</div>
+            <div class="relationship">{{c.system.relationship}}</div>
+            <div class="actions">
+              <a class="item-edit" title="{{localize 'ISUN.Edit'}}"><i class="fa-solid fa-edit"></i></a>
+              <a class="item-delete" title="{{localize 'ISUN.Remove'}}"><i class="fa-solid fa-trash"></i></a>
+            </div>
+          </div>
+        {{else}}
+          <div class="empty-state">{{localize "ISUN.NoConnections"}}</div>
+        {{/each}}
+      </div>
+    </div>
+  {{/each}}
+</div>

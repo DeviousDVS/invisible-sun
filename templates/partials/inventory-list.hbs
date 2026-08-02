@@ -5,7 +5,7 @@
     <div class="item-list">
       <div class="list-header">
         <span class="level">Lvl</span>
-        <span class="name">Item</span>
+        <span class="name">Item {{> "systems/invisible-sun/templates/partials/cap-badge.hbs" cap=system.limits.ephemera}}</span>
         <span class="type">Type</span>
         <span class="actions">
           <a class="item-create" data-type="Ephemera"><i class="fa-solid fa-plus"></i></a>
@@ -33,7 +33,7 @@
     <div class="item-list">
       <div class="list-header">
         <span class="level">Lvl</span>
-        <span class="name">Object</span>
+        <span class="name">Object {{> "systems/invisible-sun/templates/partials/cap-badge.hbs" cap=system.limits.objectsOfPower}}</span>
         <span class="depletion">Depletion</span>
         <span class="actions">
           <a class="item-create" data-type="ObjectOfPower"><i class="fa-solid fa-plus"></i></a>
@@ -133,22 +133,5 @@
     </div>
   </div>
 
-  <div class="house-section mt-4">
-    <h3>House</h3>
-    <div class="house-grid">
-      <div class="house-field">
-        <label>Level</label>
-        <input type="number" name="system.house.level" value="{{system.house.level}}" />
-      </div>
-      <div class="house-field">
-        <label>Type</label>
-        <input type="text" name="system.house.type" value="{{system.house.type}}" />
-      </div>
-      <div class="house-field full-width">
-        <label>Augments</label>
-        <input type="text" name="system.house.augments" value="{{system.house.augments}}" />
-      </div>
-    </div>
-  </div>
 
 </div>

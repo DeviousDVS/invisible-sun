@@ -1,0 +1,76 @@
+{{!-- The Testament of Suns: the five items that define a vislae, plus the
+      house and neighbourhood they live in. --}}
+<div class="identity-container">
+
+  <div class="identity-cards">
+    {{#each identitySlots as |slot|}}
+      <div class="identity-card {{slot.key}}{{#unless slot.item}} empty{{/unless}}"
+           {{#if slot.item}}data-item-id="{{slot.item.id}}"{{/if}}>
+        <div class="identity-card-head">
+          <span class="identity-slot">{{localize slot.label}}</span>
+          {{#if slot.item}}
+            <span class="identity-actions">
+              <a class="item-edit" title="{{localize 'ISUN.Edit'}}"><i class="fa-solid fa-edit"></i></a>
+              <a class="item-delete" title="{{localize 'ISUN.Remove'}}"><i class="fa-solid fa-trash"></i></a>
+            </span>
+          {{/if}}
+        </div>
+        {{#if slot.item}}
+          <img class="identity-img" src="{{slot.item.img}}" alt="{{slot.item.name}}" />
+          <div class="identity-name">{{slot.item.name}}</div>
+          {{#if slot.detail}}<div class="identity-detail">{{slot.detail}}</div>{{/if}}
+        {{else}}
+          <div class="identity-empty">{{localize "ISUN.DragToAssign"}}</div>
+        {{/if}}
+      </div>
+    {{/each}}
+  </div>
+
+  <div class="isun-panel mt-4">
+    <h3>{{localize "ISUN.Order"}}</h3>
+    <div class="grid-2col">
+      <div class="form-group">
+        <label>{{localize "ISUN.OrderDegree"}}</label>
+        <input type="text" name="system.meta.orderDegree" value="{{system.meta.orderDegree}}"
+               placeholder="{{localize 'ISUN.OrderDegreePlaceholder'}}" />
+      </div>
+      <div class="form-group">
+        <label>{{localize "ISUN.OrderType"}}</label>
+        <input type="text" name="system.meta.orderType" value="{{system.meta.orderType}}" />
+      </div>
+    </div>
+  </div>
+
+  {{!-- House and neighbourhood: moved out of Inventory, where they sat oddly
+        among ephemera and objects of power. --}}
+  <div class="isun-panel mt-4">
+    <h3>{{localize "ISUN.House"}}</h3>
+    <div class="grid-3col">
+      <div class="form-group">
+        <label>{{localize "ISUN.HouseName"}}</label>
+        <input type="text" name="system.house.name" value="{{system.house.name}}" />
+      </div>
+      <div class="form-group">
+        <label>{{localize "ISUN.HouseType"}}</label>
+        <input type="text" name="system.house.type" value="{{system.house.type}}" />
+      </div>
+      <div class="form-group">
+        <label>{{localize "ISUN.HouseLevel"}}</label>
+        <input type="number" min="0" max="10" name="system.house.level" value="{{system.house.level}}" />
+      </div>
+      <div class="form-group full-width">
+        <label>{{localize "ISUN.Neighborhood"}}</label>
+        <input type="text" name="system.house.neighborhood" value="{{system.house.neighborhood}}" />
+      </div>
+      <div class="form-group full-width">
+        <label>{{localize "ISUN.HouseAugments"}}</label>
+        <input type="text" name="system.house.augments" value="{{system.house.augments}}" />
+      </div>
+    </div>
+    <div class="mt-4">
+      <label class="section-label">{{localize "ISUN.HouseSecrets"}}</label>
+      {{editor system.house.secrets target="system.house.secrets" button=true owner=owner editable=editable}}
+    </div>
+  </div>
+
+</div>

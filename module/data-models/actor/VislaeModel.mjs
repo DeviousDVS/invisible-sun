@@ -95,10 +95,17 @@ export class VislaeModel extends foundry.abstract.DataModel {
     });
 
     /* ── House ── */
+    /* ── House ──
+     * A vislae's home and the neighbourhood around it; the fan sheet pairs the
+     * two, and in play they are consulted together. */
     const house = new fields.SchemaField({
-      type:     new fields.StringField({ required: false, initial: "" }),
-      level:    new fields.NumberField({ required: true, initial: 0, integer: true, min: 0, max: 10 }),
-      augments: new fields.StringField({ required: false, initial: "" }),
+      name:         new fields.StringField({ required: false, initial: "" }),
+      type:         new fields.StringField({ required: false, initial: "" }),
+      level:        new fields.NumberField({ required: true, initial: 0, integer: true, min: 0, max: 10 }),
+      augments:     new fields.StringField({ required: false, initial: "" }),
+      secrets:      new fields.HTMLField({ required: false, initial: "" }),
+      neighborhood: new fields.StringField({ required: false, initial: "" }),
+      notes:        new fields.HTMLField({ required: false, initial: "" }),
     });
 
     /* ── Rest Tracking ── */

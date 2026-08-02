@@ -56,6 +56,19 @@ export const ActorSheetMixin = (Base) => class extends SheetMixin(Base) {
       type,
       img: CONFIG.ISUN?.itemTypeIcons?.[type]
     };
+
+    // A create button may seed system fields via data-preset, so that e.g. the
+    // "PC Bonds" heading creates a Connection already set to that bond type
+    // rather than making the user pick it afterwards.
+    const preset = event.currentTarget.dataset.preset;
+    if (preset) {
+      try {
+        itemData.system = JSON.parse(preset);
+      } catch (err) {
+        console.warn("invisible-sun | unparseable data-preset on create button", preset, err);
+      }
+    }
+
     return this.document.createEmbeddedDocuments("Item", [itemData]);
   }
 

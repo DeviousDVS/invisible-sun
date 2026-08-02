@@ -81,7 +81,7 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'spells.json'))) {
       dice: data.dice || "",
       facets: data.facets || "",
       spellType: "general"
-    }, "icons/magic/symbols/runes-star-pentagram-blue.webp");
+    }, "icons/magic/symbols/rune-sigil-horned-blue.webp");
     writeItem("spells", item);
   }
   console.log(`Processed ${Object.keys(spellsData).length} spells.`);
@@ -98,7 +98,7 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'incantations.json'))) {
       description: cleanHtml(data.description),
       dice: data.dice || "",
       facets: data.facets || ""
-    }, "icons/magic/symbols/rune-sigil-yellow.webp");
+    }, "icons/magic/symbols/rune-sigil-green.webp");
     writeItem("incantations", item);
   }
   console.log(`Processed ${Object.keys(incantationsData).length} incantations.`);
@@ -165,11 +165,11 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'fortes.json'))) {
 }
 
 const simpleTypes = [
-  { file: 'character-arcs.json', type: 'CharacterArc', pack: 'character-arcs', icon: 'icons/sundries/documents/document-symbol-star-yellow.webp' },
-  { file: 'foundations.json', type: 'Foundation', pack: 'foundations', icon: 'icons/environment/settlement/house-wood.webp' },
+  { file: 'character-arcs.json', type: 'CharacterArc', pack: 'character-arcs', icon: 'icons/sundries/scrolls/scroll-bound-blue-brown.webp' },
+  { file: 'foundations.json', type: 'Foundation', pack: 'foundations', icon: 'icons/environment/settlement/house-city.webp' },
   { file: 'hearts.json', type: 'Heart', pack: 'hearts', icon: 'icons/magic/life/heart-glowing-red.webp' },
   { file: 'orders.json', type: 'Order', pack: 'orders', icon: 'icons/magic/symbols/ring-circle-smoke-blue.webp' },
-  { file: 'souls.json', type: 'Soul', pack: 'souls', icon: 'icons/magic/life/soul-spirit-blue.webp' }
+  { file: 'souls.json', type: 'Soul', pack: 'souls', icon: 'icons/magic/life/ankh-gold-blue.webp' }
 ];
 
 for (const st of simpleTypes) {

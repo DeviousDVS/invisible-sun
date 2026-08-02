@@ -19,13 +19,15 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     primary: {
       initial: "overview",
       tabs: [
-        { id: "overview",  label: "ISUN.TabOverview" },
-        { id: "stats",     label: "ISUN.TabStats" },
-        { id: "magic",     label: "ISUN.TabMagic" },
-        { id: "identity",  label: "ISUN.TabIdentity" },
-        { id: "arcs",      label: "ISUN.TabArcs" },
-        { id: "inventory", label: "ISUN.TabInventory" },
-        { id: "biography", label: "ISUN.TabBiography" }
+        { id: "overview",    label: "ISUN.TabOverview" },
+        { id: "stats",       label: "ISUN.TabStats" },
+        { id: "magic",       label: "ISUN.TabMagic" },
+        { id: "order",       label: "ISUN.TabOrder" },
+        { id: "identity",    label: "ISUN.TabIdentity" },
+        { id: "connections", label: "ISUN.TabConnections" },
+        { id: "arcs",        label: "ISUN.TabArcs" },
+        { id: "inventory",   label: "ISUN.TabInventory" },
+        { id: "biography",   label: "ISUN.TabBiography" }
       ]
     }
   };
@@ -61,6 +63,9 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     context.souls = [];
     context.orders = [];
     context.fortes = [];
+    context.threads = [];
+    context.minorMagics = [];
+    context.connections = [];
 
     for (let item of items) {
       switch(item.type) {
@@ -77,18 +82,51 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
         case "Soul": context.souls.push(item); break;
         case "Order": context.orders.push(item); break;
         case "Forte": context.fortes.push(item); break;
+        case "Thread": context.threads.push(item); break;
+        case "MinorMagic": context.minorMagics.push(item); break;
+        case "Connection": context.connections.push(item); break;
       }
     }
+
+    // Connections are one type distinguished by bondType, so the sheet groups
+    // them rather than the data model splitting them.
+    context.connectionGroups = Object.keys(CONFIG.ISUN?.bondTypes ?? {}).map(key => ({
+      key,
+      label: CONFIG.ISUN.bondTypeGroups?.[key] ?? CONFIG.ISUN.bondTypes[key],
+      items: context.connections.filter(c => c.system?.bondType === key)
+    }));
+
+    // Which order's subsystem to show. Prefer the Order item the character
+    // holds; fall back to the free-text meta field for characters set up by
+    // hand before drag-and-drop population exists.
+    const orderNames = Object.keys(CONFIG.ISUN?.orders ?? {});
+    const orderSource = (context.orders[0]?.name || context.actor.system?.meta?.orderType || "").toLowerCase();
+    context.orderKey = orderNames.find(k => orderSource.includes(k)) ?? "";
+    context.order = context.orders[0] ?? null;
+    context.orderInfo = context.orderKey ? CONFIG.ISUN.orders[context.orderKey] : null;
+
+    // A vislae's soul is secret — the fan sheet this was modelled on keeps it
+    // in a hidden row. Owners and GMs see it; observers with read access do not.
+    // Must be set before identitySlots, which gates the soul card on it.
+    context.showSecrets = this.document.isOwner;
+
+    // The Testament of Suns, in the order the character sentence reads.
+    const sys = context.actor.system;
+    context.identitySlots = [
+      { key: "foundation", label: "ISUN.Foundation", item: context.foundations[0],
+        detail: context.foundations[0] ? `${sys.economy.income} crystal/week` : "" },
+      { key: "heart",      label: "ISUN.Heart",      item: context.hearts[0] },
+      { key: "order",      label: "ISUN.Order",      item: context.orders[0],
+        detail: sys.meta?.orderDegree || "" },
+      { key: "forte",      label: "ISUN.Forte",      item: context.fortes[0] },
+      { key: "soul",       label: "ISUN.Soul",       item: context.showSecrets ? context.souls[0] : null },
+    ];
 
     // Sort spells by level
     context.spells.sort((a, b) => (a.system.level || 0) - (b.system.level || 0));
 
     // Config for template dropdowns
     context.config = CONFIG.ISUN;
-
-    // A vislae's soul is secret — the fan sheet this was modelled on keeps it
-    // in a hidden row. Owners and GMs see it; observers with read access do not.
-    context.showSecrets = this.document.isOwner;
 
     // Character Sentence derivation
     context.characterSentence = {

@@ -171,6 +171,14 @@ export const ISUN = Object.freeze({
     minorMagic: "ISUN.PurchaseMinorMagic",
   },
 
+  /** Plural forms, for the Connections tab's group headings. */
+  bondTypeGroups: {
+    connection: "ISUN.BondConnectionPlural",
+    pcBond:     "ISUN.BondPcPlural",
+    npcBond:    "ISUN.BondNpcPlural",
+    other:      "ISUN.BondOtherPlural",
+  },
+
   /** How a person relates to the character. */
   bondTypes: {
     connection: "ISUN.BondConnection",
