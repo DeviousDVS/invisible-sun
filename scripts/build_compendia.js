@@ -69,10 +69,21 @@ function createItem(name, type, systemData, img) {
   };
 }
 
+// Packs emptied so far this run. A source entry that is renamed or dropped
+// would otherwise leave its old file behind and the item would keep appearing
+// in the compendium, so each pack is cleared the first time it is written to.
+const clearedPacks = new Set();
+
 function writeItem(packName, item) {
   const packDir = path.join(PACKS_DIR, packName);
   if (!fs.existsSync(packDir)) fs.mkdirSync(packDir, { recursive: true });
-  
+  if (!clearedPacks.has(packName)) {
+    for (const f of fs.readdirSync(packDir)) {
+      if (f.endsWith('.json')) fs.unlinkSync(path.join(packDir, f));
+    }
+    clearedPacks.add(packName);
+  }
+
   // Safe filename
   const safeName = item.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
   const filePath = path.join(packDir, `${safeName}_${item._id}.json`);
@@ -90,7 +101,8 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'spells.json'))) {
       description: cleanHtml(data.description),
       dice: data.dice || "",
       facets: data.facets || "",
-      spellType: "general"
+      note: cleanHtml(data.note || ""),
+      spellType: data.spellType || "general"
     }, "icons/magic/symbols/rune-sigil-horned-blue.webp");
     writeItem("spells", item);
   }
@@ -199,6 +211,22 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'orders.json'))) {
     writeItem("orders", item);
   }
   console.log(`Processed ${ordersData.length} orders.`);
+}
+
+// Weaver aggregates, from the Weaver Aggregates card deck
+if (fs.existsSync(path.join(SOURCE_DIR, 'aggregates.json'))) {
+  const aggData = JSON.parse(fs.readFileSync(path.join(SOURCE_DIR, 'aggregates.json'), 'utf8'));
+  for (const data of aggData) {
+    const item = createItem(data.name, "Thread", {
+      description: cleanHtml(data.description),
+      defaultDuration: data.default_duration || "",
+      defaultRange: data.default_range || "",
+      qualities: data.qualities ?? [],
+      absences: data.absences ?? []
+    }, "icons/svg/net.svg");
+    writeItem("threads", item);
+  }
+  console.log(`Processed ${aggData.length} aggregates.`);
 }
 
 // Character arcs

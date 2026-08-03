@@ -84,6 +84,12 @@
       "label": "Spells",
       "path": "packs/spells",
       "type": "Item"
+    },
+    {
+      "name": "threads",
+      "label": "Aggregates & Threads",
+      "path": "packs/threads",
+      "type": "Item"
     }
   ],
   "socket": true,

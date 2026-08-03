@@ -51,12 +51,14 @@ export const ISUN = Object.freeze({
     Object.keys(suns).map(k => [k.charAt(0).toUpperCase() + k.slice(1), k])
   ),
 
-  /** All valid spell colour strings (for select dropdowns). */
+  /** All valid spell colour strings (for select dropdowns). A few cards print
+   *  "Varies" rather than a sun, so it is a colour a spell can hold even though
+   *  it is not one of the Nine. */
   spellColorChoices: Object.fromEntries(
     [["", ""], ...Object.keys(suns).map(k => {
       const label = k.charAt(0).toUpperCase() + k.slice(1);
       return [label, label];
-    })]
+    }), ["Varies", "Varies"]]
   ),
 
   /* ──────────────────────────────────────────────

@@ -1,4 +1,6 @@
 source/books/
+source/cards/
+source/*.zip
 trash/
 node_modules/
 

@@ -18,6 +18,9 @@ export class SpellModel extends foundry.abstract.DataModel {
       spellType:   new fields.StringField({ required: true, initial: "general", choices: ISUN.spellTypes }),
       dice:        new fields.StringField({ required: false, initial: "" }),
       facets:      new fields.StringField({ required: false, initial: "" }),
+      /** The italic aside printed under the card's labels — a rules
+       *  clarification or a hook, not part of the spell's effect. */
+      note:        new fields.HTMLField({ required: false, initial: "" }),
     };
   }
 }
