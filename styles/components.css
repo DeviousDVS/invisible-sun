@@ -911,14 +911,16 @@ a.sentence-part:hover {
   border: 1px solid var(--isun-wound);
 }
 
-/* Scourges applied more widely than a single pool. */
+/* Scourges applied more widely than a single pool. GM-set and usually zero, so
+   it runs as one compact line rather than a stacked block above the pools. */
 .scourge-bar {
   display: flex;
-  align-items: flex-end;
-  gap: var(--isun-space-md);
-  padding-bottom: var(--isun-space-sm);
-  margin-bottom: var(--isun-space-md);
+  align-items: center;
+  gap: var(--isun-space-sm);
+  padding-bottom: var(--isun-space-xs);
+  margin-bottom: var(--isun-space-sm);
   border-bottom: 1px solid var(--isun-border);
+  font-size: 0.9em;
 }
 
 .scourge-bar-label {
@@ -927,10 +929,9 @@ a.sentence-part:hover {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--isun-text-secondary);
-  padding-bottom: 4px;
 }
 
-.scourge-scope { display: flex; flex-direction: column; gap: 2px; }
+.scourge-scope { display: flex; align-items: center; gap: 5px; }
 
 .scourge-scope > label {
   font-size: 0.68em;
@@ -940,7 +941,12 @@ a.sentence-part:hover {
   white-space: nowrap;
 }
 
-.scourge-scope input { width: 52px; text-align: center; }
+.scourge-scope input {
+  width: 42px;
+  text-align: center;
+  padding: 1px 2px !important;
+  height: 22px !important;
+}
 
 .scourge-worst {
   margin-left: auto;

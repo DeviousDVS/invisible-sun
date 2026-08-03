@@ -15,7 +15,9 @@
         <span>{{{characterSentenceHTML}}}</span>
       </div>
       
-      <div class="overview-grid">
+      {{> "systems/invisible-sun/templates/partials/stat-pool.hbs"}}
+
+      <div class="overview-grid mt-4">
         <div class="overview-health">
           {{> "systems/invisible-sun/templates/partials/wound-tracker.hbs"}}
         </div>
@@ -39,10 +41,6 @@
       </div>
     </div>
 
-    {{!-- Stats & Pools Tab --}}
-    <div class="tab stats {{tabs.stats.cssClass}}" data-group="primary" data-tab="stats">
-      {{> "systems/invisible-sun/templates/partials/stat-pool.hbs"}}
-    </div>
 
     {{!-- Magic Tab --}}
     <div class="tab magic {{tabs.magic.cssClass}}" data-group="primary" data-tab="magic">
