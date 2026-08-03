@@ -30,9 +30,29 @@
       <h3><i class="fa-solid fa-eye-slash"></i> {{localize "ISUN.SecretSoul"}}</h3>
       <p class="hint">{{localize "ISUN.SecretSoulHint"}}</p>
       <div class="grid-2col">
+        {{!-- The Soul is an item, not a name. Drop one anywhere on the sheet to
+              set it; the slot opens it, matching the character sentence. --}}
         <div class="form-group">
-          <label>{{localize "ISUN.SoulName"}}</label>
-          <input type="text" name="system.meta.soulName" value="{{system.meta.soulName}}" />
+          <label>{{localize "ISUN.Soul"}}</label>
+          {{#if soul}}
+            <a class="soul-slot filled" data-action="open-item" data-item-id="{{soul.id}}"
+               data-tooltip="{{localize 'ISUN.OpenSoul'}}">
+              <img src="{{soul.img}}" alt="{{soul.name}}" />
+              <span class="soul-name">{{soul.name}}</span>
+              <i class="fa-solid fa-up-right-from-square"></i>
+            </a>
+          {{else}}
+            <div class="soul-slot empty">
+              {{#if system.meta.soulName}}
+                {{!-- A name typed before Souls were items; the item itself
+                      still needs dropping on. --}}
+                <span class="soul-legacy">{{system.meta.soulName}}</span>
+                <span class="soul-hint">{{localize "ISUN.SoulDropReplace"}}</span>
+              {{else}}
+                <span class="soul-hint">{{localize "ISUN.SoulDrop"}}</span>
+              {{/if}}
+            </div>
+          {{/if}}
         </div>
         <div class="form-group">
           <label>{{localize "ISUN.SecretName"}}</label>

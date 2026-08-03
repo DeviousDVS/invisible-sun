@@ -107,6 +107,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     // A vislae's soul is secret — the fan sheet this was modelled on keeps it
     // in a hidden row. Owners and GMs see it; observers with read access do not.
     context.showSecrets = this.document.isOwner;
+    context.soul = context.showSecrets ? (context.souls[0] ?? null) : null;
 
     // Sort spells by level
     context.spells.sort((a, b) => (a.system.level || 0) - (b.system.level || 0));

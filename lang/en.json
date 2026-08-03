@@ -159,7 +159,6 @@
     "Personality": "Personality",
     "PersonalityHint": "Traits that drive how you act.",
     "SecretSoul": "Secret Soul",
-    "SoulName": "Soul",
     "SecretName": "Secret Name",
     "SecretSoulHint": "Visible only to you and the GM. Other players with access to this sheet cannot see it.",
     "Notes": "Notes",
@@ -230,7 +229,10 @@
     "ScourgeQualia": "All Qualia",
     "ScourgeAllHint": "Scourges affecting every pool, such as the debt owed after a Goetic pact.",
     "Worst": "Worst",
-    "WorstScourgeHint": "The heaviest scourge on any one pool. Some effects turn on holding three at once."
+    "WorstScourgeHint": "The heaviest scourge on any one pool. Some effects turn on holding three at once.",
+    "OpenSoul": "Open this soul",
+    "SoulDrop": "Drag a Soul onto the sheet",
+    "SoulDropReplace": "Recorded by name only — drag the Soul item onto the sheet to replace it"
   },
   "TYPES": {
     "Actor": {

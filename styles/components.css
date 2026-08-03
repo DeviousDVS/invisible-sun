@@ -956,3 +956,49 @@ a.sentence-part:hover {
   color: var(--isun-wound);
   border-color: var(--isun-wound);
 }
+
+/* The Soul is an item rather than a typed name: a slot that opens it, or an
+   empty target to drop one onto. Drops land anywhere on the sheet. */
+.soul-slot {
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-sm);
+  min-height: 44px;
+  padding: var(--isun-space-xs) var(--isun-space-sm);
+  border: 1px solid var(--isun-border);
+  border-radius: 4px;
+  background: var(--isun-bg-secondary);
+}
+
+.soul-slot.filled {
+  cursor: pointer;
+  border-color: var(--isun-sun-indigo);
+  transition: box-shadow 0.2s ease;
+}
+
+.soul-slot.filled:hover { box-shadow: 0 0 8px rgba(142, 111, 191, 0.4); }
+
+.soul-slot img {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border: 1px solid var(--isun-border);
+  border-radius: 3px;
+  flex: 0 0 auto;
+}
+
+.soul-name {
+  font-family: var(--isun-font-heading);
+  color: var(--isun-sun-indigo);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.soul-slot.filled i { color: var(--isun-text-secondary); font-size: 0.8em; }
+
+.soul-slot.empty { border-style: dashed; flex-direction: column; align-items: flex-start; gap: 2px; }
+.soul-hint { color: var(--isun-text-secondary); font-size: 0.8em; font-style: italic; }
+.soul-legacy { color: var(--isun-text-primary); }

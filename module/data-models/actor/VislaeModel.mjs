@@ -123,6 +123,11 @@ export class VislaeModel extends foundry.abstract.DataModel {
         forte:      new fields.StringField({ required: false, initial: "" }),
       }),
       secretName:  new fields.StringField({ required: false, initial: "" }),
+      /**
+       * @deprecated The Soul is a Soul item now, shown in the Biography tab.
+       * Retained so a name typed before that is still displayed, with a prompt
+       * to drop the real item on; remove once no world has one.
+       */
       soulName:    new fields.StringField({ required: false, initial: "" }),
       orderDegree: new fields.StringField({ required: false, initial: "" }),
       orderType:   new fields.StringField({ required: false, initial: "" }),
