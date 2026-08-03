@@ -86,6 +86,12 @@
       "type": "Item"
     },
     {
+      "name": "sooth",
+      "label": "Sooth Deck",
+      "path": "packs/sooth",
+      "type": "Item"
+    },
+    {
       "name": "souls",
       "label": "Souls",
       "path": "packs/souls",

@@ -13,6 +13,9 @@ export class SoothCardModel extends foundry.abstract.DataModel {
       meaningStandard: new fields.StringField({ required: false, initial: "" }),
       meaningInverted: new fields.StringField({ required: false, initial: "" }),
       effectText:      new fields.HTMLField({ required: false, initial: "" }),
+      /** A royalty card carries a rank and shifts no sun; every other card
+       *  shifts one sun up and another down. */
+      rank:            new fields.StringField({ required: false, initial: "", blank: true, choices: { "": "", ...ISUN.soothRanks } }),
       enhancedSun:     new fields.StringField({ required: false, initial: "" }),
       diminishedSun:   new fields.StringField({ required: false, initial: "" }),
     };

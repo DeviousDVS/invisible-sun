@@ -298,6 +298,18 @@ export const ISUN = Object.freeze({
    * SOOTH DECK FAMILIES
    * ────────────────────────────────────────────── */
 
+  /** The royalty cards. Each family holds one of each, always at the same
+   *  value: Apprentice 5, Companion 6, Defender 7, Adept 8, Sovereign 9,
+   *  Nemesis 0. A royalty card shifts no sun; it carries a special effect. */
+  soothRanks: {
+    apprentice: "ISUN.RankApprentice",
+    companion: "ISUN.RankCompanion",
+    defender: "ISUN.RankDefender",
+    adept: "ISUN.RankAdept",
+    sovereign: "ISUN.RankSovereign",
+    nemesis: "ISUN.RankNemesis",
+  },
+
   soothFamilies: {
     secrets: "ISUN.FamilySecrets",
     mysteries: "ISUN.FamilyMysteries",

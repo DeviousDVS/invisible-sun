@@ -45,6 +45,10 @@ echo "== ephemera"
   "../$CARDS/Ephemera Objects Deck-Self Print-2019-02-13.pdf" \
   "../$CARDS/Invisible Sun - Book M - Ephemera-Cards.pdf")
 
+echo "== sooth deck"
+"$PY" scripts/extract_sooth.py \
+  "$CARDS/Sooth Deck-Self Print-2019-02-13.pdf" "$DATA/sooth.json" | head -1
+
 echo "== aggregates"
 "$PY" scripts/extract_aggregates.py \
   "$CARDS/Weaver Aggregates-Self Print-2019-02-13.pdf" "$DATA/aggregates.json" | head -1

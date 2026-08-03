@@ -245,6 +245,24 @@ for (const [file, pack, type, icon] of [
   console.log(`Processed ${data.length} ${pack}.`);
 }
 
+// The Sooth Deck. The cards themselves carry only a name, a value and either
+// the suns they shift or a royalty rank; the meanings and royalty effects are
+// written up in The Gate rather than printed on the card, so those stay empty.
+if (fs.existsSync(path.join(SOURCE_DIR, 'sooth.json'))) {
+  const soothData = JSON.parse(fs.readFileSync(path.join(SOURCE_DIR, 'sooth.json'), 'utf8'));
+  for (const c of soothData) {
+    writeItem("sooth", createItem(c.name, "SoothCard", {
+      family: c.family || "",
+      value: c.value ?? 0,
+      rank: (c.rank || "").toLowerCase(),
+      enhancedSun: c.enhancedSun || "",
+      diminishedSun: c.diminishedSun || "",
+      meaningStandard: "", meaningInverted: "", effectText: ""
+    }, "icons/sundries/gaming/playing-cards.webp"));
+  }
+  console.log(`Processed ${soothData.length} sooth cards.`);
+}
+
 // Weaver aggregates, from the Weaver Aggregates card deck
 if (fs.existsSync(path.join(SOURCE_DIR, 'aggregates.json'))) {
   const aggData = JSON.parse(fs.readFileSync(path.join(SOURCE_DIR, 'aggregates.json'), 'utf8'));
