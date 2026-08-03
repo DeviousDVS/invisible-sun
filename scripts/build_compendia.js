@@ -43,6 +43,16 @@ function parseAbilityLevel(raw) {
   return out;
 }
 
+const SMALL_WORDS = new Set(['a','an','and','the','of','with','to','in','for','or','from']);
+function titleCase(s) {
+  if (!/[a-z]/.test(s)) {
+    return s.toLowerCase().split(/\s+/).map((w, i, arr) =>
+      (i > 0 && i < arr.length - 1 && SMALL_WORDS.has(w)) ? w : w.charAt(0).toUpperCase() + w.slice(1)
+    ).join(' ');
+  }
+  return s;
+}
+
 function createItem(name, type, systemData, img) {
   const id = generateId(name, type);
   return {
@@ -191,8 +201,36 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'orders.json'))) {
   console.log(`Processed ${ordersData.length} orders.`);
 }
 
+// Character arcs
+if (fs.existsSync(path.join(SOURCE_DIR, 'character-arcs.json'))) {
+  const arcsData = JSON.parse(fs.readFileSync(path.join(SOURCE_DIR, 'character-arcs.json'), 'utf8'));
+
+  // A beat reads "Naming the Secret. 1 Acumen reward. You give your goal a
+  // name..." — the reward is stated inline, so lift it into its own field while
+  // keeping the whole text as the description.
+  const beat = text => {
+    const t = String(text ?? '').trim();
+    if (!t) return { description: '', reward: '', completed: false };
+    const m = t.match(/(\d+\s+Acumen[^.]*|1\s+Joy[^.]*|1\s+Despair[^.]*)/i);
+    return { description: cleanHtml(t), reward: m ? m[1].trim() : '', completed: false };
+  };
+
+  for (const data of arcsData) {
+    const item = createItem(titleCase(data.name), "CharacterArc", {
+      description: cleanHtml(data.description),
+      cost: data.cost || '',
+      status: 'planned',
+      opening: beat(data.opening),
+      steps: (data.steps ?? []).map(beat),
+      climax: beat(data.climax),
+      resolution: beat(data.resolution)
+    }, 'icons/sundries/scrolls/scroll-bound-blue-brown.webp');
+    writeItem("character-arcs", item);
+  }
+  console.log(`Processed ${arcsData.length} character-arcs.`);
+}
+
 const simpleTypes = [
-  { file: 'character-arcs.json', type: 'CharacterArc', pack: 'character-arcs', icon: 'icons/sundries/scrolls/scroll-bound-blue-brown.webp' },
   { file: 'foundations.json', type: 'Foundation', pack: 'foundations', icon: 'icons/environment/settlement/house-city.webp' },
   { file: 'hearts.json', type: 'Heart', pack: 'hearts', icon: 'icons/magic/life/heart-glowing-red.webp' },
   { file: 'souls.json', type: 'Soul', pack: 'souls', icon: 'icons/magic/life/ankh-gold-blue.webp' }

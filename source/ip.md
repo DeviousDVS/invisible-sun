@@ -961,6 +961,56 @@ Spend button. A fuller Advancement tab would carry the ledger and the wishlist �
 purchases planned but not yet afforded, which is the other half of what the fan
 sheet's Wishlist does.
 
+## Source data audit
+
+Every file in `source/data` was checked against the books after fortes and
+orders both turned out to contain invented content. Each entry name was
+normalised and searched across all thirteen texts.
+
+| File | Names verified | Content | Action |
+|---|---|---|---|
+| hearts (4) | 4/4 | complete | none needed |
+| souls (13) | 13/13 | complete | none needed |
+| foundations (8) | 8/8 | 3 blank `connections` | **fixed** |
+| character-arcs | 35/36 | 6 incomplete, 2 arcs missing entirely | **re-extracted, now 37** |
+| spells (347) | 346/347 | required fields populated | see below |
+| incantations (211) | 210/211 | required fields populated | see below |
+
+### Spells and incantations cannot be verified from the books
+
+Their source is the physical **Spell Deck**, which is why The Key writes
+"Debellate, see Spell Deck" rather than printing them. The Way carries only a
+name-to-colour index, and its two columns interleave under extraction, so even
+colour is not cheaply checkable.
+
+What can be said: the names are real, `level`, `colour` and `description` are
+populated on every entry, and the level distributions are sane — spells peaking
+at 3–4, incantations at 5–6. Unlike fortes and orders, nothing here has been
+shown to be wrong. If a value ever looks off in play, the deck is the reference,
+not the books.
+
+### Character arcs
+
+Re-extracted to 37. Two arcs were missing altogether and six more were partly
+blank. Three arcs share a page spread with a neighbour so both headings emit
+before either body, and position does not resolve them — for *Recover from a
+Wound* the first heading takes the first body, for *Learn* and *Uncover a
+Secret* the second does. Those two pairs are swapped explicitly in the
+extractor, decided by reading the bodies.
+
+*Train a Creature* has no Climax or Resolution: its entry runs off a page break
+mid-step and the text is simply not there. That is a gap in the source, not the
+parser, and it is the reason arcs are segmented on `Cost:` rather than the
+tidier `Resolution:` — one missing delimiter would otherwise merge two arcs.
+
+*Aid a Friend* genuinely has no steps. It uses a combined
+"Step(s) and Climax: Depends on the friend's arc" label, being an arc that rides
+along with someone else's.
+
+The importer was only mapping `description` for arcs, so cost, opening, steps,
+climax and resolution were empty in the compendium regardless of the data. It
+now maps them all and lifts each beat's stated reward into its own field.
+
 ## Open questions
 
 > [!NOTE]
