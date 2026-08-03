@@ -1,7 +1,7 @@
 {{!-- The five orders share almost no interface — Vancean slots, thread weaving,
       Goetic pacts and Maker matrices are different games — so this dispatches
       on the character's order rather than showing one merged view. --}}
-<div class="order-container">
+<div class="order-workspace">
 
   {{#if order}}
     <div class="isun-panel order-header">
@@ -67,62 +67,5 @@
       {{/each}}
     </div>
   {{/if}}
-
-  {{!-- Minor magics — cantrips, charms, hexes and signs — sit alongside the
-        order's own practice rather than inside it. --}}
-  <div class="isun-panel mt-4">
-    <div class="entry-list-header">
-      <h3>{{localize "ISUN.MinorMagics"}}</h3>
-      <a class="item-create" data-type="MinorMagic" title="{{localize 'ISUN.AddMinorMagic'}}">
-        <i class="fa-solid fa-plus"></i>
-      </a>
-    </div>
-    <div class="item-list">
-      <div class="list-header">
-        <span class="level">{{localize "ISUN.Lvl"}}</span>
-        <span class="name">{{localize "ISUN.Name"}}</span>
-        <span class="type">{{localize "ISUN.Type"}}</span>
-        <span class="actions"></span>
-      </div>
-      {{#each minorMagics as |m|}}
-        <div class="item" data-item-id="{{m.id}}">
-          <div class="level"><span class="level-badge">{{m.system.level}}</span></div>
-          <div class="name">
-            <span class="color-badge {{colorClass m.system.color}}"></span>{{m.name}}
-          </div>
-          <div class="type">{{m.system.minorMagicType}}</div>
-          <div class="actions">
-            <a class="item-edit"><i class="fa-solid fa-edit"></i></a>
-            <a class="item-delete"><i class="fa-solid fa-trash"></i></a>
-          </div>
-        </div>
-      {{else}}
-        <div class="empty-state">{{localize "ISUN.NoMinorMagics"}}</div>
-      {{/each}}
-    </div>
-  </div>
-
-  <div class="isun-panel mt-4">
-    <div class="entry-list-header">
-      <h3>{{localize "ISUN.Secrets"}}</h3>
-      <a class="item-create" data-type="Secret" title="{{localize 'ISUN.AddSecret'}}">
-        <i class="fa-solid fa-plus"></i>
-      </a>
-    </div>
-    <div class="item-list">
-      {{#each secrets as |s|}}
-        <div class="item" data-item-id="{{s.id}}">
-          <div class="name">{{s.name}}</div>
-          <div class="type">{{s.system.secretType}}</div>
-          <div class="actions">
-            <a class="item-edit"><i class="fa-solid fa-edit"></i></a>
-            <a class="item-delete"><i class="fa-solid fa-trash"></i></a>
-          </div>
-        </div>
-      {{else}}
-        <div class="empty-state">{{localize "ISUN.NoSecrets"}}</div>
-      {{/each}}
-    </div>
-  </div>
 
 </div>

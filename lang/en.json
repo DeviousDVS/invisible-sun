@@ -175,7 +175,6 @@
     "BondPc": "PC Bond",
     "BondNpc": "NPC Bond",
     "BondOther": "Other",
-    "TabOrder": "Order",
     "TabConnections": "Connections",
     "OrderDegree": "Degree",
     "OrderDegreePlaceholder": "e.g. 3rd Degree: Master of the Loom",
@@ -232,7 +231,20 @@
     "WorstScourgeHint": "The heaviest scourge on any one pool. Some effects turn on holding three at once.",
     "OpenSoul": "Open this soul",
     "SoulDrop": "Drag a Soul onto the sheet",
-    "SoulDropReplace": "Recorded by name only — drag the Soul item onto the sheet to replace it"
+    "SoulDropReplace": "Recorded by name only — drag the Soul item onto the sheet to replace it",
+    "Practices": "Practices",
+    "KindAll": "All",
+    "KindSpell": "Spell",
+    "KindIncantation": "Incantation",
+    "KindForte": "Forte",
+    "KindMinor": "Minor",
+    "Kind": "Kind",
+    "Cost": "Cost",
+    "Dice": "Dice",
+    "Depletion": "Depletion",
+    "Free": "free",
+    "NoPractices": "No spells, incantations, forte abilities or minor magics yet.",
+    "NoHouseSecrets": "No house secrets."
   },
   "TYPES": {
     "Actor": {

@@ -1002,3 +1002,94 @@ a.sentence-part:hover {
 .soul-slot.empty { border-style: dashed; flex-direction: column; align-items: flex-start; gap: 2px; }
 .soul-hint { color: var(--isun-text-secondary); font-size: 0.8em; font-style: italic; }
 .soul-legacy { color: var(--isun-text-primary); }
+
+/* ════════════════════════════════════════════════════════
+ * PRACTICES — the merged castables list
+ * ════════════════════════════════════════════════════════ */
+
+.practices { margin-top: var(--isun-space-md); }
+
+.practices-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--isun-space-md);
+  flex-wrap: wrap;
+}
+
+.practices-head h3 { margin: 0; border: none; flex: 0 0 auto; }
+
+.practice-filters {
+  display: flex;
+  gap: var(--isun-space-xs);
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.practice-filter {
+  cursor: pointer;
+  padding: 1px 9px;
+  border: 1px solid var(--isun-border);
+  border-radius: 10px;
+  font-size: 0.78em;
+  color: var(--isun-text-secondary);
+  white-space: nowrap;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.practice-filter:hover { color: var(--isun-text-primary); }
+
+.practice-filter.active {
+  color: var(--isun-text-accent);
+  border-color: var(--isun-border-accent);
+}
+
+.practice-filter .count { opacity: 0.6; margin-left: 3px; }
+
+/* Filtering hides rows in place rather than re-rendering, so the sheet does not
+   scroll back to the top on every click. */
+.practices[data-filter="spell"]       .practice:not([data-kind="spell"]),
+.practices[data-filter="incantation"] .practice:not([data-kind="incantation"]),
+.practices[data-filter="forte"]       .practice:not([data-kind="forte"]),
+.practices[data-filter="minor"]       .practice:not([data-kind="minor"]) {
+  display: none;
+}
+
+.practice-add {
+  display: flex;
+  gap: var(--isun-space-md);
+  margin-top: var(--isun-space-sm);
+  font-size: 0.82em;
+}
+
+.practice-add a { color: var(--isun-text-secondary); cursor: pointer; }
+.practice-add a:hover { color: var(--isun-text-accent); }
+
+/* Secrets are standing permissions, not rows in a cost-sorted list. */
+.secret-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--isun-space-xs);
+  margin-top: var(--isun-space-xs);
+}
+
+.secret-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  border-radius: 12px;
+  border: 1px solid var(--isun-border);
+  background: var(--isun-bg-elevated);
+  font-size: 0.85em;
+}
+
+.secret-chip a { color: var(--isun-text-primary); cursor: pointer; }
+.secret-chip a:hover { color: var(--isun-text-accent); }
+.secret-chip .item-delete { color: var(--isun-text-secondary); font-size: 0.85em; }
+.secret-chip .item-delete:hover { color: var(--isun-wound); }
+
+.secret-chip.order { border-color: var(--isun-sun-indigo); }
+.secret-chip.house { border-color: var(--isun-sun-green); }
+.secret-chip.apostate { border-color: var(--isun-sun-red); }
+
+.order-workspace { margin-bottom: var(--isun-space-md); }

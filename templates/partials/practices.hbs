@@ -1,0 +1,64 @@
+{{!-- Everything a vislae can bring to bear, in one list. The rules give spells,
+      incantations, forte abilities and minor magics the same shape — level,
+      colour, cost, dice, depletion — so they sort together rather than sitting
+      in four lists that cannot be compared. --}}
+<div class="practices" data-filter="{{practiceFilter}}">
+
+  <div class="practices-head">
+    <h3>{{localize "ISUN.Practices"}}</h3>
+    <div class="practice-filters">
+      <a class="practice-filter{{#if (eq practiceFilter "all")}} active{{/if}}" data-kind="all">
+        {{localize "ISUN.KindAll"}} <span class="count">{{practices.length}}</span>
+      </a>
+      {{#each practiceKinds as |k|}}
+        {{#if k.count}}
+          <a class="practice-filter{{#if (eq ../practiceFilter k.key)}} active{{/if}}" data-kind="{{k.key}}">
+            {{localize k.label}} <span class="count">{{k.count}}</span>
+          </a>
+        {{/if}}
+      {{/each}}
+    </div>
+  </div>
+
+  <div class="item-list">
+    <div class="list-header">
+      <span class="level">{{localize "ISUN.Lvl"}}</span>
+      <span class="name">{{localize "ISUN.Name"}}</span>
+      <span class="type">{{localize "ISUN.Kind"}}</span>
+      <span class="cost">{{localize "ISUN.Cost"}}</span>
+      <span class="dice">{{localize "ISUN.Dice"}}</span>
+      <span class="depletion">{{localize "ISUN.Depletion"}}</span>
+      <span class="actions"></span>
+    </div>
+
+    {{#each practices as |p|}}
+      <div class="item practice" data-item-id="{{p.item.id}}" data-kind="{{p.kind}}">
+        <div class="level"><span class="level-badge">{{p.level}}</span></div>
+        <div class="name rollable" data-action="{{p.action}}">
+          <span class="color-badge {{colorClass p.color}}" title="{{p.color}}"></span>
+          <span>{{p.item.name}}</span>
+        </div>
+        <div class="type">{{localize p.kindLabel}}</div>
+        <div class="cost" title="{{p.cost}}">{{p.cost}}</div>
+        <div class="dice" title="{{#if p.condition}}{{p.dice}} {{p.condition}}{{else}}{{p.dice}}{{/if}}">{{p.dice}}</div>
+        <div class="depletion" title="{{p.depletion}}">{{p.depletion}}</div>
+        <div class="actions">
+          <a class="btn-cast" data-action="{{p.action}}" title="{{localize 'ISUN.Use'}}">
+            <i class="fa-solid fa-wand-sparkles"></i>
+          </a>
+          <a class="item-edit" title="{{localize 'ISUN.Edit'}}"><i class="fa-solid fa-edit"></i></a>
+          <a class="item-delete" title="{{localize 'ISUN.Remove'}}"><i class="fa-solid fa-trash"></i></a>
+        </div>
+      </div>
+    {{else}}
+      <div class="empty-state">{{localize "ISUN.NoPractices"}}</div>
+    {{/each}}
+  </div>
+
+  <div class="practice-add">
+    <a class="item-create" data-type="Spell"><i class="fa-solid fa-plus"></i> {{localize "TYPES.Item.Spell"}}</a>
+    <a class="item-create" data-type="Incantation"><i class="fa-solid fa-plus"></i> {{localize "TYPES.Item.Incantation"}}</a>
+    <a class="item-create" data-type="ForteAbility"><i class="fa-solid fa-plus"></i> {{localize "TYPES.Item.ForteAbility"}}</a>
+    <a class="item-create" data-type="MinorMagic"><i class="fa-solid fa-plus"></i> {{localize "TYPES.Item.MinorMagic"}}</a>
+  </div>
+</div>

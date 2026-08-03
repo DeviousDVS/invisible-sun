@@ -22,7 +22,6 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
         { id: "overview",    label: "ISUN.TabOverview" },
         { id: "stats",       label: "ISUN.TabStats" },
         { id: "magic",       label: "ISUN.TabMagic" },
-        { id: "order",       label: "ISUN.TabOrder" },
         { id: "connections", label: "ISUN.TabConnections" },
         { id: "arcs",        label: "ISUN.TabArcs" },
         { id: "inventory",   label: "ISUN.TabInventory" },
@@ -109,8 +108,45 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     context.showSecrets = this.document.isOwner;
     context.soul = context.showSecrets ? (context.souls[0] ?? null) : null;
 
-    // Sort spells by level
-    context.spells.sort((a, b) => (a.system.level || 0) - (b.system.level || 0));
+    // Spells, incantations, forte abilities and minor magics share a shape —
+    // level, colour, cost, dice, depletion — because the rules treat them the
+    // same way: a forte ability "unless stated otherwise, costs Sorcery to use,
+    // equal to the level of the effect", exactly as a spell does. One list lets
+    // a player sort across all of them, which four separate lists cannot.
+    const practice = (item, kind, action) => {
+      const sys = item.system;
+      return {
+        item, kind, action,
+        kindLabel: `ISUN.Kind${kind.charAt(0).toUpperCase()}${kind.slice(1)}`,
+        level: sys.level ?? 0,
+        color: sys.color ?? "",
+        // A forte ability marked "(no cost)" costs no Sorcery; otherwise the
+        // cost is the spell's own, falling back to its level.
+        cost: sys.noCost ? game.i18n.localize("ISUN.Free") : (sys.cost || sys.level || ""),
+        dice: sys.dice || (sys.bonusDice ? `+${sys.bonusDice}` : ""),
+        depletion: sys.depletion || "",
+        condition: sys.condition || ""
+      };
+    };
+
+    context.practices = [
+      ...context.spells.map(i => practice(i, "spell", "roll-spell")),
+      ...context.incantations.map(i => practice(i, "incantation", "roll-incantation")),
+      ...context.forteAbilities.map(i => practice(i, "forte", "use-ability")),
+      ...context.minorMagics.map(i => practice(i, "minor", "use-ability"))
+    ].sort((a, b) => a.level - b.level || a.item.name.localeCompare(b.item.name));
+
+    context.practiceKinds = ["spell", "incantation", "forte", "minor"].map(k => ({
+      key: k,
+      label: `ISUN.Kind${k.charAt(0).toUpperCase()}${k.slice(1)}`,
+      count: context.practices.filter(p => p.kind === k).length
+    }));
+    context.practiceFilter = this._practiceFilter ?? "all";
+
+    // House secrets are augments to a house rather than to the character, and
+    // are capped by house size, so they sit with the House block.
+    context.houseSecrets = context.secrets.filter(i => i.system?.secretType === "house");
+    context.characterSecrets = context.secrets.filter(i => i.system?.secretType !== "house");
 
     // Config for template dropdowns
     context.config = CONFIG.ISUN;
@@ -173,6 +209,17 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     this._attachCustomListeners(htmlElement);
   }
 
+  /** Filter the practices list by kind, without a re-render. */
+  _onFilterPractices(event) {
+    event.preventDefault();
+    const kind = event.currentTarget.dataset.kind ?? "all";
+    this._practiceFilter = kind;
+    const root = event.currentTarget.closest(".practices");
+    root.dataset.filter = kind;
+    root.querySelectorAll(".practice-filter").forEach(el =>
+      el.classList.toggle("active", el.dataset.kind === kind));
+  }
+
   /** Open an item named elsewhere on the sheet, by id. */
   _onOpenItem(event) {
     event.preventDefault();
@@ -229,6 +276,12 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     html.querySelectorAll('[data-action^="roll-"], [data-action="use-ability"]').forEach(el => {
       el.addEventListener('click', this._onItemRoll.bind(this));
     });
+
+    // Practice kind filter. Held on the sheet instance rather than the actor:
+    // it is a view preference, not character data, and should not write to the
+    // document or sync to other players.
+    html.querySelectorAll('.practice-filter').forEach(el =>
+      el.addEventListener('click', this._onFilterPractices.bind(this)));
 
     // Sentence parts open the item they name
     html.querySelectorAll('[data-action="open-item"]').forEach(el =>

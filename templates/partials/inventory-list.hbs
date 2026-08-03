@@ -158,8 +158,24 @@
         <input type="text" name="system.house.augments" value="{{system.house.augments}}" />
       </div>
     </div>
+    {{!-- House secrets are augments to the house rather than to the vislae,
+          and are capped by the house's size and type. --}}
     <div class="mt-4">
-      <label class="section-label">{{localize "ISUN.HouseSecrets"}}</label>
+      <div class="entry-list-header">
+        <label class="section-label">{{localize "ISUN.HouseSecrets"}}</label>
+        <a class="item-create" data-type="Secret" data-preset='{"secretType":"house"}'
+           title="{{localize 'ISUN.AddSecret'}}"><i class="fa-solid fa-plus"></i></a>
+      </div>
+      <div class="secret-chips">
+        {{#each houseSecrets as |s|}}
+          <span class="secret-chip house" data-item-id="{{s.id}}">
+            <a data-action="open-item" data-item-id="{{s.id}}">{{s.name}}</a>
+            <a class="item-delete" title="{{localize 'ISUN.Remove'}}"><i class="fa-solid fa-xmark"></i></a>
+          </span>
+        {{else}}
+          <span class="empty-state">{{localize "ISUN.NoHouseSecrets"}}</span>
+        {{/each}}
+      </div>
       {{editor system.house.secrets target="system.house.secrets" button=true owner=owner editable=editable}}
     </div>
   </div>
