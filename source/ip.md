@@ -831,6 +831,62 @@ capture the edges — the books express them as a diagram — so this needs eith
 hand-authoring per forte or leaving the order advisory and letting the GM
 adjudicate. **Open question below.**
 
+#### Order degrees — and a data correction
+
+Advancing a degree has **three requirements, all of which must be met**
+(The Key, p205):
+
+1. **Crux equal to the degree entered.** 1st→2nd costs 2, 2nd→3rd costs 3, and
+   so on. Reaching 6th degree therefore costs 2+3+4+5+6 = **20 Crux** across a
+   character's life — 20 Joy and 20 Despair.
+2. **A story requirement**, specific to the order and the degree, which
+   *"always requires interacting in some way with other members of your order
+   (unless you're an Apostate)"*. A 2nd-degree Vance needs the personal
+   sponsorship of a 3rd-degree or higher Vance, good standing, an interview with
+   a representative of the Telemeric Court and a private ceremony; a 6th-degree
+   Maker must have performed the Invocation of Craft as a 5th-degree Maker in
+   the company of a 6th-degree Maker.
+3. **Time** — two weeks to two months once the Crux is in hand, longer at higher
+   degrees, and some orders specify their own.
+
+The Crux and the story requirement are independent gates: *"some characters will
+complete all the necessary requirements before they earn enough Crux."*
+
+Each degree entry then lists what it grants — *"As part of our training and
+initiation into the ranks of this new degree, we learn the following"* — and
+these are real mechanics, not flavour. The Maker's 6th degree is where the
+ephemera limit rises to six, which the derived caps already depend on, and
+Vancean mind slots scale by degree.
+
+**Apostates work differently and have no degrees at all.** They begin with a
+fixed set of abilities and afterwards buy Apostate Abilities, for which they
+meet the prerequisites, at a flat **1 Crux each**.
+
+##### `source/data/orders.json` is wrong
+
+It records **four** degrees per order. There are **six**. Worse, none of the
+titles it holds appear anywhere in The Key or The Way — checked individually,
+zero hits for every one. They are invented:
+
+| | Vance | Weaver | Goetic | Maker |
+|---|---|---|---|---|
+| 1 | Postulant | Master of the Loom | Initiate of the Mysteries | Shaper |
+| 2 | Velator | Master of the Temple | Mysterion | Crafter |
+| 3 | Magister | Master of the Spindle | Conjurer | Maker |
+| 4 | Cantral | Master of the Weft | Master Conjurer | Prime Maker |
+| 5 | Magus | Master of the Warp | Master of the Pacts | Master Shaper |
+| 6 | Grand Magus | Grand Artist | Ultima Mysterion | Imperator |
+
+against the stored *"Aspirant / Initiate / Master / Grand Master"* for Vance and
+similar for the rest. The one thing the file gets right is that Apostates have
+no degrees.
+
+`OrderModel.degrees` is a flat `ArrayField(StringField)`, which can hold a title
+and nothing else — not the Crux cost, the sponsorship requirement, the time, or
+what the degree grants. It needs to become an array of objects, and the data
+needs re-extracting from The Key, whose degree entries are well-formed and
+should yield to the same approach as `scripts/extract_fortes.py`.
+
 #### Proposed implementation
 
 **1. Model.** Replace the four counters with:
@@ -859,12 +915,14 @@ item caps take, for the same reason.
 **3. Spending.** One dialog driven by `config.advancementPurchases`, which
 already enumerates every purchase and is currently referenced nowhere. It:
 
-- takes a target (a compendium item, or a free-text entry for order degrees)
+- takes a target (a compendium item, or the next degree in the order)
 - computes the price from the table above
 - refuses only when the character cannot afford it, showing the shortfall
 - deducts Acumen, or deducts a Joy and a Despair per Crux and adds to `cruxSpent`
 - creates the purchased item on the actor
 - for a forte ability, prompts for the +2 stat points before completing
+- for an order degree, shows the degree's story requirement and what it grants,
+  and records the degree reached on the actor rather than as free text
 - writes a ledger entry
 
 **4. Ledger.** An array of `{ when, kind, label, cost, balanceAfter }` on the
@@ -908,6 +966,15 @@ sheet's Wishlist does.
 > it advisory; or show the list and let the GM adjudicate. Recommendation: the
 > third for now, since the purchase flow works regardless and a wrong graph is
 > worse than none.
+
+> [!IMPORTANT]
+> **Re-extracting the orders.** The five order entries need redoing from The
+> Key: six degrees each with their real titles, Crux cost, story requirement and
+> the abilities granted, plus the Apostate's flat 1-Crux ability purchases. Same
+> shape of job as the forte extraction, and the parser should mostly transfer.
+> The unique mechanics per order — mind slots, the Maker's Matrix, thread
+> weaving, summoning — are described in the same chapters and are what a per-order
+> tab needs, so it is worth doing both passes together.
 
 > [!IMPORTANT]
 > **Session cap enforcement.** The Gate limits a PC to one Joy *or* one Despair
