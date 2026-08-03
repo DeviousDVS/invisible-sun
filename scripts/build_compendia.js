@@ -164,11 +164,37 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'fortes.json'))) {
   console.log(`Processed ${fortesData.length} fortes and ${abilitiesCount} forte abilities.`);
 }
 
+// Orders
+if (fs.existsSync(path.join(SOURCE_DIR, 'orders.json'))) {
+  const ordersData = JSON.parse(fs.readFileSync(path.join(SOURCE_DIR, 'orders.json'), 'utf8'));
+  for (const data of ordersData) {
+    const named = list => (list ?? []).map(a => ({ name: a.name, description: cleanHtml(a.description) }));
+    const item = createItem(data.name, "Order", {
+      description: cleanHtml(data.description),
+      otherNames: data.other_names || "",
+      philosophy: cleanHtml(data.philosophy),
+      relationships: cleanHtml(data.relationships),
+      pathToJoy: cleanHtml(data.path_to_joy),
+      pathToDespair: cleanHtml(data.path_to_despair),
+      degrees: (data.degrees ?? []).map(d => ({
+        degree: d.degree,
+        title: d.title,
+        cruxCost: d.crux_cost,
+        requirement: cleanHtml(d.requirement),
+        abilities: named(d.abilities)
+      })),
+      startingAbilities: named(data.starting_abilities),
+      apostateAbilities: named(data.abilities)
+    }, "icons/magic/symbols/ring-circle-smoke-blue.webp");
+    writeItem("orders", item);
+  }
+  console.log(`Processed ${ordersData.length} orders.`);
+}
+
 const simpleTypes = [
   { file: 'character-arcs.json', type: 'CharacterArc', pack: 'character-arcs', icon: 'icons/sundries/scrolls/scroll-bound-blue-brown.webp' },
   { file: 'foundations.json', type: 'Foundation', pack: 'foundations', icon: 'icons/environment/settlement/house-city.webp' },
   { file: 'hearts.json', type: 'Heart', pack: 'hearts', icon: 'icons/magic/life/heart-glowing-red.webp' },
-  { file: 'orders.json', type: 'Order', pack: 'orders', icon: 'icons/magic/symbols/ring-circle-smoke-blue.webp' },
   { file: 'souls.json', type: 'Soul', pack: 'souls', icon: 'icons/magic/life/ankh-gold-blue.webp' }
 ];
 

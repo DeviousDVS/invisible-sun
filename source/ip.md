@@ -876,7 +876,7 @@ Vancean mind slots scale by degree.
 fixed set of abilities and afterwards buy Apostate Abilities, for which they
 meet the prerequisites, at a flat **1 Crux each**.
 
-##### `source/data/orders.json` is wrong
+##### `source/data/orders.json` was wrong — now re-extracted
 
 It records **four** degrees per order. There are **six**. Worse, none of the
 titles it holds appear anywhere in The Key or The Way — checked individually,
@@ -895,11 +895,22 @@ against the stored *"Aspirant / Initiate / Master / Grand Master"* for Vance and
 similar for the rest. The one thing the file gets right is that Apostates have
 no degrees.
 
-`OrderModel.degrees` is a flat `ArrayField(StringField)`, which can hold a title
-and nothing else — not the Crux cost, the sponsorship requirement, the time, or
-what the degree grants. It needs to become an array of objects, and the data
-needs re-extracting from The Key, whose degree entries are well-formed and
-should yield to the same approach as `scripts/extract_fortes.py`.
+**Done.** `scripts/extract_orders.py` re-extracts all five from The Key: six
+degrees each with their real titles, the Crux cost, the requirement to attain
+them and the abilities they grant — 108 degree abilities in all — plus the
+Apostate's 6 starting abilities and 12 bought at 1 Crux each. `OrderModel.degrees`
+is now an array of objects, with a migration that rebuilds the old title-only
+strings so nothing breaks.
+
+Chapter boundaries could not be found from the chapter titles: The Key sets some
+sidebar headings vertically, one letter per line, so "CONJURED HOUSE" leaves a
+bare "GOETIC" in the middle of the Weaver chapter. Orders are located from their
+degree runs instead — a new order begins wherever the degree number returns to 1.
+
+Still outstanding: the per-order unique mechanics (Vancean mind slots, the
+Maker's Matrix, thread weaving, the summoning log) are described in these same
+chapters but are not yet extracted, and are what the Magic tab needs to show
+more than a header for four of the five orders.
 
 #### Proposed implementation
 
