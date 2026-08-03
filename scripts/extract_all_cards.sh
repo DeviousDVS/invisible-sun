@@ -47,7 +47,16 @@ echo "== ephemera"
 
 echo "== sooth deck"
 "$PY" scripts/extract_sooth.py \
-  "$CARDS/Sooth Deck-Self Print-2019-02-13.pdf" "$DATA/sooth.json" | head -1
+  "$CARDS/Sooth Deck-Self Print-2019-02-13.pdf" "$DATA/sooth-cards.json" | head -1
+
+# The cards give a name, a value and the suns; everything that makes a card
+# usable at the table is written up in The Gate, one card to a page.
+GATE="source/books/The-Gate-Hyperlinked-and-Bookmarked-2019-02-14_5c75d15831fa9.pdf"
+if [ -f "$GATE" ]; then
+  "$PY" scripts/extract_sooth_entries.py "$GATE" "$DATA/sooth-cards.json" "$DATA/sooth.json"
+else
+  echo "  (skipped the write-ups: $GATE not present)"
+fi
 
 echo "== aggregates"
 "$PY" scripts/extract_aggregates.py \

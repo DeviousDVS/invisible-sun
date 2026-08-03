@@ -245,9 +245,9 @@ for (const [file, pack, type, icon] of [
   console.log(`Processed ${data.length} ${pack}.`);
 }
 
-// The Sooth Deck. The cards themselves carry only a name, a value and either
-// the suns they shift or a royalty rank; the meanings and royalty effects are
-// written up in The Gate rather than printed on the card, so those stay empty.
+// The Sooth Deck. The cards carry only a name, a value and either the suns
+// they shift or a royalty rank; the meanings, divination, narrative hooks and
+// royalty effects come from the write-ups in The Gate.
 if (fs.existsSync(path.join(SOURCE_DIR, 'sooth.json'))) {
   const soothData = JSON.parse(fs.readFileSync(path.join(SOURCE_DIR, 'sooth.json'), 'utf8'));
   for (const c of soothData) {
@@ -257,7 +257,15 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'sooth.json'))) {
       rank: (c.rank || "").toLowerCase(),
       enhancedSun: c.enhancedSun || "",
       diminishedSun: c.diminishedSun || "",
-      meaningStandard: "", meaningInverted: "", effectText: ""
+      effectText: cleanHtml(c.effectText || ""),
+      meanings: c.meanings || "",
+      divination: cleanHtml(c.divination || ""),
+      gameNarrative: cleanHtml(c.gameNarrative || ""),
+      joy: cleanHtml(c.joy || ""),
+      despair: cleanHtml(c.despair || ""),
+      description: cleanHtml(c.description || ""),
+      quote: c.quote || "",
+      familyLine: c.familyLine || ""
     }, "icons/sundries/gaming/playing-cards.webp"));
   }
   console.log(`Processed ${soothData.length} sooth cards.`);
