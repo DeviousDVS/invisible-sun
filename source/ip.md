@@ -729,6 +729,155 @@ The damage pipeline, per the specification above. In order:
 Not yet modelled: for an NPC a scourge is −1 to their *level* rather than to a
 pool, since NPCs have no pools.
 
+### Phase 4 — Advancement
+
+Reviewed across all thirteen books. The Key carries the rules (pp. 203-206,
+plus costs scattered through the chapters); The Gate carries the GM side
+(p. 60); The Way holds most of the prices. Book M, The Nightside and the
+scenario books add no new rules, only worked examples and awards.
+
+#### There are three currencies, not four
+
+The sheet currently stores Joy, Despair, Acumen **and** Crux as four
+independent counters. Crux is not a currency a character holds:
+
+> You can spend Joy only along with the same amount of Despair... you spend Joy
+> and Despair together as "Crux." **A Crux is 1 Joy and 1 Despair.**
+> — The Key, p204
+
+So `crux` is derived — `min(joy, despair)` — and storing it separately lets it
+drift out of step with the two values that define it. The stored field should
+go.
+
+| Currency | Earned from | Tracked how |
+|---|---|---|
+| **Acumen** | character arcs, GM rewards for experiences | current total only |
+| **Joy** | arcs concluded well, deeds, positive GM intrusions and shifts | current **and lifetime** |
+| **Despair** | arcs concluded unsatisfyingly, negative GM intrusions and shifts | current **and lifetime** |
+| **Crux** | *derived*: `min(joy, despair)` | lifetime spent total |
+
+Lifetime totals are a rule, not a nicety: *"you should keep track of your total
+earned Joy, even after you spend it"* (The Key, p204), for both Joy and Despair.
+
+#### Earning constraints
+
+The Gate (p60) caps the pace, which a system can usefully enforce or at least
+surface:
+
+- In any session a PC earns **one or the other, or none — never more than 1,
+  and never 1 of each.** Joy and Despair from **GM shifts do not count** toward
+  that cap.
+- Where an event is both good and bad, the player picks Joy **or** Despair,
+  never both, and must justify the choice.
+- A positive or negative GM "intrusion" into the narrative is worth exactly
+  1 Joy or 1 Despair.
+- GM shifts happen a couple of times a session, and Sooth cards carry Joy and
+  Despair meanings that suggest them — a hook for the Sooth Deck work.
+- Each order and each forte lists example sources. We already store these as
+  `pathToJoy` and `pathToDespair` on the Forte item, and they are currently
+  displayed nowhere.
+
+#### Prices
+
+| Purchase | Cost | Source |
+|---|---|---|
+| Spell or long-form working | **Acumen = effect level** (min 1) | The Key p1713, The Way p474 |
+| Minor magic (cantrip, charm, sign, hex) | **1 Acumen**, always — cannot fail, takes a day | The Way p1965 |
+| Secret | **Acumen = its level** (usually) | The Key p204 |
+| Skill — action | **3 Acumen per level** | The Key p33 |
+| Skill — narrative | **2 Acumen per level** | The Key p33 |
+| Skill — development | **1 Acumen per level** | The Key p33 |
+| Order degree | **Crux = the degree entered** (1st→2nd costs 2) | The Key p205 |
+| Forte ability, level 1-4 | **1 Crux** | The Key p71 |
+| Forte ability, level 5-6 | **2 Crux** | The Key p71 |
+| Forte ability, level 7+ | **3 Crux** | The Key p71 |
+| Despair → Acumen | **1 Despair buys 2 Acumen**, one way only | The Key p204 |
+
+Advancing in an order also carries a story requirement and takes two weeks to
+two months; study time is about three days per effect level. Worth recording on
+the purchase, not enforcing.
+
+#### Two consequences we do not model at all
+
+**Every forte ability bought raises a stat.** *"Every time you gain a new forte
+ability, you permanently increase one of your stats by 2 points (or two of your
+stats by 1 point each). If that stat is Certes or Qualia, the points are
+distributed into the refined pools of that stat. This is the primary way vislae
+can improve their stats."* (The Key, p71.) Buying a forte ability must therefore
+prompt for where the points go.
+
+**Lifetime Crux powers the Testament of Suns.** The object gains an effect whose
+level tracks the total Crux earned and spent over the character's life (The Key,
+p205) — which is why lifetime totals must be kept:
+
+| Crux spent | Object power |
+|---|---|
+| 0-4 | none |
+| 5-8 | Level 2 effect |
+| 9-12 | Level 3 effect |
+| 13-16 | Level 4 effect |
+| 17-24 | Level 6 effect |
+| 25-34 | Level 8 effect |
+| 35-46 | Level 9 effect |
+| 47+ | Level 10 effect |
+
+#### Forte abilities form a graph, not a list
+
+*"If you choose Voice of the Serpent, you can later choose Bite of the Serpent,
+but Voice also unlocks Hypnotic Gaze of the Serpent"* (The Key, p71). `ForteModel.abilities`
+is currently an ordered array, which models a single path. The real structure is
+a prerequisite graph with multiple entry points. The extracted data does not
+capture the edges — the books express them as a diagram — so this needs either
+hand-authoring per forte or leaving the order advisory and letting the GM
+adjudicate. **Open question below.**
+
+#### Proposed implementation
+
+**1. Model.** Replace the four counters with:
+
+```
+advancement: {
+  acumen:  Number,                 // current
+  joy:     { current, lifetime },
+  despair: { current, lifetime },
+  cruxSpent: Number                // lifetime, drives the Testament table
+}
+```
+
+Derived: `cruxAvailable = min(joy.current, despair.current)`, and
+`testamentPower` from the table above. The stored `crux` field is migrated —
+`joy.current` and `despair.current` take the old values, and any stored `crux`
+is added to both lifetimes, since a held Crux was a Joy and a Despair earned.
+
+**2. Awarding.** A small API and a GM-facing control:
+`actor.awardJoy(n, {fromShift})`, `awardDespair`, `awardAcumen`. Raising Joy or
+Despair raises the lifetime total with it; lowering it by spending does not.
+`fromShift` marks awards exempt from the once-per-session cap, and the sheet
+warns rather than blocks when the cap is exceeded — the same advisory stance the
+item caps take, for the same reason.
+
+**3. Spending.** One dialog driven by `config.advancementPurchases`, which
+already enumerates every purchase and is currently referenced nowhere. It:
+
+- takes a target (a compendium item, or a free-text entry for order degrees)
+- computes the price from the table above
+- refuses only when the character cannot afford it, showing the shortfall
+- deducts Acumen, or deducts a Joy and a Despair per Crux and adds to `cruxSpent`
+- creates the purchased item on the actor
+- for a forte ability, prompts for the +2 stat points before completing
+- writes a ledger entry
+
+**4. Ledger.** An array of `{ when, kind, label, cost, balanceAfter }` on the
+actor. This is the fan sheet's Log tab, and it earns its place: it explains how
+a character reached its current state, survives a GM correcting an award, and is
+the only way to audit lifetime totals that the rules require be kept.
+
+**5. Sheet.** The Overview advancement block becomes editable and shows current
+against lifetime for Joy and Despair, available Crux as a derived value, and a
+Spend button. A fuller Advancement tab would carry the ledger and the wishlist —
+purchases planned but not yet afforded, which is the other half of what the fan
+sheet's Wishlist does.
+
 ## Open questions
 
 > [!NOTE]
@@ -749,6 +898,22 @@ pool, since NPCs have no pools.
 > progression, forte abilities — comes later, as each depends on modelling that
 > item type properly. Until a source is wired, its cap simply sits at base and
 > the GM override covers the gap.
+
+> [!IMPORTANT]
+> **Forte ability prerequisites.** The books express a forte's abilities as a
+> branching diagram — choosing one unlocks particular others — but the extracted
+> data holds only a flat ordered list, because the edges live in the artwork
+> rather than the text. Options: hand-author the graph for all 51 fortes (~489
+> abilities, substantial work); infer a rough order from ability level and leave
+> it advisory; or show the list and let the GM adjudicate. Recommendation: the
+> third for now, since the purchase flow works regardless and a wrong graph is
+> worse than none.
+
+> [!IMPORTANT]
+> **Session cap enforcement.** The Gate limits a PC to one Joy *or* one Despair
+> per session, excluding GM shifts. Tracking that needs a notion of "session"
+> the system does not currently have. Options: a GM-pressed "new session"
+> button, tie it to world time, or drop the cap and let the table manage it.
 
 > [!NOTE]
 > The fan sheet's *Rules* tab (range distances, currency conversion, Path of
