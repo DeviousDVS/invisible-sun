@@ -137,10 +137,26 @@
 }
 
 /* Body */
+/* Was height: calc(100% - 190px), which assumed a fixed header and a
+   single-row tab strip. The strip wraps to two rows now, so the body ran past
+   the bottom of the window instead of scrolling. */
 .sheet-body {
-  height: calc(100% - 190px);
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: var(--isun-space-md);
+}
+
+/* The active tab fills the body so short content still anchors to the top and
+   long content scrolls the body rather than the page. */
+.sheet-body > .tab[data-tab] {
+  min-height: 0;
+}
+
+/* Header and tab strip keep their natural height while the body flexes. */
+.sheet-header,
+.sheet-tabs {
+  flex: 0 0 auto;
 }
 
 /* Grids */
@@ -264,6 +280,19 @@
   border: none;
 }
 
+/* Spell dice and depletion carry conditional text — "+1 die if the object is
+   in a being's possession" — which wraps and makes one row three times the
+   height of its neighbours. Clip to a line; the full value is on hover. */
+.item-list .cost,
+.item-list .dice,
+.item-list .depletion,
+.item-list .type,
+.item-list .relationship {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Column sizing is shared by .list-header and .item — they are siblings, so
    scoping these to .item alone collapses every header label together. */
 .item-list .name {
@@ -309,13 +338,19 @@
   text-transform: capitalize;
 }
 
+/* Three icons in 60px wrap onto a second line once the sheet is narrow, which
+   stretches the row; keep them on one line and let the row shrink instead. */
 .item-list .actions {
-  flex: 0 0 60px;
-  text-align: right;
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  padding-left: var(--isun-space-sm);
 }
 
 .item-list .item .actions a {
-  margin-left: 4px;
   color: var(--isun-text-secondary);
 }
 

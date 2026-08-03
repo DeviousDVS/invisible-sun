@@ -94,6 +94,20 @@
   color: var(--isun-text-primary);
   font-family: var(--isun-font-body);
   padding: 0;
+  /* The chain below lets .sheet-body take whatever height is left and scroll
+     inside it. Every ancestor needs min-height: 0, or a flex child refuses to
+     shrink below its content and the scrollbar never appears. */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.invisible-sun.sheet .window-content > .flexcol {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .invisible-sun.sheet input, 
