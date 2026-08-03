@@ -142,6 +142,15 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     }));
     context.practiceFilter = this._practiceFilter ?? "all";
 
+    // Rests remaining today, as pips rather than a used-count.
+    const remaining = context.actor.restsRemaining;
+    context.restRows = [
+      { key: "quick",  label: "ISUN.RestQuick",  max: 2, left: remaining.quick },
+      { key: "tenMin", label: "ISUN.RestTenMin", max: 1, left: remaining.tenMin },
+      { key: "hour",   label: "ISUN.RestHour",   max: 1, left: remaining.hour },
+    ];
+    context.canRestHeal = remaining.tenMin + remaining.hour > 0;
+
     // House secrets are augments to a house rather than to the character, and
     // are capped by house size, so they sit with the House block.
     context.houseSecrets = context.secrets.filter(i => i.system?.secretType === "house");
@@ -276,6 +285,15 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       el.addEventListener('click', this._onItemRoll.bind(this));
     });
 
+    html.querySelectorAll('[data-action="apply-damage"]').forEach(el =>
+      el.addEventListener('click', this._onApplyDamage.bind(this)));
+
+    // Rests
+    html.querySelectorAll('[data-action="rest-recover"]').forEach(el =>
+      el.addEventListener('click', this._onRestRecover.bind(this)));
+    html.querySelectorAll('[data-action="new-day"]').forEach(el =>
+      el.addEventListener('click', this._onNewDay.bind(this)));
+
     // Practice kind filter. Held on the sheet instance rather than the actor:
     // it is a view preference, not character data, and should not write to the
     // document or sync to other players.
@@ -312,17 +330,103 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     }
   }
 
+  /**
+   * Refreshing a pool is what a rest does, so it spends one. Shift-click resets
+   * without spending — the GM "can state that pools reset to their starting
+   * values" at any time (The Key, p2300).
+   */
   async _onRefreshPool(event) {
     event.preventDefault();
     const pool = event.currentTarget.dataset.pool;
     if (!pool) return;
-    
-    const isCertes = CONFIG.ISUN.certesPoolNames.includes(pool);
-    const base = `system.stats.${isCertes ? 'certes' : 'qualia'}.pools.${pool}`;
-    
-    const doc = this.document;
-    const maxVal = foundry.utils.getProperty(doc, `${base}.max`);
-    await doc.update({ [`${base}.value`]: maxVal });
+
+    const group = CONFIG.ISUN.certesPoolNames.includes(pool) ? "certes" : "qualia";
+    const result = await this.document.restRefreshPool(group, pool, { free: event.shiftKey });
+
+    if (result?.refused === "noRests") {
+      ui.notifications?.warn(game.i18n.localize("ISUN.NoRestsLeft"));
+    }
+  }
+
+  /**
+   * Take damage, then offer the bene-negation window.
+   *
+   * The window only exists at the moment damage arrives — "once damage is
+   * sustained, a character cannot use Physicality to negate a Wound" — so it is
+   * offered here, immediately, and nowhere else on the sheet.
+   */
+  async _onApplyDamage(event) {
+    event.preventDefault();
+    const DialogV2 = foundry.applications.api.DialogV2;
+
+    const form = await DialogV2.prompt({
+      window: { title: game.i18n.localize("ISUN.ApplyDamage") },
+      content: `
+        <div class="form-group">
+          <label>${game.i18n.localize("ISUN.DamageAmount")}</label>
+          <input type="number" name="amount" value="1" min="1" autofocus />
+        </div>
+        <div class="form-group">
+          <label>${game.i18n.localize("ISUN.DamageSource")}</label>
+          <select name="type">
+            <option value="physical">${game.i18n.localize("ISUN.InjuryPhysical")}</option>
+            <option value="mental">${game.i18n.localize("ISUN.InjuryMental")}</option>
+          </select>
+        </div>
+        <div class="form-group checkbox">
+          <label><input type="checkbox" name="ignoreArmor" /> ${game.i18n.localize("ISUN.IgnoreArmor")}</label>
+        </div>`,
+      ok: {
+        label: game.i18n.localize("ISUN.Apply"),
+        callback: (ev, button) => new foundry.applications.ux.FormDataExtended(button.form).object
+      },
+      rejectClose: false
+    });
+    if (!form) return;
+
+    const result = await this.document.applyDamage({
+      amount: Number(form.amount) || 0,
+      type: form.type === "mental" ? "mental" : "physical",
+      ignoreArmor: !!form.ignoreArmor
+    });
+    if (!result) return;
+
+    for (const [kind, count] of [["wounds", result.newWounds], ["anguish", result.newAnguish]]) {
+      for (let i = 0; i < (count ?? 0); i++) await this._offerNegation(kind);
+    }
+  }
+
+  /** Offer one bene to cancel one arriving Wound or Anguish. */
+  async _offerNegation(kind) {
+    const poolKey = kind === "anguish" ? "intellect" : "physicality";
+    const group = kind === "anguish" ? "qualia" : "certes";
+    const available = this.document.system.stats?.[group]?.pools?.[poolKey]?.value ?? 0;
+    if (!available) return;
+
+    const label = game.i18n.localize(kind === "anguish" ? "ISUN.Anguish" : "ISUN.Wounds");
+    const pool = game.i18n.localize(`ISUN.Pool${poolKey.charAt(0).toUpperCase()}${poolKey.slice(1)}`);
+    const ok = await foundry.applications.api.DialogV2.confirm({
+      window: { title: game.i18n.localize("ISUN.NegateTitle") },
+      content: `<p>${game.i18n.format("ISUN.NegatePrompt", { kind: label, pool, available })}</p>`,
+      rejectClose: false
+    });
+    if (ok) await this.document.negateWithBene(kind);
+  }
+
+  /** Spend a longer rest to recover a Wound or an Anguish. */
+  async _onRestRecover(event) {
+    event.preventDefault();
+    const kind = event.currentTarget.dataset.kind;
+    const result = await this.document.restRecoverHealth(kind);
+    if (result?.refused === "noRests") ui.notifications?.warn(game.i18n.localize("ISUN.NoLongRestsLeft"));
+    else if (result?.refused === "nothingToHeal") ui.notifications?.info(game.i18n.localize("ISUN.NothingToHeal"));
+  }
+
+  /** A night's sleep: pools reset, vexes cleared, rests restored. */
+  async _onNewDay(event) {
+    event.preventDefault();
+    await this.document.newDay();
+    ui.notifications?.info(game.i18n.localize("ISUN.NewDayDone"));
   }
 
   async _onModifyHealth(event, type, delta) {

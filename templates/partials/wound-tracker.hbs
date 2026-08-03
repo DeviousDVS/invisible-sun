@@ -58,6 +58,36 @@
   </div>
   <p class="hint injury-hint">{{localize "ISUN.InjuryTrackHint"}}</p>
 
+  {{!-- Four rests a day: two costing an action, one of ten minutes, one of an
+        hour. Each resets a pool; the two longer ones may instead recover a
+        Wound or an Anguish. --}}
+  <div class="rests-row">
+    <label>{{localize "ISUN.Rests"}}</label>
+    <div class="rest-track">
+      {{#each restRows as |r|}}
+        <span class="rest-group" title="{{localize r.label}}">
+          {{#times r.left}}<span class="rest-pip full"></span>{{/times}}
+          {{#times (subtract r.max r.left)}}<span class="rest-pip spent"></span>{{/times}}
+          <span class="rest-label">{{localize r.label}}</span>
+        </span>
+      {{/each}}
+    </div>
+  </div>
+  <div class="rest-actions">
+    <a data-action="apply-damage" title="{{localize 'ISUN.ApplyDamageHint'}}">
+      <i class="fa-solid fa-burst"></i> {{localize "ISUN.ApplyDamage"}}
+    </a>
+    <a data-action="rest-recover" data-kind="wounds"
+       class="{{#unless canRestHeal}}disabled{{/unless}}"
+       title="{{localize 'ISUN.RestHealHint'}}">{{localize "ISUN.HealWound"}}</a>
+    <a data-action="rest-recover" data-kind="anguish"
+       class="{{#unless canRestHeal}}disabled{{/unless}}"
+       title="{{localize 'ISUN.RestHealHint'}}">{{localize "ISUN.HealAnguish"}}</a>
+    <a data-action="new-day" title="{{localize 'ISUN.NewDayHint'}}">
+      <i class="fa-solid fa-bed"></i> {{localize "ISUN.NewDay"}}
+    </a>
+  </div>
+
   <div class="defenses-row">
     <div class="defense-group">
       <label>{{localize "ISUN.Armor"}}</label>

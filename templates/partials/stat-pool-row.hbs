@@ -16,6 +16,12 @@
     {{/times}}
   </div>
   
+  {{#if pool.vex}}
+    <span class="vex-group" title="{{localize 'ISUN.VexHint'}}">
+      {{#times pool.vex}}<span class="vex-pip"></span>{{/times}}
+    </span>
+  {{/if}}
+
   <div class="pool-inputs">
     <input type="number" name="system.stats.{{#if (or (eq poolName 'accuracy') (eq poolName 'movement') (eq poolName 'physicality') (eq poolName 'perception'))}}certes{{else}}qualia{{/if}}.pools.{{poolName}}.value" value="{{pool.value}}" />
     <span>/</span>

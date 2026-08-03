@@ -70,7 +70,13 @@ export class ISUNActor extends Actor {
       pending: track.length ? (track[track.length - 1] === "mental" ? "anguish" : "wounds") : null
     };
 
-    if (this.type !== "Vislae") return;
+    if (this.type !== "Vislae") {
+      // "If an NPC gains a bene or a vex, this is a +1 bonus or -1 penalty to
+      // the NPC's level" (The Gate, p1972) — an NPC has no pools for a scourge
+      // to sit in, so it shifts their effective level instead.
+      h.effectiveLevel = Math.max(0, (this.system.level ?? 0) - (h.scourge ?? 0));
+      return;
+    }
 
     // A pool's scourge is the sum of every scope that reaches it: one applied
     // to that pool alone, one to its half of the stats, one to all pools, and
@@ -158,6 +164,104 @@ export class ISUNActor extends Actor {
     foundry.utils.setProperty(changed, `${path}.anguish.value`, anguish);
   }
 
+  /* ──────────────────────────────────────────────
+   * RESTS AND RECOVERY
+   * ────────────────────────────────────────────── */
+
+  /**
+   * The four rests available each day: two that cost only an action, one of ten
+   * minutes and one of an hour, usable in any order (The Key, p29). Each resets
+   * a single pool; the two longer ones may instead recover a Wound or an
+   * Anguish (The Gate, p2606).
+   */
+  static REST_TYPES = {
+    quick:  { field: "quickUsed",  max: 2, healsHealth: false },
+    tenMin: { field: "tenMinUsed", max: 1, healsHealth: true },
+    hour:   { field: "hourUsed",   max: 1, healsHealth: true },
+  };
+
+  /** How many of each rest remain today. */
+  get restsRemaining() {
+    const used = this.system.rests ?? {};
+    return Object.fromEntries(Object.entries(ISUNActor.REST_TYPES)
+      .map(([k, r]) => [k, Math.max(0, r.max - (used[r.field] ?? 0))]));
+  }
+
+  /** The cheapest rest still available, or null. */
+  get cheapestRest() {
+    return Object.keys(ISUNActor.REST_TYPES).find(k => this.restsRemaining[k] > 0) ?? null;
+  }
+
+  /**
+   * Reset one pool, spending a rest unless told otherwise. Refreshing clears
+   * any lingering vexes in that pool, but never a scourge — "you don't spend a
+   * scourge... you have to get rid of it somehow" (The Key, p2242).
+   */
+  async restRefreshPool(group, poolKey, { restType = null, free = false } = {}) {
+    const p = this.system.stats?.[group]?.pools?.[poolKey];
+    if (!p) return null;
+
+    const updates = {
+      [`system.stats.${group}.pools.${poolKey}.value`]: p.max,
+      [`system.stats.${group}.pools.${poolKey}.vex`]: 0
+    };
+
+    if (!free) {
+      const type = restType ?? this.cheapestRest;
+      if (!type) return { refused: "noRests" };
+      const rest = ISUNActor.REST_TYPES[type];
+      updates[`system.rests.${rest.field}`] = (this.system.rests[rest.field] ?? 0) + 1;
+    }
+
+    await this.update(updates);
+    return { refreshed: poolKey };
+  }
+
+  /**
+   * Spend a ten-minute or one-hour rest to recover 1 Wound or Anguish. The two
+   * action-length rests cannot do this, and healing here never touches the
+   * Injury track — the two are separate paths.
+   */
+  async restRecoverHealth(kind = "wounds", { restType = null } = {}) {
+    const type = restType ?? Object.keys(ISUNActor.REST_TYPES)
+      .find(k => ISUNActor.REST_TYPES[k].healsHealth && this.restsRemaining[k] > 0);
+    if (!type || !ISUNActor.REST_TYPES[type].healsHealth) return { refused: "noRests" };
+
+    const h = this.health;
+    if (!h?.[kind]?.value) return { refused: "nothingToHeal" };
+
+    const rest = ISUNActor.REST_TYPES[type];
+    await this.update({
+      [`${this.healthPath}.${kind}.value`]: Math.max(0, h[kind].value - 1),
+      [`system.rests.${rest.field}`]: (this.system.rests[rest.field] ?? 0) + 1
+    });
+    return { healed: kind, restType: type };
+  }
+
+  /**
+   * A night's sleep: every pool back to its starting value, vexes cleared, the
+   * day's rests restored, and 1 Wound or Anguish recovered (The Key, p2300;
+   * The Gate, p2609). Scourges persist — they are not what resting removes.
+   */
+  async newDay({ recover = "wounds" } = {}) {
+    const updates = { "system.rests.quickUsed": 0, "system.rests.tenMinUsed": 0, "system.rests.hourUsed": 0 };
+
+    for (const group of ["certes", "qualia"]) {
+      for (const [key, p] of Object.entries(this.system.stats?.[group]?.pools ?? {})) {
+        updates[`system.stats.${group}.pools.${key}.value`] = p.max;
+        updates[`system.stats.${group}.pools.${key}.vex`] = 0;
+      }
+    }
+
+    const h = this.health;
+    if (recover && h?.[recover]?.value) {
+      updates[`${this.healthPath}.${recover}.value`] = Math.max(0, h[recover].value - 1);
+    }
+
+    await this.update(updates);
+    return { rested: true };
+  }
+
   /**
    * Apply damage through the full sequence (The Gate, p2405–2470).
    *
@@ -190,9 +294,45 @@ export class ISUNActor extends Actor {
     const got = Math.max(0, amount - armor);
     if (!got) return { absorbed: amount, injuries: 0, direct: 0 };
 
-    const changed = { [`${path}.injuries`]: [...(h.injuries ?? []), ...Array(got).fill(type)] };
-    await this.update(changed);
-    return { absorbed: Math.min(armor, amount), injuries: got, direct: 0 };
+    const before = { wounds: h.wounds.value, anguish: h.anguish.value };
+    await this.update({ [`${path}.injuries`]: [...(h.injuries ?? []), ...Array(got).fill(type)] });
+
+    // Report any conversion the damage caused, so a caller can offer the
+    // bene-negation window while it is still open.
+    const after = this.health;
+    return {
+      absorbed: Math.min(armor, amount),
+      injuries: got,
+      direct: 0,
+      newWounds: after.wounds.value - before.wounds,
+      newAnguish: after.anguish.value - before.anguish
+    };
+  }
+
+  /**
+   * Spend a bene to negate a Wound or an Anguish that has just landed.
+   *
+   * Physicality negates a Wound, Intellect an Anguish, and "a character cannot
+   * use Intellect bene to negate Wounds at any time" (The Gate, p2508) — so the
+   * pool is fixed by the kind, not chosen. This is only available as the damage
+   * arrives: "once damage is sustained, a character cannot use Physicality to
+   * negate a Wound" (p2540). Enforcing that window is the caller's job.
+   */
+  async negateWithBene(kind = "wounds") {
+    const [group, poolKey] = kind === "anguish"
+      ? ["qualia", "intellect"]
+      : ["certes", "physicality"];
+
+    const p = this.system.stats?.[group]?.pools?.[poolKey];
+    const h = this.health;
+    if (!p?.value) return { refused: "noBene", poolKey };
+    if (!h?.[kind]?.value) return { refused: "nothingToNegate" };
+
+    await this.update({
+      [`system.stats.${group}.pools.${poolKey}.value`]: p.value - 1,
+      [`${this.healthPath}.${kind}.value`]: h[kind].value - 1
+    });
+    return { negated: kind, spent: poolKey };
   }
 
   /**

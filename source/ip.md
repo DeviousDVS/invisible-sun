@@ -712,22 +712,36 @@ The damage pipeline, per the specification above. In order:
    you take related to that pool". `pool()` gained a `scourge` field for those
    applied directly; `scourgeTotal` adds the wounds or anguish contribution.
    The single `status.scourge` number is gone.
-4. **Damage application.** *Armor and the track are done* — `applyDamage()`
-   takes armor off physical damage point by point, ignores it for mental, and
-   supports `direct` for magic that inflicts Wounds or Anguish outright.
-   **Outstanding:** the window to spend Physicality bene to negate an arriving
-   Wound, or Intellect bene an arriving Anguish. That is a prompt at the moment
-   damage lands, so it needs a dialog rather than a data change.
-5. **Recovery.** `healInjuries()` exists and never touches Wounds or Anguish.
-   **Outstanding:** wiring rests and sleep to recover 1 Wound or Anguish, and
-   spending Physicality bene against standing Injuries.
+4. ~~**Damage application.**~~ **Done.** `applyDamage()` takes armor off
+   physical damage point by point, ignores it for mental, and supports `direct`
+   for magic that inflicts Wounds or Anguish outright. It reports any conversion
+   it caused, and the sheet offers the bene-negation window immediately —
+   Physicality against a Wound, Intellect against an Anguish, never the other
+   way round. The window is only offered there, because "once damage is
+   sustained, a character cannot use Physicality to negate a Wound".
+5. ~~**Recovery.**~~ **Done.** Four rests a day — two costing an action, one of
+   ten minutes, one of an hour — each resetting a pool, with the two longer ones
+   able to recover a Wound or an Anguish instead. A night's sleep resets every
+   pool, clears vexes, restores the day's rests and recovers 1 Wound or Anguish.
+   `healInjuries()` still never touches a Wound or Anguish. Scourges survive all
+   of it, which is the point of them.
+
+   **Vex was missing entirely** and is added here: the opposite of a bene, spent
+   to subtract 1 from a venture, cleared from a pool when that pool refreshes
+   (The Key, p2241) — unlike a scourge, which is not spent and is not cleared by
+   resting.
 6. **Outcomes.** *Flags are done* — `dead` at three Wounds, `broken` at three
    Anguish, shown on the sheet. **Outstanding:** applying Foundry status
    effects, and prompting on three Anguish, which is a GM choice among
    catatonia, madness, suggestibility or death rather than an automatic result.
 
-Not yet modelled: for an NPC a scourge is −1 to their *level* rather than to a
-pool, since NPCs have no pools.
+~~Not yet modelled: for an NPC a scourge is −1 to their *level*.~~ **Done** —
+NPCs and creatures carry a scourge count that lowers `effectiveLevel`, since
+they have no pools for one to sit in.
+
+**Still outstanding:** Foundry status effects for dead and broken, and a prompt
+on the third Anguish, which is a GM choice among catatonia, madness, utter
+suggestibility or death rather than an automatic result.
 
 ### Phase 4 — Advancement
 

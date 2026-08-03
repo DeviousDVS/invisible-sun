@@ -9,6 +9,12 @@ export const pool = (initVal = 0, initMax = 0) => new fields.SchemaField({
   value:   new fields.NumberField({ required: true, initial: initVal, integer: true, min: 0 }),
   max:     new fields.NumberField({ required: true, initial: initMax, integer: true, min: 0 }),
   scourge: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+  /**
+   * A vex is the opposite of a bene: spent to subtract 1 from a venture, and
+   * the GM decides when. Unlike a scourge it is consumed, and refreshing the
+   * pool clears any left over (The Key, p2241).
+   */
+  vex:     new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
 });
 
 /* ── The shared Injury track ──
@@ -62,6 +68,8 @@ export function baseNonPlayerSchema(defaultWoundMax = 1) {
     armor: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
     ward:  new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
     health: new fields.SchemaField({
+      /** For an NPC a scourge is -1 to their level rather than to a pool. */
+      scourge:         new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
       injuries:        injuryTrack(),
       injuryThreshold: new fields.NumberField({ required: false, nullable: true, initial: null, integer: true, min: 1 }),
       wounds:  pool(0, defaultWoundMax),
