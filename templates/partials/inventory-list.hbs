@@ -133,5 +133,35 @@
     </div>
   </div>
 
+  {{!-- House and neighbourhood: a vislae's standing and where they live. --}}
+  <div class="isun-panel mt-4">
+    <h3>{{localize "ISUN.House"}}</h3>
+    <div class="grid-3col">
+      <div class="form-group">
+        <label>{{localize "ISUN.HouseName"}}</label>
+        <input type="text" name="system.house.name" value="{{system.house.name}}" />
+      </div>
+      <div class="form-group">
+        <label>{{localize "ISUN.HouseType"}}</label>
+        <input type="text" name="system.house.type" value="{{system.house.type}}" />
+      </div>
+      <div class="form-group">
+        <label>{{localize "ISUN.HouseLevel"}}</label>
+        <input type="number" min="0" max="10" name="system.house.level" value="{{system.house.level}}" />
+      </div>
+      <div class="form-group full-width">
+        <label>{{localize "ISUN.Neighborhood"}}</label>
+        <input type="text" name="system.house.neighborhood" value="{{system.house.neighborhood}}" />
+      </div>
+      <div class="form-group full-width">
+        <label>{{localize "ISUN.HouseAugments"}}</label>
+        <input type="text" name="system.house.augments" value="{{system.house.augments}}" />
+      </div>
+    </div>
+    <div class="mt-4">
+      <label class="section-label">{{localize "ISUN.HouseSecrets"}}</label>
+      {{editor system.house.secrets target="system.house.secrets" button=true owner=owner editable=editable}}
+    </div>
+  </div>
 
 </div>

@@ -216,7 +216,27 @@
   margin-bottom: var(--isun-space-md);
 }
 
+/* Each part links to the item it names — the sheet's only route to a Heart,
+   Foundation, Order or Forte now that the Identity tab is gone. */
 .sentence-part { font-weight: bold; }
+
+a.sentence-part {
+  cursor: pointer;
+  border-bottom: 1px dotted currentColor;
+  transition: text-shadow 0.2s ease;
+}
+
+a.sentence-part:hover {
+  text-shadow: 0 0 8px currentColor;
+  border-bottom-style: solid;
+}
+
+/* No item held: a placeholder, so it must not invite a click. */
+.sentence-part.unset {
+  color: var(--isun-text-secondary);
+  font-weight: normal;
+  font-style: italic;
+}
 .sentence-part.foundation { color: var(--isun-sun-green); }
 .sentence-part.heart { color: var(--isun-sun-red); }
 .sentence-part.order { color: var(--isun-sun-indigo); }
@@ -394,16 +414,6 @@
 }
 
 /* ════════════════════════════════════════════════════════
- * IDENTITY TAB
- * ════════════════════════════════════════════════════════ */
-
-.identity-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: var(--isun-space-md);
-}
-
-/* ════════════════════════════════════════════════════════
  * INVENTORY / ECONOMY / HOUSE
  * ════════════════════════════════════════════════════════ */
 
@@ -544,76 +554,6 @@
 
 .item-edit:hover { color: var(--isun-text-primary); }
 .item-delete:hover { color: var(--isun-wound); }
-
-/* ════════════════════════════════════════════════════════
- * IDENTITY — the Testament of Suns
- * ════════════════════════════════════════════════════════ */
-
-.identity-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: var(--isun-space-md);
-}
-
-.identity-card {
-  background: var(--isun-bg-surface);
-  border: 1px solid var(--isun-border);
-  border-top: 3px solid var(--isun-border-accent);
-  border-radius: 4px;
-  padding: var(--isun-space-sm);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--isun-space-xs);
-  text-align: center;
-}
-
-/* Each slot takes the sun colour the character sentence uses for it. */
-.identity-card.foundation { border-top-color: var(--isun-sun-green); }
-.identity-card.heart      { border-top-color: var(--isun-sun-red); }
-.identity-card.order      { border-top-color: var(--isun-sun-indigo); }
-.identity-card.forte      { border-top-color: var(--isun-sun-gold); }
-.identity-card.soul       { border-top-color: var(--isun-sun-pale); }
-
-.identity-card.empty { border-style: dashed; opacity: 0.55; }
-
-.identity-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: var(--isun-space-xs);
-}
-
-.identity-slot {
-  font-family: var(--isun-font-heading);
-  font-size: 0.7em;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--isun-text-secondary);
-}
-
-.identity-actions a { color: var(--isun-text-secondary); cursor: pointer; }
-.identity-actions a:hover { color: var(--isun-text-accent); }
-
-.identity-img {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border: 1px solid var(--isun-border);
-  border-radius: 4px;
-}
-
-.identity-name {
-  font-family: var(--isun-font-heading);
-  color: var(--isun-text-primary);
-}
-
-.identity-detail,
-.identity-empty {
-  font-size: 0.8em;
-  color: var(--isun-text-secondary);
-}
 
 .section-label {
   display: block;

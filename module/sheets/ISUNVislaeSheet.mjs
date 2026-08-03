@@ -23,7 +23,6 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
         { id: "stats",       label: "ISUN.TabStats" },
         { id: "magic",       label: "ISUN.TabMagic" },
         { id: "order",       label: "ISUN.TabOrder" },
-        { id: "identity",    label: "ISUN.TabIdentity" },
         { id: "connections", label: "ISUN.TabConnections" },
         { id: "arcs",        label: "ISUN.TabArcs" },
         { id: "inventory",   label: "ISUN.TabInventory" },
@@ -107,20 +106,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
 
     // A vislae's soul is secret — the fan sheet this was modelled on keeps it
     // in a hidden row. Owners and GMs see it; observers with read access do not.
-    // Must be set before identitySlots, which gates the soul card on it.
     context.showSecrets = this.document.isOwner;
-
-    // The Testament of Suns, in the order the character sentence reads.
-    const sys = context.actor.system;
-    context.identitySlots = [
-      { key: "foundation", label: "ISUN.Foundation", item: context.foundations[0],
-        detail: context.foundations[0] ? `${sys.economy.income} crystal/week` : "" },
-      { key: "heart",      label: "ISUN.Heart",      item: context.hearts[0] },
-      { key: "order",      label: "ISUN.Order",      item: context.orders[0],
-        detail: sys.meta?.orderDegree || "" },
-      { key: "forte",      label: "ISUN.Forte",      item: context.fortes[0] },
-      { key: "soul",       label: "ISUN.Soul",       item: context.showSecrets ? context.souls[0] : null },
-    ];
 
     // Sort spells by level
     context.spells.sort((a, b) => (a.system.level || 0) - (b.system.level || 0));
@@ -138,13 +124,23 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
 
     // Pre-render the sentence as markup. Item names are user-supplied, so each
     // part is escaped before being wrapped — the template emits this with {{{ }}}.
-    const part = (cls, value) =>
-      `<span class="sentence-part ${cls}">${Handlebars.escapeExpression(value)}</span>`;
+    //
+    // Where the character actually holds the item, the part is a link that
+    // opens it. That is the sheet's only route to a Heart, Foundation, Order or
+    // Forte, so the placeholder form is deliberately inert rather than looking
+    // clickable and doing nothing.
+    const esc = Handlebars.escapeExpression;
+    const part = (cls, item, placeholder) => {
+      if (!item) return `<span class="sentence-part ${cls} unset">${esc(placeholder)}</span>`;
+      return `<a class="sentence-part ${cls}" data-action="open-item" data-item-id="${esc(item.id)}"`
+           + ` data-tooltip="${esc(item.name)}">${esc(item.name)}</a>`;
+    };
+
     context.characterSentenceHTML = game.i18n.format("ISUN.CharacterSentence", {
-      foundation: part("foundation", context.characterSentence.foundation),
-      heart:      part("heart", context.characterSentence.heart),
-      order:      part("order", context.characterSentence.order),
-      forte:      part("forte", context.characterSentence.forte)
+      foundation: part("foundation", context.foundations[0], "[Foundation]"),
+      heart:      part("heart",      context.hearts[0],      "[Heart]"),
+      order:      part("order",      context.orders[0],      "[Order]"),
+      forte:      part("forte",      context.fortes[0],      "[Forte]")
     });
   }
 
@@ -174,6 +170,13 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   _attachPartListeners(partId, htmlElement, options) {
     super._attachPartListeners(partId, htmlElement, options);
     this._attachCustomListeners(htmlElement);
+  }
+
+  /** Open an item named elsewhere on the sheet, by id. */
+  _onOpenItem(event) {
+    event.preventDefault();
+    const item = this.document.items.get(event.currentTarget.dataset.itemId);
+    item?.sheet?.render(true);
   }
 
   /** Add one Injury of the given source; conversion happens in _preUpdate. */
@@ -225,6 +228,10 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     html.querySelectorAll('[data-action^="roll-"], [data-action="use-ability"]').forEach(el => {
       el.addEventListener('click', this._onItemRoll.bind(this));
     });
+
+    // Sentence parts open the item they name
+    html.querySelectorAll('[data-action="open-item"]').forEach(el =>
+      el.addEventListener('click', this._onOpenItem.bind(this)));
 
     // Injury track
     html.querySelectorAll('[data-action="add-injury"]').forEach(el =>

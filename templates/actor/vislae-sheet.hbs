@@ -28,6 +28,13 @@
             <div class="adv-item acumen"><i class="fa-solid fa-graduation-cap"></i> <span>{{system.advancement.acumen}}</span></div>
             <div class="adv-item crux"><i class="fa-solid fa-star"></i> <span>{{system.advancement.crux}}</span></div>
           </div>
+
+          {{!-- Degree sits with advancement: it is bought with Crux. --}}
+          <div class="form-group mt-4">
+            <label>{{localize "ISUN.OrderDegree"}}</label>
+            <input type="text" name="system.meta.orderDegree" value="{{system.meta.orderDegree}}"
+                   placeholder="{{localize 'ISUN.OrderDegreePlaceholder'}}" />
+          </div>
         </div>
       </div>
     </div>
@@ -48,10 +55,6 @@
       {{> "systems/invisible-sun/templates/partials/order.hbs"}}
     </div>
 
-    {{!-- Identity Tab --}}
-    <div class="tab identity {{tabs.identity.cssClass}}" data-group="primary" data-tab="identity">
-      {{> "systems/invisible-sun/templates/partials/identity.hbs"}}
-    </div>
 
     {{!-- Connections Tab --}}
     <div class="tab connections {{tabs.connections.cssClass}}" data-group="primary" data-tab="connections">
