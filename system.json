@@ -38,6 +38,12 @@
       "type": "Item"
     },
     {
+      "name": "ephemera",
+      "label": "Ephemera",
+      "path": "packs/ephemera",
+      "type": "Item"
+    },
+    {
       "name": "forte-abilities",
       "label": "Forte Abilities",
       "path": "packs/forte-abilities",
@@ -65,6 +71,12 @@
       "name": "incantations",
       "label": "Incantations",
       "path": "packs/incantations",
+      "type": "Item"
+    },
+    {
+      "name": "objects-of-power",
+      "label": "Objects of Power",
+      "path": "packs/objects-of-power",
       "type": "Item"
     },
     {

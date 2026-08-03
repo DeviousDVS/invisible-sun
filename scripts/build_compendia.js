@@ -119,7 +119,8 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'incantations.json'))) {
       depletion: data.depletion || "",
       description: cleanHtml(data.description),
       dice: data.dice || "",
-      facets: data.facets || ""
+      facets: data.facets || "",
+      note: cleanHtml(data.note || "")
     }, "icons/magic/symbols/rune-sigil-green.webp");
     writeItem("incantations", item);
   }
@@ -211,6 +212,37 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'orders.json'))) {
     writeItem("orders", item);
   }
   console.log(`Processed ${ordersData.length} orders.`);
+}
+
+// Objects of power and ephemera, both from their card decks. They share a
+// card layout and so share an extractor; the two differ in that an object of
+// power has a kind (artifact, relic, kindled) and cites where it is written up.
+for (const [file, pack, type, icon] of [
+  ['objects-of-power.json', 'objects-of-power', 'ObjectOfPower', 'icons/commodities/treasure/token-gold-gem-red.webp'],
+  ['ephemera.json', 'ephemera', 'Ephemera', 'icons/commodities/materials/bowl-liquid-white.webp'],
+]) {
+  const p = path.join(SOURCE_DIR, file);
+  if (!fs.existsSync(p)) continue;
+  const data = JSON.parse(fs.readFileSync(p, 'utf8'));
+  for (const c of data) {
+    const common = {
+      level: parseInt(c.level) || 1,
+      description: cleanHtml(c.description),
+      form: c.form || "",
+      dice: c.dice || "",
+      depletion: c.depletion === "—" ? "" : (c.depletion || ""),
+      color: c.color || "",
+      note: cleanHtml(c.note || "")
+    };
+    const system = type === 'ObjectOfPower'
+      ? { ...common, objectType: (c.kind || 'object').toLowerCase(),
+          effectDepletion: c.effectDepletion || "", reference: c.reference || "" }
+      // Ephemera are typed conflux/charm/cypher/oddity, which the cards do not
+      // print. They stay at the schema default until that is sourced.
+      : { ...common, ephemeraType: "conflux" };
+    writeItem(pack, createItem(c.name, type, system, icon));
+  }
+  console.log(`Processed ${data.length} ${pack}.`);
 }
 
 // Weaver aggregates, from the Weaver Aggregates card deck

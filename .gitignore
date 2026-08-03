@@ -9,3 +9,4 @@ node_modules/
 # Foundry runs; the JSON it is built from is worth reviewing, so keep that.
 packs/*
 !packs/_source/
+__pycache__/

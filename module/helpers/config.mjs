@@ -276,7 +276,9 @@ export const ISUN = Object.freeze({
    * ────────────────────────────────────────────── */
 
   objectTypes: {
+    object: "ISUN.ObjectGeneral",
     artifact: "ISUN.ObjectArtifact",
+    relic: "ISUN.ObjectRelic",
     kindled: "ISUN.ObjectKindled",
     installation: "ISUN.ObjectInstallation",
   },

@@ -17,6 +17,8 @@ export class IncantationModel extends foundry.abstract.DataModel {
       depletion:   new fields.StringField({ required: false, initial: "" }),
       dice:        new fields.StringField({ required: false, initial: "" }),
       facets:      new fields.StringField({ required: false, initial: "" }),
+      /** The italic aside printed under the card's labels. */
+      note:        new fields.HTMLField({ required: false, initial: "" }),
     };
   }
 }

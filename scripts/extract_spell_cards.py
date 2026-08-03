@@ -71,6 +71,18 @@ def column_text(pdf, page, x, w, h):
     return lines
 
 
+def join_name(parts):
+    """
+    A name wraps over several lines. It normally breaks between words, but it
+    can break at a hyphen instead — "ILL-FITTING" is set as "ILL-" then
+    "FITTING" — and joining that with a space would invent one.
+    """
+    name = parts[0]
+    for part in parts[1:]:
+        name += part if name.endswith('-') else ' ' + part
+    return name
+
+
 def split_cards(lines):
     """
     A column holds up to two cards. Each begins with its name, which may wrap
@@ -84,7 +96,7 @@ def split_cards(lines):
                     and not NOISE_RE.match(lines[i].strip()):
                 parts.append(lines[i].strip())
                 i += 1
-            runs.append((start, ' '.join(parts), i))
+            runs.append((start, join_name(parts), i))
         else:
             i += 1
 
