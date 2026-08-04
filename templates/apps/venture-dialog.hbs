@@ -1,29 +1,69 @@
-<form class="venture-dialog">
-  <div class="form-group">
-    <label>Action Challenge (0-17)</label>
-    <input type="number" name="challenge" value="0" min="0" max="17" autofocus />
+{{!-- Venture = skills + bene + other modifiers; it is subtracted from the
+      challenge to give the number needed on the die. Enhancements are kept
+      separate because they add a die rather than venture.
+
+      The wrapper is a div, not a form: DialogV2 supplies its own form and
+      discards any the content brings, which would take this class with it and
+      leave every selector and style below unmatched. --}}
+<div class="venture-dialog">
+  <input type="hidden" name="label" value="{{label}}" />
+
+  <div class="venture-summary">
+    <div class="vs-cell">
+      <span class="vs-label">{{localize "ISUN.Challenge"}}</span>
+      <input type="number" name="challenge" value="{{challenge}}" min="0" max="20" autofocus />
+    </div>
+    <div class="vs-cell">
+      <span class="vs-label">{{localize "ISUN.Venture"}}</span>
+      <span class="venture-total">0</span>
+    </div>
+    <div class="vs-cell target">
+      <span class="vs-label">{{localize "ISUN.NeedToRoll"}}</span>
+      <span class="target-total">0</span>
+    </div>
   </div>
 
-  <div class="form-group">
-    <label>Skill / Modifier Venture</label>
-    <input type="number" name="skillVenture" value="0" />
-  </div>
+  {{#if skills.length}}
+    <fieldset class="venture-skills">
+      <legend>{{localize "ISUN.Skills"}}</legend>
+      <p class="hint">{{localize "ISUN.VentureTwoSkillsHint"}}</p>
+      <div class="skill-picks">
+        {{#each skills as |s|}}
+          <label class="skill-pick-row">
+            <input type="checkbox" class="skill-pick" name="skill.{{s.id}}"
+                   data-level="{{s.level}}" {{#if s.checked}}checked{{/if}} />
+            <span class="pick-name">{{s.name}}</span>
+            <span class="pick-level">+{{s.level}}</span>
+          </label>
+        {{/each}}
+      </div>
+    </fieldset>
+  {{/if}}
 
-  <div class="form-group">
-    <label>Magic Dice (from spells/abilities)</label>
-    <input type="number" name="magicDice" value="0" min="0" />
-  </div>
+  <fieldset class="venture-pools">
+    <legend>{{localize "ISUN.SpendFromPools"}}</legend>
+    <div class="pool-spends">
+      {{#each pools as |p|}}
+        <label class="pool-spend-row {{#if p.isEnhancement}}enhancement{{/if}}">
+          <span class="pool-name">{{p.label}}</span>
+          <input type="number" min="0" max="{{p.value}}" value="0"
+                 name="pool.{{p.key}}"
+                 class="{{#if p.isEnhancement}}enh-spend{{else}}bene-spend{{/if}}" />
+          <span class="pool-avail">/ {{p.value}}</span>
+          <span class="pool-effect">{{#if p.isEnhancement}}+1 die{{else}}+1 venture{{/if}}</span>
+        </label>
+      {{/each}}
+    </div>
+  </fieldset>
 
-  <div class="form-group">
-    <label>Sortilege Enhancements</label>
-    <input type="number" name="sortilege" value="0" min="0" />
+  <div class="venture-extras">
+    <label>
+      <span>{{localize "ISUN.MagicDice"}}</span>
+      <input type="number" name="magicDice" value="{{magicDice}}" min="0" max="3" />
+    </label>
+    <label>
+      <span>{{localize "ISUN.OtherModifier"}}</span>
+      <input type="number" name="modifier" value="0" />
+    </label>
   </div>
-
-  <!-- Space for dynamic bene spend UI -->
-
-  <div class="dialog-buttons">
-    <button class="dialog-button" data-button="roll">
-      <i class="fas fa-dice"></i> Roll
-    </button>
-  </div>
-</form>
+</div>

@@ -310,6 +310,30 @@ export const ISUN = Object.freeze({
     nemesis: "ISUN.RankNemesis",
   },
 
+  /* ──────────────────────────────────────────────
+   * SKILLS
+   * ────────────────────────────────────────────── */
+
+  /** Skills never rise above 4 (The Key, p2558). */
+  skillMaxLevel: 4,
+
+  skillCategories: {
+    action: "ISUN.SkillAction",
+    narrative: "ISUN.SkillNarrative",
+    development: "ISUN.SkillDevelopment",
+  },
+  skillCategoryChoices: { "": "", action: "Action", narrative: "Narrative", development: "Development" },
+
+  /** Acumen per level, by category (The Key, p2745). */
+  skillAcumenCost: { action: 3, narrative: 2, development: 1 },
+
+  /** The six weapon skills are type x range. */
+  weaponTypeChoices: { "": "", light: "Light", medium: "Medium", heavy: "Heavy" },
+  weaponRangeChoices: { "": "", close: "Close Combat", ranged: "Ranged" },
+
+  /** Resist, Dodge and Withstand — named directly by spell and item text. */
+  defenseKeyChoices: { "": "", resist: "Resist", dodge: "Dodge", withstand: "Withstand" },
+
   soothFamilies: {
     secrets: "ISUN.FamilySecrets",
     mysteries: "ISUN.FamilyMysteries",

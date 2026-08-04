@@ -245,6 +245,32 @@ for (const [file, pack, type, icon] of [
   console.log(`Processed ${data.length} ${pack}.`);
 }
 
+// Skills. A starting library rather than a closed list — the game has no
+// definitive set and players invent their own — so these are here to be
+// dragged onto a sheet and then edited freely.
+if (fs.existsSync(path.join(SOURCE_DIR, 'skills.json'))) {
+  const skillsData = JSON.parse(fs.readFileSync(path.join(SOURCE_DIR, 'skills.json'), 'utf8'));
+  const icons = {
+    action: "icons/skills/melee/blade-tips-triple-bronze.webp",
+    narrative: "icons/skills/social/diplomacy-handshake.webp",
+    development: "icons/skills/trades/academics-book-study-runes.webp"
+  };
+  for (const c of skillsData) {
+    writeItem("skills", createItem(c.name, "Skill", {
+      // A library entry is the skill at its first level; taking it is what
+      // sets a character's own rating.
+      level: 1,
+      description: cleanHtml(c.description || ""),
+      category: c.category || "action",
+      weaponType: c.weaponType || "",
+      weaponRange: c.weaponRange || "",
+      defenseKey: c.defenseKey || "",
+      aliases: c.aliases ?? []
+    }, icons[c.category] || icons.action));
+  }
+  console.log(`Processed ${skillsData.length} skills.`);
+}
+
 // The Sooth Deck. The cards carry only a name, a value and either the suns
 // they shift or a royalty rank; the meanings, divination, narrative hooks and
 // royalty effects come from the write-ups in The Gate.

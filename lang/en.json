@@ -81,6 +81,10 @@
     "SpellWeaver": "Weaver",
     "SpellGoetic": "Goetic",
     "SpellMaker": "Maker",
+    "SkillAction": "Action",
+    "SkillNarrative": "Narrative",
+    "SkillDevelopment": "Development",
+    "Skills": "Skills",
     "RankApprentice": "Apprentice",
     "RankCompanion": "Companion",
     "RankDefender": "Defender",
@@ -273,7 +277,21 @@
     "Apply": "Apply",
     "ApplyDamageHint": "Armor comes off physical damage first; what survives becomes Injuries.",
     "NegateTitle": "Negate with bene?",
-    "NegatePrompt": "That damage brings a {kind}. Spend 1 bene from {pool} to negate it? ({available} left, and only while the damage is arriving.)"
+    "NegatePrompt": "That damage brings a {kind}. Spend 1 bene from {pool} to negate it? ({available} left, and only while the damage is arriving.)",
+    "SkillCreate": "Create Skill",
+    "SkillNone": "None yet.",
+    "SkillRollHint": "Roll a venture using this skill",
+    "SkillVentureHint": "What this skill adds to a venture",
+    "SkillAcumenHint": "Acumen cost for each new level in this category",
+    "Delete": "Delete",
+    "NeedToRoll": "Need to roll",
+    "SpendFromPools": "Spend from pools",
+    "MagicDice": "Magic dice",
+    "OtherModifier": "Other modifier",
+    "VentureTwoSkillsHint": "Two skills may both apply when the situation warrants it.",
+    "FluxMinor": "Minor flux",
+    "FluxMajor": "Major flux",
+    "FluxGrand": "Grand flux"
   },
   "TYPES": {
     "Actor": {

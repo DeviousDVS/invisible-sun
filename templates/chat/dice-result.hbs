@@ -21,9 +21,16 @@
       {{/each}}
     </div>
 
+    {{#if sources}}
+      <div class="venture-sources">{{#each sources}}<span>{{this}}</span>{{/each}}</div>
+    {{/if}}
+
     {{#if hasFlux}}
       <div class="flux-warning">
         <i class="fa-solid fa-burst"></i> {{localize "ISUN.MagicalFlux"}}
+        {{#if fluxIntensity}}
+          <span class="flux-intensity {{fluxIntensity}}">{{fluxIntensity}}</span>
+        {{/if}}
         <p>{{localize "ISUN.FluxWarning"}}</p>
       </div>
     {{/if}}

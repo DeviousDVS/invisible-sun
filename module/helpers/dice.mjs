@@ -2,6 +2,9 @@
  * Invisible Sun — Dice Resolution Engine
  */
 
+/** Flux intensity by how many magic dice were cast (The Way, p806). */
+const FLUX_INTENSITY = { 1: "minor", 2: "major", 3: "grand" };
+
 /**
  * Roll a Venture/Challenge action.
  * 
@@ -12,19 +15,20 @@
  * @param {number} options.sortilege    - Sortilege enhancements used (0-1 normally)
  * @param {string} options.label        - Display name for the roll
  * @param {Actor}  options.actor        - Rolling actor (for chat speaker)
+ * @param {string[]} options.sources     - What made up the venture, for chat
  * @returns {Object} result
  */
-export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, sortilege = 0, label = "Action", actor = null}) {
+export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, sortilege = 0, label = "Action", actor = null, sources = []}) {
   const target = challenge - venture;
   
   // Auto-success
   if (target <= 0) {
-    return postResult({ label, challenge, venture, target: 0, autoSuccess: true, actor });
+    return postResult({ label, challenge, venture, target: 0, autoSuccess: true, actor, sources });
   }
   
   // Impossible (target >= 10 and no extra dice)
   if (target >= 10 && magicDice === 0 && sortilege === 0) {
-    return postResult({ label, challenge, venture, target, impossible: true, actor });
+    return postResult({ label, challenge, venture, target, impossible: true, actor, sources });
   }
   
   // Build dice pool
@@ -45,6 +49,10 @@ export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, so
   
   const fluxCount = mappedMagic.filter(r => r === 0).length;
   const hasFlux = fluxCount > 0;
+  // "The GM should associate the flux intensity with the approximate number of
+  // dice that are rolled" (The Way, p806) — one die minor, two major, three
+  // grand. Flux happens even when the action succeeds.
+  const fluxIntensity = !hasFlux ? "" : FLUX_INTENSITY[Math.min(totalMagicDice, 3)] ?? "grand";
   
   // Check for success (any die >= target, treating 0 as 0)
   const allResults = [mappedMundane, ...mappedMagic];
@@ -56,8 +64,8 @@ export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, so
     label, challenge, venture, target,
     mundaneResult: mappedMundane, 
     magicResults: mappedMagic,
-    success, successes, hasFlux, fluxCount,
-    roll, actor
+    success, successes, hasFlux, fluxCount, fluxIntensity,
+    roll, actor, sources
   });
 }
 
@@ -105,6 +113,8 @@ export async function checkDepletion(depletionString, actor = null) {
  */
 async function postResult(data) {
   const templateData = { ...data, config: CONFIG.ISUN };
+  // v14 has no global renderTemplate; it lives under the handlebars namespace.
+  const { renderTemplate } = foundry.applications.handlebars;
   const content = await renderTemplate("systems/invisible-sun/templates/chat/dice-result.hbs", templateData);
   
   await ChatMessage.create({

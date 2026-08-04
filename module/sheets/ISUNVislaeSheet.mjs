@@ -2,6 +2,7 @@ const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 
 import { ActorSheetMixin } from "./SheetMixin.mjs";
+import { VentureDialog } from "../apps/VentureDialog.mjs";
 
 /**
  * Invisible Sun — Vislae Actor Sheet
@@ -144,6 +145,22 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
 
     // Rests remaining today, as pips rather than a used-count.
     const remaining = context.actor.restsRemaining;
+    // Skills are grouped by category because that is what a new level costs
+    // in Acumen, and the groups are shown even when empty so the cost is
+    // visible before a character has any.
+    const cfg = CONFIG.ISUN;
+    context.skillGroups = ["action", "narrative", "development"].map(key => ({
+      key,
+      label: game.i18n.localize(cfg.skillCategories[key]),
+      acumenCost: cfg.skillAcumenCost[key],
+      skills: context.skills
+        .filter(i => (i.system.category || "action") === key)
+        .sort((a, b) => a.name.localeCompare(b.name))
+    }));
+    for (const g of context.skillGroups) {
+      for (const sk of g.skills) sk.maxLevel = cfg.skillMaxLevel;
+    }
+
     context.restRows = [
       { key: "quick",  label: "ISUN.RestQuick",  max: 2, left: remaining.quick },
       { key: "tenMin", label: "ISUN.RestTenMin", max: 1, left: remaining.tenMin },
@@ -228,6 +245,26 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       el.classList.toggle("active", el.dataset.kind === kind));
   }
 
+  /** Roll a skill: open the venture dialog with that skill already ticked. */
+  async _onRollSkill(event) {
+    event.preventDefault();
+    const li = event.currentTarget.closest(".item");
+    const skill = this.document.items.get(li?.dataset.itemId);
+    if (!skill) return;
+    return VentureDialog.open(this.document, { skill, label: skill.name });
+  }
+
+  /** Edit a skill's level in place, clamped to the cap of 4. */
+  async _onSkillLevel(event) {
+    event.preventDefault();
+    const input = event.currentTarget;
+    const item = this.document.items.get(input.dataset.itemId);
+    if (!item) return;
+    const level = Math.clamp(Math.round(Number(input.value) || 0), 0, CONFIG.ISUN.skillMaxLevel);
+    input.value = level;
+    return item.update({ "system.level": level });
+  }
+
   /** Open an item named elsewhere on the sheet, by id. */
   _onOpenItem(event) {
     event.preventDefault();
@@ -280,8 +317,15 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     html.querySelectorAll('.anguish-pip.empty').forEach(el => el.addEventListener('click', ev => this._onModifyHealth(ev, 'anguish', 1)));
     html.querySelectorAll('.anguish-pip.full').forEach(el => el.addEventListener('click', ev => this._onModifyHealth(ev, 'anguish', -1)));
     
+    // A skill opens the venture dialog seeded with itself; other rollables
+    // still take the generic path until they have dialogs of their own.
+    html.querySelectorAll('[data-action="roll-skill"]').forEach(el =>
+      el.addEventListener('click', this._onRollSkill.bind(this)));
+    html.querySelectorAll('[data-action="skill-level"]').forEach(el =>
+      el.addEventListener('change', this._onSkillLevel.bind(this)));
+
     // Roll items
-    html.querySelectorAll('[data-action^="roll-"], [data-action="use-ability"]').forEach(el => {
+    html.querySelectorAll('[data-action^="roll-"]:not([data-action="roll-skill"]), [data-action="use-ability"]').forEach(el => {
       el.addEventListener('click', this._onItemRoll.bind(this));
     });
 

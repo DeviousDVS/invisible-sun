@@ -17,6 +17,10 @@
       
       {{> "systems/invisible-sun/templates/partials/stat-pool.hbs"}}
 
+      {{!-- Skills sit under the pools: both feed a venture, and a player
+            deciding a roll wants to see them together. --}}
+      {{> "systems/invisible-sun/templates/partials/skill-list.hbs"}}
+
       <div class="overview-grid mt-4">
         <div class="overview-health">
           {{> "systems/invisible-sun/templates/partials/wound-tracker.hbs"}}

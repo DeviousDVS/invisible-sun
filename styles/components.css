@@ -1163,3 +1163,71 @@ a.sentence-part:hover {
   background: var(--isun-wound);
   border: 1px solid var(--isun-wound);
 }
+
+/* ── Skills ───────────────────────────────────────────────
+   Skills live under the pools on Overview: both feed a venture. */
+.skills-block { margin-top: 0.75rem; }
+.skills-header { display: flex; align-items: baseline; gap: 0.5rem; }
+.skills-header h3 { margin: 0; flex: 1; }
+
+.skill-group { margin-top: 0.5rem; }
+.skill-group-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 1px solid var(--isun-rule, rgba(0,0,0,0.2));
+  font-variant: small-caps; letter-spacing: 0.04em;
+}
+.skill-group-cost { font-size: 0.8em; opacity: 0.75; }
+.skill-empty { font-size: 0.85em; opacity: 0.6; margin: 0.25rem 0 0 0.25rem; }
+
+/* Name grows, the three trailing columns are fixed so rows line up. */
+.item-list.skill-list .item.skill {
+  display: grid;
+  grid-template-columns: 1fr 3.5rem 2.5rem 3.5rem;
+  align-items: center;
+  gap: 0.25rem;
+}
+.item-list.skill-list .item.skill .name { display: flex; align-items: center; gap: 0.35rem; }
+.item-list.skill-list .item.skill .level input { width: 3rem; text-align: center; }
+.item-list.skill-list .item.skill .venture { text-align: center; opacity: 0.8; }
+
+/* ── Venture dialog ───────────────────────────────────── */
+.venture-dialog .venture-summary {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem; text-align: center; margin-bottom: 0.75rem;
+}
+.venture-dialog .vs-label { display: block; font-variant: small-caps; opacity: 0.75; }
+.venture-dialog .venture-total,
+.venture-dialog .target-total { font-size: 1.6em; font-weight: 600; }
+.venture-dialog .target-total.auto { color: var(--isun-success, #2e7d32); }
+.venture-dialog .target-total.impossible { color: var(--isun-failure, #b3261e); }
+
+.venture-dialog .hint { font-size: 0.8em; opacity: 0.7; margin: 0 0 0.35rem; }
+.venture-dialog .skill-picks { max-height: 11rem; overflow-y: auto; }
+.venture-dialog .skill-pick-row,
+.venture-dialog .pool-spend-row {
+  display: grid; grid-template-columns: auto 1fr auto auto;
+  gap: 0.4rem; align-items: center; padding: 0.1rem 0;
+}
+.venture-dialog .pool-spend-row { grid-template-columns: 1fr 4rem auto 6rem; }
+.venture-dialog .pool-spend-row.enhancement .pool-effect { font-style: italic; }
+.venture-dialog .pool-avail,
+.venture-dialog .pool-effect,
+.venture-dialog .pick-level { font-size: 0.85em; opacity: 0.75; }
+.venture-dialog .venture-extras { display: flex; gap: 1rem; margin-top: 0.5rem; }
+.venture-dialog .venture-extras label { flex: 1; }
+.venture-dialog .venture-extras input { width: 100%; }
+
+/* ── Roll result ──────────────────────────────────────── */
+.flux-intensity {
+  text-transform: uppercase; font-size: 0.75em; letter-spacing: 0.08em;
+  padding: 0.05rem 0.35rem; border-radius: 3px; margin-left: 0.35rem;
+}
+.flux-intensity.minor { background: rgba(0,0,0,0.12); }
+.flux-intensity.major { background: rgba(179,38,30,0.25); }
+.flux-intensity.grand { background: rgba(179,38,30,0.55); color: #fff; }
+.venture-sources {
+  display: flex; flex-wrap: wrap; gap: 0.3rem;
+  font-size: 0.8em; opacity: 0.8; margin: 0.35rem 0;
+}
+.venture-sources span::after { content: "\00B7"; margin-left: 0.3rem; }
+.venture-sources span:last-child::after { content: ""; }
