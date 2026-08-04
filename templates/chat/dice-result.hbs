@@ -19,6 +19,15 @@
       {{#each magicResults as |res|}}
         <div class="die magic-die {{#if (eq res 0)}}flux-die{{/if}}" title="Magic Die">{{res}}</div>
       {{/each}}
+
+      {{!-- An Experimental Die never adds a success; only its marked face
+            means anything, so the blank ones are shown blank. --}}
+      {{#each experimentalResults as |res|}}
+        <div class="die experimental-die {{#if (eq res 0)}}flux-die{{/if}}"
+             title="{{localize 'ISUN.ExperimentalDie'}}">
+          {{#if (eq res 0)}}<i class="fa-solid fa-burst"></i>{{/if}}
+        </div>
+      {{/each}}
     </div>
 
     {{#if sources}}

@@ -1231,3 +1231,9 @@ a.sentence-part:hover {
 }
 .venture-sources span::after { content: "\00B7"; margin-left: 0.3rem; }
 .venture-sources span:last-child::after { content: ""; }
+
+/* An Experimental Die shows nothing but its one marked face. */
+.dice-display .die.experimental-die {
+  border-style: dashed;
+  opacity: 0.9;
+}

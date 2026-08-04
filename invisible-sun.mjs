@@ -32,6 +32,8 @@ import { ISUNForteSheet } from "./module/sheets/items/ISUNForteSheet.mjs";
 import { ISUN } from "./module/helpers/config.mjs";
 import { registerHandlebarsHelpers, preloadHandlebarsTemplates } from "./module/helpers/templates.mjs";
 import { rollVenture, checkDepletion } from "./module/helpers/dice.mjs";
+import { ExperimentalDie } from "./module/dice/ExperimentalDie.mjs";
+import { registerDiceSoNice } from "./module/helpers/dice-so-nice.mjs";
 
 /* ═══════════════════════════════════════════════════════════
  * INIT HOOK — Register everything
@@ -65,8 +67,18 @@ Hooks.once("init", () => {
     ISUNActor,
     ISUNItem,
     rollVenture,
-    checkDepletion
+    checkDepletion,
+    ExperimentalDie
   };
+
+  // ── Custom Dice ──────────────────────────────────────
+  // Dice So Nice resolves a preset whose denomination is not numeric through
+  // CONFIG.Dice.terms, so "de" must be registered before its preset loads.
+  CONFIG.Dice.terms[ExperimentalDie.DENOMINATION] = ExperimentalDie;
+
+  // Dice So Nice is optional; this only arms a hook, which never fires if the
+  // module is absent.
+  registerDiceSoNice();
 
   // ── Register Data Models ─────────────────────────────
   Object.assign(CONFIG.Actor.dataModels, {
