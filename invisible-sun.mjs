@@ -71,6 +71,12 @@ Hooks.once("init", () => {
     ExperimentalDie
   };
 
+  // The stylesheet draws the flux mark too — on the chat card and on Foundry's
+  // own roll tooltip — and would otherwise need its own copy of the codepoint,
+  // which is a thing to forget when the icon changes. Publishing it as a custom
+  // property keeps ISUN.fluxGlyph the only place it is written down.
+  document.documentElement.style.setProperty("--isun-flux-glyph", `"${ISUN.fluxGlyph}"`);
+
   // ── Custom Dice ──────────────────────────────────────
   // Dice So Nice resolves a preset whose denomination is not numeric through
   // CONFIG.Dice.terms, so "de" must be registered before its preset loads.

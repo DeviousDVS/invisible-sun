@@ -1257,7 +1257,8 @@ a.sentence-part:hover {
 }
 .roll.die.isun-flux-face::after,
 .dice-display .die.experimental-die.flux-die::after {
-  content: "\e4dc";                 /* fa-burst */
+  /* Set from ISUN.fluxGlyph at init, so the codepoint lives in one place. */
+  content: var(--isun-flux-glyph);
   font-family: "Font Awesome 7 Pro", "Font Awesome 6 Pro", "Font Awesome 5 Pro";
   font-weight: 900;
   color: var(--isun-flux);

@@ -311,6 +311,24 @@ export const ISUN = Object.freeze({
   },
 
   /* ──────────────────────────────────────────────
+   * FLUX
+   * ────────────────────────────────────────────── */
+
+  /**
+   * The mark for magical flux: Font Awesome 7 `fa-burst`.
+   *
+   * Defined once here and read by everything that draws it — the Experimental
+   * Die's 3D face, the chat card, and Foundry's own roll tooltip. The
+   * stylesheet reads it through the --isun-flux-glyph custom property rather
+   * than repeating the codepoint, so changing this line changes all of them.
+   *
+   * It must be a Solid face: Dice So Nice prepends weight 900, and a Regular-
+   * or Light-only icon renders as a blank. Look a codepoint up with
+   *   grep -o '\.fa-NAME{--fa:"[^"]*"}' <foundry>/public/fonts/fontawesome/css/all.min.css
+   */
+  fluxGlyph: "\ue4dc",
+
+  /* ──────────────────────────────────────────────
    * SKILLS
    * ────────────────────────────────────────────── */
 

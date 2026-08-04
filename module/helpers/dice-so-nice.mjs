@@ -17,12 +17,12 @@ import { ISUN } from "./config.mjs";
  *                    colourset and a magic die can be rolled in the colour of
  *                    the sun it belongs to.
  *
- * The marked face uses Font Awesome's burst glyph, which is what the chat card
- * already shows for flux. Duvall carries the numerals but has no symbol glyph
- * — its character set is Latin and basic punctuation only.
+ * The marked face uses ISUN.fluxGlyph, the same mark the chat card shows.
+ * Duvall carries the numerals but has no symbol glyph — its character set is
+ * Latin and basic punctuation only.
  */
 
-/** Font Awesome 7 `fa-burst`. */
+/** Font Awesome 7 `fa-solid fa-disease`. */
 const FLUX_GLYPH = "";
 
 /**
@@ -58,7 +58,7 @@ const FA = '"Font Awesome 7 Pro"';
 const IS_FACES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
 /** Nine blanks, then the marked face. */
-const EXPERIMENTAL_FACES = ["", "", "", "", "", "", "", "", "", FLUX_GLYPH];
+const EXPERIMENTAL_FACES = ["", "", "", "", "", "", "", "", "", ISUN.fluxGlyph];
 
 export function registerDiceSoNice() {
   Hooks.once("diceSoNiceReady", (dice3d) => {
@@ -87,7 +87,7 @@ export function registerDiceSoNice() {
       // A direct multiplier on the label size, not a percentage: Dice So
       // Nice's own defaults run from 0.45 to 2 and a d10 is 1. A lone symbol
       // on an otherwise empty face carries a larger mark than a numeral would.
-      fontScale: 1.4,
+      fontScale: 0.8,
       colorset: "isun-experimental"
     }, "d10");
 
