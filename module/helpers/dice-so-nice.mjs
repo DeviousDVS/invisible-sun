@@ -27,26 +27,32 @@ const FLUX_GLYPH = "";
 const FA = "Font Awesome 7 Pro";
 
 /**
- * Dice So Nice indexes labels from 1 and keeps index 0 as a placeholder, so a
- * ten-faced die ends up with eleven entries and the last is face 10.
+ * One label per face, in face order. Nothing else.
  *
- * How that placeholder arrives differs by type, which is easy to get wrong:
- * a type it already knows (d10) is taken verbatim and must be given the
- * placeholder, while a type it does not (de) has one prepended for you and
- * must not. Give a d10 ten labels and every face shifts by one; give `de`
- * eleven and the marked face lands on a face that does not exist.
+ * Dice So Nice keeps index 0 as a placeholder and reads faces from index 1,
+ * but it prepends that placeholder itself when the textures are built — the
+ * array is stored exactly as given and only grows later. Inspecting a preset
+ * after load therefore shows one more entry than was passed, and matching that
+ * shape on the way in shifts every face by one. Reading the stock d10 and
+ * copying its eleven entries is exactly the wrong move.
  *
- * The stock d10 is already labelled 0-9, exactly as an Invisible Sun die
- * reads, so that preset exists only to set the numerals in Duvall.
+ * The stock d10 is already labelled 0-9, as an Invisible Sun die reads, so
+ * this preset exists only to set the numerals in Duvall.
  */
-const IS_FACES = ["", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+const IS_FACES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
-/** Nine blanks and the marked face. No placeholder — see above. */
+/** Nine blanks, then the marked face. */
 const EXPERIMENTAL_FACES = ["", "", "", "", "", "", "", "", "", FLUX_GLYPH];
 
 export function registerDiceSoNice() {
   Hooks.once("diceSoNiceReady", (dice3d) => {
-    dice3d.addSystem({ id: "invisible-sun", name: "Invisible Sun" }, "default");
+    // "preferred", not "default". A system registered as "default" is only
+    // added to the list a player can choose from — it is never actually used,
+    // so every preset below would be dead weight and no amount of adjusting
+    // them changes a die. "preferred" makes them the ones that render, and
+    // Dice So Nice only promotes it while the choice is still "standard", so a
+    // player who has picked their own dice keeps them.
+    dice3d.addSystem({ id: "invisible-sun", name: "Invisible Sun" }, "preferred");
 
     dice3d.addDicePreset({
       type: "d10",
@@ -62,7 +68,10 @@ export function registerDiceSoNice() {
       system: "invisible-sun",
       labels: EXPERIMENTAL_FACES,
       font: FA,
-      fontScale: 0.6,
+      // A direct multiplier on the label size, not a percentage. Dice So
+      // Nice's own defaults sit between 0.45 and 2 (a d10 is 1), so a symbol
+      // reading a little larger than a numeral wants a shade over 1.
+      fontScale: 1.15,
       colorset: "isun-experimental"
     }, "d10");
 
