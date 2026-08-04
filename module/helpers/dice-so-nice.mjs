@@ -63,29 +63,77 @@ export function registerDiceSoNice() {
       labels: EXPERIMENTAL_FACES,
       font: FA,
       fontScale: 0.6,
-      colorset: "isun-invisible"
+      colorset: "isun-experimental"
     }, "d10");
 
     for (const [key, sun] of Object.entries(ISUN.suns)) {
       const label = key.charAt(0).toUpperCase() + key.slice(1);
+      const fg = labelFor(sun.color);
       dice3d.addColorset({
         name: `isun-${key}`,
         description: `${label} Sun`,
         category: "Invisible Sun",
         background: sun.color,
-        // The pale suns need dark labels to stay readable.
-        foreground: LIGHT_SUNS.has(key) ? "#1a1a1a" : "#f5f0e6",
-        outline: LIGHT_SUNS.has(key) ? "#f5f0e6" : "#000000",
+        foreground: fg,
+        outline: fg === LABEL_DARK ? LABEL_PALE : "#000000",
         texture: "none",
         material: "metal",
         font: "Duvall"
       }, "default");
     }
+
+    // The Experimental Die is not one of the Nine and reusing a sun's colours
+    // washed the mark out — the Invisible Sun is a light gold, so its symbol
+    // sat near-white on near-white. It gets its own: a dark die so the one
+    // mark that matters carries the flux colour and is the only thing on it.
+    dice3d.addColorset({
+      name: "isun-experimental",
+      description: "Experimental Die",
+      category: "Invisible Sun",
+      background: "#14121a",
+      foreground: FLUX_COLOUR,
+      outline: "#000000",
+      edge: "#2a2436",
+      texture: "none",
+      material: "metal",
+      font: FA
+    }, "default");
   });
 }
 
-/** Suns light enough that a pale label would vanish against them. */
-const LIGHT_SUNS = new Set(["silver", "pale", "gold"]);
+/** The flux red the sheets and chat cards already use. */
+const FLUX_COLOUR = "#e74c3c";
+
+const LABEL_DARK = "#14121a";
+const LABEL_PALE = "#f5f0e6";
+
+/** WCAG relative luminance. */
+function luminance(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex ?? ""));
+  if (!m) return 0;
+  const n = parseInt(m[1], 16);
+  const srgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(v => {
+    const c = v / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
+}
+
+/**
+ * The more legible of the two label colours on a given die colour.
+ *
+ * Picking on a luminance threshold puts an arbitrary line through the middle
+ * of the range, and several suns sit right on it — the Invisible Sun's gold
+ * lands within a thousandth of any sensible cutoff, and whichever side it
+ * falls is a coin toss rather than a judgement. Comparing the contrast each
+ * label would actually achieve has no such edge.
+ */
+function labelFor(background) {
+  const bg = luminance(background);
+  const ratio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+  return ratio(bg, luminance(LABEL_DARK)) >= ratio(bg, luminance(LABEL_PALE))
+    ? LABEL_DARK : LABEL_PALE;
+}
 
 /**
  * The colourset a die should wear, given the colour of the magic being worked.

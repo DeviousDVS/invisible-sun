@@ -24,9 +24,7 @@
             means anything, so the blank ones are shown blank. --}}
       {{#each experimentalResults as |res|}}
         <div class="die experimental-die {{#if (eq res 0)}}flux-die{{/if}}"
-             title="{{localize 'ISUN.ExperimentalDie'}}">
-          {{#if (eq res 0)}}<i class="fa-solid fa-burst"></i>{{/if}}
-        </div>
+             title="{{localize 'ISUN.ExperimentalDie'}}"></div>
       {{/each}}
     </div>
 

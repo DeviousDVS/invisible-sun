@@ -31,4 +31,24 @@ export class ExperimentalDie extends foundry.dice.terms.Die {
   get fluxCount() {
     return this.results.filter(r => r.active && r.result === ExperimentalDie.FLUX_FACE).length;
   }
+
+  /** Whether a result landed on the one face that means anything. */
+  static isFlux(result) {
+    return result?.result === ExperimentalDie.FLUX_FACE;
+  }
+
+  /**
+   * Nine of these faces are blank, so a number is the wrong thing to show
+   * anywhere — including Foundry's own roll rendering, which is what a bare
+   * `/r 1de` in chat produces. The mark itself is drawn in CSS so it matches
+   * the icon the chat card and the 3D die already use.
+   */
+  getResultLabel(result) {
+    return "";
+  }
+
+  getResultCSS(result) {
+    return [...super.getResultCSS(result), "isun-experimental",
+            ExperimentalDie.isFlux(result) ? "isun-flux-face" : "isun-blank-face"];
+  }
 }

@@ -1232,8 +1232,38 @@ a.sentence-part:hover {
 .venture-sources span::after { content: "\00B7"; margin-left: 0.3rem; }
 .venture-sources span:last-child::after { content: ""; }
 
-/* An Experimental Die shows nothing but its one marked face. */
+/* ── The Experimental Die ─────────────────────────────────
+   Nine faces are blank and one carries the flux mark, so the mark is drawn
+   rather than lettered — this covers Foundry's own roll tooltip (what a bare
+   `/r 1de` produces) as well as our chat card. */
+.roll.die.isun-experimental,
 .dice-display .die.experimental-die {
-  border-style: dashed;
-  opacity: 0.9;
+  position: relative;
+  color: transparent;          /* nothing is lettered on these faces */
+}
+
+/* Sized and shaped like a magic die, but unmarked unless it fluxed. */
+.dice-display .die.experimental-die {
+  width: 30px;
+  height: 30px;
+  background: var(--isun-bg-secondary);
+  border: 1px dashed var(--isun-border-accent);
+  border-radius: 4px;
+}
+.dice-display .die.experimental-die.flux-die {
+  border-style: solid;
+  border-color: var(--isun-flux);
+  box-shadow: var(--isun-glow-flux);
+}
+.roll.die.isun-flux-face::after,
+.dice-display .die.experimental-die.flux-die::after {
+  content: "\e4dc";                 /* fa-burst */
+  font-family: "Font Awesome 7 Pro", "Font Awesome 6 Pro", "Font Awesome 5 Pro";
+  font-weight: 900;
+  color: var(--isun-flux);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
