@@ -22,9 +22,25 @@ import { ISUN } from "./config.mjs";
  * — its character set is Latin and basic punctuation only.
  */
 
-/** Font Awesome 7 `fa-burst`, which Dice So Nice draws at weight 900. */
+/** Font Awesome 7 `fa-burst`. */
 const FLUX_GLYPH = "";
-const FA = "Font Awesome 7 Pro";
+
+/**
+ * The family name, quotes included — Dice So Nice's own FA_PRO_FAMILY is the
+ * same string.
+ *
+ * The quotes are not decoration. Dice So Nice builds a canvas font shorthand
+ * by concatenation, and "Font Awesome 7 Pro" unquoted is not valid CSS because
+ * a family name cannot start a component with a digit. A canvas silently
+ * ignores an invalid font assignment and keeps the one it had, so the whole
+ * declaration is discarded — including the size. That is what makes fontScale
+ * look broken: it is computed correctly and then thrown away with everything
+ * else, leaving the glyph at the default 10px.
+ *
+ * Matching this string exactly is also what makes Dice So Nice prepend the
+ * 900 weight the solid faces need.
+ */
+const FA = '"Font Awesome 7 Pro"';
 
 /**
  * One label per face, in face order. Nothing else.
@@ -68,10 +84,10 @@ export function registerDiceSoNice() {
       system: "invisible-sun",
       labels: EXPERIMENTAL_FACES,
       font: FA,
-      // A direct multiplier on the label size, not a percentage. Dice So
-      // Nice's own defaults sit between 0.45 and 2 (a d10 is 1), so a symbol
-      // reading a little larger than a numeral wants a shade over 1.
-      fontScale: 1.15,
+      // A direct multiplier on the label size, not a percentage: Dice So
+      // Nice's own defaults run from 0.45 to 2 and a d10 is 1. A lone symbol
+      // on an otherwise empty face carries a larger mark than a numeral would.
+      fontScale: 1.4,
       colorset: "isun-experimental"
     }, "d10");
 
