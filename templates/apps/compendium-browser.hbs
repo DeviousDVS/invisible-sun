@@ -1,0 +1,74 @@
+{{!-- The filter controls are generated from each type's data model, so this
+      template describes their shapes rather than naming any field. --}}
+<div class="browser-layout">
+
+  <aside class="browser-side">
+    <div class="browser-search">
+      <input type="text" name="query" value="{{query}}"
+             placeholder="{{localize 'ISUN.BrowserSearch'}}" autofocus />
+      <label class="browser-deep" data-tooltip="{{localize 'ISUN.BrowserSearchTextHint'}}">
+        <input type="checkbox" name="searchText" {{#if searchText}}checked{{/if}} />
+        {{localize "ISUN.BrowserSearchText"}}
+      </label>
+    </div>
+
+    <h4>{{localize "ISUN.BrowserPacks"}}</h4>
+    <div class="browser-packs">
+      {{#each packs as |p|}}
+        <a class="browser-pack{{#if p.selected}} on{{/if}}"
+           data-action="togglePack" data-pack="{{p.name}}">
+          <span class="pack-name">{{p.label}}</span>
+          <span class="pack-count">{{p.count}}</span>
+        </a>
+      {{/each}}
+    </div>
+    <p class="hint">{{localize "ISUN.BrowserPacksHint"}}</p>
+
+    {{#each types as |t|}}
+      {{#if t.fields.length}}
+        <h4>{{t.label}}</h4>
+        <div class="browser-filters">
+          {{#each t.fields as |f|}}
+            <label class="browser-filter">
+              <span>{{f.label}}</span>
+              {{#if (eq f.kind "choice")}}
+                <select data-filter="{{f.id}}">
+                  <option value=""></option>
+                  {{#each f.choices as |c|}}
+                    <option value="{{c.value}}" {{#if (eq c.value f.value)}}selected{{/if}}>{{c.label}}</option>
+                  {{/each}}
+                </select>
+              {{else if (eq f.kind "number")}}
+                <input type="number" data-filter="{{f.id}}" value="{{f.value}}" />
+              {{else}}
+                <input type="text" data-filter="{{f.id}}" value="{{f.value}}" />
+              {{/if}}
+            </label>
+          {{/each}}
+        </div>
+      {{/if}}
+    {{/each}}
+  </aside>
+
+  <section class="browser-results">
+    <header class="browser-results-header">
+      <span class="count">{{resultCount}} {{localize "ISUN.BrowserResults"}}</span>
+      {{#if anyFilter}}
+        <a data-action="clearFilters"><i class="fa-solid fa-xmark"></i> {{localize "ISUN.BrowserClear"}}</a>
+      {{/if}}
+    </header>
+
+    <ol class="browser-list">
+      {{#each results as |r|}}
+        <li class="browser-result" draggable="true" data-uuid="{{r.uuid}}">
+          <img src="{{r.img}}" alt="" width="28" height="28" />
+          <a class="result-name" data-action="openResult">{{r.name}}</a>
+          <span class="result-summary">{{r.summary}}</span>
+          <span class="result-pack">{{r.pack}}</span>
+        </li>
+      {{else}}
+        <li class="browser-empty">{{localize "ISUN.BrowserNothing"}}</li>
+      {{/each}}
+    </ol>
+  </section>
+</div>

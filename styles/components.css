@@ -1337,3 +1337,39 @@ a.sentence-part:hover {
    rather than merely unavailable. */
 .heart-skills .heart-skill.held { opacity: 0.5; }
 .heart-skills .remaining { font-size: 0.85em; opacity: 0.75; margin: 0.25rem 0 0; }
+
+/* ── Compendium browser ───────────────────────────────── */
+.compendium-browser .browser-layout { display: grid; grid-template-columns: 17rem 1fr; gap: 0.75rem; height: 100%; }
+.compendium-browser .browser-side { overflow-y: auto; padding-right: 0.4rem; }
+.compendium-browser .browser-side h4 { margin: 0.75rem 0 0.25rem; font-variant: small-caps; letter-spacing: 0.04em; }
+.compendium-browser .browser-search input[type=text] { width: 100%; }
+.compendium-browser .browser-deep { display: block; font-size: 0.8em; opacity: 0.8; margin-top: 0.2rem; }
+
+.compendium-browser .browser-pack {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 0.1rem 0.35rem; border-radius: 3px; cursor: pointer;
+}
+.compendium-browser .browser-pack:hover { background: rgba(255,255,255,0.06); }
+/* A chosen pack is marked rather than merely highlighted, since none chosen
+   means all of them and the two states must not look alike. */
+.compendium-browser .browser-pack.on { background: var(--isun-border-accent); color: var(--isun-bg-secondary); }
+.compendium-browser .pack-count { font-size: 0.8em; opacity: 0.7; }
+.compendium-browser .browser-pack.on .pack-count { opacity: 0.9; }
+.compendium-browser .hint { font-size: 0.75em; opacity: 0.6; margin: 0.2rem 0 0; }
+
+.compendium-browser .browser-filter { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem; align-items: baseline; margin: 0.1rem 0; }
+.compendium-browser .browser-filter > span { font-size: 0.82em; opacity: 0.85; }
+
+.compendium-browser .browser-results { display: flex; flex-direction: column; min-height: 0; }
+.compendium-browser .browser-results-header { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 0.3rem; }
+.compendium-browser .browser-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; min-height: 0; }
+.compendium-browser .browser-result {
+  display: grid; grid-template-columns: auto 1fr auto auto;
+  gap: 0.5rem; align-items: center; padding: 0.15rem 0.3rem; cursor: grab;
+}
+.compendium-browser .browser-result:hover { background: rgba(255,255,255,0.06); }
+.compendium-browser .result-summary { font-size: 0.8em; opacity: 0.7; }
+.compendium-browser .result-pack { font-size: 0.75em; opacity: 0.5; }
+.compendium-browser .browser-empty { opacity: 0.6; padding: 0.5rem; }
+
+.isun-browser-btn { width: 100%; }

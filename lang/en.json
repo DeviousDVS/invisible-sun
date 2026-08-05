@@ -303,7 +303,17 @@
     "FreePointsHint": "The 6 your heart leaves free — these may go to either stat.",
     "RefreshCosts": "Refresh this pool — costs your {rest} rest ({left} left today)",
     "PoolValueHint": "Bene held now. Click a pip to spend one.",
-    "PoolMaxHint": "What this pool refreshes to — set by placing points."
+    "PoolMaxHint": "What this pool refreshes to — set by placing points.",
+    "BrowserButton": "Search Compendia",
+    "BrowserTitle": "Compendium Search",
+    "BrowserSearch": "Search names and text…",
+    "BrowserSearchText": "include descriptions",
+    "BrowserSearchTextHint": "Slower — descriptions have to be loaded for every pack searched.",
+    "BrowserPacks": "Compendia",
+    "BrowserPacksHint": "None selected searches all of them.",
+    "BrowserResults": "results",
+    "BrowserClear": "Clear",
+    "BrowserNothing": "Nothing matches."
   },
   "TYPES": {
     "Actor": {

@@ -34,6 +34,7 @@ import { registerHandlebarsHelpers, preloadHandlebarsTemplates } from "./module/
 import { rollVenture, checkDepletion } from "./module/helpers/dice.mjs";
 import { ExperimentalDie } from "./module/dice/ExperimentalDie.mjs";
 import { registerDiceSoNice } from "./module/helpers/dice-so-nice.mjs";
+import { CompendiumBrowser } from "./module/apps/CompendiumBrowser.mjs";
 
 /* ═══════════════════════════════════════════════════════════
  * INIT HOOK — Register everything
@@ -68,7 +69,8 @@ Hooks.once("init", () => {
     ISUNItem,
     rollVenture,
     checkDepletion,
-    ExperimentalDie
+    ExperimentalDie,
+    CompendiumBrowser
   };
 
   // The stylesheet draws the flux mark too — on the chat card and on Foundry's
@@ -85,6 +87,22 @@ Hooks.once("init", () => {
   // Dice So Nice is optional; this only arms a hook, which never fires if the
   // module is absent.
   registerDiceSoNice();
+
+  /* The browser goes where these tools are usually looked for: the foot of the
+   * compendium tab, beside Foundry's own controls. */
+  Hooks.on("renderCompendiumDirectory", (app, element) => {
+    const root = element instanceof HTMLElement ? element : element?.[0];
+    const footer = root?.querySelector(".directory-footer");
+    if (!footer || footer.querySelector(".isun-browser-btn")) return;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "isun-browser-btn";
+    button.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i> `
+      + game.i18n.localize("ISUN.BrowserButton");
+    button.addEventListener("click", () => new CompendiumBrowser().render(true));
+    footer.appendChild(button);
+  });
 
   // ── Register Data Models ─────────────────────────────
   Object.assign(CONFIG.Actor.dataModels, {

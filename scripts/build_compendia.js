@@ -251,7 +251,7 @@ for (const [file, pack, type, icon] of [
 if (fs.existsSync(path.join(SOURCE_DIR, 'skills.json'))) {
   const skillsData = JSON.parse(fs.readFileSync(path.join(SOURCE_DIR, 'skills.json'), 'utf8'));
   const icons = {
-    action: "icons/skills/melee/blade-tips-triple-bronze.webp",
+    action: "icons/skills/melee/blade-tips-triple-bent-white.webp",
     narrative: "icons/skills/social/diplomacy-handshake.webp",
     development: "icons/skills/trades/academics-book-study-runes.webp"
   };
@@ -413,4 +413,37 @@ for (const st of identityTypes) {
     writeItem(st.pack, createItem(name, st.type, st.map(data), st.icon));
   }
   console.log(`Processed ${entries.length} ${st.pack}.`);
+}
+
+/* ── Icon check ───────────────────────────────────────────
+ * A missing icon is invisible here and shows up much later as a 404 in a
+ * player's console, so the paths are verified against Foundry's own icons when
+ * they can be found. Set FOUNDRY_PUBLIC if the install lives elsewhere; the
+ * check is skipped rather than guessed at when it cannot be located. */
+const publicDir = process.env.FOUNDRY_PUBLIC
+  || ["/home/ubuntu/foundryvtt/resources/app/public",
+      "/opt/foundryvtt/resources/app/public"].find(p => fs.existsSync(p));
+
+if (publicDir) {
+  const seen = new Map();
+  for (const pack of fs.readdirSync(PACKS_DIR)) {
+    const dir = path.join(PACKS_DIR, pack);
+    if (!fs.statSync(dir).isDirectory()) continue;
+    for (const file of fs.readdirSync(dir)) {
+      if (!file.endsWith('.json')) continue;
+      const img = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8')).img;
+      if (img) seen.set(img, (seen.get(img) ?? 0) + 1);
+    }
+  }
+  const missing = [...seen].filter(([img]) =>
+    !img.startsWith('systems/') && !fs.existsSync(path.join(publicDir, img)));
+  if (missing.length) {
+    console.error(`\n${missing.length} icon(s) do not exist in Foundry's icon set:`);
+    for (const [img, n] of missing) console.error(`  ${img}  (${n} items)`);
+    process.exitCode = 1;
+  } else {
+    console.log(`All ${seen.size} distinct icons exist.`);
+  }
+} else {
+  console.log('Icon check skipped: set FOUNDRY_PUBLIC to enable it.');
 }
