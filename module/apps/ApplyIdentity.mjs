@@ -20,15 +20,19 @@
  */
 const CONTRIBUTIONS = {
   /**
-   * A heart grants points rather than scores. Its Certes and Qualia plus the 6
-   * it leaves free are one budget, because a point only counts once it is in a
-   * pool and it is the player who decides which — the sheet's controls do that
-   * part. Nothing is written into the pools here.
+   * A heart grants points rather than scores, and grants them to their own
+   * stat: its Certes belongs to Certes and its Qualia to Qualia. Only the 6 it
+   * leaves free may go either way. The player places all of it with the sheet's
+   * controls, so nothing is written into the pools here.
    */
   Heart: (item) => {
     const s = item.system;
-    const total = (s.startingCertes ?? 0) + (s.startingQualia ?? 0) + (s.startingPoolPoints ?? 0);
-    return total ? [{ path: "system.stats.statPoints", label: "points to place", value: total }] : [];
+    const out = [];
+    const add = (k, label, v) => { if (v) out.push({ path: `system.stats.statPoints.${k}`, label, value: v }); };
+    add("certes", "Certes points", s.startingCertes ?? 0);
+    add("qualia", "Qualia points", s.startingQualia ?? 0);
+    add("shared", "free points", s.startingPoolPoints ?? 0);
+    return out;
   },
 
   Foundation: (item) => {

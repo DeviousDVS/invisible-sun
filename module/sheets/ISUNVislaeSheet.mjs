@@ -166,7 +166,10 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
      * creation, and again whenever advancement grants more. A finished sheet
      * carries none of it. Reallocating afterwards is still possible through the
      * pool's own max field, which sits beside them. */
-    context.unspentPoints = this.document.system.stats?.unspentPoints ?? 0;
+    const stats = this.document.system.stats ?? {};
+    context.unspentPoints = stats.unspentPoints ?? 0;
+    context.unspent = stats.unspent ?? { certes: 0, qualia: 0, shared: 0 };
+    context.canPlace = stats.canPlace ?? { certes: 0, qualia: 0 };
     context.showAllocation = context.unspentPoints > 0;
 
     context.restRows = [
@@ -303,7 +306,9 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
 
     const max = (p.max ?? 0) + d;
     if (max < 0) return;
-    if (d > 0 && (this.document.system.stats?.unspentPoints ?? 0) < 1) return;
+    // A stat may place what it still holds plus whatever is left of the shared
+    // reserve; it may never reach into the other stat's grant.
+    if (d > 0 && (this.document.system.stats?.canPlace?.[stat] ?? 0) < 1) return;
 
     const update = { [`system.stats.${stat}.pools.${pool}.max`]: max };
     if ((p.value ?? 0) === (p.max ?? 0)) {

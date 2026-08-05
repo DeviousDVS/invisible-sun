@@ -41,11 +41,26 @@ export class VislaeModel extends foundry.abstract.DataModel {
      * at creation. Only done when the pools are genuinely untouched, so a
      * character who has allocated is left alone. */
     const stats = source?.stats;
-    if (stats && !stats.statPoints) {
-      const held = ["certes", "qualia"].reduce((n, k) =>
-        n + Object.values(stats[k]?.pools ?? {}).reduce((m, p) => m + (Number(p?.max) || 0), 0), 0);
-      const scored = (Number(stats.certes?.value) || 0) + (Number(stats.qualia?.value) || 0);
-      if (held === 0 && scored > 0) stats.statPoints = scored;
+    if (stats) {
+      /* An earlier build held one pooled budget rather than three. Which stat
+       * each of those points belonged to is not recoverable from the actor, so
+       * they become free points: that keeps them spendable rather than
+       * stranding them against the wrong stat. */
+      if (typeof stats.statPoints === "number") {
+        stats.statPoints = { certes: 0, qualia: 0, shared: stats.statPoints };
+      }
+      if (!stats.statPoints) {
+        const held = ["certes", "qualia"].reduce((n, k) =>
+          n + Object.values(stats[k]?.pools ?? {}).reduce((m, p) => m + (Number(p?.max) || 0), 0), 0);
+        const certes = Number(stats.certes?.value) || 0;
+        const qualia = Number(stats.qualia?.value) || 0;
+        /* Scores stored with nothing in the pools: those points are real but
+         * have nowhere to live, so they become points to place — against their
+         * own stat, which is where they came from. */
+        if (held === 0 && (certes || qualia)) {
+          stats.statPoints = { certes, qualia, shared: 0 };
+        }
+      }
     }
 
     const inj = source?.status?.injuries;
@@ -92,18 +107,26 @@ export class VislaeModel extends foundry.abstract.DataModel {
       hiddenKnowledge: pool(10, 99),
 
       /**
-       * How many points the character has been granted to place in pools —
-       * the heart's Certes and Qualia plus the 6 it leaves free, and later
-       * whatever advancement adds ("We add +4 to our core Certes to divide
-       * among our pools").
+       * Points granted but not yet placed in a pool, kept as three separate
+       * budgets because they are not interchangeable.
        *
-       * The core scores are not stored: "the points in these scores are always
-       * divided into the pools for each stat. Points not put in a pool serve no
-       * purpose" (The Key, p1875), so a score is the sum of its pools and
-       * cannot disagree with them. What is left to place is this less what the
-       * pools hold.
+       * A heart gives a Certes score and a Qualia score, and those belong to
+       * their own stat — Stoic's 7 Certes can only ever reach Certes pools.
+       * What it also gives is "6 points to divide among them as you wish"
+       * (The Key, p5841), and only those are free to go either way. Advancement
+       * adds to whichever stat it names.
+       *
+       * The core scores themselves are not stored: "the points in these scores
+       * are always divided into the pools for each stat. Points not put in a
+       * pool serve no purpose" (p1875), so a score is the sum of its pools and
+       * cannot disagree with them.
        */
-      statPoints: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+      statPoints: new fields.SchemaField({
+        certes: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+        qualia: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+        /** The heart's free 6, spendable on either stat's pools. */
+        shared: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+      }),
     });
 
     /* ── Status (health) ──

@@ -1295,3 +1295,10 @@ a.sentence-part:hover {
 /* Kept in place rather than removed, so the row does not reflow as the last
    point is placed or the pool is emptied. */
 .alloc-btn.disabled { opacity: 0.25; cursor: default; }
+
+/* Three budgets, shown side by side so it is clear which one a point comes
+   from. A spent budget is dimmed rather than removed, so the row is stable. */
+.alloc-banner .alloc-budget { font-size: 0.9em; }
+.alloc-banner .alloc-budget b { font-size: 1.15em; color: var(--isun-text-accent); }
+.alloc-banner .alloc-budget.spent { opacity: 0.4; }
+.alloc-banner .alloc-budget.shared b { color: var(--isun-flux); }

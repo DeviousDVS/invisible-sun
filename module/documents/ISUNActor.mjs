@@ -364,31 +364,50 @@ export class ISUNActor extends Actor {
    * the rules allow.
    */
   /**
-   * A stat's score is the sum of what its pools hold, not a number of its own.
+   * A stat's score is the sum of what its pools hold, and what remains to be
+   * placed in each.
    *
    * "The points in these scores are always divided into the pools for each
-   * stat. Points not put in a pool serve no purpose" (The Key, p1875) — so a
-   * stored score could only ever agree with the pools by accident. A pool's
-   * `max` is what it refreshes to, which is the allocation; `value` is the bene
-   * currently in it and moves during play.
+   * stat. Points not put in a pool serve no purpose" (The Key, p1875), so a
+   * stored score could only agree with the pools by accident. A pool's `max` is
+   * what it refreshes to, which is the allocation; `value` is the bene in it
+   * now and moves during play.
    *
-   * The heart grants Certes and Qualia separately, but a point is a point once
-   * it reaches a pool: assigning one of the free 6 to Certes and then into
-   * Accuracy is the same as placing it in Accuracy directly. One budget
-   * therefore covers both stats.
+   * The budgets do not mix. A heart's Certes belongs to Certes and its Qualia
+   * to Qualia; only the 6 it leaves free may go either way. So a stat spends
+   * its own points first and reaches for the shared reserve after — which also
+   * gives the right answer on the way back, since a point taken out of a pool
+   * returns to the reserve before it returns to the stat.
    */
   _prepareStatAllocation(system) {
-    let allocated = 0;
+    const granted = system.stats?.statPoints ?? {};
+    const spent = {};
     for (const stat of ["certes", "qualia"]) {
       const pools = system.stats?.[stat]?.pools ?? {};
-      const sum = Object.values(pools).reduce((n, p) => n + (p.max ?? 0), 0);
-      system.stats[stat].value = sum;
-      allocated += sum;
+      spent[stat] = Object.values(pools).reduce((n, p) => n + (p.max ?? 0), 0);
+      system.stats[stat].value = spent[stat];
     }
-    system.stats.allocated = allocated;
-    // Negative would mean pools hold more than was granted, which a GM editing
-    // by hand can produce; there is nothing to place in that case either.
-    system.stats.unspentPoints = Math.max(0, (system.stats.statPoints ?? 0) - allocated);
+
+    // Each stat draws on its own grant first; whatever it could not cover came
+    // out of the shared reserve.
+    const fromOwn = {
+      certes: Math.min(spent.certes, granted.certes ?? 0),
+      qualia: Math.min(spent.qualia, granted.qualia ?? 0),
+    };
+    const fromShared = (spent.certes - fromOwn.certes) + (spent.qualia - fromOwn.qualia);
+
+    system.stats.unspent = {
+      certes: Math.max(0, (granted.certes ?? 0) - fromOwn.certes),
+      qualia: Math.max(0, (granted.qualia ?? 0) - fromOwn.qualia),
+      shared: Math.max(0, (granted.shared ?? 0) - fromShared),
+    };
+    // What a given stat could still place: its own, plus the shared reserve.
+    system.stats.canPlace = {
+      certes: system.stats.unspent.certes + system.stats.unspent.shared,
+      qualia: system.stats.unspent.qualia + system.stats.unspent.shared,
+    };
+    system.stats.unspentPoints =
+      system.stats.unspent.certes + system.stats.unspent.qualia + system.stats.unspent.shared;
   }
 
   _prepareLimits(system) {

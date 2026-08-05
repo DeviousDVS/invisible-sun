@@ -22,10 +22,22 @@
   {{/if}}
 </div>
 
+{{!-- Three budgets, because they are not interchangeable: a heart's Certes
+      and Qualia belong to their own stat and only the free points may go
+      either way. A stat spends its own first, then the free ones. --}}
 {{#if showAllocation}}
   <div class="alloc-banner">
     <span class="alloc-label">{{localize "ISUN.PointsToPlace"}}</span>
-    <span class="alloc-count">{{unspentPoints}}</span>
+    <span class="alloc-budget certes{{#unless unspent.certes}} spent{{/unless}}">
+      {{localize "ISUN.StatCertes"}} <b>{{unspent.certes}}</b>
+    </span>
+    <span class="alloc-budget qualia{{#unless unspent.qualia}} spent{{/unless}}">
+      {{localize "ISUN.StatQualia"}} <b>{{unspent.qualia}}</b>
+    </span>
+    <span class="alloc-budget shared{{#unless unspent.shared}} spent{{/unless}}"
+          data-tooltip="{{localize 'ISUN.FreePointsHint'}}">
+      {{localize "ISUN.FreePoints"}} <b>{{unspent.shared}}</b>
+    </span>
     <span class="alloc-hint">{{localize "ISUN.PointsToPlaceHint"}}</span>
   </div>
 {{/if}}

@@ -295,10 +295,12 @@
     "ExperimentalDie": "Experimental Die — flux only",
     "IdentityApplied": "{name} applied: {values} set.",
     "PointsToPlace": "Points to place",
-    "PointsToPlaceHint": "Divide these between the pools — points not in a pool do nothing.",
+    "PointsToPlaceHint": "A stat spends its own points first, then the free ones.",
     "AllocPlace": "Place a point here",
     "AllocTakeBack": "Take a point back",
-    "StatDerivedHint": "The total of this stat's pools"
+    "StatDerivedHint": "The total of this stat's pools",
+    "FreePoints": "Free",
+    "FreePointsHint": "The 6 your heart leaves free — these may go to either stat."
   },
   "TYPES": {
     "Actor": {

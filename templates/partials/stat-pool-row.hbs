@@ -30,7 +30,7 @@
       <a class="alloc-btn minus{{#unless pool.max}} disabled{{/unless}}"
          data-action="alloc-pool" data-delta="-1" data-pool="{{poolName}}"
          data-stat="{{statKey}}" data-tooltip="{{localize 'ISUN.AllocTakeBack'}}">−</a>
-      <a class="alloc-btn plus{{#unless unspentPoints}} disabled{{/unless}}"
+      <a class="alloc-btn plus{{#unless (lookup canPlace statKey)}} disabled{{/unless}}"
          data-action="alloc-pool" data-delta="1" data-pool="{{poolName}}"
          data-stat="{{statKey}}" data-tooltip="{{localize 'ISUN.AllocPlace'}}">+</a>
     </div>
