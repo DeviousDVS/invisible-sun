@@ -4,6 +4,7 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 import { ActorSheetMixin } from "./SheetMixin.mjs";
 import { VentureDialog } from "../apps/VentureDialog.mjs";
 import { ApplyIdentity } from "../apps/ApplyIdentity.mjs";
+import { HeartSkills } from "../apps/HeartSkills.mjs";
 
 /**
  * Invisible Sun — Vislae Actor Sheet
@@ -291,13 +292,21 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     const dropped = Array.isArray(created) ? created[0] : created;
     if (!dropped || !ApplyIdentity.handles(dropped)) return created;
 
+    // A heart's starting skills belong to the heart that granted them, so a
+    // swap takes them away before the new one offers its own.
+    for (const id of superseded) await HeartSkills.clearFrom(this.document, id);
     if (superseded.length) await this.document.deleteEmbeddedDocuments("Item", superseded);
+
     const changed = await ApplyIdentity.apply(this.document, dropped);
     if (changed.length) {
       ui.notifications?.info(
         game.i18n.format("ISUN.IdentityApplied",
           { name: dropped.name, values: changed.join(", ") }));
     }
+
+    /* The heart's skills are a choice — "choose two skills from this list" —
+     * so unlike its points they are asked for rather than assigned. */
+    if (dropped.type === "Heart") await HeartSkills.offer(this.document, dropped);
     return created;
   }
 

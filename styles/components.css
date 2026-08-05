@@ -1323,3 +1323,17 @@ a.sentence-part:hover {
 .pool-row:hover .btn-refresh { opacity: 0.85; }
 .pool-row .btn-refresh:hover { opacity: 1; }
 .pool-row .btn-refresh.disabled { opacity: 0.12; cursor: default; pointer-events: none; }
+
+/* ── Choosing a heart's starting skills ───────────────── */
+.heart-skills .heart-skill-list { max-height: 16rem; overflow-y: auto; margin: 0.5rem 0; }
+.heart-skills .heart-skill {
+  display: grid; grid-template-columns: auto 1fr auto auto;
+  gap: 0.5rem; align-items: baseline; padding: 0.15rem 0.25rem;
+}
+.heart-skills .heart-skill:hover:not(.held) { background: rgba(255,255,255,0.05); }
+.heart-skills .skill-cat { font-size: 0.8em; opacity: 0.6; font-variant: small-caps; }
+.heart-skills .skill-held { font-size: 0.75em; opacity: 0.6; font-style: italic; }
+/* A skill already on the sheet cannot be taken twice, so it reads as settled
+   rather than merely unavailable. */
+.heart-skills .heart-skill.held { opacity: 0.5; }
+.heart-skills .remaining { font-size: 0.85em; opacity: 0.75; margin: 0.25rem 0 0; }
