@@ -11,7 +11,11 @@ import re, json, sys, unicodedata
 FIELD_RE = re.compile(
     r'^(Background|Appearance|Character Arcs|Path to Joy|Path to Despair|'
     r'Forte Abilities|Special|Notes):\s*(.*)$')
-LEVEL_RE = re.compile(r'^Level:\s*(.+?)\s*$')
+# The colon is optional because the book drops it once: "Pale: Cheat Death"
+# is headed "Level 5 (no cost)". Requiring it skipped that ability entirely and
+# — worse — left its Color line to be read as the previous ability's, so Grey:
+# The Illusion came out Pale.
+LEVEL_RE = re.compile(r'^Level:?\s+(.+?)\s*$')
 COLOR_RE = re.compile(r'^Color:\s*(.+?)\s*$')
 DEPL_RE  = re.compile(r'^Depletion:\s*(.+?)\s*$')
 CAPS_RE  = re.compile(r'^[A-Z][A-Z0-9 \'’\-–—/&,\.!\?ÖÄÜÉ]{2,50}$')
@@ -81,7 +85,7 @@ def parse_abilities(lines):
         # Allowing an internal colon lets the ability keys themselves look like
         # names; "Color: Green" sitting above the next ability would otherwise
         # be absorbed into its name and stop counting as that ability's colour.
-        if re.match(r'^(Color|Depletion|Level|Cost|Range|Duration)\s*:', s):
+        if re.match(r'^(Color|Depletion|Cost|Range|Duration)\s*:|^Level:?\s', s):
             return False
         # Some names carry an internal colon ("Silver: Creation"), so a colon
         # is only disqualifying at the end of the line (handled above).
