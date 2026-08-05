@@ -1424,37 +1424,36 @@ a.sentence-part:hover {
 .degree-picker select { width: 4rem; }
 .degree-picker .degree-title { font-variant: small-caps; opacity: 0.8; }
 
-/* ── The forte ability tree ───────────────────────────────
-   Depth is shown by indent rather than by drawing the lines: what a player
-   needs is which abilities are open to them now, and what each would cost. */
-.forte-tree .forte-head { display: flex; gap: 0.6rem; align-items: center; }
-.forte-tree .forte-img { width: 44px; height: 44px; border: 0; }
-.forte-tree .forte-crux { font-size: 0.85em; opacity: 0.8; }
+/* ── Picking a forte ability ──────────────────────────────
+   Opened from the practices header rather than living on the sheet: a tree is
+   consulted when Crux is being spent, which is a handful of moments. */
+.practice-add { margin-left: auto; font-size: 0.85em; white-space: nowrap; }
 
-.forte-tree .forte-ability { padding: 0.25rem 0; border-left: 2px solid transparent; }
-.forte-tree .forte-ability.owned { border-left-color: var(--isun-border-accent); }
-.forte-tree .forte-ability.available { border-left-color: var(--isun-text-accent); }
-/* Out of reach, but still legible: it is what the next Crux is being saved
-   for, so it recedes rather than hides. */
-.forte-tree .forte-ability.locked { opacity: 0.45; }
-.forte-tree .tier-1 { margin-left: 1rem; }
-.forte-tree .tier-2 { margin-left: 2rem; }
-.forte-tree .tier-3 { margin-left: 3rem; }
-.forte-tree .tier-4 { margin-left: 4rem; }
-.forte-tree .tier-5 { margin-left: 5rem; }
+.forte-picker .fp-crux { font-size: 0.85em; opacity: 0.8; margin: 0 0 0.5rem; }
+.forte-picker .fp-rows { max-height: 30rem; overflow-y: auto; }
+.forte-picker .fp-row { padding: 0.25rem 0; border-left: 2px solid transparent; }
+.forte-picker .fp-row.owned { border-left-color: var(--isun-border-accent); }
+.forte-picker .fp-row.available { border-left-color: var(--isun-text-accent); }
+/* Out of reach but still shown: what a player is saving towards is the point
+   of having a tree at all. */
+.forte-picker .fp-row.locked { opacity: 0.45; }
+.forte-picker .tier-1 { margin-left: 1rem; }
+.forte-picker .tier-2 { margin-left: 2rem; }
+.forte-picker .tier-3 { margin-left: 3rem; }
+.forte-picker .tier-4 { margin-left: 4rem; }
+.forte-picker .tier-5 { margin-left: 5rem; }
 
-.forte-tree .fa-head { display: grid; grid-template-columns: 1.2rem auto 1fr auto auto; gap: 0.4rem; align-items: baseline; }
-.forte-tree .fa-tier { font-size: 0.75em; opacity: 0.5; text-align: center; }
-.forte-tree .fa-name { font-variant: small-caps; letter-spacing: 0.02em; }
-.forte-tree .fa-level { font-size: 0.8em; opacity: 0.7; }
-.forte-tree .fa-take {
-  font-size: 0.8em; padding: 0.05rem 0.4rem; border-radius: 3px;
+.forte-picker .fp-head { display: grid; grid-template-columns: 1fr auto auto auto; gap: 0.5rem; align-items: baseline; }
+.forte-picker .fp-name { font-variant: small-caps; letter-spacing: 0.02em; }
+.forte-picker .fp-level,
+.forte-picker .fp-colour { font-size: 0.8em; opacity: 0.65; }
+.forte-picker .fp-take {
+  font-size: 0.85em; padding: 0.05rem 0.45rem; border-radius: 3px;
   border: 1px solid var(--isun-text-accent); cursor: pointer; white-space: nowrap;
 }
-.forte-tree .fa-take:hover:not(.disabled) { background: var(--isun-text-accent); color: var(--isun-bg-secondary); }
-.forte-tree .fa-take.disabled { opacity: 0.35; cursor: default; }
-.forte-tree .fa-state { font-size: 0.8em; opacity: 0.7; white-space: nowrap; }
-.forte-tree .fa-body { font-size: 0.88em; margin: 0.15rem 0 0 1.6rem; }
-.forte-tree .fa-needs { font-size: 0.78em; opacity: 0.7; margin-left: 1.6rem; }
-.forte-tree .fa-needs .tag { margin-left: 0.25rem; }
-.forte-tree .fa-needs.starting { font-style: italic; }
+.forte-picker .fp-take:hover:not(.disabled) { background: var(--isun-text-accent); color: var(--isun-bg-secondary); }
+.forte-picker .fp-take.disabled { opacity: 0.35; cursor: default; }
+.forte-picker .fp-state { font-size: 0.8em; opacity: 0.7; white-space: nowrap; }
+.forte-picker .fp-needs { font-size: 0.78em; opacity: 0.7; margin-top: 0.1rem; }
+.forte-picker .fp-needs .tag { margin-left: 0.25rem; }
+.forte-picker .fp-needs.starting { font-style: italic; }

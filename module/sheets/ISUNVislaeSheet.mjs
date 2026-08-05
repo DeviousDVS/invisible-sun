@@ -5,7 +5,7 @@ import { ActorSheetMixin } from "./SheetMixin.mjs";
 import { VentureDialog } from "../apps/VentureDialog.mjs";
 import { ApplyIdentity } from "../apps/ApplyIdentity.mjs";
 import { HeartSkills } from "../apps/HeartSkills.mjs";
-import { ForteTree } from "../apps/ForteTree.mjs";
+import { ForteAbilityPicker } from "../apps/ForteAbilityPicker.mjs";
 
 /**
  * Invisible Sun — Vislae Actor Sheet
@@ -61,17 +61,6 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     this._prepareSheetData(context);
-
-    /* The forte tree needs the whole forte's abilities, not only those taken,
-     * and reading them from the pack is async — so it happens here rather than
-     * in the synchronous builder above. */
-    const all = await this._loadForteAbilities(context.forte);
-    context.forteRows = all
-      ? ForteTree.layout(all, context.forteAbilities, context.crux)
-      : [];
-    context.forteTiers = context.forteRows.reduce((n, r) => Math.max(n, r.tier), 0) + 1;
-    // Kept so the click handler judges against exactly what was drawn.
-    this._forteRowsCache = context.forteRows;
     return context;
   }
 
@@ -434,39 +423,16 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     }
   }
 
-  /**
-   * Take a forte ability, if the tree allows it and the Crux is there.
-   *
-   * Confirmed first: it spends Crux, which is scarce and slow to earn, and an
-   * ability cannot be un-taken without also unwinding the stat points it
-   * granted.
-   */
-  async _onTakeAbility(event) {
+  /** Open the forte's tree to pick the next ability. */
+  async _onPickForteAbility(event) {
     event.preventDefault();
-    const el = event.currentTarget;
-    if (el.classList.contains("disabled")) return;
-    const row = (this._forteRowsCache ?? []).find(r => r.id === el.dataset.abilityId);
-    const all = this._forteAbilities ?? [];
-    const ability = all.find(a => a.id === el.dataset.abilityId);
-    if (!ability || !row?.available) return;
-
-    const ok = await foundry.applications.api.DialogV2.confirm({
-      window: { title: game.i18n.localize("ISUN.TakeAbility") },
-      content: `<p>${game.i18n.format("ISUN.TakeAbilityConfirm", {
-        name: foundry.utils.escapeHTML(ability.name), cost: row.cost,
-        points: CONFIG.ISUN.forteAbilityStatPoints })}</p>`,
-      rejectClose: false
-    });
-    if (!ok) return;
-
-    const result = await ForteTree.take(this.document, ability, row.cost);
-    if (result?.refused === "crux") {
-      ui.notifications?.warn(game.i18n.format("ISUN.NotEnoughCrux",
-        { need: result.need, have: result.have }));
+    const forte = this.document.items.find(i => i.type === "Forte");
+    const abilities = await this._loadForteAbilities(forte);
+    if (!abilities?.length) {
+      ui.notifications?.warn(game.i18n.localize("ISUN.ForteNoAbilities"));
       return;
     }
-    ui.notifications?.info(game.i18n.format("ISUN.AbilityTaken",
-      { name: result.taken, cost: result.cost, points: result.points }));
+    return ForteAbilityPicker.open(this.document, forte, abilities);
   }
 
   /** Roll a skill: open the venture dialog with that skill already ticked. */
@@ -553,8 +519,8 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       el.addEventListener('click', this._onToggleLadder.bind(this)));
     html.querySelectorAll('[data-action="toggle-degree"]').forEach(el =>
       el.addEventListener('click', this._onToggleDegree.bind(this)));
-    html.querySelectorAll('[data-action="take-ability"]').forEach(el =>
-      el.addEventListener('click', this._onTakeAbility.bind(this)));
+    html.querySelectorAll('[data-action="pick-forte-ability"]').forEach(el =>
+      el.addEventListener('click', this._onPickForteAbility.bind(this)));
 
     // Roll items
     html.querySelectorAll('[data-action^="roll-"]:not([data-action="roll-skill"]), [data-action="use-ability"]').forEach(el => {

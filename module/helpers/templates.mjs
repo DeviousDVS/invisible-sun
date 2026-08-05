@@ -95,7 +95,6 @@ export async function preloadHandlebarsTemplates() {
     "systems/invisible-sun/templates/partials/stat-pool-row.hbs",
     "systems/invisible-sun/templates/partials/wound-tracker.hbs",
     "systems/invisible-sun/templates/partials/skill-list.hbs",
-    "systems/invisible-sun/templates/partials/forte-tree.hbs",
     "systems/invisible-sun/templates/apps/venture-dialog.hbs",
     "systems/invisible-sun/templates/apps/compendium-browser.hbs",
     "systems/invisible-sun/templates/partials/character-arc-tracker.hbs",

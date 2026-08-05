@@ -18,6 +18,16 @@
         {{/if}}
       {{/each}}
     </div>
+
+    {{!-- Taking a forte ability is a rare, deliberate act, so its tree opens on
+          request rather than sitting on the sheet. The abilities themselves are
+          already in the list below once taken. --}}
+    {{#if forte}}
+      <a class="practice-add" data-action="pick-forte-ability"
+         data-tooltip="{{localize 'ISUN.FortePickerHint'}}">
+        <i class="fa-solid fa-plus"></i> {{localize "ISUN.ForteAbility"}}
+      </a>
+    {{/if}}
   </div>
 
   <div class="item-list">
