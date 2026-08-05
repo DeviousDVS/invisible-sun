@@ -3,6 +3,7 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 
 import { ActorSheetMixin } from "./SheetMixin.mjs";
 import { VentureDialog } from "../apps/VentureDialog.mjs";
+import { ApplyIdentity } from "../apps/ApplyIdentity.mjs";
 
 /**
  * Invisible Sun — Vislae Actor Sheet
@@ -243,6 +244,22 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     root.dataset.filter = kind;
     root.querySelectorAll(".practice-filter").forEach(el =>
       el.classList.toggle("active", el.dataset.kind === kind));
+  }
+
+  /**
+   * A dropped Foundation states what the character begins play with, so the
+   * drop offers to set those values. It only offers — a Foundation dropped on
+   * a character already in play would otherwise reset their purse and house,
+   * and dropping one just to read it is ordinary. The item is added either way,
+   * by the normal path.
+   */
+  async _onDropItem(event, item) {
+    const created = await super._onDropItem(event, item);
+    const dropped = Array.isArray(created) ? created[0] : created;
+    if (dropped && ApplyIdentity.handles(dropped)) {
+      await ApplyIdentity.offer(this.document, dropped);
+    }
+    return created;
   }
 
   /** Roll a skill: open the venture dialog with that skill already ticked. */

@@ -1268,3 +1268,12 @@ a.sentence-part:hover {
   align-items: center;
   justify-content: center;
 }
+
+/* ── Applying an identity item's starting values ──────── */
+.isun-apply-identity table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+.isun-apply-identity th { text-align: left; font-variant: small-caps; opacity: 0.75; }
+.isun-apply-identity td, .isun-apply-identity th { padding: 0.15rem 0.4rem; }
+.isun-apply-identity .from { opacity: 0.6; }
+.isun-apply-identity .to { font-weight: 600; }
+/* A value that is already correct needs no attention drawn to it. */
+.isun-apply-identity tr.unchanged { opacity: 0.45; }

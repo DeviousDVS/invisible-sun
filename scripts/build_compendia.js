@@ -342,34 +342,75 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'character-arcs.json'))) {
   console.log(`Processed ${arcsData.length} character-arcs.`);
 }
 
-const simpleTypes = [
-  { file: 'foundations.json', type: 'Foundation', pack: 'foundations', icon: 'icons/environment/settlement/house-city.webp' },
-  { file: 'hearts.json', type: 'Heart', pack: 'hearts', icon: 'icons/magic/life/heart-glowing-red.webp' },
-  { file: 'souls.json', type: 'Soul', pack: 'souls', icon: 'icons/magic/life/ankh-gold-blue.webp' }
+// Hearts, Foundations and Souls. These were treated as "simple" types and only
+// their description was carried across, so every mechanical field the models
+// define — a heart's starting stats and skill options, a foundation's income
+// and house, a soul's gift and cost — was dropped on the way into the packs.
+// The models and the source data were both complete; only this step was not.
+const identityTypes = [
+  {
+    file: 'foundations.json', type: 'Foundation', pack: 'foundations',
+    icon: 'icons/environment/settlement/house-city.webp',
+    map: d => ({
+      description: cleanHtml(d.description),
+      weeklyIncome: d.weekly_income ?? 0,
+      initialSavings: d.initial_savings ?? 0,
+      startingHiddenKnowledge: d.starting_hidden_knowledge ?? 0,
+      houseType: d.house?.type ?? "",
+      houseLevel: d.house?.level ?? 0,
+      // Four foundations grant a flat number of connections; the other four
+      // grant an amount that depends on the house, which the book states in
+      // prose. The model carries both, so the value is routed by its type.
+      connectionsCount: typeof d.connections === "number" ? d.connections : 0,
+      connectionsText: typeof d.connections === "string" ? d.connections : "",
+      specialRules: cleanHtml(d.special || ""),
+      initialMotivations: cleanHtml(d.initial_motivations || ""),
+      suggestedArcs: d.suggested_character_arcs ?? []
+    })
+  },
+  {
+    file: 'hearts.json', type: 'Heart', pack: 'hearts',
+    icon: 'icons/magic/life/heart-glowing-red.webp',
+    map: d => ({
+      alternativeName: d.alternative_name || "",
+      description: cleanHtml(d.description),
+      summary: d.summary || "",
+      adjectives: d.adjectives ?? [],
+      startingCertes: d.starting_stats?.certes ?? 0,
+      startingQualia: d.starting_stats?.qualia ?? 0,
+      // Six points to divide between the two, whichever heart is taken.
+      startingPoolPoints: d.starting_stats?.points_to_divide ?? 6,
+      cardFamily: (d.card_family || "").replace(/\.$/, ""),
+      associatedAnimal: (d.associated_animal || "").replace(/\.$/, ""),
+      associatedObject: (d.associated_object || "").replace(/\.$/, ""),
+      skillsOptions: d.starting_skills_options ?? [],
+      skillsGranted: d.starting_skills_granted ?? 2,
+      skillsLevel: d.starting_skills_level ?? 1
+    })
+  },
+  {
+    file: 'souls.json', type: 'Soul', pack: 'souls',
+    icon: 'icons/magic/life/ankh-gold-blue.webp',
+    map: d => ({
+      description: cleanHtml(d.description),
+      symbolImage: d.symbol_image || "",
+      guardianGift: cleanHtml(d.guardian_gift || ""),
+      cost: d.cost || "",
+      revelationPenalty: cleanHtml(d.revelation_penalty || "")
+    })
+  }
 ];
 
-for (const st of simpleTypes) {
-  if (fs.existsSync(path.join(SOURCE_DIR, st.file))) {
-    const dataObj = JSON.parse(fs.readFileSync(path.join(SOURCE_DIR, st.file), 'utf8'));
-    let count = 0;
-    
-    if (Array.isArray(dataObj)) {
-      for (const data of dataObj) {
-        const item = createItem(data.name, st.type, {
-          description: cleanHtml(data.description)
-        }, st.icon);
-        writeItem(st.pack, item);
-        count++;
-      }
-    } else {
-      for (const [name, data] of Object.entries(dataObj)) {
-        const item = createItem(name, st.type, {
-          description: typeof data === 'string' ? cleanHtml(data) : cleanHtml(data.description || "")
-        }, st.icon);
-        writeItem(st.pack, item);
-        count++;
-      }
-    }
-    console.log(`Processed ${count} ${st.pack}.`);
+for (const st of identityTypes) {
+  const file = path.join(SOURCE_DIR, st.file);
+  if (!fs.existsSync(file)) continue;
+  const dataObj = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const entries = Array.isArray(dataObj)
+    ? dataObj.map(d => [d.name, d])
+    : Object.entries(dataObj).map(([name, d]) => [name, typeof d === 'string' ? { description: d } : d]);
+
+  for (const [name, data] of entries) {
+    writeItem(st.pack, createItem(name, st.type, st.map(data), st.icon));
   }
+  console.log(`Processed ${entries.length} ${st.pack}.`);
 }

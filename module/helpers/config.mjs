@@ -326,7 +326,7 @@ export const ISUN = Object.freeze({
    * or Light-only icon renders as a blank. Look a codepoint up with
    *   grep -o '\.fa-NAME{--fa:"[^"]*"}' <foundry>/public/fonts/fontawesome/css/all.min.css
    */
-  fluxGlyph: "\ue4dc",
+  fluxGlyph: "\uf7fa", //.fa-disease{--fa:"\f7fa"}
 
   /* ──────────────────────────────────────────────
    * SKILLS
