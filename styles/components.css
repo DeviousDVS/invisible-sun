@@ -1269,3 +1269,29 @@ a.sentence-part:hover {
   justify-content: center;
 }
 
+
+/* ── Placing stat points ──────────────────────────────────
+   A stat's score is the sum of its pools, so it is shown rather than typed. */
+.stat-totals.derived { display: flex; align-items: baseline; }
+.stat-totals.derived .stat-score { font-size: 1.4em; font-weight: 700; }
+
+.alloc-banner {
+  display: flex; align-items: baseline; gap: 0.5rem;
+  margin: 0.4rem 0; padding: 0.3rem 0.6rem;
+  border: 1px solid var(--isun-border-accent);
+  border-radius: 4px;
+}
+.alloc-banner .alloc-label { font-variant: small-caps; letter-spacing: 0.04em; }
+.alloc-banner .alloc-count { font-size: 1.3em; font-weight: 700; color: var(--isun-text-accent); }
+.alloc-banner .alloc-hint { font-size: 0.8em; opacity: 0.7; }
+
+.pool-alloc { display: flex; gap: 0.15rem; }
+.alloc-btn {
+  width: 1.25rem; height: 1.25rem; line-height: 1.15rem; text-align: center;
+  border: 1px solid var(--isun-border-accent); border-radius: 3px;
+  font-weight: 700; cursor: pointer; user-select: none;
+}
+.alloc-btn:hover:not(.disabled) { background: var(--isun-border-accent); color: var(--isun-bg-secondary); }
+/* Kept in place rather than removed, so the row does not reflow as the last
+   point is placed or the pool is emptied. */
+.alloc-btn.disabled { opacity: 0.25; cursor: default; }

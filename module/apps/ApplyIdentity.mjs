@@ -19,6 +19,18 @@
  * — a Heart's starting Certes and Qualia is the obvious next entry.
  */
 const CONTRIBUTIONS = {
+  /**
+   * A heart grants points rather than scores. Its Certes and Qualia plus the 6
+   * it leaves free are one budget, because a point only counts once it is in a
+   * pool and it is the player who decides which — the sheet's controls do that
+   * part. Nothing is written into the pools here.
+   */
+  Heart: (item) => {
+    const s = item.system;
+    const total = (s.startingCertes ?? 0) + (s.startingQualia ?? 0) + (s.startingPoolPoints ?? 0);
+    return total ? [{ path: "system.stats.statPoints", label: "points to place", value: total }] : [];
+  },
+
   Foundation: (item) => {
     const s = item.system;
     const out = [];

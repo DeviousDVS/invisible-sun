@@ -22,10 +22,24 @@
     </span>
   {{/if}}
 
+  {{!-- Placing points. Minus shows whenever a pool has something to give
+        back, so a player can always reallocate; plus only while points remain
+        to place, so the budget cannot be overspent. --}}
+  {{#if showAllocation}}
+    <div class="pool-alloc">
+      <a class="alloc-btn minus{{#unless pool.max}} disabled{{/unless}}"
+         data-action="alloc-pool" data-delta="-1" data-pool="{{poolName}}"
+         data-stat="{{statKey}}" data-tooltip="{{localize 'ISUN.AllocTakeBack'}}">−</a>
+      <a class="alloc-btn plus{{#unless unspentPoints}} disabled{{/unless}}"
+         data-action="alloc-pool" data-delta="1" data-pool="{{poolName}}"
+         data-stat="{{statKey}}" data-tooltip="{{localize 'ISUN.AllocPlace'}}">+</a>
+    </div>
+  {{/if}}
+
   <div class="pool-inputs">
-    <input type="number" name="system.stats.{{#if (or (eq poolName 'accuracy') (eq poolName 'movement') (eq poolName 'physicality') (eq poolName 'perception'))}}certes{{else}}qualia{{/if}}.pools.{{poolName}}.value" value="{{pool.value}}" />
+    <input type="number" name="system.stats.{{statKey}}.pools.{{poolName}}.value" value="{{pool.value}}" />
     <span>/</span>
-    <input type="number" name="system.stats.{{#if (or (eq poolName 'accuracy') (eq poolName 'movement') (eq poolName 'physicality') (eq poolName 'perception'))}}certes{{else}}qualia{{/if}}.pools.{{poolName}}.max" value="{{pool.max}}" />
+    <input type="number" name="system.stats.{{statKey}}.pools.{{poolName}}.max" value="{{pool.max}}" />
   </div>
   
   <div class="pool-actions">

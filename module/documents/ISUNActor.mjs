@@ -363,6 +363,34 @@ export class ISUNActor extends Actor {
    * blocked. A limit we compute too low must never stop a player recording what
    * the rules allow.
    */
+  /**
+   * A stat's score is the sum of what its pools hold, not a number of its own.
+   *
+   * "The points in these scores are always divided into the pools for each
+   * stat. Points not put in a pool serve no purpose" (The Key, p1875) — so a
+   * stored score could only ever agree with the pools by accident. A pool's
+   * `max` is what it refreshes to, which is the allocation; `value` is the bene
+   * currently in it and moves during play.
+   *
+   * The heart grants Certes and Qualia separately, but a point is a point once
+   * it reaches a pool: assigning one of the free 6 to Certes and then into
+   * Accuracy is the same as placing it in Accuracy directly. One budget
+   * therefore covers both stats.
+   */
+  _prepareStatAllocation(system) {
+    let allocated = 0;
+    for (const stat of ["certes", "qualia"]) {
+      const pools = system.stats?.[stat]?.pools ?? {};
+      const sum = Object.values(pools).reduce((n, p) => n + (p.max ?? 0), 0);
+      system.stats[stat].value = sum;
+      allocated += sum;
+    }
+    system.stats.allocated = allocated;
+    // Negative would mean pools hold more than was granted, which a GM editing
+    // by hand can produce; there is nothing to place in that case either.
+    system.stats.unspentPoints = Math.max(0, (system.stats.statPoints ?? 0) - allocated);
+  }
+
   _prepareLimits(system) {
     const base = { ...(CONFIG.ISUN?.limits ?? {}) };
 
@@ -451,6 +479,7 @@ export class ISUNActor extends Actor {
   }
 
   _prepareVislaeData(system) {
+    this._prepareStatAllocation(system);
     this._prepareLimits(system);
     this._prepareEconomy(system);
 

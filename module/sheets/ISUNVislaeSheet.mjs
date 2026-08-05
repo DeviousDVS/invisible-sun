@@ -162,6 +162,13 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       for (const sk of g.skills) sk.maxLevel = cfg.skillMaxLevel;
     }
 
+    /* The controls appear only while points are waiting to be placed — at
+     * creation, and again whenever advancement grants more. A finished sheet
+     * carries none of it. Reallocating afterwards is still possible through the
+     * pool's own max field, which sits beside them. */
+    context.unspentPoints = this.document.system.stats?.unspentPoints ?? 0;
+    context.showAllocation = context.unspentPoints > 0;
+
     context.restRows = [
       { key: "quick",  label: "ISUN.RestQuick",  max: 2, left: remaining.quick },
       { key: "tenMin", label: "ISUN.RestTenMin", max: 1, left: remaining.tenMin },
@@ -275,6 +282,36 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     return created;
   }
 
+  /**
+   * Place a point in a pool, or take one back.
+   *
+   * A pool's `max` is its allocation — what it refreshes to — so that is what
+   * moves. `value` is the bene currently in it, and at creation it follows the
+   * allocation; once a character is in play it has drifted with spending, and
+   * raising the allocation should not hand them a free bene. So value only
+   * follows while it still matches what the pool held.
+   */
+  async _onAllocatePool(event) {
+    event.preventDefault();
+    const el = event.currentTarget;
+    if (el.classList.contains("disabled")) return;
+
+    const { pool, stat, delta } = el.dataset;
+    const d = Number(delta);
+    const p = this.document.system.stats?.[stat]?.pools?.[pool];
+    if (!p) return;
+
+    const max = (p.max ?? 0) + d;
+    if (max < 0) return;
+    if (d > 0 && (this.document.system.stats?.unspentPoints ?? 0) < 1) return;
+
+    const update = { [`system.stats.${stat}.pools.${pool}.max`]: max };
+    if ((p.value ?? 0) === (p.max ?? 0)) {
+      update[`system.stats.${stat}.pools.${pool}.value`] = max;
+    }
+    return this.document.update(update);
+  }
+
   /** Roll a skill: open the venture dialog with that skill already ticked. */
   async _onRollSkill(event) {
     event.preventDefault();
@@ -353,6 +390,8 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       el.addEventListener('click', this._onRollSkill.bind(this)));
     html.querySelectorAll('[data-action="skill-level"]').forEach(el =>
       el.addEventListener('change', this._onSkillLevel.bind(this)));
+    html.querySelectorAll('[data-action="alloc-pool"]').forEach(el =>
+      el.addEventListener('click', this._onAllocatePool.bind(this)));
 
     // Roll items
     html.querySelectorAll('[data-action^="roll-"]:not([data-action="roll-skill"]), [data-action="use-ability"]').forEach(el => {

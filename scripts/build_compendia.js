@@ -379,7 +379,7 @@ const identityTypes = [
       startingCertes: d.starting_stats?.certes ?? 0,
       startingQualia: d.starting_stats?.qualia ?? 0,
       // Six points to divide between the two, whichever heart is taken.
-      startingPoolPoints: d.starting_stats?.points_to_divide ?? 6,
+      startingPoolPoints: d.starting_stats?.pool_points_to_divide ?? 6,
       cardFamily: (d.card_family || "").replace(/\.$/, ""),
       associatedAnimal: (d.associated_animal || "").replace(/\.$/, ""),
       associatedObject: (d.associated_object || "").replace(/\.$/, ""),

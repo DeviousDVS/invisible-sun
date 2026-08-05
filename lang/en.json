@@ -293,7 +293,12 @@
     "FluxMajor": "Major flux",
     "FluxGrand": "Grand flux",
     "ExperimentalDie": "Experimental Die — flux only",
-    "IdentityApplied": "{name} applied: {values} set."
+    "IdentityApplied": "{name} applied: {values} set.",
+    "PointsToPlace": "Points to place",
+    "PointsToPlaceHint": "Divide these between the pools — points not in a pool do nothing.",
+    "AllocPlace": "Place a point here",
+    "AllocTakeBack": "Take a point back",
+    "StatDerivedHint": "The total of this stat's pools"
   },
   "TYPES": {
     "Actor": {

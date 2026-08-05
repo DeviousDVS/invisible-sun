@@ -34,6 +34,20 @@ export class VislaeModel extends foundry.abstract.DataModel {
    * Anguish they did not have.
    */
   static migrateData(source) {
+    /* A character built before the scores were derived carries its Certes and
+     * Qualia as stored numbers with nothing in the pools. Those points are real
+     * but now have nowhere to live, so they become points to place — the sheet
+     * then asks the player to divide them, which is what should have happened
+     * at creation. Only done when the pools are genuinely untouched, so a
+     * character who has allocated is left alone. */
+    const stats = source?.stats;
+    if (stats && !stats.statPoints) {
+      const held = ["certes", "qualia"].reduce((n, k) =>
+        n + Object.values(stats[k]?.pools ?? {}).reduce((m, p) => m + (Number(p?.max) || 0), 0), 0);
+      const scored = (Number(stats.certes?.value) || 0) + (Number(stats.qualia?.value) || 0);
+      if (held === 0 && scored > 0) stats.statPoints = scored;
+    }
+
     const inj = source?.status?.injuries;
     if (inj && !Array.isArray(inj) && typeof inj === "object") {
       const physical = Number(inj.physical) || 0;
@@ -76,6 +90,20 @@ export class VislaeModel extends foundry.abstract.DataModel {
         }),
       }),
       hiddenKnowledge: pool(10, 99),
+
+      /**
+       * How many points the character has been granted to place in pools —
+       * the heart's Certes and Qualia plus the 6 it leaves free, and later
+       * whatever advancement adds ("We add +4 to our core Certes to divide
+       * among our pools").
+       *
+       * The core scores are not stored: "the points in these scores are always
+       * divided into the pools for each stat. Points not put in a pool serve no
+       * purpose" (The Key, p1875), so a score is the sum of its pools and
+       * cannot disagree with them. What is left to place is this less what the
+       * pools hold.
+       */
+      statPoints: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
     });
 
     /* ── Status (health) ──

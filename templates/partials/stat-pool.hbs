@@ -22,38 +22,46 @@
   {{/if}}
 </div>
 
+{{#if showAllocation}}
+  <div class="alloc-banner">
+    <span class="alloc-label">{{localize "ISUN.PointsToPlace"}}</span>
+    <span class="alloc-count">{{unspentPoints}}</span>
+    <span class="alloc-hint">{{localize "ISUN.PointsToPlaceHint"}}</span>
+  </div>
+{{/if}}
+
 <div class="stat-group">
   <div class="stat-column certes">
     <div class="stat-header">
       <h2>{{localize "ISUN.StatCertes"}}</h2>
-      <div class="stat-totals">
-        <input type="number" name="system.stats.certes.value" value="{{system.stats.certes.value}}" />
-        <span>/</span>
-        <input type="number" name="system.stats.certes.max" value="{{system.stats.certes.max}}" />
+      {{!-- The score is the sum of its pools, so it is shown, not typed:
+            "points not put in a pool serve no purpose" (The Key, p1875). --}}
+      <div class="stat-totals derived" data-tooltip="{{localize 'ISUN.StatDerivedHint'}}">
+        <span class="stat-score">{{system.stats.certes.value}}</span>
       </div>
     </div>
     
-    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="accuracy" pool=system.stats.certes.pools.accuracy label="ISUN.PoolAccuracy"}}
-    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="movement" pool=system.stats.certes.pools.movement label="ISUN.PoolMovement"}}
-    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="physicality" pool=system.stats.certes.pools.physicality label="ISUN.PoolPhysicality"}}
-    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="perception" pool=system.stats.certes.pools.perception label="ISUN.PoolPerception"}}
+    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="accuracy" statKey="certes" pool=system.stats.certes.pools.accuracy label="ISUN.PoolAccuracy"}}
+    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="movement" statKey="certes" pool=system.stats.certes.pools.movement label="ISUN.PoolMovement"}}
+    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="physicality" statKey="certes" pool=system.stats.certes.pools.physicality label="ISUN.PoolPhysicality"}}
+    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="perception" statKey="certes" pool=system.stats.certes.pools.perception label="ISUN.PoolPerception"}}
   </div>
 
   <div class="stat-column qualia">
     <div class="stat-header">
       <h2>{{localize "ISUN.StatQualia"}}</h2>
-      <div class="stat-totals">
-        <input type="number" name="system.stats.qualia.value" value="{{system.stats.qualia.value}}" />
-        <span>/</span>
-        <input type="number" name="system.stats.qualia.max" value="{{system.stats.qualia.max}}" />
+      {{!-- The score is the sum of its pools, so it is shown, not typed:
+            "points not put in a pool serve no purpose" (The Key, p1875). --}}
+      <div class="stat-totals derived" data-tooltip="{{localize 'ISUN.StatDerivedHint'}}">
+        <span class="stat-score">{{system.stats.qualia.value}}</span>
       </div>
     </div>
     
-    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="sorcery" pool=system.stats.qualia.pools.sorcery label="ISUN.PoolSorcery"}}
-    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="interaction" pool=system.stats.qualia.pools.interaction label="ISUN.PoolInteraction"}}
-    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="intellect" pool=system.stats.qualia.pools.intellect label="ISUN.PoolIntellect"}}
+    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="sorcery" statKey="qualia" pool=system.stats.qualia.pools.sorcery label="ISUN.PoolSorcery"}}
+    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="interaction" statKey="qualia" pool=system.stats.qualia.pools.interaction label="ISUN.PoolInteraction"}}
+    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="intellect" statKey="qualia" pool=system.stats.qualia.pools.intellect label="ISUN.PoolIntellect"}}
     
     {{!-- Sortilege holds enhancements rather than bene, hence the pip override --}}
-    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="sortilege" pool=system.stats.qualia.pools.sortilege label="ISUN.PoolSortilege" pipClass="enhancement-pip"}}
+    {{> "systems/invisible-sun/templates/partials/stat-pool-row.hbs" poolName="sortilege" statKey="qualia" pool=system.stats.qualia.pools.sortilege label="ISUN.PoolSortilege" pipClass="enhancement-pip"}}
   </div>
 </div>
