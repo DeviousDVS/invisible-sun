@@ -1457,3 +1457,5 @@ a.sentence-part:hover {
 .forte-picker .fp-needs { font-size: 0.78em; opacity: 0.7; margin-top: 0.1rem; }
 .forte-picker .fp-needs .tag { margin-left: 0.25rem; }
 .forte-picker .fp-needs.starting { font-style: italic; }
+/* The opening ability is granted, not bought, so it does not wear a price. */
+.forte-picker .fp-take.free { border-style: dashed; }

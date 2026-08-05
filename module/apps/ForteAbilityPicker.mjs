@@ -51,8 +51,11 @@ export class ForteAbilityPicker {
               { need: result.need, have: result.have }));
             return;
           }
-          ui.notifications?.info(game.i18n.format("ISUN.AbilityTaken",
-            { name: result.taken, cost: result.cost, points: result.points }));
+          ui.notifications?.info(result.cost === 0
+            ? game.i18n.format("ISUN.AbilityTakenFree",
+                { name: result.taken, points: result.points })
+            : game.i18n.format("ISUN.AbilityTaken",
+                { name: result.taken, cost: result.cost, points: result.points }));
 
           // Taking one opens the paths beyond it, so the tree is rebuilt in
           // place rather than closing — a character with Crux left may well
@@ -85,10 +88,11 @@ export class ForteAbilityPicker {
       const control = r.owned
         ? `<span class="fp-state"><i class="fa-solid fa-check"></i></span>`
         : r.available
-          ? `<a class="fp-take${r.affordable ? "" : " disabled"}" data-take="${r.id}"
+          ? `<a class="fp-take${r.affordable ? "" : " disabled"}${r.free ? " free" : ""}" data-take="${r.id}"
                 data-tooltip="${r.affordable ? game.i18n.localize("ISUN.TakeAbilityHint")
                                              : game.i18n.localize("ISUN.NotEnoughCruxShort")}">
-               ${r.cost} <i class="fa-solid fa-star"></i></a>`
+               ${r.free ? game.i18n.localize("ISUN.ForteFreePick")
+                         : `${r.cost} <i class="fa-solid fa-star"></i>`}</a>`
           : `<span class="fp-state locked"><i class="fa-solid fa-lock"></i> ${r.cost}</span>`;
 
       const needs = r.owned ? ""

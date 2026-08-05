@@ -335,8 +335,10 @@
     "ForteAbility": "Ability",
     "FortePickerTitle": "{forte} — ability tree",
     "FortePickerHint": "Take an ability from your forte's tree",
-    "ForcePickerCrux": "{crux} Crux available. Costs are 1 for levels 1–4, 2 for 5–6, 3 for 7 and above.",
-    "ForteNoneYet": "No forte yet — drop one onto the sheet before taking its abilities."
+    "ForcePickerCrux": "{crux} Crux available. Your first ability is free; after that 1 Crux for levels 1–4, 2 for 5–6, 3 for 7 and above.",
+    "ForteNoneYet": "No forte yet — drop one onto the sheet before taking its abilities.",
+    "ForteFreePick": "Free",
+    "AbilityTakenFree": "{name} taken — your forte's opening ability, at no cost. {points} points to place."
   },
   "TYPES": {
     "Actor": {

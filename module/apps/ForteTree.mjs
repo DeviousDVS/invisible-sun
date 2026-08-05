@@ -15,6 +15,11 @@ import { ISUN } from "../helpers/config.mjs";
  * from it, and returning to an untaken branch works because the ability at the
  * fork is still held.
  *
+ * The first one is free: "You always begin the game with the first (topmost)
+ * ability for your forte, at no cost. If there are two abilities at the top,
+ * you choose one" (The Key, p6380). That is the opening pick only — going back
+ * for the other top ability later costs like anything else.
+ *
  * A starting ability stays available whether or not the character already has
  * others. The top of the tree is itself a fork, and the book says so outright:
  * "If you choose Voice of the Serpent, you can later choose Bite of the
@@ -37,7 +42,12 @@ export class ForteTree {
    * @returns {Array} one row per ability, in tier order
    */
   static layout(abilities, held, crux = 0) {
-    const heldNames = new Set(held.map(i => norm(i.name)));
+    // Only this forte's abilities count as held: another forte's would wrongly
+    // spend the free opening pick.
+    const own = held.filter(i => !i.system?.parentForte
+      || norm(i.system.parentForte) === norm(abilities[0]?.system?.parentForte));
+    const heldNames = new Set(own.map(i => norm(i.name)));
+    const openingPick = heldNames.size === 0;
     const byName = new Map(abilities.map(a => [norm(a.name), a]));
 
     // An ability is a starting one when nothing in the forte unlocks it.
@@ -65,7 +75,9 @@ export class ForteTree {
       // Any one prerequisite suffices — the paths are alternatives, not a set
       // to be collected. Two branches converging on an ability each open it.
       const opened = isStart(a) || prereqs.some(p => heldNames.has(norm(p)));
-      const cost = ISUN.forteAbilityCrux(a.system.level ?? 1);
+      // The opening pick is free, and only while it is still the opening pick.
+      const cost = (isStart(a) && openingPick)
+        ? 0 : ISUN.forteAbilityCrux(a.system.level ?? 1);
 
       return {
         id: a.id, uuid: a.uuid, name: a.name, img: a.img,
@@ -79,6 +91,7 @@ export class ForteTree {
         starting: isStart(a),
         available: !owned && opened,
         affordable: crux >= cost,
+        free: cost === 0,
         cost
       };
     }).sort((x, y) => x.tier - y.tier || x.name.localeCompare(y.name));
