@@ -331,11 +331,12 @@
     "ForteNeeds": "Needs one of:",
     "ForteStarting": "A starting ability",
     "ForteLockedHint": "The path to this ability is not open yet",
-    "ForteNoAbilities": "No abilities found for this forte.",
+    "ForteNoAbilities": "No abilities found for {forte}.",
     "ForteAbility": "Ability",
     "FortePickerTitle": "{forte} — ability tree",
-    "FortePickerHint": "Take a new forte ability",
-    "ForcePickerCrux": "{crux} Crux available. Costs are 1 for levels 1–4, 2 for 5–6, 3 for 7 and above."
+    "FortePickerHint": "Take an ability from your forte's tree",
+    "ForcePickerCrux": "{crux} Crux available. Costs are 1 for levels 1–4, 2 for 5–6, 3 for 7 and above.",
+    "ForteNoneYet": "No forte yet — drop one onto the sheet before taking its abilities."
   },
   "TYPES": {
     "Actor": {

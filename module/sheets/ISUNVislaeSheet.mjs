@@ -427,9 +427,15 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   async _onPickForteAbility(event) {
     event.preventDefault();
     const forte = this.document.items.find(i => i.type === "Forte");
+    // Abilities come from a forte, so without one there is nothing to offer —
+    // and saying which is missing is more use than an empty window.
+    if (!forte) {
+      ui.notifications?.warn(game.i18n.localize("ISUN.ForteNoneYet"));
+      return;
+    }
     const abilities = await this._loadForteAbilities(forte);
     if (!abilities?.length) {
-      ui.notifications?.warn(game.i18n.localize("ISUN.ForteNoAbilities"));
+      ui.notifications?.warn(game.i18n.format("ISUN.ForteNoAbilities", { forte: forte.name }));
       return;
     }
     return ForteAbilityPicker.open(this.document, forte, abilities);
