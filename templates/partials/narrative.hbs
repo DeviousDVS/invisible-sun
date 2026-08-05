@@ -5,8 +5,13 @@
     {{editor system.narrative.appearance target="system.narrative.appearance" button=true owner=owner editable=editable}}
     <div class="form-group full-width mt-4">
       <label>{{localize "ISUN.Quirk"}}</label>
+      {{!-- A datalist suggests without constraining: the rules invite a player
+            to invent their own, so anything typed here is still valid. --}}
       <input type="text" name="system.narrative.quirk" value="{{system.narrative.quirk}}"
-             placeholder="{{localize 'ISUN.QuirkPlaceholder'}}" />
+             list="isun-quirks" placeholder="{{localize 'ISUN.QuirkPlaceholder'}}" />
+      <datalist id="isun-quirks">
+        {{#each config.quirks as |q|}}<option value="{{q}}"></option>{{/each}}
+      </datalist>
     </div>
   </div>
 

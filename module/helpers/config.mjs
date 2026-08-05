@@ -1,3 +1,5 @@
+import { QUIRKS } from "./quirks.mjs";
+
 /**
  * Invisible Sun — System Configuration Constants
  *
@@ -309,6 +311,13 @@ export const ISUN = Object.freeze({
     sovereign: "ISUN.RankSovereign",
     nemesis: "ISUN.RankNemesis",
   },
+
+  /**
+   * Suggestions for a vislae's quirk. Not a closed list — "use these as
+   * examples to make up your own" (The Key, p13531) — so the field stays free
+   * text and these are offered alongside it.
+   */
+  quirks: QUIRKS,
 
   /* ──────────────────────────────────────────────
    * FLUX
