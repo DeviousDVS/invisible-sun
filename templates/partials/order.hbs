@@ -23,45 +23,49 @@
       {{#if order.system.philosophy}}
         <div class="order-philosophy">{{{order.system.philosophy}}}</div>
       {{/if}}
+
+      {{!-- The ladder is worth having to hand but is not read often, and shown
+            in full it buries the rest of the tab. It collapses twice over: the
+            whole thing, and then each degree, so the usual view is six lines. --}}
+      {{#if degreeLadder.length}}
+        <div class="degree-ladder{{#if ladderOpen}} open{{/if}}">
+          <a class="ladder-toggle" data-action="toggle-ladder">
+            <i class="fa-solid fa-caret-{{#if ladderOpen}}down{{else}}right{{/if}}"></i>
+            {{localize "ISUN.Degrees"}}
+            <span class="ladder-here">{{orderDegreeTitle}}</span>
+          </a>
+          <div class="ladder-body">
+            {{#each degreeLadder as |d|}}
+              <div class="degree{{#if d.attained}} attained{{/if}}{{#if d.current}} current{{/if}}{{#if d.expanded}} expanded{{/if}}"
+                   data-degree="{{d.degree}}">
+                <a class="degree-head" data-action="toggle-degree" data-degree="{{d.degree}}">
+                  <span class="degree-rank">{{d.degree}}</span>
+                  <span class="degree-name">{{d.title}}</span>
+                  {{#unless d.attained}}
+                    <span class="degree-cost" data-tooltip="{{localize 'ISUN.DegreeCostHint'}}">{{d.cost}} <i class="fa-solid fa-star"></i></span>
+                  {{/unless}}
+                  <span class="degree-count">{{d.abilities.length}}</span>
+                </a>
+                <div class="degree-detail">
+                  {{#if d.requirement}}<div class="degree-req">{{{d.requirement}}}</div>{{/if}}
+                  <ul class="degree-abilities">
+                    {{#each d.abilities as |a|}}
+                      <li><span class="ability-name">{{a.name}}</span>{{{a.description}}}</li>
+                    {{/each}}
+                  </ul>
+                </div>
+              </div>
+            {{/each}}
+          </div>
+        </div>
+      {{/if}}
     </div>
   {{else}}
     <div class="empty-state">{{localize "ISUN.NoOrder"}}</div>
   {{/if}}
 
-  {{!-- The six degrees. Those attained show what they grant; those ahead show
-        what they cost and ask, which is what a player spending Crux is
-        weighing up. Nothing is copied onto the character — this reads from the
-        Order item, so correcting the compendium corrects every sheet. --}}
-  {{#if degreeLadder.length}}
-    <div class="isun-panel mt-4 degree-ladder">
-      <h3>{{localize "ISUN.Degrees"}}</h3>
-      {{#each degreeLadder as |d|}}
-        <div class="degree{{#if d.attained}} attained{{/if}}{{#if d.current}} current{{/if}}">
-          <div class="degree-head">
-            <span class="degree-rank">{{d.degree}}</span>
-            <span class="degree-name">{{d.title}}</span>
-            {{#unless d.attained}}
-              <span class="degree-cost">{{d.cost}} <i class="fa-solid fa-star"></i></span>
-            {{/unless}}
-            <span class="degree-count">{{d.abilities.length}}</span>
-          </div>
-          {{#if d.requirement}}
-            <div class="degree-req">{{{d.requirement}}}</div>
-          {{/if}}
-          {{#if d.attained}}
-            <ul class="degree-abilities">
-              {{#each d.abilities as |a|}}
-                <li><span class="ability-name">{{a.name}}</span>{{{a.description}}}</li>
-              {{/each}}
-            </ul>
-          {{/if}}
-        </div>
-      {{/each}}
-    </div>
-  {{/if}}
-
   {{#if isApostate}}
-    <div class="isun-panel mt-4 degree-ladder">
+    <div class="isun-panel mt-4 apostate-abilities">
       <h3>{{localize "ISUN.ApostateAbilities"}}</h3>
       <p class="hint">{{localize "ISUN.ApostateHint"}}</p>
       <ul class="degree-abilities">

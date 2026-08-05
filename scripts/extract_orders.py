@@ -111,19 +111,24 @@ def parse_degrees(lines, order_name):
         if not m:
             continue
         num, who, title = m.group(1), m.group(2), m.group(3).strip()
-        # Titles wrap to the next line when the heading is long.
+        # Titles wrap to the next line when the heading is long. Six degrees do
+        # this — four Weaver, two Goetic — and the line the title was taken from
+        # has to be skipped as well, or it is read a second time as the opening
+        # of the requirement ("Master of the Spindle A Weaver can attain...").
+        body_at = i + 1
         if not title:
             for j in range(i + 1, i + 3):
                 nxt = lines[j].strip() if j < len(lines) else ''
                 if nxt and not nxt.isdigit() and len(nxt) < 44 and not LABEL_RE.match(nxt):
                     title = nxt
+                    body_at = j + 1
                     break
-        marks.append((i, int(num), title))
+        marks.append((i, int(num), title, body_at))
 
     degrees = []
-    for n, (start, num, title) in enumerate(marks):
+    for n, (start, num, title, body_at) in enumerate(marks):
         end = marks[n + 1][0] if n + 1 < len(marks) else block_end(lines, start)
-        requirement, abilities = split_labelled(lines[start + 1:end])
+        requirement, abilities = split_labelled(lines[body_at:end])
         degrees.append({
             'degree': num,
             'title': title,

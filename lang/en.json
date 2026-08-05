@@ -318,7 +318,8 @@
     "DegreeOrdinal": "Degree",
     "ApostateAbilities": "Apostate Abilities",
     "ApostateHint": "Apostates have no degrees. These are what they begin with; the rest are bought at 1 Crux each.",
-    "ApostatePurchasable": "Available to buy"
+    "ApostatePurchasable": "Available to buy",
+    "DegreeCostHint": "Crux to attain this degree"
   },
   "TYPES": {
     "Actor": {

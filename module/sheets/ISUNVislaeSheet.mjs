@@ -113,11 +113,16 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     const held = context.actor.system.meta?.orderDegree ?? 0;
     const degrees = context.order?.system?.degrees ?? [];
     context.orderDegree = held;
+    /* Which parts of the ladder are open is a view preference, held on the
+     * sheet rather than the actor: it should not write to the document, sync
+     * to other players, or survive into someone else's window. */
+    context.ladderOpen = this._ladderOpen ?? false;
     context.orderDegreeTitle = degrees.find(d => d.degree === held)?.title ?? "";
     context.degreeLadder = degrees.map(d => ({
       ...d,
       attained: d.degree <= held,
       current: d.degree === held,
+      expanded: this._openDegree === d.degree,
       // The 1st degree is where a character starts, so it is not bought.
       cost: d.degree === 1 ? 0 : d.cruxCost
     }));
@@ -364,6 +369,35 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     return this.document.update(update);
   }
 
+  /**
+   * Open or close the degree ladder.
+   *
+   * Toggled in place rather than by re-rendering, like the practice filter: a
+   * re-render would rebuild the tab and lose the scroll position for what is
+   * only a change of view.
+   */
+  _onToggleLadder(event) {
+    event.preventDefault();
+    const root = event.currentTarget.closest(".degree-ladder");
+    this._ladderOpen = !root.classList.contains("open");
+    root.classList.toggle("open", this._ladderOpen);
+    const caret = event.currentTarget.querySelector("i");
+    caret?.classList.toggle("fa-caret-right", !this._ladderOpen);
+    caret?.classList.toggle("fa-caret-down", this._ladderOpen);
+  }
+
+  /** Expand one degree, closing whichever was open. */
+  _onToggleDegree(event) {
+    event.preventDefault();
+    const degree = Number(event.currentTarget.dataset.degree);
+    const root = event.currentTarget.closest(".degree-ladder");
+    const already = this._openDegree === degree;
+    this._openDegree = already ? null : degree;
+    for (const el of root.querySelectorAll(".degree")) {
+      el.classList.toggle("expanded", !already && Number(el.dataset.degree) === degree);
+    }
+  }
+
   /** Roll a skill: open the venture dialog with that skill already ticked. */
   async _onRollSkill(event) {
     event.preventDefault();
@@ -444,6 +478,10 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       el.addEventListener('change', this._onSkillLevel.bind(this)));
     html.querySelectorAll('[data-action="alloc-pool"]').forEach(el =>
       el.addEventListener('click', this._onAllocatePool.bind(this)));
+    html.querySelectorAll('[data-action="toggle-ladder"]').forEach(el =>
+      el.addEventListener('click', this._onToggleLadder.bind(this)));
+    html.querySelectorAll('[data-action="toggle-degree"]').forEach(el =>
+      el.addEventListener('click', this._onToggleDegree.bind(this)));
 
     // Roll items
     html.querySelectorAll('[data-action^="roll-"]:not([data-action="roll-skill"]), [data-action="use-ability"]').forEach(el => {
