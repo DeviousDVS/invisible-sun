@@ -179,6 +179,22 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     ];
     context.canRestHeal = remaining.tenMin + remaining.hour > 0;
 
+    /* Refreshing a pool spends the cheapest rest still available, so the button
+     * can say which one that is and how many are left before it is clicked. */
+    const cheapest = this.document.cheapestRest;
+    context.restsLeft = remaining.quick + remaining.tenMin + remaining.hour;
+    context.nextRest = cheapest;
+    context.refreshTip = cheapest
+      ? game.i18n.format("ISUN.RefreshCosts", {
+          rest: game.i18n.localize(`ISUN.Rest${cheapest.charAt(0).toUpperCase()}${cheapest.slice(1)}`),
+          left: context.restsLeft })
+      : game.i18n.localize("ISUN.NoRestsLeft");
+
+    /* The pool boxes are the allocation and the bene currently held; neither is
+     * something a player should type over. A GM keeps inputs as the escape
+     * hatch — the difference is invisible to a player, who just sees numbers. */
+    context.canEditPools = game.user.isGM;
+
     // House secrets are augments to a house rather than to the character, and
     // are capped by house size, so they sit with the House block.
     context.houseSecrets = context.secrets.filter(i => i.system?.secretType === "house");
@@ -455,6 +471,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
    */
   async _onRefreshPool(event) {
     event.preventDefault();
+    if (event.currentTarget.classList.contains("disabled")) return;
     const pool = event.currentTarget.dataset.pool;
     if (!pool) return;
 

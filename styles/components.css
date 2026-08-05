@@ -1302,3 +1302,24 @@ a.sentence-part:hover {
 .alloc-banner .alloc-budget b { font-size: 1.15em; color: var(--isun-text-accent); }
 .alloc-banner .alloc-budget.spent { opacity: 0.4; }
 .alloc-banner .alloc-budget.shared b { color: var(--isun-flux); }
+
+/* ── Locked pool figures ──────────────────────────────────
+   The allocation and the bene held both move through their own controls, so a
+   player reads them rather than typing them. Sized like the inputs a GM sees,
+   so the row does not shift between the two. */
+.pool-inputs.locked { display: flex; align-items: baseline; gap: 0.2rem; }
+.pool-inputs.locked .pool-value,
+.pool-inputs.locked .pool-max { min-width: 1.6rem; text-align: center; font-variant-numeric: tabular-nums; }
+.pool-inputs.locked .pool-max { opacity: 0.65; }
+.pool-inputs.locked .sep { opacity: 0.4; }
+/* Magic can push bene above what the pool refreshes to; the pips cannot show
+   that, so the figure does. */
+.pool-inputs.locked .pool-value.over { color: var(--isun-text-accent); font-weight: 700; }
+
+/* ── Rest button ──────────────────────────────────────────
+   One per pool because a rest resets one pool of the player's choosing, but
+   quiet until the row is wanted. */
+.pool-row .btn-refresh { opacity: 0.25; transition: opacity 0.12s ease; }
+.pool-row:hover .btn-refresh { opacity: 0.85; }
+.pool-row .btn-refresh:hover { opacity: 1; }
+.pool-row .btn-refresh.disabled { opacity: 0.12; cursor: default; pointer-events: none; }

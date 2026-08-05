@@ -300,7 +300,10 @@
     "AllocTakeBack": "Take a point back",
     "StatDerivedHint": "The total of this stat's pools",
     "FreePoints": "Free",
-    "FreePointsHint": "The 6 your heart leaves free — these may go to either stat."
+    "FreePointsHint": "The 6 your heart leaves free — these may go to either stat.",
+    "RefreshCosts": "Refresh this pool — costs your {rest} rest ({left} left today)",
+    "PoolValueHint": "Bene held now. Click a pip to spend one.",
+    "PoolMaxHint": "What this pool refreshes to — set by placing points."
   },
   "TYPES": {
     "Actor": {

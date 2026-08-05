@@ -6,13 +6,15 @@
     {{/if}}
   </div>
   
+  {{!-- Held bene first, then the empty slots, so a pool drains from the right
+        as it is spent rather than filling from it. --}}
   <div class="pool-pips">
-    {{#times (poolRemaining pool)}}
-      <span class="{{#if pipClass}}{{pipClass}}{{else}}bene-pip{{/if}} empty"></span>
-    {{/times}}
     {{#times pool.value}}
       <span class="{{#if pipClass}}{{pipClass}}{{else}}bene-pip{{/if}} full"
             data-action="spend-bene" data-pool="{{poolName}}" title="{{localize 'ISUN.Spend'}}"></span>
+    {{/times}}
+    {{#times (poolRemaining pool)}}
+      <span class="{{#if pipClass}}{{pipClass}}{{else}}bene-pip{{/if}} empty"></span>
     {{/times}}
   </div>
   
@@ -36,14 +38,27 @@
     </div>
   {{/if}}
 
-  <div class="pool-inputs">
-    <input type="number" name="system.stats.{{statKey}}.pools.{{poolName}}.value" value="{{pool.value}}" />
-    <span>/</span>
-    <input type="number" name="system.stats.{{statKey}}.pools.{{poolName}}.max" value="{{pool.max}}" />
+  {{!-- max is the allocation and value is the bene held; both move through
+        their own controls, so neither is typeable. A GM keeps inputs. --}}
+  <div class="pool-inputs{{#unless canEditPools}} locked{{/unless}}">
+    {{#if canEditPools}}
+      <input type="number" name="system.stats.{{statKey}}.pools.{{poolName}}.value" value="{{pool.value}}" />
+      <span>/</span>
+      <input type="number" name="system.stats.{{statKey}}.pools.{{poolName}}.max" value="{{pool.max}}" />
+    {{else}}
+      <span class="pool-value{{#if (gt pool.value pool.max)}} over{{/if}}"
+            data-tooltip="{{localize 'ISUN.PoolValueHint'}}">{{pool.value}}</span>
+      <span class="sep">/</span>
+      <span class="pool-max" data-tooltip="{{localize 'ISUN.PoolMaxHint'}}">{{pool.max}}</span>
+    {{/if}}
   </div>
   
   <div class="pool-actions">
-    <a class="btn-refresh" data-action="refresh-pool" data-pool="{{poolName}}" title="{{localize 'ISUN.Refresh'}}">
+    {{!-- Quiet until the row is hovered, and plainly dead once the day's four
+          rests are gone. The tooltip names the rest it will cost. --}}
+    <a class="btn-refresh{{#unless restsLeft}} disabled{{/unless}}"
+       data-action="refresh-pool" data-pool="{{poolName}}"
+       data-tooltip="{{refreshTip}}">
       <i class="fa-solid fa-arrows-rotate"></i>
     </a>
   </div>

@@ -60,6 +60,9 @@ export function registerHandlebarsHelpers() {
   Handlebars.registerHelper("gte", function (a, b) {
     return Number(a) >= Number(b);
   });
+  /** Greater than: {{#if (gt a b)}} — the sibling of gte and lt. */
+  Handlebars.registerHelper("gt", (a, b) => Number(a) > Number(b));
+
 
   /** Less-than: {{#if (lt a b)}} */
   Handlebars.registerHelper("lt", function (a, b) {
