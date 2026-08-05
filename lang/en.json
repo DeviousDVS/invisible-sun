@@ -292,7 +292,8 @@
     "FluxMinor": "Minor flux",
     "FluxMajor": "Major flux",
     "FluxGrand": "Grand flux",
-    "ExperimentalDie": "Experimental Die — flux only"
+    "ExperimentalDie": "Experimental Die — flux only",
+    "IdentityApplied": "{name} applied: {values} set."
   },
   "TYPES": {
     "Actor": {

@@ -247,17 +247,30 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   }
 
   /**
-   * A dropped Foundation states what the character begins play with, so the
-   * drop offers to set those values. It only offers — a Foundation dropped on
-   * a character already in play would otherwise reset their purse and house,
-   * and dropping one just to read it is ordinary. The item is added either way,
-   * by the normal path.
+   * A dropped Foundation states what the character begins play with, and a
+   * vislae cannot change foundation in play — so a drop is always character
+   * creation and the values are simply assigned. Swapping the foundation while
+   * building reassigns them to the new one, and replaces the old item, since
+   * the sheet reads a single Foundation and a second would do nothing.
+   *
+   * The ids are collected before the drop creates anything, so the replacement
+   * cannot delete what it just added.
    */
   async _onDropItem(event, item) {
+    const superseded = ApplyIdentity.handles(item)
+      ? this.document.items.filter(i => i.type === item.type).map(i => i.id)
+      : [];
+
     const created = await super._onDropItem(event, item);
     const dropped = Array.isArray(created) ? created[0] : created;
-    if (dropped && ApplyIdentity.handles(dropped)) {
-      await ApplyIdentity.offer(this.document, dropped);
+    if (!dropped || !ApplyIdentity.handles(dropped)) return created;
+
+    if (superseded.length) await this.document.deleteEmbeddedDocuments("Item", superseded);
+    const changed = await ApplyIdentity.apply(this.document, dropped);
+    if (changed.length) {
+      ui.notifications?.info(
+        game.i18n.format("ISUN.IdentityApplied",
+          { name: dropped.name, values: changed.join(", ") }));
     }
     return created;
   }
