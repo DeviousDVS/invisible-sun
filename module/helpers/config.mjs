@@ -313,6 +313,22 @@ export const ISUN = Object.freeze({
   },
 
   /**
+   * What a forte ability costs in Crux, by its level: "An ability of level 1 to
+   * 4 requires 1 Crux, level 5 to 6 requires 2 Crux, and level 7 and above
+   * require 3 Crux" (The Key, p6432).
+   */
+  forteAbilityCrux: (level) => (level >= 7 ? 3 : level >= 5 ? 2 : 1),
+
+  /**
+   * Taking a forte ability also raises a stat: "Every time you gain a new forte
+   * ability, you permanently increase one of your stats by 2 points (or two of
+   * your stats by 1 point each)... distributed into the refined pools" (p6438).
+   * Which stat is the player's choice, so the points land in the shared pot
+   * that either stat may draw on.
+   */
+  forteAbilityStatPoints: 2,
+
+  /**
    * Suggestions for a vislae's quirk. Not a closed list — "use these as
    * examples to make up your own" (The Key, p13531) — so the field stays free
    * text and these are offered alongside it.

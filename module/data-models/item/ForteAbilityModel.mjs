@@ -34,6 +34,17 @@ export class ForteAbilityModel extends foundry.abstract.DataModel {
       /** Owning forte, by name — readable, and what the books key on. */
       parentForte: new fields.StringField({ required: false, initial: "" }),
       /** Stable id of the owning Forte item, for a precise link across packs. */
+      /**
+       * The abilities this one opens the way to.
+       *
+       * A forte is a tree, not a list: "You must acquire the abilities along
+       * the given paths, in order... learning one ability unlocks the potential
+       * acquisition of another (or sometimes two) later" (The Key, p6405).
+       * Held as the names the book gives them, since that is what the diagram
+       * labels and what survives a rebuild of the compendium.
+       */
+      unlocks:     new fields.ArrayField(new fields.StringField()),
+
       forteId:     new fields.StringField({ required: false, initial: "" }),
 
       grants:      grantsSchema(),

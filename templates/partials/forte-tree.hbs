@@ -1,0 +1,66 @@
+{{!-- A forte is a tree, not a list: an ability opens the way to others, and one
+      must be acquired along the paths in order. So the abilities are laid out
+      by depth, and what a character can do about each is what distinguishes
+      them — held, open to them now, or still out of reach. --}}
+{{#if forte}}
+  <div class="isun-panel mt-4 forte-tree">
+    <div class="forte-head">
+      <img class="forte-img" src="{{forte.img}}" alt="" />
+      <div>
+        <h3>{{forte.name}}</h3>
+        <div class="forte-crux" data-tooltip="{{localize 'ISUN.CruxHint'}}">
+          {{crux}} <i class="fa-solid fa-star"></i> {{localize "ISUN.Crux"}}
+        </div>
+      </div>
+    </div>
+
+    {{#if forteRows.length}}
+      <div class="forte-rows">
+        {{#each forteRows as |a|}}
+          <div class="forte-ability tier-{{a.tier}}
+                      {{#if a.owned}}owned{{/if}}
+                      {{#if a.available}}available{{/if}}
+                      {{#unless a.owned}}{{#unless a.available}}locked{{/unless}}{{/unless}}">
+            <div class="fa-head">
+              <span class="fa-tier" data-tooltip="{{localize 'ISUN.ForteTierHint'}}">{{a.tier}}</span>
+              <span class="color-badge {{colorClass a.color}}" title="{{a.color}}"></span>
+              <span class="fa-name">{{a.name}}</span>
+              <span class="fa-level">{{a.levelText}}</span>
+
+              {{#if a.owned}}
+                <span class="fa-state held"><i class="fa-solid fa-check"></i></span>
+              {{else if a.available}}
+                {{!-- Affordability only dims the control; the tree still says
+                      the path is open, which is the useful thing to see. --}}
+                <a class="fa-take{{#unless a.affordable}} disabled{{/unless}}"
+                   data-action="take-ability" data-ability-id="{{a.id}}"
+                   data-tooltip="{{#if a.affordable}}{{localize 'ISUN.TakeAbilityHint'}}{{else}}{{localize 'ISUN.NotEnoughCruxShort'}}{{/if}}">
+                  {{a.cost}} <i class="fa-solid fa-star"></i>
+                </a>
+              {{else}}
+                <span class="fa-state locked" data-tooltip="{{localize 'ISUN.ForteLockedHint'}}">
+                  <i class="fa-solid fa-lock"></i> {{a.cost}}
+                </span>
+              {{/if}}
+            </div>
+
+            {{#if a.owned}}
+              <div class="fa-body">{{{a.description}}}</div>
+            {{else}}
+              {{#if a.prerequisites.length}}
+                <div class="fa-needs">
+                  {{localize "ISUN.ForteNeeds"}}
+                  {{#each a.prerequisites}}<span class="tag">{{this}}</span>{{/each}}
+                </div>
+              {{else}}
+                <div class="fa-needs starting">{{localize "ISUN.ForteStarting"}}</div>
+              {{/if}}
+            {{/if}}
+          </div>
+        {{/each}}
+      </div>
+    {{else}}
+      <p class="hint">{{localize "ISUN.ForteNoAbilities"}}</p>
+    {{/if}}
+  </div>
+{{/if}}

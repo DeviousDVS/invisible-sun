@@ -319,7 +319,19 @@
     "ApostateAbilities": "Apostate Abilities",
     "ApostateHint": "Apostates have no degrees. These are what they begin with; the rest are bought at 1 Crux each.",
     "ApostatePurchasable": "Available to buy",
-    "DegreeCostHint": "Crux to attain this degree"
+    "DegreeCostHint": "Crux to attain this degree",
+    "CruxHint": "Crux available to spend",
+    "TakeAbility": "Take this ability?",
+    "TakeAbilityConfirm": "Take {name} for {cost} Crux? It also grants {points} points to place in your pools.",
+    "TakeAbilityHint": "Take this ability",
+    "AbilityTaken": "{name} taken for {cost} Crux — {points} points to place.",
+    "NotEnoughCrux": "Not enough Crux: {need} needed, {have} available.",
+    "NotEnoughCruxShort": "Not enough Crux",
+    "ForteTierHint": "How far along the path this ability sits",
+    "ForteNeeds": "Needs one of:",
+    "ForteStarting": "A starting ability",
+    "ForteLockedHint": "The path to this ability is not open yet",
+    "ForteNoAbilities": "No abilities found for this forte."
   },
   "TYPES": {
     "Actor": {

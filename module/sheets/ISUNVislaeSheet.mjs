@@ -5,6 +5,7 @@ import { ActorSheetMixin } from "./SheetMixin.mjs";
 import { VentureDialog } from "../apps/VentureDialog.mjs";
 import { ApplyIdentity } from "../apps/ApplyIdentity.mjs";
 import { HeartSkills } from "../apps/HeartSkills.mjs";
+import { ForteTree } from "../apps/ForteTree.mjs";
 
 /**
  * Invisible Sun — Vislae Actor Sheet
@@ -39,9 +40,38 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
 
 
   // Application V2 Context prep
+  /**
+   * Load the current forte's abilities from the compendium.
+   *
+   * The character holds only what they have taken, but the tree has to show
+   * what they could take next, which means the whole forte. Cached against the
+   * forte so a re-render does not re-read the pack.
+   */
+  async _loadForteAbilities(forte) {
+    if (!forte) { this._forteAbilities = null; this._forteAbilitiesFor = null; return null; }
+    if (this._forteAbilitiesFor === forte.name && this._forteAbilities) return this._forteAbilities;
+    const pack = game.packs.get("invisible-sun.forte-abilities");
+    if (!pack) return null;
+    const docs = await pack.getDocuments();
+    this._forteAbilities = docs.filter(d => d.system.parentForte === forte.name);
+    this._forteAbilitiesFor = forte.name;
+    return this._forteAbilities;
+  }
+
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     this._prepareSheetData(context);
+
+    /* The forte tree needs the whole forte's abilities, not only those taken,
+     * and reading them from the pack is async — so it happens here rather than
+     * in the synchronous builder above. */
+    const all = await this._loadForteAbilities(context.forte);
+    context.forteRows = all
+      ? ForteTree.layout(all, context.forteAbilities, context.crux)
+      : [];
+    context.forteTiers = context.forteRows.reduce((n, r) => Math.max(n, r.tier), 0) + 1;
+    // Kept so the click handler judges against exactly what was drawn.
+    this._forteRowsCache = context.forteRows;
     return context;
   }
 
@@ -199,6 +229,12 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     context.unspent = stats.unspent ?? { certes: 0, qualia: 0, shared: 0 };
     context.canPlace = stats.canPlace ?? { certes: 0, qualia: 0 };
     context.showAllocation = context.unspentPoints > 0;
+
+    /* A forte's abilities are a tree, so the panel needs the whole forte's
+     * abilities from the compendium, not only the ones already taken. Loading
+     * them is async, so it is done in _prepareContext and cached per forte. */
+    context.forte = context.fortes[0] ?? null;
+    context.crux = context.actor.system.advancement?.crux ?? 0;
 
     context.restRows = [
       { key: "quick",  label: "ISUN.RestQuick",  max: 2, left: remaining.quick },
@@ -398,6 +434,41 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     }
   }
 
+  /**
+   * Take a forte ability, if the tree allows it and the Crux is there.
+   *
+   * Confirmed first: it spends Crux, which is scarce and slow to earn, and an
+   * ability cannot be un-taken without also unwinding the stat points it
+   * granted.
+   */
+  async _onTakeAbility(event) {
+    event.preventDefault();
+    const el = event.currentTarget;
+    if (el.classList.contains("disabled")) return;
+    const row = (this._forteRowsCache ?? []).find(r => r.id === el.dataset.abilityId);
+    const all = this._forteAbilities ?? [];
+    const ability = all.find(a => a.id === el.dataset.abilityId);
+    if (!ability || !row?.available) return;
+
+    const ok = await foundry.applications.api.DialogV2.confirm({
+      window: { title: game.i18n.localize("ISUN.TakeAbility") },
+      content: `<p>${game.i18n.format("ISUN.TakeAbilityConfirm", {
+        name: foundry.utils.escapeHTML(ability.name), cost: row.cost,
+        points: CONFIG.ISUN.forteAbilityStatPoints })}</p>`,
+      rejectClose: false
+    });
+    if (!ok) return;
+
+    const result = await ForteTree.take(this.document, ability, row.cost);
+    if (result?.refused === "crux") {
+      ui.notifications?.warn(game.i18n.format("ISUN.NotEnoughCrux",
+        { need: result.need, have: result.have }));
+      return;
+    }
+    ui.notifications?.info(game.i18n.format("ISUN.AbilityTaken",
+      { name: result.taken, cost: result.cost, points: result.points }));
+  }
+
   /** Roll a skill: open the venture dialog with that skill already ticked. */
   async _onRollSkill(event) {
     event.preventDefault();
@@ -482,6 +553,8 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       el.addEventListener('click', this._onToggleLadder.bind(this)));
     html.querySelectorAll('[data-action="toggle-degree"]').forEach(el =>
       el.addEventListener('click', this._onToggleDegree.bind(this)));
+    html.querySelectorAll('[data-action="take-ability"]').forEach(el =>
+      el.addEventListener('click', this._onTakeAbility.bind(this)));
 
     // Roll items
     html.querySelectorAll('[data-action^="roll-"]:not([data-action="roll-skill"]), [data-action="use-ability"]').forEach(el => {

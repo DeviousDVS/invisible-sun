@@ -170,7 +170,8 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'fortes.json'))) {
           color: ability.color || "",
           depletion: ability.depletion || "",
           parentForte: data.name,
-          forteId: forteId
+          forteId: forteId,
+          unlocks: ability.unlocks ?? []
         }, "icons/skills/melee/strike-slashes-orange.webp");
         abItem._id = abId;
         abItem._key = `!items!${abId}`;
