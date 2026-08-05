@@ -16,6 +16,31 @@ export class ISUNActor extends Actor {
       }
     }
     
+    /* A quirk to start from. "Vislae are odd and varied creatures... You should
+     * choose one from the following list of quirks or use these as examples to
+     * make up your own" (The Key, p13531) — so this is a suggestion already in
+     * the box, not a decision made for the player, and the field stays free
+     * text for them to replace.
+     *
+     * Only when the sheet arrives without one: a duplicated or imported
+     * character brings its own, and overwriting that would lose it.
+     *
+     * The book adds that "two characters should never have the same quirk", so
+     * those already in use are passed over while any remain. */
+    if (this.type === "Vislae" && !data.system?.narrative?.quirk) {
+      const all = CONFIG.ISUN?.quirks ?? [];
+      if (all.length) {
+        const taken = new Set(game.actors
+          ?.filter(a => a.type === "Vislae")
+          .map(a => a.system?.narrative?.quirk)
+          .filter(Boolean) ?? []);
+        const free = all.filter(q => !taken.has(q));
+        const pool = free.length ? free : all;
+        const quirk = pool[Math.floor(Math.random() * pool.length)];
+        this.updateSource({ "system.narrative.quirk": quirk });
+      }
+    }
+
     // Set default token disposition
     if (this.type === "Vislae") {
       this.updateSource({ "prototypeToken.disposition": CONST.TOKEN_DISPOSITIONS.FRIENDLY });
