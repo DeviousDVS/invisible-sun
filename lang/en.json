@@ -313,7 +313,12 @@
     "BrowserPacksHint": "None selected searches all of them.",
     "BrowserResults": "results",
     "BrowserClear": "Clear",
-    "BrowserNothing": "Nothing matches."
+    "BrowserNothing": "Nothing matches.",
+    "Degrees": "Degrees",
+    "DegreeOrdinal": "Degree",
+    "ApostateAbilities": "Apostate Abilities",
+    "ApostateHint": "Apostates have no degrees. These are what they begin with; the rest are bought at 1 Crux each.",
+    "ApostatePurchasable": "Available to buy"
   },
   "TYPES": {
     "Actor": {

@@ -105,6 +105,28 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     context.order = context.orders[0] ?? null;
     context.orderInfo = context.orderKey ? CONFIG.ISUN.orders[context.orderKey] : null;
 
+    /* The ladder is read from the Order item rather than copied onto the
+     * character: every order names its own six degrees, and which abilities a
+     * vislae holds follows from the degree they have reached. Degrees not yet
+     * attained are still shown, with what they cost and ask, because that is
+     * what a player is deciding about when they spend Crux. */
+    const held = context.actor.system.meta?.orderDegree ?? 0;
+    const degrees = context.order?.system?.degrees ?? [];
+    context.orderDegree = held;
+    context.orderDegreeTitle = degrees.find(d => d.degree === held)?.title ?? "";
+    context.degreeLadder = degrees.map(d => ({
+      ...d,
+      attained: d.degree <= held,
+      current: d.degree === held,
+      // The 1st degree is where a character starts, so it is not bought.
+      cost: d.degree === 1 ? 0 : d.cruxCost
+    }));
+    /* An Apostate has no ladder at all: a fixed set to begin with, and the
+     * rest bought one at a time for 1 Crux each (The Key, p5535). */
+    context.isApostate = context.orderKey === "apostate";
+    context.apostateStarting = context.order?.system?.startingAbilities ?? [];
+    context.apostatePurchasable = context.order?.system?.apostateAbilities ?? [];
+
     // A vislae's soul is secret — the fan sheet this was modelled on keeps it
     // in a hidden row. Owners and GMs see it; observers with read access do not.
     context.showSecrets = this.document.isOwner;

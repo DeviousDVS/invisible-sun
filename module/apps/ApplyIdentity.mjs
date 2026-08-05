@@ -35,6 +35,19 @@ const CONTRIBUTIONS = {
     return out;
   },
 
+  /**
+   * "Vance characters start at the 1st degree with the following abilities" —
+   * and likewise for the others, so a dropped order puts the character on the
+   * bottom rung. An Apostate has no degrees at all (The Key, p5535), so it
+   * records the order and leaves the degree at none.
+   */
+  Order: (item) => {
+    const out = [{ path: "system.meta.orderType", label: "order", value: item.name }];
+    const first = (item.system.degrees ?? []).some(d => d.degree === 1);
+    out.push({ path: "system.meta.orderDegree", label: "degree", value: first ? 1 : 0 });
+    return out;
+  },
+
   Foundation: (item) => {
     const s = item.system;
     const out = [];

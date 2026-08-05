@@ -9,8 +9,11 @@
         <img class="order-img" src="{{order.img}}" alt="{{order.name}}" />
         <div>
           <h3>{{order.name}}</h3>
-          {{#if system.meta.orderDegree}}
-            <div class="order-degree">{{system.meta.orderDegree}}</div>
+          {{#if orderDegree}}
+            <div class="order-degree">
+              <span class="degree-number">{{localize "ISUN.DegreeOrdinal"}} {{orderDegree}}</span>
+              {{#if orderDegreeTitle}}<span class="degree-title">{{orderDegreeTitle}}</span>{{/if}}
+            </div>
           {{/if}}
           {{#if orderInfo.magicStyle}}
             <div class="order-style">{{orderInfo.magicStyle}}</div>
@@ -23,6 +26,56 @@
     </div>
   {{else}}
     <div class="empty-state">{{localize "ISUN.NoOrder"}}</div>
+  {{/if}}
+
+  {{!-- The six degrees. Those attained show what they grant; those ahead show
+        what they cost and ask, which is what a player spending Crux is
+        weighing up. Nothing is copied onto the character — this reads from the
+        Order item, so correcting the compendium corrects every sheet. --}}
+  {{#if degreeLadder.length}}
+    <div class="isun-panel mt-4 degree-ladder">
+      <h3>{{localize "ISUN.Degrees"}}</h3>
+      {{#each degreeLadder as |d|}}
+        <div class="degree{{#if d.attained}} attained{{/if}}{{#if d.current}} current{{/if}}">
+          <div class="degree-head">
+            <span class="degree-rank">{{d.degree}}</span>
+            <span class="degree-name">{{d.title}}</span>
+            {{#unless d.attained}}
+              <span class="degree-cost">{{d.cost}} <i class="fa-solid fa-star"></i></span>
+            {{/unless}}
+            <span class="degree-count">{{d.abilities.length}}</span>
+          </div>
+          {{#if d.requirement}}
+            <div class="degree-req">{{{d.requirement}}}</div>
+          {{/if}}
+          {{#if d.attained}}
+            <ul class="degree-abilities">
+              {{#each d.abilities as |a|}}
+                <li><span class="ability-name">{{a.name}}</span>{{{a.description}}}</li>
+              {{/each}}
+            </ul>
+          {{/if}}
+        </div>
+      {{/each}}
+    </div>
+  {{/if}}
+
+  {{#if isApostate}}
+    <div class="isun-panel mt-4 degree-ladder">
+      <h3>{{localize "ISUN.ApostateAbilities"}}</h3>
+      <p class="hint">{{localize "ISUN.ApostateHint"}}</p>
+      <ul class="degree-abilities">
+        {{#each apostateStarting as |a|}}
+          <li><span class="ability-name">{{a.name}}</span>{{{a.description}}}</li>
+        {{/each}}
+      </ul>
+      <h4>{{localize "ISUN.ApostatePurchasable"}}</h4>
+      <ul class="degree-abilities muted">
+        {{#each apostatePurchasable as |a|}}
+          <li><span class="ability-name">{{a.name}}</span>{{{a.description}}}</li>
+        {{/each}}
+      </ul>
+    </div>
   {{/if}}
 
   {{#if (eq orderKey "weaver")}}

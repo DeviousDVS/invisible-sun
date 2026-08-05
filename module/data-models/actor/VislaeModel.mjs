@@ -40,6 +40,17 @@ export class VislaeModel extends foundry.abstract.DataModel {
      * then asks the player to divide them, which is what should have happened
      * at creation. Only done when the pools are genuinely untouched, so a
      * character who has allocated is left alone. */
+    /* orderDegree used to be free text, written however the player fancied —
+     * "3rd", "3rd Degree: Magister", "Master of the Spindle". The number is
+     * what matters now, so the first digit is taken and the rest discarded;
+     * the title comes from the order. Text with no digit in it cannot be
+     * placed on the ladder and becomes 0. */
+    const deg = source?.meta?.orderDegree;
+    if (typeof deg === "string") {
+      const n = deg.match(/[1-6]/);
+      source.meta.orderDegree = n ? Number(n[0]) : 0;
+    }
+
     const stats = source?.stats;
     if (stats) {
       /* An earlier build held one pooled budget rather than three. Which stat
@@ -180,7 +191,17 @@ export class VislaeModel extends foundry.abstract.DataModel {
        * to drop the real item on; remove once no world has one.
        */
       soulName:    new fields.StringField({ required: false, initial: "" }),
-      orderDegree: new fields.StringField({ required: false, initial: "" }),
+      /**
+       * Which degree of their order the vislae holds, 1 to 6, or 0 for none —
+       * an Apostate has no degrees at all.
+       *
+       * Only the number is kept. Every order names its own six degrees (a
+       * Vance 3rd is a Magister, a Weaver 3rd a Master of the Spindle), so the
+       * title is a fact about the order rather than about the character and is
+       * read from the Order item. Storing it here as well would let the two
+       * disagree.
+       */
+      orderDegree: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0, max: 6 }),
       orderType:   new fields.StringField({ required: false, initial: "" }),
     });
 

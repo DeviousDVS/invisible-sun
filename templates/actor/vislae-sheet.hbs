@@ -38,8 +38,17 @@
           {{!-- Degree sits with advancement: it is bought with Crux. --}}
           <div class="form-group mt-4">
             <label>{{localize "ISUN.OrderDegree"}}</label>
-            <input type="text" name="system.meta.orderDegree" value="{{system.meta.orderDegree}}"
-                   placeholder="{{localize 'ISUN.OrderDegreePlaceholder'}}" />
+            {{!-- The number is the character's; the name for it belongs to
+                  the order and is read from there. --}}
+            <div class="degree-picker">
+              <select name="system.meta.orderDegree">
+                <option value="0" {{#if (eq system.meta.orderDegree 0)}}selected{{/if}}>—</option>
+                {{#each degreeLadder as |d|}}
+                  <option value="{{d.degree}}" {{#if d.current}}selected{{/if}}>{{d.degree}}</option>
+                {{/each}}
+              </select>
+              <span class="degree-title">{{orderDegreeTitle}}</span>
+            </div>
           </div>
         </div>
       </div>

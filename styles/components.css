@@ -1373,3 +1373,29 @@ a.sentence-part:hover {
 .compendium-browser .browser-empty { opacity: 0.6; padding: 0.5rem; }
 
 .isun-browser-btn { width: 100%; }
+
+/* ── The degree ladder ────────────────────────────────────
+   Attained degrees show what they grant; those ahead show what they cost. */
+.degree-ladder .degree { border-left: 2px solid transparent; padding: 0.3rem 0 0.3rem 0.5rem; margin-bottom: 0.2rem; }
+.degree-ladder .degree.attained { border-left-color: var(--isun-border-accent); }
+.degree-ladder .degree.current { background: rgba(212,175,55,0.08); }
+/* A degree not yet reached is still worth reading — it is what the player is
+   spending Crux towards — so it recedes rather than hides. */
+.degree-ladder .degree:not(.attained) { opacity: 0.55; }
+
+.degree-ladder .degree-head { display: grid; grid-template-columns: 1.4rem 1fr auto auto; gap: 0.5rem; align-items: baseline; }
+.degree-ladder .degree-rank { font-weight: 700; color: var(--isun-text-accent); }
+.degree-ladder .degree-name { font-variant: small-caps; letter-spacing: 0.03em; }
+.degree-ladder .degree-cost,
+.degree-ladder .degree-count { font-size: 0.8em; opacity: 0.7; }
+.degree-ladder .degree-req { font-size: 0.85em; opacity: 0.75; margin: 0.15rem 0 0 1.9rem; }
+.degree-ladder .degree-abilities { margin: 0.3rem 0 0 1.9rem; padding: 0; list-style: none; }
+.degree-ladder .degree-abilities li { margin-bottom: 0.35rem; font-size: 0.9em; }
+.degree-ladder .degree-abilities.muted { opacity: 0.6; }
+.degree-ladder .ability-name { font-weight: 600; color: var(--isun-text-accent); margin-right: 0.35rem; }
+
+.order-degree { display: flex; gap: 0.4rem; align-items: baseline; }
+.order-degree .degree-title { font-variant: small-caps; opacity: 0.85; }
+.degree-picker { display: flex; gap: 0.4rem; align-items: center; }
+.degree-picker select { width: 4rem; }
+.degree-picker .degree-title { font-variant: small-caps; opacity: 0.8; }
