@@ -161,10 +161,11 @@
     {{!-- House secrets are augments to the house rather than to the vislae,
           and are capped by the house's size and type. --}}
     <div class="mt-4">
+      {{!-- No add button, as with the other two secret areas: a secret is
+            granted rather than browsed for, and dropping one on the sheet
+            carries its type with it. --}}
       <div class="entry-list-header">
         <label class="section-label">{{localize "ISUN.HouseSecrets"}}</label>
-        <a class="item-create" data-type="Secret" data-preset='{"secretType":"house"}'
-           title="{{localize 'ISUN.AddSecret'}}"><i class="fa-solid fa-plus"></i></a>
       </div>
       <div class="secret-chips">
         {{#each houseSecrets as |s|}}

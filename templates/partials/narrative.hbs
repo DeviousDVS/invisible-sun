@@ -16,13 +16,11 @@
 
     {{!-- Changery secrets sit with Appearance because that is what they cost:
           each one only works once the body has been altered to suit it, always
-          a change of level 9 or higher. Drop a Secret here or use +; the chip
-          shows the change the secret is waiting on. --}}
+          a change of level 9 or higher. Drop a Secret on the sheet to add one;
+          the chip shows the change the secret is waiting on. --}}
     <div class="mt-4">
       <div class="entry-list-header">
         <label class="section-label">{{localize "ISUN.ChangerySecrets"}}</label>
-        <a class="item-create" data-type="Secret" data-preset='{"secretType":"changery"}'
-           title="{{localize 'ISUN.AddSecret'}}"><i class="fa-solid fa-plus"></i></a>
       </div>
       <p class="hint">{{localize "ISUN.ChangerySecretsHint"}}</p>
       <div class="secret-chips">
