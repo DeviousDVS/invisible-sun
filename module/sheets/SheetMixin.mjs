@@ -21,6 +21,8 @@ export const SheetMixin = (Base) => class extends Base {
     const context = await super._prepareContext(options);
     context.system = this.document.system;
     context.config = CONFIG.ISUN;
+    // Per-client, so the same sheet shows a GM controls a player does not.
+    context.isGM = game.user.isGM;
 
     if (this.document.documentName === "Actor") {
       context.actor = this.document;

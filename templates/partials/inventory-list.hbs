@@ -171,7 +171,9 @@
         {{#each houseSecrets as |s|}}
           <span class="secret-chip house" data-item-id="{{s.id}}">
             <a data-action="open-item" data-item-id="{{s.id}}">{{s.name}}</a>
-            <a class="item-delete" title="{{localize 'ISUN.Remove'}}"><i class="fa-solid fa-xmark"></i></a>
+            {{#if @root.isGM}}
+              <a class="item-delete" title="{{localize 'ISUN.Remove'}}"><i class="fa-solid fa-xmark"></i></a>
+            {{/if}}
           </span>
         {{else}}
           <span class="empty-state">{{localize "ISUN.NoHouseSecrets"}}</span>

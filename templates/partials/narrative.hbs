@@ -28,7 +28,9 @@
           <span class="secret-chip changery" data-item-id="{{s.id}}">
             <a data-action="open-item" data-item-id="{{s.id}}"
                {{#if s.system.changeRequired}}data-tooltip="{{localize 'ISUN.ChangeRequired'}}: {{s.system.changeRequired}}"{{/if}}>{{s.name}}</a>
-            <a class="item-delete" title="{{localize 'ISUN.Remove'}}"><i class="fa-solid fa-xmark"></i></a>
+            {{#if @root.isGM}}
+              <a class="item-delete" title="{{localize 'ISUN.Remove'}}"><i class="fa-solid fa-xmark"></i></a>
+            {{/if}}
           </span>
         {{else}}
           <span class="empty-state">{{localize "ISUN.NoChangerySecrets"}}</span>
