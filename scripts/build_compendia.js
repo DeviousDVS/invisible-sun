@@ -120,6 +120,9 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'incantations.json'))) {
       description: cleanHtml(data.description),
       dice: data.dice || "",
       facets: data.facets || "",
+      // Assigned by scripts/categorise_incantations.py, so a conation
+      // incantation can be asked for by type rather than by name.
+      categories: data.categories ?? [],
       note: cleanHtml(data.note || "")
     }, "icons/magic/symbols/rune-sigil-green.webp");
     writeItem("incantations", item);

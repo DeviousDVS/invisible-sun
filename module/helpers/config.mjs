@@ -286,6 +286,29 @@ export const ISUN = Object.freeze({
   },
 
   /* ──────────────────────────────────────────────
+   * INCANTATION CATEGORIES
+   * ────────────────────────────────────────────── */
+
+  /**
+   * What a vislae can ask for when seeking a conation incantation they have
+   * not held before. The first four are the types The Way names (p106); the
+   * rest are what the deck turned out to contain.
+   */
+  incantationCategories: {
+    offensive:      "ISUN.IncCatOffensive",
+    defensive:      "ISUN.IncCatDefensive",
+    movement:       "ISUN.IncCatMovement",
+    deception:      "ISUN.IncCatDeception",
+    knowledge:      "ISUN.IncCatKnowledge",
+    control:        "ISUN.IncCatControl",
+    creation:       "ISUN.IncCatCreation",
+    transformation: "ISUN.IncCatTransformation",
+    restoration:    "ISUN.IncCatRestoration",
+    enhancement:    "ISUN.IncCatEnhancement",
+    utility:        "ISUN.IncCatUtility",
+  },
+
+  /* ──────────────────────────────────────────────
    * SECRET TYPES
    * ────────────────────────────────────────────── */
 
