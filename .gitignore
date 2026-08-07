@@ -1,6 +1,10 @@
 source/books/
 source/cards/
 source/*.zip
+# Verbatim book text pulled out for an extraction run. Copyrighted, like the
+# PDFs it came from — the extracted *data* is what belongs in the repo.
+source/extracted.txt
+source/*.txt
 trash/
 node_modules/
 

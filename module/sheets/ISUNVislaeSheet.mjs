@@ -150,6 +150,10 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     context.isApostate = context.orderKey === "apostate";
     context.apostateStarting = context.order?.system?.startingAbilities ?? [];
     context.apostatePurchasable = context.order?.system?.apostateAbilities ?? [];
+    // How many of each list a character gets, and what the second one costs.
+    // Both are rules about the list rather than about any one ability.
+    context.apostateStartingNote = context.order?.system?.startingNote ?? "";
+    context.apostatePurchasableNote = context.order?.system?.apostateNote ?? "";
 
     // A vislae's soul is secret — the fan sheet this was modelled on keeps it
     // in a hidden row. Owners and GMs see it; observers with read access do not.
@@ -171,7 +175,12 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
         // A forte ability marked "(no cost)" costs no Sorcery; otherwise the
         // cost is the spell's own, falling back to its level.
         cost: sys.noCost ? game.i18n.localize("ISUN.Free") : (sys.cost || sys.level || ""),
-        dice: sys.dice || (sys.bonusDice ? `+${sys.bonusDice}` : ""),
+        // A spell carries its bonus as printed ("+1 die"); a forte ability's is
+        // parsed out of its level line as a number. Both mean the same thing, so
+        // the column says it the same way.
+        dice: sys.dice || (sys.bonusDice
+          ? `+${sys.bonusDice} ${game.i18n.localize(sys.bonusDice === 1 ? "ISUN.DieUnit" : "ISUN.DiceUnit")}`
+          : ""),
         depletion: sys.depletion || "",
         condition: sys.condition || ""
       };

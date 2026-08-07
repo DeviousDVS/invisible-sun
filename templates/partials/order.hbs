@@ -59,27 +59,52 @@
           </div>
         </div>
       {{/if}}
+
+      {{!-- An Apostate has no ladder, but their abilities are the same kind of
+            reference — read when spending Crux, in the way at every other time.
+            So they take the ladder's place in the header and collapse with it,
+            rather than sitting in a panel of their own below. --}}
+      {{#if isApostate}}
+        <div class="degree-ladder apostate-abilities{{#if ladderOpen}} open{{/if}}">
+          <a class="ladder-toggle" data-action="toggle-ladder">
+            <i class="fa-solid fa-caret-{{#if ladderOpen}}down{{else}}right{{/if}}"></i>
+            {{localize "ISUN.ApostateAbilities"}}
+            <span class="ladder-here">{{localize "ISUN.ApostateNoDegrees"}}</span>
+          </a>
+          <div class="ladder-body">
+            <p class="hint">{{localize "ISUN.ApostateHint"}}</p>
+
+            <div class="apostate-group">
+              <h4>{{localize "ISUN.ApostateStarting"}}
+                <span class="degree-count">{{apostateStarting.length}}</span></h4>
+              {{#if apostateStartingNote}}
+                <div class="group-note">{{{apostateStartingNote}}}</div>
+              {{/if}}
+              <ul class="degree-abilities">
+                {{#each apostateStarting as |a|}}
+                  <li><span class="ability-name">{{a.name}}</span>{{{a.description}}}</li>
+                {{/each}}
+              </ul>
+            </div>
+
+            <div class="apostate-group">
+              <h4>{{localize "ISUN.ApostatePurchasable"}}
+                <span class="degree-count">{{apostatePurchasable.length}}</span></h4>
+              {{#if apostatePurchasableNote}}
+                <div class="group-note">{{{apostatePurchasableNote}}}</div>
+              {{/if}}
+              <ul class="degree-abilities muted">
+                {{#each apostatePurchasable as |a|}}
+                  <li><span class="ability-name">{{a.name}}</span>{{{a.description}}}</li>
+                {{/each}}
+              </ul>
+            </div>
+          </div>
+        </div>
+      {{/if}}
     </div>
   {{else}}
     <div class="empty-state">{{localize "ISUN.NoOrder"}}</div>
-  {{/if}}
-
-  {{#if isApostate}}
-    <div class="isun-panel mt-4 apostate-abilities">
-      <h3>{{localize "ISUN.ApostateAbilities"}}</h3>
-      <p class="hint">{{localize "ISUN.ApostateHint"}}</p>
-      <ul class="degree-abilities">
-        {{#each apostateStarting as |a|}}
-          <li><span class="ability-name">{{a.name}}</span>{{{a.description}}}</li>
-        {{/each}}
-      </ul>
-      <h4>{{localize "ISUN.ApostatePurchasable"}}</h4>
-      <ul class="degree-abilities muted">
-        {{#each apostatePurchasable as |a|}}
-          <li><span class="ability-name">{{a.name}}</span>{{{a.description}}}</li>
-        {{/each}}
-      </ul>
-    </div>
   {{/if}}
 
   {{#if (eq orderKey "weaver")}}

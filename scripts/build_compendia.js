@@ -207,8 +207,11 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'orders.json'))) {
         requirement: cleanHtml(d.requirement),
         abilities: named(d.abilities)
       })),
+      sidebars: (data.sidebars ?? []).map(cleanHtml),
       startingAbilities: named(data.starting_abilities),
-      apostateAbilities: named(data.abilities)
+      startingNote: cleanHtml(data.starting_note),
+      apostateAbilities: named(data.abilities),
+      apostateNote: cleanHtml(data.abilities_note)
     }, "icons/magic/symbols/ring-circle-smoke-blue.webp");
     writeItem("orders", item);
   }

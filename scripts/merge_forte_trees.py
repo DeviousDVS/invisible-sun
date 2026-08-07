@@ -22,10 +22,77 @@ abilities are left with no unlocks rather than being given invented ones.
 
 Usage:  python3 scripts/merge_forte_trees.py source/isdata_2026.json source/data/fortes.json
 """
-import json, re, sys
+import json, re, sys, os, glob
+
+SUPPLEMENT = 'source/forte-trees'
+
+# The Mermaid a forte tree is drawn with. A node may be declared on a line of
+# its own or inline where it is first used — `A[Know the Dead] --> B[Call
+# Spirit]` is as ordinary as declaring the two separately — so labels are looked
+# for anywhere rather than only at the start of a line.
+MMD_NODE = re.compile(r'([A-Za-z0-9_]+)\s*[\[\(\{]+\s*([^\]\)\}]+?)\s*[\]\)\}]+')
+MMD_ARROW = re.compile(r'\s*[-.=]{1,3}[->]>?\s*')
+MMD_EDGELBL = re.compile(r'\|[^|]*\|')
+MMD_META = re.compile(r'^\s*%%\s*(forte|source)\s*:\s*(.+?)\s*$', re.M)
+MMD_COMMENT = re.compile(r'%%.*$', re.M)
+
 
 def norm(s):
     return re.sub(r'[^a-z]', '', (s or '').lower())
+
+
+def read_mermaid(path):
+    """
+    Read a forte's tree from a Mermaid graph.
+
+    The books draw these trees as diagrams, so their edges are vector art and
+    cannot be read out of the text at all. Mermaid says the same thing in a form
+    that can: `A[Know the Dead] --> B[Call Spirit]` is exactly the arrow on the
+    page, and nothing about it is inferred.
+
+    Node ids are local to the file; what matters is the label, which is matched
+    to the ability by name (loosely — case and punctuation are ignored, so
+    "Anti-Life" finds "Anti-life").
+    """
+    raw = open(path, encoding='utf-8').read()
+    meta = dict(MMD_META.findall(raw))
+    name = meta.get('forte') or os.path.basename(path).rsplit('.', 1)[0].replace('-', ' ').title()
+
+    labels, edges = {}, []
+    for line in MMD_COMMENT.sub('', raw).splitlines():
+        line = MMD_EDGELBL.sub(' ', line).strip()
+        if not line or line.split()[0] in ('graph', 'flowchart', 'subgraph', 'end'):
+            continue
+        # Take the labels, then reduce the line to its ids so that what is left
+        # is the chain of arrows. A chain links each pair along it, so
+        # `A --> B --> C` is two edges, as it draws.
+        for node_id, label in MMD_NODE.findall(line):
+            labels[node_id] = label.strip().strip('"\'')
+        bare = MMD_NODE.sub(r'\1', line)
+        if not MMD_ARROW.search(bare):
+            continue
+        chain = [t.strip() for t in MMD_ARROW.split(bare) if t.strip()]
+        edges += list(zip(chain, chain[1:]))
+
+    unlocks = {label: [] for label in labels.values()}
+    for a, b in edges:
+        for node_id in (a, b):
+            if node_id not in labels:
+                sys.exit(f"{path}: edge {a} --> {b} names a node that is never "
+                         f"given a label: {node_id}")
+        unlocks[labels[a]].append(labels[b])
+    return name, meta.get('source', ''), unlocks
+
+
+def read_supplement(directory):
+    """Every tree drawn for a forte the hand-built dataset does not cover."""
+    out = {}
+    for path in sorted(glob.glob(os.path.join(directory, '*.mmd'))):
+        name, source, unlocks = read_mermaid(path)
+        if norm(name) in {norm(k) for k in out}:
+            sys.exit(f"{path}: a tree for {name!r} was already read")
+        out[name] = {'source': source, 'path': path, 'abilities': unlocks}
+    return out
 
 
 # An ability that unlocks itself, which the diagram does not show: Stop is the
@@ -42,10 +109,45 @@ COLOUR_FIXES = {
 }
 
 
-def main(isdata_path, fortes_path):
+def main(isdata_path, fortes_path, supplement_path=SUPPLEMENT):
     trees = json.load(open(isdata_path, encoding='utf-8'))['Fortes']
     fortes = json.load(open(fortes_path, encoding='utf-8'))
     by_name = {norm(v['name']): v for v in trees.values()}
+
+    # Trees drawn for the supplement books' fortes, reshaped to match what
+    # isdata_2026.json holds so both merge by the same path.
+    supp = read_supplement(supplement_path)
+    for name, entry in supp.items():
+        by_name[norm(name)] = {
+            'name': name,
+            'abilities': [{'name': k, 'unlocks': v}
+                          for k, v in entry['abilities'].items()],
+        }
+    from_supp = {norm(k) for k in supp}
+
+    # A drawn tree has to name every ability of its forte. One left out stays a
+    # root, so it silently becomes a second starting ability that can be taken
+    # at any time — the very fault these files are here to fix, and invisible
+    # unless it is checked for.
+    known_fortes = {norm(f['name']): f for f in fortes}
+    problems = []
+    for name, entry in supp.items():
+        forte = known_fortes.get(norm(name))
+        if not forte:
+            problems.append(f"{entry['path']}: no forte is named {name!r}")
+            continue
+        drawn = {norm(k) for k in entry['abilities']}
+        have = {norm(a['name']): a['name'] for a in forte['abilities']}
+        for extra in sorted(drawn - set(have)):
+            problems.append(f"{entry['path']}: {name} has no ability matching "
+                            f"{[k for k in entry['abilities'] if norm(k) == extra][0]!r}")
+        for missing in sorted(set(have) - drawn):
+            problems.append(f"{entry['path']}: {name} ability {have[missing]!r} "
+                            f"is not in the tree")
+    if problems:
+        for p in problems:
+            print(f'  {p}')
+        sys.exit(1)
 
     with_tree = added = edges = fixed = 0
     for forte in fortes:
@@ -59,6 +161,12 @@ def main(isdata_path, fortes_path):
 
         for s in src['abilities']:
             target = known.get(norm(s['name']))
+            if target is None and norm(forte['name']) in from_supp:
+                # A supplement tree names only its nodes; the abilities come
+                # from the prose. A name that matches nothing means the tree was
+                # read wrong, and inventing an ability would hide that.
+                sys.exit(f"{forte['name']}: supplement names an ability that "
+                         f"does not exist: {s['name']!r}")
             if target is None:
                 # An ability the prose extraction missed. "Pale: Cheat Death"
                 # is headed "Level 5 (no cost)" with no colon, so the parser
@@ -72,10 +180,13 @@ def main(isdata_path, fortes_path):
                 }
                 forte['abilities'].append(target)
                 added += 1
-            # Names are recorded as written; they are matched loosely but stored
-            # as the ability itself is named, so the tree can be walked by name.
+            # A source spells a name as it likes — a diagram prints "Anti-Life"
+            # where the ability is "Anti-life". Matching is loose, but what is
+            # stored is the ability's own name, so the tree in the data reads
+            # the same as the abilities it points at.
             drop = DROP_UNLOCKS.get((forte['name'], s['name']), set())
-            target['unlocks'] = [u for u in (s.get('unlocks') or []) if u not in drop]
+            target['unlocks'] = [known[norm(u)]['name'] if norm(u) in known else u
+                                 for u in (s.get('unlocks') or []) if u not in drop]
             edges += len(target['unlocks'])
 
         for a in forte['abilities']:
@@ -120,7 +231,8 @@ def main(isdata_path, fortes_path):
 
     json.dump(fortes, open(fortes_path, 'w', encoding='utf-8'), indent=1, ensure_ascii=False)
     print(f'{len(fortes)} fortes -> {fortes_path}')
-    print(f'  {with_tree} carry a tree, {len(fortes) - with_tree} have none (supplement books)')
+    print(f'  {with_tree} carry a tree ({len(from_supp)} of them read off a printed '
+          f'diagram), {len(fortes) - with_tree} have none')
     print(f'  {edges} unlock edges, {added} abilities recovered, {fixed} colours corrected')
     print(f'  starting abilities per tree: {roots_seen}')
     bad = [("dangling", dangling), ("cyclic", cyclic), ("unreachable", stranded)]

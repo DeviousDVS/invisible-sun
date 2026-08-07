@@ -1413,10 +1413,30 @@ a.sentence-part:hover {
 .degree-ladder .degree-abilities li { margin-bottom: 0.35rem; font-size: 0.9em; }
 .degree-ladder .ability-name { font-weight: 600; color: var(--isun-text-accent); margin-right: 0.35rem; }
 
-.apostate-abilities .degree-abilities { margin: 0.3rem 0 0; padding: 0; list-style: none; }
-.apostate-abilities .degree-abilities li { margin-bottom: 0.35rem; font-size: 0.9em; }
+/* An Apostate's abilities use the ladder's shell, so the list, the toggle and
+   the ability names are already styled above. Only the two groups differ: there
+   is no rank column to align to, and what is not yet bought recedes the way an
+   unattained degree does. */
+.apostate-abilities .hint { margin: 0 0 0.5rem; }
+.apostate-abilities .apostate-group + .apostate-group { margin-top: 0.6rem; }
+.apostate-abilities .apostate-group h4 {
+  display: flex; align-items: baseline; gap: 0.4rem; margin: 0;
+  /* The ability names below are gold too, so size alone will not separate the
+     two groups. A rule does the dividing; the label itself stays quiet. */
+  font-size: 0.85em; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--isun-text-secondary);
+  border: none; border-bottom: 1px solid var(--isun-border); padding-bottom: 0.25rem;
+}
+.apostate-abilities .apostate-group h4 .degree-count {
+  margin-left: auto; letter-spacing: normal; opacity: 1;
+  color: var(--isun-text-accent); font-size: 1.05em;
+}
 .apostate-abilities .degree-abilities.muted { opacity: 0.6; }
-.apostate-abilities .ability-name { font-weight: 600; color: var(--isun-text-accent); margin-right: 0.35rem; }
+.apostate-abilities .group-note {
+  font-size: 0.85em; font-style: italic; color: var(--isun-text-secondary);
+  margin: 0.3rem 0 0.1rem;
+}
+.apostate-abilities .group-note p { margin: 0; }
 
 .order-degree { display: flex; gap: 0.4rem; align-items: baseline; }
 .order-degree .degree-title { font-variant: small-caps; opacity: 0.85; }

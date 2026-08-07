@@ -42,6 +42,127 @@ NOISE_EXACT = {"The Key", "Order", "THE WAY", "THE PATH", "THE GATE", "THE KEY",
                "Vance", "Maker", "Weaver", "Goetic", "Apostate"}
 NOISE_RE = re.compile(r'^(.{0,44},\s*page\s+\d+|\d+|[\d\s✦•]+)$')
 
+# A new section of the book, set as a full-caps heading on its own line. Used to
+# find where a chapter's body stops rather than guessing at a line count.
+SECTION_RE = re.compile(r'^[A-Z][A-Z ,\'’&()-]{6,48}$')
+
+# Marginal notes and cross-references are set in a narrow column beside the body
+# and land between paragraphs when the page is flattened to text. Carrying no
+# label of their own, they read as more of the ability above them — which is how
+# Extra Spells came to end "Don't let someone else tell you where to record your
+# important information!"
+#
+# The column width is the signal: body lines here run 45-55 characters, marginal
+# ones 20-28. A single short line is just the tail of a paragraph, so what marks
+# a note is a *run* of them, standing alone between blank lines and starting no
+# label of its own.
+NARROW = 32
+SIDEBAR_MIN_LINES = 2
+
+# Most marginal blocks are page references, sheet-field labels, or the vertical
+# lettering of a character-tome diagram broken into fragments ("EN KNOWL E IDD").
+# A few, though, carry rules — that a Goetic may have only one summoned entity at
+# a time is a sidebar, not an ability. Anything still this long once clean() has
+# stripped the page references is prose worth keeping.
+SIDEBAR_KEEP = 80
+
+
+def is_furniture(block):
+    """
+    A block of character-sheet field labels rather than prose.
+
+    The Key sets duplicate-for-personal-use character sheets between the degree
+    entries. Their fields — "Possessions Kept in My House", "Heart Relationships"
+    — carry no label and no sentence-ending punctuation, which is what separates
+    them from body text. So does the vertical lettering the sheets are titled
+    with, which flattens to fragments like "EN KNOWL E IDD".
+    """
+    lines = [l.strip() for l in block if l.strip()]
+    return bool(lines) and not any(re.search(r'[.!?]', l) for l in lines)
+
+
+def trim_trailing_labels(block):
+    """
+    Drop a sheet's first field label when it is set flush against the paragraph
+    above it, with no blank line to separate them — which is how "House" came to
+    end both the Vance's and the Maker's 5th-degree Authority and
+    Responsibilities.
+
+    A paragraph of body text ends in punctuation, so an unpunctuated short line
+    at the very end is not part of it. The length test matters: an ability cut
+    off by a page break also ends unpunctuated, but mid-sentence and long.
+    """
+    out = list(block)
+    while out:
+        s = out[-1].strip()
+        if not s:
+            out.pop()
+        elif len(s) <= 30 and not re.search(r'[.!?:,;]', s):
+            out.pop()
+        else:
+            break
+    return out
+
+
+def is_box(block):
+    """
+    A boxed sidebar, which announces itself with a full-caps heading.
+
+    Boxes are set at column width rather than in the margin, so width alone does
+    not find them: "FAVORING THE RIGHT OR LEFT HAND" sits on the Goetic 1st
+    degree page and was read as 740 further characters of the Spell ability.
+
+    A box is one blank-delimited block. Running it on to the next ability label
+    instead would be wrong — an ability interrupted by a page break resumes
+    after the box, and Vance 2nd-degree Vancian Spells lost the rest of its
+    sentence that way.
+    """
+    lines = [l.strip() for l in block if l.strip()]
+    return bool(lines) and lines[0] not in NOISE_EXACT and bool(SECTION_RE.match(lines[0]))
+
+
+def drop_sidebars(lines):
+    """
+    Split marginal notes out from body text, by their column width.
+
+    Returns (body, notes) — the notes are returned rather than discarded so a
+    rule set in the margin is not lost along with the page furniture.
+    """
+    out, notes, block = [], [], []
+    # A heading sometimes stands alone in its block, its body following as the
+    # next one — "GAMEMASTERING SUMMONED ENTITIES AND FAMILIARS" does, and its
+    # two paragraphs of GM guidance were read as Goetic 6th-degree Authority and
+    # Responsibilities. Only a heading with no body of its own claims the block
+    # after it, so a box that is already complete cannot swallow the ability it
+    # interrupted.
+    carry = [False]
+
+    def flush():
+        short = [l for l in block if l.strip()]
+        marginal = (len(short) >= SIDEBAR_MIN_LINES
+                    and all(len(l.strip()) <= NARROW for l in short)
+                    and not LABEL_RE.match(short[0].strip()))
+        boxed, was_carrying = is_box(block), carry[0]
+        carry[0] = boxed and len(short) == 1
+        if marginal or boxed or was_carrying:
+            text = clean(block)
+            if len(text) >= SIDEBAR_KEEP:
+                notes.append(text)
+        elif is_furniture(block):
+            pass  # a character sheet's field labels: nothing to keep
+        else:
+            out.extend(trim_trailing_labels(block))
+
+    for l in lines:
+        if l.strip():
+            block.append(l)
+        else:
+            flush()
+            out.append(l)
+            block = []
+    flush()
+    return out, notes
+
 
 def clean(lines):
     out = []
@@ -50,6 +171,9 @@ def clean(lines):
         if not s or s in NOISE_EXACT or NOISE_RE.match(s):
             continue
         if 'darrynvansomeren' in s or s.startswith('Darryn van Someren'):
+            continue
+        # The footer of a duplicate-for-personal-use character sheet page.
+        if 'Monte Cook Games' in s or 'Permission granted to duplicate' in s:
             continue
         out.append(s)
     text = ' '.join(out)
@@ -70,6 +194,18 @@ def split_labelled(lines, known=None):
             label = m.group(1)
             accept = (label in known) if known else (
                 len(label.split()) <= 5 and is_ability_label(label))
+        # A colon introduces a list, so what follows one is an item of it rather
+        # than the next ability. The Maker's signature object offers "one of the
+        # following properties:" and the book sets the first without the ✦✦ its
+        # siblings carry, which read as a 1st-degree Extra Armor ability.
+        #
+        # Only within an ability: a degree's requirement ends "we learn the
+        # following:" and what follows *is* the first ability, not a list item.
+        if accept and not known and current is not None:
+            prev = next((x.strip() for x in reversed(buf) if x.strip()), '')
+            if prev.endswith(':'):
+                buf.append('✦✦ ' + l.strip())
+                continue
         if accept:
             if current:
                 fields[current] = clean(buf)
@@ -103,6 +239,28 @@ def block_end(lines, start, gap=18):
     return len(lines)
 
 
+def last_degree_end(lines, start):
+    """
+    Where an order's final degree stops.
+
+    block_end allows a generous run of unlabelled lines, because an ability's
+    own text can be long. Past a blank line, though, that generosity reaches
+    into the next chapter: the Order of Goetica's opening prose begins eleven
+    lines after the Weaver's last ability and was read as part of it. The last
+    ability ends with its own paragraph, so stop at the end of the block the
+    final label sits in.
+    """
+    end, i = block_end(lines, start), start
+    last = start
+    while i < min(end, len(lines)):
+        if LABEL_RE.match(lines[i].strip()):
+            last = i
+        i += 1
+    while last < len(lines) and lines[last].strip():
+        last += 1
+    return min(last, end)
+
+
 def parse_degrees(lines, order_name):
     """Each degree heading starts a block; abilities are the labels within it."""
     marks = []
@@ -125,10 +283,16 @@ def parse_degrees(lines, order_name):
                     break
         marks.append((i, int(num), title, body_at))
 
-    degrees = []
+    degrees, notes = [], []
     for n, (start, num, title, body_at) in enumerate(marks):
-        end = marks[n + 1][0] if n + 1 < len(marks) else block_end(lines, start)
-        requirement, abilities = split_labelled(lines[body_at:end])
+        end = marks[n + 1][0] if n + 1 < len(marks) else last_degree_end(lines, start)
+        # Marginal notes fall between the degrees as well as inside them, and
+        # carry no label of their own, so whichever ability precedes one takes
+        # it into its own text — Goetic 1st-degree "Spell" ran to 1,464
+        # characters for a one-sentence ability.
+        body, found = drop_sidebars(lines[body_at:end])
+        notes.extend(found)
+        requirement, abilities = split_labelled(body)
         degrees.append({
             'degree': num,
             'title': title,
@@ -138,7 +302,7 @@ def parse_degrees(lines, order_name):
             'requirement': requirement,
             'abilities': [{'name': k, 'description': v} for k, v in abilities.items()],
         })
-    return degrees
+    return degrees, notes
 
 
 def extract(path):
@@ -187,6 +351,7 @@ def extract(path):
         prose_from = min(prose_from, start)
 
         description, fields = split_labelled(text[prose_from:start], known=ORDER_FIELDS)
+        degrees, sidebars = parse_degrees(text[start:end], name)
 
         orders.append({
             'name': name.title(),
@@ -196,7 +361,8 @@ def extract(path):
             'relationships': fields.get('Relationships', ''),
             'path_to_joy': fields.get('Path to Joy', ''),
             'path_to_despair': fields.get('Path to Despair', ''),
-            'degrees': parse_degrees(text[start:end], name),
+            'degrees': degrees,
+            'sidebars': sidebars,
         })
 
     orders.append(parse_apostate(text))
@@ -212,12 +378,28 @@ def parse_apostate(text):
     if start is None:
         return {'name': 'Apostate', 'degrees': [], 'starting_abilities': [], 'abilities': []}
 
-    end = min(start + 220, len(text))
-    body = text[start + 1:end]
+    # The section ends where the next one is headed, not after a fixed count.
+    # A count overshoots into "GAMEMASTERING ORDERS" and everything after it,
+    # and since that prose carries no label the last ability swallows the lot —
+    # Guided Hand ran to 5,145 characters, most of it about Hearts.
+    end = next((i for i in range(start + 1, min(start + 400, len(text)))
+                if SECTION_RE.match(text[i].strip())), min(start + 220, len(text)))
+    body, sidebars = drop_sidebars(text[start + 1:end])
     split = next((i for i, l in enumerate(body) if l.strip() == 'Apostate Abilities'), len(body))
 
-    _, starting = split_labelled(body[:split])
-    _, later = split_labelled(body[split + 1:])
+    # "Apostate Abilities: We gain two selections..." closes the starting list
+    # as a rubric over the whole of it, not as another ability — and it is
+    # deliberately not an ability label (see NOT_AN_ABILITY), so left in place
+    # it reads as more of the preceding ability's text. It wraps over several
+    # lines, so everything from it to the section heading is the rubric.
+    rubric_at = next((i for i, l in enumerate(body[:split])
+                      if l.strip().startswith('Apostate Abilities:')), split)
+    starting_note = clean(body[rubric_at:split]).split(':', 1)[-1].strip()
+
+    _, starting = split_labelled(body[:rubric_at])
+    # The purchasable list opens with how it is paid for, which is a note on the
+    # group rather than part of any one ability.
+    note, later = split_labelled(body[split + 1:])
 
     return {
         'name': 'Apostate',
@@ -225,6 +407,9 @@ def parse_apostate(text):
         'other_names': '', 'philosophy': '', 'relationships': '',
         'path_to_joy': '', 'path_to_despair': '',
         'degrees': [],
+        'sidebars': sidebars,
+        'starting_note': starting_note,
+        'abilities_note': note,
         'starting_abilities': [{'name': k, 'description': v} for k, v in starting.items()],
         # Bought for 1 Crux each rather than by degree.
         'abilities': [{'name': k, 'description': v, 'crux_cost': 1} for k, v in later.items()],

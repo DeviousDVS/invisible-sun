@@ -63,10 +63,23 @@ export class OrderModel extends foundry.abstract.DataModel {
         abilities:   new fields.ArrayField(namedAbility()),
       })),
 
+      /**
+       * Rules and references the book sets in the margin or in a box beside the
+       * degree entries. They belong to the order rather than to any one ability
+       * — that a Goetic may have only one summoned entity at a time is a
+       * sidebar — and carrying no label of their own, they used to be read as
+       * more of whichever ability they happened to follow.
+       */
+      sidebars: new fields.ArrayField(new fields.HTMLField()),
+
       /** Apostates only: what they begin with, having no first degree. */
       startingAbilities: new fields.ArrayField(namedAbility()),
+      /** How many of the starting set a beginning Apostate actually takes. */
+      startingNote: new fields.StringField({ required: false, initial: "" }),
       /** Apostates only: bought at 1 Crux each rather than by degree. */
       apostateAbilities: new fields.ArrayField(namedAbility()),
+      /** What buying one costs, which is a rule about the list, not an ability. */
+      apostateNote: new fields.StringField({ required: false, initial: "" }),
 
       grants: grantsSchema(),
     };

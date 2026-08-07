@@ -70,8 +70,9 @@ def clean(lines):
     return text.strip()
 
 
-def parse_abilities(lines):
+def parse_abilities(lines, forte_name=''):
     """Every 'Level:' line marks an ability; the name is the ALL-CAPS line above."""
+    own = re.sub(r'[^a-z]', '', forte_name.lower())
     marks = [i for i, l in enumerate(lines) if LEVEL_RE.match(l.strip())]
 
     def plausible(s):
@@ -105,6 +106,12 @@ def parse_abilities(lines):
             if not plausible(s):
                 break
             prev = lines[j - 1].strip() if j > 0 else ''
+            # The forte's own name in caps is the heading of its progression
+            # diagram, which the two-column page flattens to just above an
+            # ability. It is not the first half of a wrapped name: joining it
+            # gave "Masters the Forms Purity of Violence".
+            if re.sub(r'[^a-z]', '', prev.lower()) == own:
+                return j, s
             # Join a wrapped first half only when both halves share a case style.
             if prev and plausible(prev) and (prev.isupper() == s.isupper()) and len(prev) < 30:
                 # ...but not when the previous line is the tail of a description
@@ -177,7 +184,7 @@ def parse_forte(lines, name):
         'character_arcs': clean(fields.get('character_arcs', [])),
         'path_to_joy': clean(fields.get('path_to_joy', [])),
         'path_to_despair': clean(fields.get('path_to_despair', [])),
-        'abilities': parse_abilities(ability_lines),
+        'abilities': parse_abilities(ability_lines, name),
     }
 
 
