@@ -27,9 +27,9 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       tabs: [
         { id: "overview",    label: "ISUN.TabOverview" },
         { id: "magic",       label: "ISUN.TabMagic" },
+        { id: "inventory",   label: "ISUN.TabInventory" },
         { id: "connections", label: "ISUN.TabConnections" },
         { id: "arcs",        label: "ISUN.TabArcs" },
-        { id: "inventory",   label: "ISUN.TabInventory" },
         { id: "biography",   label: "ISUN.TabBiography" }
       ]
     }
