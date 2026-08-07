@@ -339,9 +339,19 @@
 }
 
 /* Three icons in 60px wrap onto a second line once the sheet is narrow, which
-   stretches the row; keep them on one line and let the row shrink instead. */
+   stretches the row; keep them on one line and let the row shrink instead.
+ *
+ * The width has to be stated rather than taken from the content, because the
+ * header's content is never the row's: Practices heads three icons with an
+ * empty span, and the inventory lists head two with one. Sized from content,
+ * the header's cell came out 8px against the row's 73px, and since .name is
+ * flex:1 it swallowed the difference — putting Kind, Cost, Dice and Depletion
+ * 64px to the right of the data they labelled.
+ *
+ * One basis serves every list because the contents are right-aligned within
+ * it, so a two-icon row still lines up under a one-icon header. */
 .item-list .actions {
-  flex: 0 0 auto;
+  flex: 0 0 var(--isun-actions-col, 73px);
   display: flex;
   justify-content: flex-end;
   align-items: center;
