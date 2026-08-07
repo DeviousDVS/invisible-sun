@@ -6,6 +6,8 @@ import { VentureDialog } from "../apps/VentureDialog.mjs";
 import { ApplyIdentity } from "../apps/ApplyIdentity.mjs";
 import { HeartSkills } from "../apps/HeartSkills.mjs";
 import { ForteAbilityPicker } from "../apps/ForteAbilityPicker.mjs";
+import { CompendiumPicker } from "../apps/CompendiumPicker.mjs";
+import { IncantationGrant } from "../apps/IncantationGrant.mjs";
 
 /**
  * Invisible Sun — Vislae Actor Sheet
@@ -462,6 +464,47 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     return ForteAbilityPicker.open(this.document, forte, abilities);
   }
 
+  /**
+   * Add an aggregate from the compendium.
+   *
+   * The Way prints every aggregate with eight or so qualities and a handful of
+   * absences, so a blank one is a page of retyping. The picker offers the pack
+   * and keeps the option to invent one.
+   */
+  async _onPickThread(event) {
+    event.preventDefault();
+    await CompendiumPicker.open({
+      actor: this.document,
+      pack: "invisible-sun.threads",
+      type: "Thread",
+      title: game.i18n.localize("ISUN.PickerThreadTitle"),
+      hint: game.i18n.localize("ISUN.AggregatesHint"),
+      fields: ["color", "defaultRange", "defaultDuration", "qualities"],
+      // What tells one aggregate from another at a glance is what it is made
+      // of, so the qualities lead; range and duration follow.
+      summarise: e => {
+        const s = e.system ?? {};
+        const range = [s.defaultRange, s.defaultDuration].filter(Boolean).join(" · ");
+        const qualities = (s.qualities ?? []).slice(0, 4).join(", ");
+        return [qualities, range].filter(Boolean).join("  —  ");
+      }
+    });
+    this.render();
+  }
+
+  /**
+   * Receive an incantation.
+   *
+   * Not a create button and not a picker: an acquiescent incantation is what
+   * the universe decides to give, so this draws one. Choosing is offered only
+   * where the character's degree has earned a conation slot.
+   */
+  async _onGrantIncantation(event) {
+    event.preventDefault();
+    await IncantationGrant.open(this.document);
+    this.render();
+  }
+
   /** Roll a skill: open the venture dialog with that skill already ticked. */
   async _onRollSkill(event) {
     event.preventDefault();
@@ -548,6 +591,10 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       el.addEventListener('click', this._onToggleDegree.bind(this)));
     html.querySelectorAll('[data-action="pick-forte-ability"]').forEach(el =>
       el.addEventListener('click', this._onPickForteAbility.bind(this)));
+    html.querySelectorAll('[data-action="pick-thread"]').forEach(el =>
+      el.addEventListener('click', this._onPickThread.bind(this)));
+    html.querySelectorAll('[data-action="grant-incantation"]').forEach(el =>
+      el.addEventListener('click', this._onGrantIncantation.bind(this)));
 
     // Roll items
     html.querySelectorAll('[data-action^="roll-"]:not([data-action="roll-skill"]), [data-action="use-ability"]').forEach(el => {

@@ -113,7 +113,10 @@
     <div class="isun-panel mt-4">
       <div class="entry-list-header">
         <h3>{{localize "ISUN.Aggregates"}}</h3>
-        <a class="item-create" data-type="Thread" title="{{localize 'ISUN.AddThread'}}">
+        {{!-- Every aggregate is printed in The Way, so this opens the pack
+              rather than making a blank one to retype it into. Creating one
+              from scratch is a button inside that window. --}}
+        <a class="item-pick" data-action="pick-thread" title="{{localize 'ISUN.AddThread'}}">
           <i class="fa-solid fa-plus"></i>
         </a>
       </div>

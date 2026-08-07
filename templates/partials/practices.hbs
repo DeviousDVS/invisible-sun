@@ -57,7 +57,10 @@
 
   <div class="practice-add">
     <a class="item-create" data-type="Spell"><i class="fa-solid fa-plus"></i> {{localize "TYPES.Item.Spell"}}</a>
-    <a class="item-create" data-type="Incantation"><i class="fa-solid fa-plus"></i> {{localize "TYPES.Item.Incantation"}}</a>
+    {{!-- An incantation is granted, not picked: the universe decides what the
+          character gets. So this draws one rather than making a blank item or
+          opening a list. --}}
+    <a class="item-pick" data-action="grant-incantation"><i class="fa-solid fa-plus"></i> {{localize "TYPES.Item.Incantation"}}</a>
     {{!-- Unlike the others, a forte ability is not invented on the spot: it is
           taken from the forte's tree, along a path, for Crux. So this opens the
           tree rather than creating an empty item. --}}

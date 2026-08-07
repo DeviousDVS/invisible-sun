@@ -435,12 +435,66 @@ export class ISUNActor extends Actor {
       system.stats.unspent.certes + system.stats.unspent.qualia + system.stats.unspent.shared;
   }
 
+  /**
+   * What the degrees a vislae has attained entitle them to.
+   *
+   * "Your degree determines how many ephemera a vislae can bear at a time,
+   * and — at higher degrees — how many of these can be incantations you choose
+   * rather than incantations granted to you" (The Key, p36). A Vance bears
+   * three at 1st degree, four at 4th and five at 6th; a Maker four, five and
+   * six, of which only two, two and three may be incantations.
+   *
+   * None of that is a flat item grant, because a 1st-degree and a 6th-degree
+   * Vance hold the same Order item — so it cannot come from `grants.limits`
+   * and has to be read against the degree actually held.
+   *
+   * The degree abilities state their numbers in words, and each restates the
+   * total rather than an increment, so the highest attained wins rather than
+   * the sum. Reading them rather than hardcoding a table means an order whose
+   * ladder a GM has edited is followed instead of overridden.
+   */
+  degreeEntitlements() {
+    const NUMBERS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 };
+    const word = m => NUMBERS[m?.[1]?.toLowerCase()] ?? 0;
+    const EPHEMERA = /\b(one|two|three|four|five|six)\s+ephemera\b/i;
+    const INCANTATIONS = /only\s+(one|two|three|four|five|six)\s+of these can be incantations/i;
+    const CONATION = /\b(one|two|three|four|five|six)\b[^.]*conation/i;
+
+    const order = this.items.find(i => i.type === "Order");
+    const held = this.system.meta?.orderDegree ?? 0;
+    const out = { ephemera: 0, incantations: 0, conation: 0 };
+
+    for (const degree of order?.system?.degrees ?? []) {
+      if ((degree.degree ?? 0) > held) continue;
+      for (const ability of degree.abilities ?? []) {
+        const text = ability.description ?? "";
+        out.ephemera = Math.max(out.ephemera, word(text.match(EPHEMERA)));
+        out.incantations = Math.max(out.incantations, word(text.match(INCANTATIONS)));
+        out.conation = Math.max(out.conation, word(text.match(CONATION)));
+      }
+    }
+    return out;
+  }
+
   _prepareLimits(system) {
     const base = { ...(CONFIG.ISUN?.limits ?? {}) };
 
     // The arc limit is GM advice rather than a rule, so the table can set it.
     const arcSetting = game.settings?.get?.("invisible-sun", "arcLimit");
     if (Number.isInteger(arcSetting)) base.arcs = arcSetting;
+
+    /* A degree states a total, not a bonus, so it replaces the configured base
+     * rather than adding to it. An Apostate has no degrees at all, so a stated
+     * value of zero means "the ladder says nothing" and the base stands.
+     *
+     * The two are not the same kind of number. How many ephemera a vislae can
+     * bear is an entitlement that grows, so it only ever raises the base. How
+     * many of them may be incantations is a restriction — "but only two of
+     * these can be incantations" — so it replaces the base even downwards, or
+     * a Maker would be credited with three when the book allows two. */
+    const byDegree = this.degreeEntitlements();
+    if (byDegree.ephemera) base.ephemera = Math.max(base.ephemera ?? 0, byDegree.ephemera);
+    if (byDegree.incantations) base.incantations = byDegree.incantations;
 
     // Sum contributions from owned items.
     const mods = { objectsOfPower: 0, ephemera: 0, incantations: 0, arcs: 0 };
@@ -483,6 +537,19 @@ export class ISUNActor extends Actor {
         over: used[key] > value,
       };
     }
+
+    /* How many of those incantations may be ones the character chose. Not a
+     * cap on holdings like the others — it divides the incantations held into
+     * the granted and the chosen — so it is derived here but counted from the
+     * flag that marks a chosen one. */
+    const conationHeld = this.items.filter(i => i.type === "Incantation"
+      && i.getFlag("invisible-sun", "conation")).length;
+    system.limits.conation = {
+      base: 0, mods: 0, override: null,
+      value: byDegree.conation,
+      used: conationHeld,
+      over: conationHeld > byDegree.conation,
+    };
   }
 
   /**

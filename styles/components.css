@@ -533,7 +533,10 @@ a.sentence-part:hover {
   font-style: italic;
 }
 
+/* .item-pick opens a compendium picker where .item-create makes a blank item;
+   they sit in the same place in a header and should look the same. */
 .item-create,
+.item-pick,
 .item-edit,
 .item-delete,
 .btn-cast,
@@ -545,6 +548,7 @@ a.sentence-part:hover {
 }
 
 .item-create:hover,
+.item-pick:hover,
 .btn-cast:hover,
 .btn-use:hover,
 .btn-refresh:hover {
@@ -1340,6 +1344,73 @@ a.sentence-part:hover {
    rather than merely unavailable. */
 .heart-skills .heart-skill.held { opacity: 0.5; }
 .heart-skills .remaining { font-size: 0.85em; opacity: 0.75; margin: 0.25rem 0 0; }
+
+/* ── Incantation grant ────────────────────────────────── */
+.incantation-grant .incantation-grant-body { display: flex; flex-direction: column; gap: 0.6rem; }
+.incantation-grant .granted {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.6rem; border: 1px solid var(--isun-border-accent); border-radius: 4px;
+  background: var(--isun-bg-elevated);
+}
+.incantation-grant .granted img {
+  width: 3rem; height: 3rem; object-fit: cover; border: none; border-radius: 4px;
+}
+.incantation-grant .granted-name {
+  font-family: var(--isun-font-heading); font-size: 1.15em; color: var(--isun-text-accent);
+}
+.incantation-grant .granted-meta { font-size: 0.85em; opacity: 0.75; }
+.incantation-grant .limit-note,
+.incantation-grant .conation-note { font-size: 0.8em; opacity: 0.75; margin: 0; }
+.incantation-grant .hint { font-size: 0.85em; opacity: 0.8; margin: 0; }
+
+/* ── Compendium picker ────────────────────────────────── */
+/* The list is the window: it takes the height that is going, so a long pack
+   scrolls the results rather than the dialog.
+ *
+ * Getting that took bounding the dialog's own wrappers. A flex item defaults to
+ * min-height:auto, which refuses to shrink below its content — so the form and
+ * .dialog-content grew to the full 1187px of an 18-row list inside a 582px
+ * window, and .window-content's overflow:hidden clipped the rest away. The list
+ * never scrolled because nothing ever told it it was too tall. */
+.compendium-picker .window-content,
+.compendium-picker .dialog-form,
+.compendium-picker .dialog-content {
+  flex: 1;
+  min-height: 0;
+}
+
+.compendium-picker .compendium-picker-body {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  flex: 1; min-height: 0;
+}
+.compendium-picker .picker-search { width: 100%; }
+.compendium-picker .picker-list {
+  flex: 1; min-height: 0; overflow-y: auto;
+  border: 1px solid var(--isun-border); border-radius: 3px; padding: 0.25rem;
+}
+
+.compendium-picker .picker-row {
+  display: grid; grid-template-columns: auto auto 1fr auto;
+  gap: 0.5rem; align-items: center; padding: 0.25rem 0.3rem; border-radius: 3px;
+  cursor: pointer;
+}
+.compendium-picker .picker-row:hover:not(.held) { background: rgba(255, 255, 255, 0.06); }
+.compendium-picker .picker-row img {
+  width: 1.6rem; height: 1.6rem; object-fit: cover; border: none; border-radius: 3px;
+}
+.compendium-picker .picker-name { font-weight: 600; }
+/* The summary is what distinguishes two aggregates, but it is long — one line,
+   clipped, rather than wrapping every row to three. */
+.compendium-picker .picker-summary {
+  grid-column: 3; font-size: 0.8em; opacity: 0.7;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.compendium-picker .picker-held { font-size: 0.75em; opacity: 0.6; font-style: italic; }
+/* One already on the sheet reads as settled, not merely unavailable. */
+.compendium-picker .picker-row.held { opacity: 0.5; cursor: default; }
+.compendium-picker .picker-row.hidden { display: none; }
+.compendium-picker .picker-count { font-size: 0.85em; opacity: 0.75; margin: 0; }
+.compendium-picker .hint { font-size: 0.8em; opacity: 0.7; margin: 0; }
 
 /* ── Compendium browser ───────────────────────────────── */
 .compendium-browser .browser-layout { display: grid; grid-template-columns: 17rem 1fr; gap: 0.75rem; height: 100%; }
