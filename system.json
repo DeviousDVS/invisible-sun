@@ -86,6 +86,12 @@
       "type": "Item"
     },
     {
+      "name": "secrets",
+      "label": "Secrets",
+      "path": "packs/secrets",
+      "type": "Item"
+    },
+    {
       "name": "skills",
       "label": "Skills",
       "path": "packs/skills",

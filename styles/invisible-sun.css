@@ -134,8 +134,35 @@
   border-bottom: 1px solid var(--isun-border);
 }
 
-.invisible-sun.sheet .editor-content {
+/* Rich text editors.
+ *
+ * <prose-mirror> is a flex column that lays its content out with `inset: 0`,
+ * so it collapses to nothing unless it is given a height — core reads that
+ * from --min-height, which nothing sets by default. The box itself is what
+ * carries the framing now; the content sits inside it.
+ *
+ * Core puts the edit button at the top right of this box and reveals it on
+ * hover, which is why the element needs to stay the positioning context. */
+.invisible-sun.sheet prose-mirror {
+  --min-height: 8rem;
   background: var(--isun-bg-secondary);
-  padding: var(--isun-space-sm);
   border: 1px solid var(--isun-border);
+  padding: var(--isun-space-sm);
+}
+
+.invisible-sun.sheet prose-mirror .editor-content {
+  padding-right: var(--isun-space-sm);
+}
+
+/* The button sits over the prose, so it needs to read against it rather than
+ * against core's near-white default. */
+.invisible-sun.sheet prose-mirror button.toggle {
+  background: var(--isun-bg-elevated);
+  border: 1px solid var(--isun-border);
+  color: var(--isun-text-secondary);
+}
+
+.invisible-sun.sheet prose-mirror button.toggle:hover {
+  color: var(--isun-text-accent);
+  border-color: var(--isun-border-accent);
 }

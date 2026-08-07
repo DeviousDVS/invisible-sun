@@ -294,6 +294,9 @@ export const ISUN = Object.freeze({
     house: "ISUN.SecretHouse",
     order: "ISUN.SecretOrder",
     apostate: "ISUN.SecretApostate",
+    // A changery secret is bought like any other, but it only takes effect once
+    // the body has been altered to suit — always a change of level 9 or higher.
+    changery: "ISUN.SecretChangery",
   },
 
   /* ──────────────────────────────────────────────

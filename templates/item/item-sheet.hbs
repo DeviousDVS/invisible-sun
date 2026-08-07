@@ -29,7 +29,7 @@
     {{#each htmlFields as |f|}}
       <div class="item-description">
         <h3>{{f.label}}</h3>
-        {{editor f.value target=f.name button=true owner=../owner editable=../editable}}
+        {{isunEditor f.name}}
       </div>
     {{/each}}
 

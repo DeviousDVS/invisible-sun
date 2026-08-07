@@ -1097,6 +1097,9 @@ a.sentence-part:hover {
 .secret-chip.order { border-color: var(--isun-sun-indigo); }
 .secret-chip.house { border-color: var(--isun-sun-green); }
 .secret-chip.apostate { border-color: var(--isun-sun-red); }
+/* Changery secrets are bought and paid for in the body, so they take the Gold
+   Sun — the sun of the flesh — rather than another order or house colour. */
+.secret-chip.changery { border-color: var(--isun-sun-gold); }
 
 .order-workspace { margin-bottom: var(--isun-space-md); }
 

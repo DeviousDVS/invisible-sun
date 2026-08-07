@@ -257,10 +257,22 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
      * hatch — the difference is invisible to a player, who just sees numbers. */
     context.canEditPools = game.user.isGM;
 
-    // House secrets are augments to a house rather than to the character, and
-    // are capped by house size, so they sit with the House block.
-    context.houseSecrets = context.secrets.filter(i => i.system?.secretType === "house");
-    context.characterSecrets = context.secrets.filter(i => i.system?.secretType !== "house");
+    /* Secrets are split by what they apply to, and each kind is shown where the
+     * thing it applies to lives. House secrets are augments to a house, capped
+     * by its size, so they sit with the House block. Changery secrets only work
+     * once the body has been altered to suit, so they sit under Appearance. The
+     * rest apply to the vislae and stay with the practices they modify.
+     *
+     * The character strip stays the catch-all — everything not claimed by a
+     * block of its own — so a secret can never be filtered off the sheet
+     * altogether. Naming the kinds it wants instead would hide any that arrives
+     * with a type this list has not been taught about. */
+    const ELSEWHERE = ["house", "changery"];
+    const secretsOfType = t => context.secrets.filter(i => i.system?.secretType === t);
+    context.houseSecrets = secretsOfType("house");
+    context.changerySecrets = secretsOfType("changery");
+    context.characterSecrets =
+      context.secrets.filter(i => !ELSEWHERE.includes(i.system?.secretType));
 
     // Config for template dropdowns
     context.config = CONFIG.ISUN;

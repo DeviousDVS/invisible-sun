@@ -2,7 +2,7 @@
 
   <div class="narrative-section">
     <h3>{{localize "ISUN.Appearance"}}</h3>
-    {{editor system.narrative.appearance target="system.narrative.appearance" button=true owner=owner editable=editable}}
+    {{isunEditor "system.narrative.appearance"}}
     <div class="form-group full-width mt-4">
       <label>{{localize "ISUN.Quirk"}}</label>
       {{!-- A datalist suggests without constraining: the rules invite a player
@@ -13,12 +13,36 @@
         {{#each config.quirks as |q|}}<option value="{{q}}"></option>{{/each}}
       </datalist>
     </div>
+
+    {{!-- Changery secrets sit with Appearance because that is what they cost:
+          each one only works once the body has been altered to suit it, always
+          a change of level 9 or higher. Drop a Secret here or use +; the chip
+          shows the change the secret is waiting on. --}}
+    <div class="mt-4">
+      <div class="entry-list-header">
+        <label class="section-label">{{localize "ISUN.ChangerySecrets"}}</label>
+        <a class="item-create" data-type="Secret" data-preset='{"secretType":"changery"}'
+           title="{{localize 'ISUN.AddSecret'}}"><i class="fa-solid fa-plus"></i></a>
+      </div>
+      <p class="hint">{{localize "ISUN.ChangerySecretsHint"}}</p>
+      <div class="secret-chips">
+        {{#each changerySecrets as |s|}}
+          <span class="secret-chip changery" data-item-id="{{s.id}}">
+            <a data-action="open-item" data-item-id="{{s.id}}"
+               {{#if s.system.changeRequired}}data-tooltip="{{localize 'ISUN.ChangeRequired'}}: {{s.system.changeRequired}}"{{/if}}>{{s.name}}</a>
+            <a class="item-delete" title="{{localize 'ISUN.Remove'}}"><i class="fa-solid fa-xmark"></i></a>
+          </span>
+        {{else}}
+          <span class="empty-state">{{localize "ISUN.NoChangerySecrets"}}</span>
+        {{/each}}
+      </div>
+    </div>
   </div>
 
   <div class="narrative-section mt-4">
     <h3>{{localize "ISUN.ShadowLife"}}</h3>
     <p class="hint">{{localize "ISUN.ShadowLifeHint"}}</p>
-    {{editor system.narrative.shadowLife target="system.narrative.shadowLife" button=true owner=owner editable=editable}}
+    {{isunEditor "system.narrative.shadowLife"}}
   </div>
 
   {{> "systems/invisible-sun/templates/partials/entry-list.hbs"
@@ -69,7 +93,7 @@
 
   <div class="narrative-section mt-4">
     <h3>{{localize "ISUN.Notes"}}</h3>
-    {{editor system.biography target="system.biography" button=true owner=owner editable=editable}}
+    {{isunEditor "system.biography"}}
   </div>
 
   <div class="narrative-section mt-4">

@@ -80,6 +80,41 @@ export function registerHandlebarsHelpers() {
     return JSON.stringify(obj, null, 2);
   });
 
+  /**
+   * A rich-text editor: {{isunEditor "system.biography"}}
+   *
+   * Replaces Foundry's own {{editor}}, which cannot work on an ApplicationV2
+   * sheet. That helper emits `<a class="editor-edit">` and nothing more —
+   * a plain anchor whose click was bound by FormApplication#activateListeners,
+   * a method ApplicationV2 does not have and never calls. The markup rendered,
+   * the button drew, and clicking it did nothing on any sheet in the system.
+   *
+   * `<prose-mirror>` is the supported replacement: a custom element that builds
+   * its own toggle button and binds its own listeners in connectedCallback, so
+   * it works wherever it is dropped. `toggled` is the old `button=true` — show
+   * the prose, open the editor when the button is pressed.
+   *
+   * The enriched text comes from the sheet context (see SheetMixin), because a
+   * toggled editor renders that rather than the raw value when it is closed,
+   * and enriching it is asynchronous.
+   */
+  Handlebars.registerHelper("isunEditor", function (target, options) {
+    const root = options.data.root;
+    const value = foundry.utils.getProperty(root, target) ?? "";
+    const enriched = root.enriched?.[target] ?? value;
+    const editor = foundry.applications.elements.HTMLProseMirrorElement.create({
+      name: target,
+      value,
+      enriched,
+      toggled: true,
+      // An observer sees the prose but gets no button to change it.
+      disabled: !(options.hash.editable ?? root.editable ?? false),
+      documentUUID: root.document?.uuid ?? root.actor?.uuid ?? root.item?.uuid
+    });
+    if (options.hash.class) editor.classList.add(options.hash.class);
+    return new Handlebars.SafeString(editor.outerHTML);
+  });
+
   /* Removed concat, toLowerCase, and or as they are built-in */
 }
 

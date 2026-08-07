@@ -317,6 +317,34 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'aggregates.json'))) {
   console.log(`Processed ${aggData.length} aggregates.`);
 }
 
+// Secrets — character, house and changery.
+//
+// A secret's level is what it costs in Acumen, one point per level, so `cost`
+// is written out from the level rather than being a second source of truth.
+// Changery secrets carry the bodily change they wait on; the other two kinds
+// leave that empty.
+if (fs.existsSync(path.join(SOURCE_DIR, 'secrets.json'))) {
+  const secretsData = JSON.parse(fs.readFileSync(path.join(SOURCE_DIR, 'secrets.json'), 'utf8'));
+  const icons = {
+    character: "icons/svg/eye.svg",
+    house: "icons/environment/settlement/house-manor.webp",
+    changery: "icons/magic/life/cross-worn-green.webp",
+  };
+  for (const c of secretsData) {
+    writeItem("secrets", createItem(c.name, "Secret", {
+      level: c.level ?? 1,
+      cost: `${c.level ?? 1} Acumen`,
+      bonusDice: c.bonusDice ?? 0,
+      description: cleanHtml(c.description || ""),
+      secretType: c.kind || "character",
+      changeRequired: c.changeRequired || "",
+      source: c.source || "",
+      page: c.page ?? null,
+    }, icons[c.kind] || icons.character));
+  }
+  console.log(`Processed ${secretsData.length} secrets.`);
+}
+
 // Character arcs
 if (fs.existsSync(path.join(SOURCE_DIR, 'character-arcs.json'))) {
   const arcsData = JSON.parse(fs.readFileSync(path.join(SOURCE_DIR, 'character-arcs.json'), 'utf8'));
