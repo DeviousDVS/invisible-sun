@@ -264,12 +264,102 @@ export class ISUNActor extends Actor {
   }
 
   /**
+   * What the incantation ledger says, in the terms the rules are written in.
+   *
+   * Every day-bounded rule reads from here rather than walking the log itself,
+   * so "today" means the same thing to all of them.
+   *
+   *   received   how many have been received today, against the daily cap:
+   *              "You cannot get more incantations in a given day than your
+   *              total ephemera limit" (The Way, p106)
+   *   yesterday  names received on the previous day — "no vislae can gain the
+   *              same incantation (either type) two days in a row"
+   *   everKnown  every name ever received, which is what a conation
+   *              incantation may be sought from
+   */
+  get incantationLedger() {
+    const log = this.system.incantations?.log ?? [];
+    const today = this.system.meta?.day ?? 1;
+    const cap = this.system.limits?.ephemera?.value ?? 0;
+    const received = log.filter(e => e.day === today);
+
+    return {
+      day: today,
+      received: received.length,
+      receivedToday: received.map(e => e.name),
+      // A cap of zero would be a character with no ephemera limit at all, not
+      // one forbidden to meditate, so it is left to the limit check to refuse.
+      dailyCap: cap,
+      atDailyCap: cap > 0 && received.length >= cap,
+      yesterday: log.filter(e => e.day === today - 1).map(e => e.name),
+      everKnown: [...new Map(log.map(e => [e.name.toLowerCase(), e])).values()],
+      hoursToday: this.system.incantations?.hoursToday ?? 0,
+    };
+  }
+
+  /**
+   * The ceiling on a conation incantation.
+   *
+   * "Either way, the conation incantation cannot be of a higher level than the
+   * highest-level spell the vislae knows" (The Way, p106). A vislae who knows
+   * no spells therefore cannot seek one at all — which is a real consequence
+   * of the rule and not an edge case to paper over, so it returns 0 rather
+   * than falling back to something permissive.
+   */
+  get highestSpellLevel() {
+    return this.items.filter(i => i.type === "Spell")
+      .reduce((max, s) => Math.max(max, Number(s.system?.level) || 0), 0);
+  }
+
+  /**
+   * Write an incantation into the ledger, and count the hour it took.
+   *
+   * "It takes about an hour to receive an incantation" — either kind — so the
+   * hour is charged here rather than by the caller, which would leave the two
+   * able to disagree.
+   */
+  async recordIncantation({ name, uuid = "", kind = "acquiescent" }) {
+    const log = [...(this.system.incantations?.log ?? [])];
+    log.push({ name, uuid, kind, day: this.system.meta?.day ?? 1 });
+    await this.update({
+      "system.incantations.log": log,
+      "system.incantations.hoursToday": (this.system.incantations?.hoursToday ?? 0) + 1,
+    });
+    return log.length;
+  }
+
+  /**
+   * An hour of meditation that produced nothing.
+   *
+   * Asking for a type is a blind ask, and a blind ask has to be able to fail
+   * at a cost. If a fruitless hour were free, a vislae could work through
+   * every type in turn and learn exactly what was within reach without
+   * spending anything — which is precisely the knowledge the blindness is
+   * there to withhold.
+   */
+  async spendMeditationHour() {
+    const hours = (this.system.incantations?.hoursToday ?? 0) + 1;
+    await this.update({ "system.incantations.hoursToday": hours });
+    return hours;
+  }
+
+  /**
    * A night's sleep: every pool back to its starting value, vexes cleared, the
    * day's rests restored, and 1 Wound or Anguish recovered (The Key, p2300;
    * The Gate, p2609). Scourges persist — they are not what resting removes.
    */
   async newDay({ recover = "wounds" } = {}) {
     const updates = { "system.rests.quickUsed": 0, "system.rests.tenMinUsed": 0, "system.rests.hourUsed": 0 };
+
+    /* The sun rising is what the incantation rules are counted against — no
+     * more received in a day than the ephemera limit, never the same one two
+     * days running — so the day advances here and the hours meditated reset
+     * with it. The ledger itself is kept: it is the character's history, not
+     * the day's tally. */
+    if (this.system.meta?.day !== undefined) {
+      updates["system.meta.day"] = (this.system.meta.day ?? 1) + 1;
+      updates["system.incantations.hoursToday"] = 0;
+    }
 
     for (const group of ["certes", "qualia"]) {
       for (const [key, p] of Object.entries(this.system.stats?.[group]?.pools ?? {})) {

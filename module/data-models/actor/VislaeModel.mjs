@@ -203,6 +203,50 @@ export class VislaeModel extends foundry.abstract.DataModel {
        */
       orderDegree: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0, max: 6 }),
       orderType:   new fields.StringField({ required: false, initial: "" }),
+
+      /**
+       * Which day of play this is, counted from 1 and advanced by newDay().
+       *
+       * Several incantation rules are worded in days — no more received in a
+       * day than the ephemera limit, and never the same one two days running
+       * — and none of them can be checked against a real-world clock, since a
+       * session covers whatever span of game time the table says it does. A
+       * counter the table advances deliberately is the only thing that tracks
+       * the fiction rather than the wall.
+       */
+      day: new fields.NumberField({ required: true, initial: 1, integer: true, min: 1 }),
+    });
+
+    /* ── Incantations ──
+     * A ledger of every incantation received, which is not the same as the
+     * ones currently held: a conation incantation may be any the vislae has
+     * *ever* known as an acquiescent one, and The Way tells players to keep
+     * notes precisely because that history outlives the holding.
+     *
+     * It answers the three day-bounded rules from one place — what was
+     * received today, what was received yesterday, and what has ever been
+     * known — so they cannot drift apart. */
+    const incantations = new fields.SchemaField({
+      log: new fields.ArrayField(new fields.SchemaField({
+        name: new fields.StringField({ required: true, initial: "" }),
+        /** The compendium entry, so it can be granted again by name change. */
+        uuid: new fields.StringField({ required: false, initial: "" }),
+        /** "acquiescent" — granted — or "conation" — chosen. */
+        kind: new fields.StringField({ required: true, initial: "acquiescent" }),
+        /** The value of meta.day when it was received. */
+        day:  new fields.NumberField({ required: true, initial: 1, integer: true, min: 1 }),
+      })),
+
+      /**
+       * Hours spent meditating today. Receiving any incantation takes about an
+       * hour, and no more can be received in a day than the ephemera limit.
+       *
+       * Deliberately not the one-hour rest: the book has a vislae meditate for
+       * three hours in a day to receive three incantations, where the rest is
+       * one a day and restores health. Spending the rest here would cap
+       * incantations at one and quietly cost the character their recovery.
+       */
+      hoursToday: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
     });
 
     /* ── Economy ──
@@ -287,6 +331,6 @@ export class VislaeModel extends foundry.abstract.DataModel {
     const biography = new fields.HTMLField({ required: false, initial: "" });
 
     return { stats, status, advancement, meta, economy, house, rests, limitOverrides,
-             narrative, player, biography };
+             incantations, narrative, player, biography };
   }
 }

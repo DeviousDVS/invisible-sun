@@ -29,10 +29,11 @@ export class CompendiumPicker {
    * @param {string}   config.title      window title
    * @param {string}   [config.hint]     a line above the list
    * @param {string[]} [config.fields]   system fields the summary needs
+   * @param {Set}      [config.only]     ids to offer; omit to offer the pack
    * @param {Function} [config.summarise] entry -> a short line under the name
    * @returns {Promise<Item[]>} the items added, empty if nothing was
    */
-  static async open({ actor, pack, type, title, hint = "", fields = [], summarise }) {
+  static async open({ actor, pack, type, title, hint = "", fields = [], only, summarise }) {
     const compendium = game.packs.get(pack);
     if (!compendium) {
       ui.notifications?.error(game.i18n.format("ISUN.PackMissing", { pack }));
@@ -47,6 +48,10 @@ export class CompendiumPicker {
 
     const entries = [...index]
       .filter(e => !type || e.type === type)
+      // A caller may narrow the pack to a specific set — seeking a conation
+      // incantation offers only the ones the vislae has known before, not the
+      // whole deck.
+      .filter(e => !only || only.has(e._id))
       .sort((a, b) => a.name.localeCompare(b.name))
       .map(e => ({
         id: e._id,

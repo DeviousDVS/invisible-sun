@@ -1553,3 +1553,7 @@ a.sentence-part:hover {
 .forte-picker .fp-needs.starting { font-style: italic; }
 /* The opening ability is granted, not bought, so it does not wear a price. */
 .forte-picker .fp-take.free { border-style: dashed; }
+
+/* The type a conation incantation is asked for. Full width, because the
+   options carry a count and "— none" and would otherwise clip. */
+.incantation-grant .conation-type { width: 100%; }
