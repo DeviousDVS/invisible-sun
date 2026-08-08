@@ -40,7 +40,11 @@ ALIASES = {'tranformation': 'transformation', 'gallant': 'galant'}
 # The arcs whose tails the extraction lost, and what is taken for each.
 ARC_FIXES = {
     'theft':             ('climax', 'resolution'),
-    'trainacreature':    ('climax', 'resolution'),
+    # Its Training step breaks off mid-sentence at "you teach the creature a
+    # new," and the page that follows starts Transformation — the rest of the
+    # step is set on the far side of a spread and is not in the extracted text
+    # at all. It is in the book (The Key, line 15422).
+    'trainacreature':    ('climax', 'resolution', 'steps'),
     'learn':             ('resolution',),
     'masteraskill':      ('resolution',),
     'recoverfromawound': ('resolution',),

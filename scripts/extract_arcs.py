@@ -30,6 +30,45 @@ NOISE_RE = re.compile(r'^(.{0,44},\s*page\s+\d+|\d+|[\d\s✦•]+)$')
 SWAPPED_PAIRS = {("MASTER A SKILL", "LEARN"), ("UNDO A WRONG", "UNCOVER A SECRET")}
 
 
+# Marginal notes are set in a narrow column beside the body. When the page is
+# flattened they land between the paragraphs they were set beside, and carrying
+# no label they read as more of whichever beat they interrupted — which is how
+# Avenge's first step came to say "...if you already know where GMs might wish
+# to limit players to a maximum of three arcs at a time just to keep things
+# from getting too complicated. Silence is the canvas. they are."
+#
+# Body text here wraps at 45-55 characters and marginal text at 20-28, so width
+# is the signal. A run of narrow lines standing alone is a note; a single narrow
+# line is one too, unless it is all-caps, which is how the arc headings are set.
+NARROW = 32
+
+
+def drop_marginals(lines):
+    """Remove marginal notes, keeping the body and the headings."""
+    out, block = [], []
+
+    def flush():
+        short = [l.strip() for l in block if l.strip()]
+        if not short:
+            return
+        marginal = (all(len(l) <= NARROW for l in short)
+                    and not LABEL_RE.match(short[0])
+                    and (len(short) > 1 or not short[0].isupper()))
+        if not marginal:
+            out.extend(block)
+
+    for l in lines:
+        s = l.strip()
+        if s and not NOISE_RE.match(s) and 'darrynvansomeren' not in s:
+            block.append(l)
+        else:
+            flush()
+            out.append(l)
+            block = []
+    flush()
+    return out
+
+
 def clean(lines):
     out = []
     for raw in lines:
@@ -78,12 +117,36 @@ def parse_arc(lines, name):
     if combined and not fields.get('Climax'):
         fields['Climax'] = combined
 
+    # An arc's description begins after the previous arc's Resolution: label,
+    # which is where the slice starts — so the wrapped remainder of that
+    # resolution arrives attached to the front. Avenge opened with "Perhaps
+    # getting access to higher-ranking people in the organization", which is
+    # Assist an Organization's last step.
+    #
+    # The arc's own heading stands between the two, so cutting at it takes the
+    # description and nothing else. That is exact where reading the prose is
+    # not: seven arcs bled a sentence that begins with a capital, so no rule
+    # about where a sentence starts could tell it from the description proper.
+    # Cut at this arc's own heading, not at whatever heading happens to be last:
+    # three arcs share a page spread with a neighbour, so a second heading can
+    # fall inside the slice, and cutting at that one takes the description with
+    # it — Recover from a Wound lost the whole of "You need to heal."
+    head_at = max((i for i, l in enumerate(description) if l.strip() == name),
+                  default=None)
+    if head_at is not None:
+        description = description[head_at + 1:]
+
     desc = clean(description)
-    # An arc's description follows the previous arc's resolution with no marker
-    # between them, so the tail of that resolution and any heading set between
-    # the two come through attached. Drop a leading part-sentence and any
-    # all-caps heading left in the run-on.
-    desc = re.sub(r'\b[A-Z][A-Z \'’]{4,40}\b', ' ', desc)
+    # Any heading the cut did not account for, and a leading part-sentence left
+    # where an arc's heading never made it into the slice.
+    #
+    # The first word must be five or more capitals, which keeps PC, NPC and GM
+    # — ordinary words here, not headings. Later words may be a lone capital so
+    # that "REPAY A DEBT" goes whole rather than leaving " A DEBT" behind, and
+    # the run may not be followed by a lowercase letter so that
+    # "TRANSFORMATION You" cannot match as far as the Y, which would leave "ou
+    # want to be different in a specific way." for the rule below to discard.
+    desc = re.sub(r"\b[A-Z][A-Z'’]{4,}(?:\s+[A-Z][A-Z'’]*)*(?![a-z])", ' ', desc)
     if desc and desc[0].islower():
         cut = re.search(r'[.!?]\s+(?=[A-Z])', desc)
         if cut:
@@ -156,7 +219,8 @@ def extract(path):
             if abs(i - j) == 1:
                 names[i], names[j] = names[j], names[i]
 
-    return [parse_arc(text[s0:s1], nm) for nm, (s0, s1) in zip(names, bodies)]
+    return [parse_arc(drop_marginals(text[s0:s1]), nm)
+            for nm, (s0, s1) in zip(names, bodies)]
 
 
 if __name__ == '__main__':
