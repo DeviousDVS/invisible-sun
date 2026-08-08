@@ -222,13 +222,11 @@
 
 a.sentence-part {
   cursor: pointer;
-  border-bottom: 1px dotted currentColor;
   transition: text-shadow 0.2s ease;
 }
 
 a.sentence-part:hover {
   text-shadow: 0 0 8px currentColor;
-  border-bottom-style: solid;
 }
 
 /* No item held: a placeholder, so it must not invite a click. */
