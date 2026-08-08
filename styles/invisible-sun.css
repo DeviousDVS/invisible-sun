@@ -103,7 +103,20 @@
   min-height: 0;
 }
 
-.invisible-sun.sheet .window-content > .flexcol {
+/* The sheet root, whatever it is called.
+ *
+ * This used to match `.flexcol`, which meant every template had to remember to
+ * put that class on its outermost div — and three of the four item templates
+ * had not. Without it the chain breaks at the top: .sheet-body's flex:1 has no
+ * height to take a share of, so it grows to fit its content and the body runs
+ * off the bottom of the window instead of scrolling inside it. A forte sheet
+ * was 897px of body in a window that could not be that tall.
+ *
+ * Every sheet in the system renders exactly one PART, so the window's single
+ * child is always the sheet root. Matching it by position rather than by a
+ * class it has to declare means a new template cannot silently lose its
+ * scrolling by forgetting one word. */
+.invisible-sun.sheet .window-content > * {
   display: flex;
   flex-direction: column;
   flex: 1;
