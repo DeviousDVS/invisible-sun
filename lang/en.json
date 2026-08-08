@@ -118,6 +118,7 @@
     "SheetCreature": "Creature Sheet",
     "SheetSpell": "Spell Sheet",
     "SheetCharacterArc": "Character Arc Sheet",
+    "SheetForte": "Forte Sheet",
     "SheetItem": "Item Sheet",
     "SettingArcLimit": "Character Arc Limit",
     "SettingArcLimitHint": "How many arcs a vislae may pursue at once. The Key suggests three; set 0 to disable the warning.",

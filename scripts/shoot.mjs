@@ -60,10 +60,18 @@ const browser = await chromium.launch({ headless: flag("headed") !== true });
 // Foundry refuses to run below 1366x768.
 const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
 
+/* Warnings are collected as well as errors. A deprecation warning is the only
+ * notice Foundry gives that an API is going away, and it costs nothing to see
+ * it now rather than when the version lands and the sheet stops rendering.
+ * Kept separate so a run that is merely noisy is not mistaken for one that
+ * broke. */
 const problems = [];
+const warnings = [];
 page.on("pageerror", e => problems.push(`[pageerror] ${e.message}`));
 page.on("console", m => {
-  if (m.type() === "error") problems.push(`[console] ${m.text()}`);
+  const text = m.text();
+  if (m.type() === "error") problems.push(`[console] ${text}`);
+  else if (m.type() === "warning") warnings.push(`[warn] ${text}`);
 });
 
 try {
@@ -137,6 +145,14 @@ try {
 
   console.log(`\nconsole/page errors: ${problems.length}`);
   problems.slice(0, 25).forEach(p => console.log("  " + p));
+
+  // Deduplicated: one render can repeat the same warning once per row.
+  const seen = new Map();
+  for (const w of warnings) seen.set(w, (seen.get(w) ?? 0) + 1);
+  console.log(`console warnings: ${warnings.length} (${seen.size} distinct)`);
+  for (const [w, n] of [...seen].sort((a, b) => b[1] - a[1]).slice(0, 40)) {
+    console.log(`  ${n > 1 ? `×${n} ` : ""}${w}`);
+  }
 
 } finally {
   await browser.close();
