@@ -55,7 +55,13 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     const pack = game.packs.get("invisible-sun.forte-abilities");
     if (!pack) return null;
     const docs = await pack.getDocuments();
-    this._forteAbilities = docs.filter(d => d.system.parentForte === forte.name);
+    /* Matched loosely, as ForteTree matches it. A Forte already on a character
+     * keeps whatever name it was dragged in under, so an exact comparison ties
+     * the tree to a spelling rather than to a forte: re-casing 21 names in the
+     * pack — "Bears An Orb" to the book's "Bears an Orb" — would have emptied
+     * the tree for every character built before the correction. */
+    const norm = (s) => String(s ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    this._forteAbilities = docs.filter(d => norm(d.system.parentForte) === norm(forte.name));
     this._forteAbilitiesFor = forte.name;
     return this._forteAbilities;
   }

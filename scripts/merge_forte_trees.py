@@ -95,23 +95,90 @@ def read_supplement(directory):
     return out
 
 
+# Forte names as the books set them.
+#
+# An early extraction built these by title-casing the ALL-CAPS running head over
+# each forte's entry. That capitalises the small words the books leave lowercase
+# and breaks an apostrophe — "Caught Fire’S Eye" — and it stuck, because nothing
+# regenerates fortes.json in the normal course of things.
+#
+# There is no rule to apply here. The books write "Calls Upon the Serpent" but
+# "Walks the Path of Suns", "Speaks With the Moon" but "Sings the Earthsong", so
+# each of these is the cased spelling that actually appears in the book text
+# rather than anything derived. The 28 names not listed are already right.
+CANONICAL_NAMES = {
+    "Bears An Orb": "Bears an Orb",
+    "Calls Upon The Serpent": "Calls Upon the Serpent",
+    "Caught Fire’S Eye": "Caught Fire’s Eye",
+    "Channels Strength And Skill": "Channels Strength and Skill",
+    "Dwells In Darkness": "Dwells in Darkness",
+    "Explores The Noösphere": "Explores the Noösphere",
+    "Fuses Nightmare To Fist": "Fuses Nightmare to Fist",
+    "Hosts A Legion": "Hosts a Legion",
+    "Inhales The Aethyr": "Inhales the Aethyr",
+    "Is Adored By The Sea": "Is Adored by the Sea",
+    "Listens To The Whispers": "Listens to the Whispers",
+    "Provides A Vessel For Spirits": "Provides a Vessel for Spirits",
+    "Revels In Beauty": "Revels in Beauty",
+    "Sings The Earthsong": "Sings the Earthsong",
+    "Speaks With The Moon": "Speaks With the Moon",
+    "Travels As A Spirit": "Travels as a Spirit",
+    "Understands The Words": "Understands the Words",
+    "Walks The Path Of Suns": "Walks the Path of Suns",
+    "Wanders In Delirium": "Wanders in Delirium",
+    "Warps Time And Space": "Warps Time and Space",
+    "Writhes And Squirms": "Writhes and Squirms",
+}
+
 # An ability that unlocks itself, which the diagram does not show: Stop is the
 # terminal of Warps Time and Space, fed by both Reversal and Spatial Warp and
 # leading nowhere (The Key, p133). Left in, it makes the tree cyclic and any
 # walk of it non-terminating.
-DROP_UNLOCKS = {("Warps Time And Space", "Stop"): {"Stop"}}
+DROP_UNLOCKS = {("Warps Time and Space", "Stop"): {"Stop"}}
 
 # Settled against The Key where the two datasets disagreed.
 COLOUR_FIXES = {
-    ("Explores The Noösphere", "Psychic Attack"): "Red",      # p8685
-    ("Travels As A Spirit", "Seeping Deeper"): "Indigo",      # p10849
-    ("Walks The Path Of Suns", "Grey: The Illusion"): "Grey", # p11404
+    ("Explores the Noösphere", "Psychic Attack"): "Red",      # p8685
+    ("Travels as a Spirit", "Seeping Deeper"): "Indigo",      # p10849
+    ("Walks the Path of Suns", "Grey: The Illusion"): "Grey", # p11404
 }
+
+# Both tables are looked up by name, so a rename silently empties them — which
+# is how a correction settled against the book turns back into the error it
+# fixed. Keying on norm() makes the lookup survive a re-casing, and the counts
+# are checked at the end so an entry that stops matching is reported.
+DROP_UNLOCKS = {(norm(f), norm(a)): v for (f, a), v in DROP_UNLOCKS.items()}
+COLOUR_FIXES = {(norm(f), norm(a)): v for (f, a), v in COLOUR_FIXES.items()}
+
+
+def canonicalise_names(fortes):
+    """
+    Re-case forte names to the books' spelling.
+
+    Idempotent: a name already corrected matches by norm() and is left alone.
+    An entry that matches neither spelling is reported, because it means the
+    correction has drifted from the data it was written against.
+    """
+    by_norm = {norm(k): v for k, v in CANONICAL_NAMES.items()}
+    renamed, seen = 0, set()
+    for forte in fortes:
+        key = norm(forte['name'])
+        if key not in by_norm:
+            continue
+        seen.add(key)
+        if forte['name'] != by_norm[key]:
+            forte['name'] = by_norm[key]
+            renamed += 1
+    for key, wrong in ((norm(k), k) for k in CANONICAL_NAMES):
+        if key not in seen:
+            print(f'  warning: no forte matches {wrong!r} — the correction is stale')
+    return renamed
 
 
 def main(isdata_path, fortes_path, supplement_path=SUPPLEMENT):
     trees = json.load(open(isdata_path, encoding='utf-8'))['Fortes']
     fortes = json.load(open(fortes_path, encoding='utf-8'))
+    renamed = canonicalise_names(fortes)
     by_name = {norm(v['name']): v for v in trees.values()}
 
     # Trees drawn for the supplement books' fortes, reshaped to match what
@@ -150,6 +217,7 @@ def main(isdata_path, fortes_path, supplement_path=SUPPLEMENT):
         sys.exit(1)
 
     with_tree = added = edges = fixed = 0
+    drops_hit, colours_hit = set(), set()
     for forte in fortes:
         src = by_name.get(norm(forte['name']))
         if not src:
@@ -184,14 +252,16 @@ def main(isdata_path, fortes_path, supplement_path=SUPPLEMENT):
             # where the ability is "Anti-life". Matching is loose, but what is
             # stored is the ability's own name, so the tree in the data reads
             # the same as the abilities it points at.
-            drop = DROP_UNLOCKS.get((forte['name'], s['name']), set())
+            drop = DROP_UNLOCKS.get((norm(forte['name']), norm(s['name'])), set())
+            if drop: drops_hit.add((norm(forte['name']), norm(s['name'])))
             target['unlocks'] = [known[norm(u)]['name'] if norm(u) in known else u
                                  for u in (s.get('unlocks') or []) if u not in drop]
             edges += len(target['unlocks'])
 
         for a in forte['abilities']:
             a.setdefault('unlocks', [])
-            fix = COLOUR_FIXES.get((forte['name'], a['name']))
+            fix = COLOUR_FIXES.get((norm(forte['name']), norm(a['name'])))
+            if fix: colours_hit.add((norm(forte['name']), norm(a['name'])))
             if fix and a.get('color') != fix:
                 a['color'] = fix
                 fixed += 1
@@ -234,7 +304,16 @@ def main(isdata_path, fortes_path, supplement_path=SUPPLEMENT):
     print(f'  {with_tree} carry a tree ({len(from_supp)} of them read off a printed '
           f'diagram), {len(fortes) - with_tree} have none')
     print(f'  {edges} unlock edges, {added} abilities recovered, {fixed} colours corrected')
+    print(f'  {renamed} forte names re-cased to the books\' spelling')
     print(f'  starting abilities per tree: {roots_seen}')
+
+    # A correction that matches nothing is not a correction. Both tables were
+    # settled against the book once; if the data moves out from under them they
+    # have to say so rather than quietly applying to nobody.
+    for label, table, hit in (("DROP_UNLOCKS", DROP_UNLOCKS, drops_hit),
+                              ("COLOUR_FIXES", COLOUR_FIXES, colours_hit)):
+        for key in set(table) - hit:
+            print(f'  warning: {label} entry {key} matched no ability')
     bad = [("dangling", dangling), ("cyclic", cyclic), ("unreachable", stranded)]
     if any(v for _, v in bad):
         for label, items in bad:
