@@ -10,7 +10,7 @@ Apostate Abilities at 1 Crux each — so they are handled separately.
 
 Usage:  python3 scripts/extract_orders.py <The-Key.txt> <out.json>
 """
-import re, json, sys
+import re, json, sys, os
 
 # Order chapters, in the sequence The Key prints them.
 CHAPTERS = ["VANCE", "MAKER", "WEAVER", "GOETIC", "APOSTATE"]
@@ -95,6 +95,43 @@ SIDEBAR_DROP = [
     # packs/_source/spells/orrod_s_impossible_flood_*.json.
     ('Vance', 'ORROD’S IMPOSSIBLE FLOOD'),
 ]
+
+
+# Order descriptions, already divided into paragraphs, from a hand-prepared
+# dataset. An order's opening pages are the worst case for this extractor —
+# character sheets, marginal notes and a "who should play this order" box all
+# set around the prose — so what it recovers reads as one run-on block with the
+# furniture still in it. These are cleaner, and they give the Apostate a
+# description at all, which the book's layout never yielded.
+DESCRIPTIONS = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            '..', 'source', 'isdata_2026.json')
+
+
+def apply_descriptions(orders, path=DESCRIPTIONS):
+    """
+    Replace each order's description with the prepared paragraphs.
+
+    Joined with newlines because that is what build_compendia's cleanHtml
+    splits on to make <p> elements — a single block would render as one
+    unbroken wall of text.
+    """
+    if not os.path.exists(path):
+        print(f'  note: {path} absent — keeping the extracted descriptions')
+        return orders
+
+    with open(path, encoding='utf-8') as fh:
+        prepared = {v['name']: v['description']
+                    for v in json.load(fh).get('Orders', {}).values()}
+
+    for order in orders:
+        paragraphs = prepared.pop(order['name'], None)
+        if paragraphs:
+            order['description'] = '\n'.join(p.strip() for p in paragraphs)
+        else:
+            print(f'  warning: no prepared description for {order["name"]}')
+    for name in prepared:
+        print(f'  warning: prepared description for {name!r} matches no order')
+    return orders
 
 
 def prune_sidebars(orders):
@@ -442,7 +479,7 @@ def extract(path):
         })
 
     orders.append(parse_apostate(text))
-    return prune_sidebars(orders)
+    return apply_descriptions(prune_sidebars(orders))
 
 
 def parse_apostate(text):
