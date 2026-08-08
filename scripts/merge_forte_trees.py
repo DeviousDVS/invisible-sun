@@ -22,7 +22,7 @@ abilities are left with no unlocks rather than being given invented ones.
 
 Usage:  python3 scripts/merge_forte_trees.py source/isdata_2026.json source/data/fortes.json
 """
-import json, re, sys, os, glob
+import json, re, sys, os, glob, difflib
 
 SUPPLEMENT = 'source/forte-trees'
 
@@ -130,6 +130,80 @@ CANONICAL_NAMES = {
     "Writhes And Squirms": "Writhes and Squirms",
 }
 
+# Where neither source is right, taken from the book directly.
+#
+# Seeping Deeper runs to two paragraphs (The Key, lines 10838-10848). The
+# prepared reading has only the first, ending "...into the dream of someone
+# nearby", losing the paragraph that says what each choice actually does — the
+# whole rule. Our extraction has both, but with the tree diagram's labels and a
+# marginal note run on after them. So this is the book's text, verbatim.
+#
+# Every other disagreement between the two sources was settled against the book
+# and went the prepared reading's way. This is the only one that did not.
+TEXT_OVERRIDES = {
+    ("Travels as a Spirit", "Seeping Deeper"): (
+        "Since the Noösphere and the deeper levels of dreams are connected, my "
+        "spiritform can travel into either. When I activate this ability, I "
+        "must choose to travel to the Noösphere or into the dream of someone "
+        "nearby. If I choose the Noösphere, I can delve into the collective "
+        "memories of all the minds there and gain an answer to one question. "
+        "If I choose the deep dream, I can view a specific memory from that "
+        "person, up to ten minutes long."
+    ),
+}
+
+# Book furniture, in the two shapes it survives in: a running head set as a
+# caps line or the bare word "Forte", and a cross-reference to another entry.
+FURNITURE = re.compile(
+    r'[A-Z][^,]{0,44},\s*page\s+\d+'                       # "Scourge, page 29"
+    r'|\bTHE\s+(PATH|WAY|KEY|GATE|NIGHTSIDE|THRESHOLD)\b'   # running head
+    r'|\bForte\b')
+
+
+def furniture_only(spans):
+    """True if these fragments are nothing but page furniture."""
+    text = FURNITURE.sub(' ', ' '.join(spans))
+    return not re.search(r'[A-Za-z0-9]', text)
+
+
+def strip_html(t):
+    return re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', t or '')).strip()
+
+
+def prefer(pack, prepared):
+    """
+    Choose between two independent readings of the same ability text.
+
+    Neither source is reliably cleaner, so the choice cannot be "trust one of
+    them". Extraction pulls whole pages, so it picks up whatever was set around
+    the ability — a marginal note, a running head, the labels of the tree
+    diagram, and in a few places the next ability's text entirely: Psychic
+    Attack ended with 768 characters belonging to Delve Into the Noösphere,
+    which is why Delve itself was missing its list of actions.
+
+    The prepared dataset was read ability by ability, so it carries none of
+    that. What it does carry, in nine places, is a cross-reference or a running
+    head that our extraction already strips.
+
+    So: prefer the prepared text, unless the only thing it adds is furniture.
+    """
+    # Compared on alphanumerics, not norm() — that drops digits, so a depletion
+    # reading "0–1" against "0–2" would look identical and never be corrected.
+    same = lambda s: re.sub(r'[^a-z0-9]', '', s.lower())
+    p, f = strip_html(pack), strip_html(prepared)
+    if not f or same(p) == same(f):
+        return None
+    # Only spans the prepared text actually adds. A pack-only difference yields
+    # an empty span, and an empty span reads as furniture — which would keep
+    # every polluted description exactly as it was.
+    added = [s for s in (f[j1:j2] for tag, _, _, j1, j2
+                         in difflib.SequenceMatcher(None, p, f).get_opcodes()
+                         if tag != 'equal') if s.strip()]
+    if added and furniture_only(added):
+        return None
+    return f
+
+
 # An ability that unlocks itself, which the diagram does not show: Stop is the
 # terminal of Warps Time and Space, fed by both Reversal and Spatial Warp and
 # leading nowhere (The Key, p133). Left in, it makes the tree cyclic and any
@@ -218,6 +292,8 @@ def main(isdata_path, fortes_path, supplement_path=SUPPLEMENT):
 
     with_tree = added = edges = fixed = 0
     drops_hit, colours_hit = set(), set()
+    retext = {'description': 0, 'depletion': 0}
+    overrides_hit = set()
     for forte in fortes:
         src = by_name.get(norm(forte['name']))
         if not src:
@@ -252,6 +328,15 @@ def main(isdata_path, fortes_path, supplement_path=SUPPLEMENT):
             # where the ability is "Anti-life". Matching is loose, but what is
             # stored is the ability's own name, so the tree in the data reads
             # the same as the abilities it points at.
+            override = TEXT_OVERRIDES.get((forte['name'], target['name']))
+            for field in ('description', 'depletion'):
+                better = override if (override and field == 'description') \
+                    else prefer(target.get(field), s.get(field))
+                if better is not None and better != target.get(field):
+                    target[field] = better
+                    retext[field] += 1
+                    if override and field == 'description':
+                        overrides_hit.add((forte['name'], target['name']))
             drop = DROP_UNLOCKS.get((norm(forte['name']), norm(s['name'])), set())
             if drop: drops_hit.add((norm(forte['name']), norm(s['name'])))
             target['unlocks'] = [known[norm(u)]['name'] if norm(u) in known else u
@@ -305,11 +390,18 @@ def main(isdata_path, fortes_path, supplement_path=SUPPLEMENT):
           f'diagram), {len(fortes) - with_tree} have none')
     print(f'  {edges} unlock edges, {added} abilities recovered, {fixed} colours corrected')
     print(f'  {renamed} forte names re-cased to the books\' spelling')
+    print(f"  {retext['description']} ability descriptions and {retext['depletion']} "
+          f'depletions taken from the prepared reading')
     print(f'  starting abilities per tree: {roots_seen}')
 
     # A correction that matches nothing is not a correction. Both tables were
     # settled against the book once; if the data moves out from under them they
     # have to say so rather than quietly applying to nobody.
+    for key in TEXT_OVERRIDES:
+        if not any(f['name'] == key[0] and any(a['name'] == key[1]
+                                               for a in f['abilities']) for f in fortes):
+            print(f'  warning: TEXT_OVERRIDES names no ability: {key[0]} / {key[1]}')
+
     for label, table, hit in (("DROP_UNLOCKS", DROP_UNLOCKS, drops_hit),
                               ("COLOUR_FIXES", COLOUR_FIXES, colours_hit)):
         for key in set(table) - hit:
