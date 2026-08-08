@@ -67,6 +67,56 @@ SIDEBAR_MIN_LINES = 2
 SIDEBAR_KEEP = 80
 
 
+# Sidebars that survive extraction cleanly but are not worth carrying into the
+# system. Reviewed by hand, one entry per note, matched on a distinctive opening
+# phrase — the categories below are real but not reliably patternable, and a
+# heuristic loose enough to catch them all also catches rules.
+#
+# A *drop* list rather than a keep list on purpose: a note that changes wording,
+# or a new one, survives and gets reviewed, instead of vanishing unnoticed.
+SIDEBAR_DROP = [
+    # Advice about the boxed set's physical components, which a VTT does not have.
+    ('Apostate', 'True to your nature, the Apostate character tome'),
+    ('Goetic', 'The Goetic character tome has space to list'),
+    ('Vance', 'Vances should record their Vancian spells on a Grimoire sheet'),
+    ('Weaver', 'Weaver aggregates can be found in The Way'),
+    # Bare pointers to another book, carrying no rule of their own.
+    ('Maker', 'More information on the Order of Makers'),
+    ('Vance', 'More information on the Order of the Vance'),
+    ('Vance', 'Vances learn existing Vancian spells like any spell'),
+    # Bookkeeping the incantation ledger now does (VislaeModel incantations.log).
+    ('Vance', 'Players may wish to keep track of which incantations'),
+    # The Vance's mind-diagram sheets, plus a "VANCE SPELLCASTING 1. 2. 3."
+    # tail — the numbered steps are set inside the diagram and do not extract.
+    ('Vance', 'Vances have two special'),
+    # The running text the VANCIAN MAGIC box restates; the box is kept.
+    ('Vance', 'The Vance chooses a spell they have stored in their mind. If the Vance'),
+    # A spell set into the margin as an example. Already in the spells pack as
+    # packs/_source/spells/orrod_s_impossible_flood_*.json.
+    ('Vance', 'ORROD’S IMPOSSIBLE FLOOD'),
+]
+
+
+def prune_sidebars(orders):
+    """Apply SIDEBAR_DROP, reporting any entry that matched nothing."""
+    matched = set()
+    for order in orders:
+        kept = []
+        for note in order.get('sidebars', []):
+            hit = next((i for i, (name, snippet) in enumerate(SIDEBAR_DROP)
+                        if name == order['name'] and note.startswith(snippet)), None)
+            if hit is None:
+                kept.append(note)
+            else:
+                matched.add(hit)
+        order['sidebars'] = kept
+
+    for i, (name, snippet) in enumerate(SIDEBAR_DROP):
+        if i not in matched:
+            print(f'  warning: no {name} sidebar opens {snippet!r} — kept whatever replaced it')
+    return orders
+
+
 def is_furniture(block):
     """
     A block of character-sheet field labels rather than prose.
@@ -164,9 +214,30 @@ def drop_sidebars(lines):
     return out, notes
 
 
-def clean(lines):
+def join_wrapped_refs(lines):
+    """
+    Rejoin a cross-reference that wrapped across two lines.
+
+    NOISE_RE drops a reference set on one line, but the marginal column is only
+    20-28 characters wide, so most of them wrap: "Invocation of Knowledge," then
+    "page 36". Neither half matches on its own — the first carries no page
+    number, the second is not all digits — so the pair survived into the note it
+    was set beside, and the Goetic's "Nightside" sidebar opened with the page
+    reference for an ability three chapters away.
+    """
     out = []
     for raw in lines:
+        s = raw.strip()
+        if re.fullmatch(r'page\s+\d+', s) and out and out[-1].strip().endswith(','):
+            out[-1] = f'{out[-1].strip()} {s}'
+        else:
+            out.append(raw)
+    return out
+
+
+def clean(lines):
+    out = []
+    for raw in join_wrapped_refs(lines):
         s = raw.strip()
         if not s or s in NOISE_EXACT or NOISE_RE.match(s):
             continue
@@ -350,6 +421,11 @@ def extract(path):
             prose_from = max(0, start - 230)
         prose_from = min(prose_from, start)
 
+        # NOTE: this region does not go through drop_sidebars, so notes set
+        # beside an order's opening pages are read as more of whichever field
+        # they interrupted. Fixing it relocates real rules — the three-objects-
+        # of-power limit is currently buried in the Maker's description — but it
+        # also splits two boxes mid-sentence, so it needs its own pass.
         description, fields = split_labelled(text[prose_from:start], known=ORDER_FIELDS)
         degrees, sidebars = parse_degrees(text[start:end], name)
 
@@ -366,7 +442,7 @@ def extract(path):
         })
 
     orders.append(parse_apostate(text))
-    return orders
+    return prune_sidebars(orders)
 
 
 def parse_apostate(text):
