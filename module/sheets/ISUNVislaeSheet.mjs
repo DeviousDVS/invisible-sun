@@ -573,8 +573,10 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   }
   
   _attachCustomListeners(html) {
-    // Bene spend/refresh
-    html.querySelectorAll('.bene-pip.full').forEach(el => el.addEventListener('click', this._onSpendBene.bind(this)));
+    /* Pips are a readout, not a control. Spending a bene happens in the venture
+     * dialog, where it is attached to the action it is being spent on and can
+     * be weighed against the challenge; clicking a pip on the sheet spent one
+     * into thin air, with nothing recording what for. */
     html.querySelectorAll('.btn-refresh').forEach(el => el.addEventListener('click', this._onRefreshPool.bind(this)));
 
     // Wound/Anguish add/remove
@@ -635,21 +637,6 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     // Repeatable narrative entries
     html.querySelectorAll('.entry-add').forEach(el => el.addEventListener('click', this._onEntryAdd.bind(this)));
     html.querySelectorAll('.entry-delete').forEach(el => el.addEventListener('click', this._onEntryDelete.bind(this)));
-  }
-
-  async _onSpendBene(event) {
-    event.preventDefault();
-    const pool = event.currentTarget.dataset.pool;
-    if (!pool) return;
-    
-    const isCertes = CONFIG.ISUN.certesPoolNames.includes(pool);
-    const poolPath = `system.stats.${isCertes ? 'certes' : 'qualia'}.pools.${pool}.value`;
-    
-    const doc = this.document;
-    const currentVal = foundry.utils.getProperty(doc, poolPath);
-    if (currentVal > 0) {
-      await doc.update({ [poolPath]: currentVal - 1 });
-    }
   }
 
   /**

@@ -7,11 +7,11 @@
   </div>
   
   {{!-- Held bene first, then the empty slots, so a pool drains from the right
-        as it is spent rather than filling from it. --}}
+        as it is spent rather than filling from it. A readout only: bene are
+        spent in the venture dialog, against the action they are paying for. --}}
   <div class="pool-pips">
     {{#times pool.value}}
-      <span class="{{#if pipClass}}{{pipClass}}{{else}}bene-pip{{/if}} full"
-            data-action="spend-bene" data-pool="{{poolName}}" title="{{localize 'ISUN.Spend'}}"></span>
+      <span class="{{#if pipClass}}{{pipClass}}{{else}}bene-pip{{/if}} full"></span>
     {{/times}}
     {{#times (poolRemaining pool)}}
       <span class="{{#if pipClass}}{{pipClass}}{{else}}bene-pip{{/if}} empty"></span>
