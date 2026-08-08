@@ -326,14 +326,40 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'aggregates.json'))) {
 // is written out from the level rather than being a second source of truth.
 // Changery secrets carry the bodily change they wait on; the other two kinds
 // leave that empty.
+/* Secrets that raise a limit rather than merely describing one.
+ *
+ * The actor sums system.grants.limits across everything it owns
+ * (ISUNActor._prepareLimits) and shows the result on the Inventory tab, but no
+ * item in any pack had ever set it — 778 items, all zeros — so the whole path
+ * was live code with nothing flowing through it.
+ *
+ * Only one secret belongs here. Reading every candidate in the three packs that
+ * carrying types found nothing else: the orders' "we can safely possess three
+ * ephemera" is the base limit, already in CONFIG.ISUN.limits and raised by
+ * degree, so granting it again would double it.
+ *
+ * Power Room is deliberately absent. "The objects here do not count against
+ * your limit" is an exemption for objects stored in it, not five more a
+ * character may carry, and modelling it as a grant would allow eight on the
+ * person. It needs per-object state, as the kindled exemption already has.
+ */
+const SECRET_GRANTS = {
+  // "two additional objects of power above and beyond the normal limit of
+  // three at a time" (The Way, p90).
+  "Magical Management": { limits: { objectsOfPower: 2 } },
+};
+
 if (fs.existsSync(path.join(SOURCE_DIR, 'secrets.json'))) {
   const secretsData = JSON.parse(fs.readFileSync(path.join(SOURCE_DIR, 'secrets.json'), 'utf8'));
+  const grantsApplied = new Set();
   const icons = {
     character: "icons/svg/eye.svg",
     house: "icons/environment/settlement/house-manor.webp",
     changery: "icons/magic/life/cross-worn-green.webp",
   };
   for (const c of secretsData) {
+    const grants = SECRET_GRANTS[c.name];
+    if (grants) grantsApplied.add(c.name);
     writeItem("secrets", createItem(c.name, "Secret", {
       level: c.level ?? 1,
       cost: `${c.level ?? 1} Acumen`,
@@ -343,9 +369,18 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'secrets.json'))) {
       changeRequired: c.changeRequired || "",
       source: c.source || "",
       page: c.page ?? null,
+      ...(grants ? { grants } : {}),
     }, icons[c.kind] || icons.character));
   }
-  console.log(`Processed ${secretsData.length} secrets.`);
+  // A grant keyed to a name that no longer exists applies to nobody, and does
+  // so silently — the limit simply reads low, which is what it did before.
+  for (const name of Object.keys(SECRET_GRANTS)) {
+    if (!grantsApplied.has(name)) {
+      console.warn(`  warning: SECRET_GRANTS names no secret: ${name}`);
+    }
+  }
+  console.log(`Processed ${secretsData.length} secrets `
+    + `(${grantsApplied.size} carrying a limit grant).`);
 }
 
 // Character arcs
