@@ -18,7 +18,26 @@
     {{/times}}
   </div>
   
-  {{#if pool.vex}}
+  {{!-- Vexes sit with the bene, which is where the book puts them: "use the vex
+        and scourge counters right in the appropriate pools on the stat pool
+        sheet, just like bene" (The Key, p2294). They are not pool slots though
+        — a vex does not use up a bene's place — so they read as their own run
+        of red beside the track rather than inside it.
+
+        Only a GM places one. "The GM decides when you spend a vex", and a vex
+        arrives from a kindled item or a piece of weird magic rather than from
+        anything the player does, so a player has no occasion to add one. They
+        still see any they are carrying. --}}
+  {{#if @root.isGM}}
+    <span class="vex-group gm" title="{{localize 'ISUN.VexHint'}}">
+      {{#times pool.vex}}
+        <span class="vex-pip" data-action="remove-vex" data-pool="{{poolName}}"
+              data-stat="{{statKey}}" title="{{localize 'ISUN.VexRemove'}}"></span>
+      {{/times}}
+      <a class="vex-add" data-action="add-vex" data-pool="{{poolName}}"
+         data-stat="{{statKey}}" title="{{localize 'ISUN.VexAdd'}}">+</a>
+    </span>
+  {{else if pool.vex}}
     <span class="vex-group" title="{{localize 'ISUN.VexHint'}}">
       {{#times pool.vex}}<span class="vex-pip"></span>{{/times}}
     </span>

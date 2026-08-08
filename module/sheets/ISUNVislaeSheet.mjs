@@ -629,6 +629,12 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       el.addEventListener('click', this._onOpenItem.bind(this)));
 
     // Injury track
+    // Vexes. GM-only, and the controls are not rendered for anyone else.
+    html.querySelectorAll('[data-action="add-vex"]').forEach(el =>
+      el.addEventListener('click', ev => this._onModifyVex(ev, 1)));
+    html.querySelectorAll('[data-action="remove-vex"]').forEach(el =>
+      el.addEventListener('click', ev => this._onModifyVex(ev, -1)));
+
     html.querySelectorAll('[data-action="add-injury"]').forEach(el =>
       el.addEventListener('click', this._onAddInjury.bind(this)));
     html.querySelectorAll('[data-action="remove-injury"]').forEach(el =>
@@ -637,6 +643,34 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     // Repeatable narrative entries
     html.querySelectorAll('.entry-add').forEach(el => el.addEventListener('click', this._onEntryAdd.bind(this)));
     html.querySelectorAll('.entry-delete').forEach(el => el.addEventListener('click', this._onEntryDelete.bind(this)));
+  }
+
+  /**
+   * Place or clear a vex. The GM's to give: a vex comes from a kindled item or
+   * a piece of weird magic, never from something the character chooses.
+   *
+   * Checked here as well as hidden in the template. Hiding a control only
+   * stops it being offered — an owner can still update their own actor — so
+   * the guard is what actually holds, for as long as a client-side check can
+   * hold anything.
+   *
+   * The pool's group is derived from its name rather than read from the
+   * dataset, matching _onAllocatePool, so the two cannot disagree about where
+   * a pool lives.
+   */
+  async _onModifyVex(event, delta) {
+    event.preventDefault();
+    if (!game.user.isGM) return;
+
+    const pool = event.currentTarget.dataset.pool;
+    if (!pool) return;
+    const group = CONFIG.ISUN.certesPoolNames.includes(pool) ? "certes" : "qualia";
+    const path = `system.stats.${group}.pools.${pool}.vex`;
+
+    const current = foundry.utils.getProperty(this.document, path) ?? 0;
+    const next = Math.max(0, current + delta);
+    if (next === current) return;
+    await this.document.update({ [path]: next });
   }
 
   /**

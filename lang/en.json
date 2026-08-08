@@ -325,6 +325,8 @@
     "NoLongRestsLeft": "Healing a Wound or Anguish needs a ten-minute or one-hour rest, and both are spent.",
     "NothingToHeal": "Nothing to heal there.",
     "VexHint": "Vex: spent to subtract 1 from a venture. Refreshing the pool clears any left over.",
+    "VexAdd": "Place a vex in this pool (GM)",
+    "VexRemove": "Remove this vex (GM)",
     "ApplyDamage": "Apply damage",
     "DamageAmount": "Points of damage",
     "DamageSource": "Source",

@@ -1166,6 +1166,29 @@ a.sentence-part:hover {
   border: 1px solid var(--isun-wound);
 }
 
+/* The GM's controls. The "+" stays faint until the row is hovered so eight of
+   them do not read as eight vexes at a glance, and a placed pip takes a cursor
+   only for the GM, since only a GM can take one back. */
+.vex-group.gm .vex-pip { cursor: pointer; }
+
+.vex-add {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px dashed var(--isun-wound);
+  color: var(--isun-wound);
+  font-size: 10px;
+  line-height: 10px;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0.25;
+  transition: opacity 0.15s ease;
+}
+
+.pool-row:hover .vex-add { opacity: 1; }
+.vex-add:hover { background: var(--isun-wound); color: var(--isun-bg-primary); }
+
 /* ── Skills ───────────────────────────────────────────────
    Skills live under the pools on Overview: both feed a venture. */
 .skills-block { margin-top: 0.75rem; }
