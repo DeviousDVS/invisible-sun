@@ -80,6 +80,32 @@ a vex subtracts 1, so spending both nets zero (The Key, p2233) — the arithmeti
 already says it. The player's real choice is whether to spend bene offsetting a
 vex or save it.
 
+## Which pool pays
+
+The declared pool decides this, and the rule reads the opposite way round from
+the obvious guess. A bene is not spent *from a pool relevant to the action* —
+it belongs to a pool and reaches the actions that pool covers:
+
+> A bene token can be used with any action relevant **to that pool**.
+> (The Key, p1902)
+
+So a declaration of Accuracy puts only Accuracy bene on the table. Interaction
+bene cannot pay for it.
+
+Sortilege is the exception, in the same passage: its value is measured in
+enhancements rather than bene, and "these enhancements can be used with **any**
+action". Sortilege is therefore always offered, whatever pool was declared.
+
+Magic can also put enhancements in other pools, and those follow the bene rule
+rather than the Sortilege one — "used only with the pool that they are in".
+
+**This last case has nowhere to live yet.** `pool()` in `_fields.mjs` carries
+one `value`, which is bene for every pool but Sortilege and enhancements for
+Sortilege; `VentureDialog` splits them with `isEnhancement: key === "sortilege"`.
+An enhancement granted into Accuracy cannot be recorded at all. Not needed for
+this flow to work, but it is the reason the response step should ask a pool for
+its bene and its enhancements separately rather than assuming which it holds.
+
 ## Venture
 
 ```
@@ -165,11 +191,6 @@ available per-challenge even when off by default.
 
 ## Open questions
 
-- **Which pools may bene come from?** The rules say a bene is spent "from a
-  pool relevant to the action" (The Key, p1902). `VentureDialog` currently
-  offers every pool. Declaring the pool arguably tightens this to the declared
-  one — an Accuracy action probably should not be paid for with Interaction
-  bene. Worth settling before step 3, as it changes the response UI.
 - **Does a defence declaration differ from an action declaration?** Mechanically
   it should not, but the label and the framing matter for play, and the card may
   want to say which it is.
