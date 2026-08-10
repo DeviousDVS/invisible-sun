@@ -398,7 +398,24 @@
     "ForcePickerCrux": "{crux} Crux available. Your first ability is free; after that 1 Crux for levels 1–4, 2 for 5–6, 3 for 7 and above.",
     "ForteNoneYet": "No forte yet — drop one onto the sheet before taking its abilities.",
     "ForteFreePick": "Free",
-    "AbilityTakenFree": "{name} taken — your forte's opening ability, at no cost. {points} points to place."
+    "AbilityTakenFree": "{name} taken — your forte's opening ability, at no cost. {points} points to place.",
+    "DeclareChallenge": "Declare a Challenge",
+    "Declare": "Declare",
+    "ChallengeRating": "Challenge rating",
+    "ChallengeLabelPlaceholder": "What is being attempted",
+    "Challenging": "Put to",
+    "Pool": "Pool",
+    "Certes": "Certes",
+    "Qualia": "Qualia",
+    "Action": "Action",
+    "MaxVex": "Vex (maximum)",
+    "MaxVexHint": "A ceiling, not a count. What applies is the lesser of this and what the pool holds, and it cannot be declined.",
+    "IsDefence": "This is a defence",
+    "IsDefenceHint": "An NPC is acting against the character, who rolls to defend.",
+    "Offline": "offline",
+    "ChallengeGMOnly": "Only the GM declares a challenge.",
+    "ChallengeNoTargets": "No player-owned vislae to challenge.",
+    "ChallengeNoGM": "No GM is connected, so the challenge cannot be answered."
   },
   "TYPES": {
     "Actor": {

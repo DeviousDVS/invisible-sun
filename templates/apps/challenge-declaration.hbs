@@ -1,0 +1,62 @@
+{{!-- The GM's half of a challenge. Naming the pool is the point: it decides
+      which scourge applies, which vexes are drawn, and which bene may pay. --}}
+<form class="challenge-declaration-form">
+
+  <div class="form-group">
+    <label>{{localize "ISUN.Action"}}</label>
+    <input type="text" name="label" value="{{label}}"
+           placeholder="{{localize 'ISUN.ChallengeLabelPlaceholder'}}" />
+  </div>
+
+  <div class="grid-2col">
+    <div class="form-group">
+      <label>{{localize "ISUN.Pool"}}</label>
+      <select name="pool">
+        <optgroup label="{{localize 'ISUN.Certes'}}">
+          {{#each pools as |p|}}{{#if (eq p.group "certes")}}
+            <option value="{{p.key}}" {{#if (eq p.key @root.pool)}}selected{{/if}}>{{p.label}}</option>
+          {{/if}}{{/each}}
+        </optgroup>
+        <optgroup label="{{localize 'ISUN.Qualia'}}">
+          {{#each pools as |p|}}{{#if (eq p.group "qualia")}}
+            <option value="{{p.key}}" {{#if (eq p.key @root.pool)}}selected{{/if}}>{{p.label}}</option>
+          {{/if}}{{/each}}
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>{{localize "ISUN.ChallengeRating"}}</label>
+      <input type="number" name="challenge" value="{{challenge}}" min="0" max="10" />
+    </div>
+  </div>
+
+  {{!-- A ceiling, not a count. What applies is bounded by what the pool holds,
+        and the player cannot decline it. --}}
+  <div class="form-group">
+    <label>{{localize "ISUN.MaxVex"}}</label>
+    <input type="number" name="maxVex" value="0" min="0" max="10" />
+    <p class="hint">{{localize "ISUN.MaxVexHint"}}</p>
+  </div>
+
+  <div class="form-group">
+    <label class="checkbox">
+      <input type="checkbox" name="defence" {{#if defence}}checked{{/if}} />
+      {{localize "ISUN.IsDefence"}}
+    </label>
+    <p class="hint">{{localize "ISUN.IsDefenceHint"}}</p>
+  </div>
+
+  <fieldset class="challenge-targets">
+    <legend>{{localize "ISUN.Challenging"}}</legend>
+    {{#each candidates as |c|}}
+      <label class="target-row{{#unless c.active}} offline{{/unless}}">
+        <input type="checkbox" name="target.{{c.uuid}}" />
+        <img src="{{c.img}}" alt="{{c.name}}" />
+        <span class="target-name">{{c.name}}</span>
+        <span class="target-player">{{c.players}}{{#unless c.active}} · {{localize "ISUN.Offline"}}{{/unless}}</span>
+      </label>
+    {{/each}}
+  </fieldset>
+
+</form>
