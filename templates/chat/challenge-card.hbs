@@ -63,6 +63,21 @@
           </span>
         {{/if}}
       </div>
+
+      {{!-- The claim itself. Approving without this is approving blind, which
+            is the one thing the approval step exists to prevent. --}}
+      {{#if r.breakdown}}
+        <div class="cc-detail">
+          <span class="cc-parts">
+            {{#each r.breakdown as |part|}}<span class="cc-part">{{part}}</span>{{/each}}
+          </span>
+          <span class="cc-result">
+            <span class="cc-fig" data-tooltip="{{localize 'ISUN.Venture'}}">{{localize "ISUN.Venture"}} {{r.venturePreview}}</span>
+            <span class="cc-fig" data-tooltip="{{localize 'ISUN.NeedToRoll'}}">{{localize "ISUN.NeedToRoll"}} {{r.targetLabel}}</span>
+            {{#if r.showDice}}<span class="cc-fig">{{r.dice}} {{localize "ISUN.Dice"}}</span>{{/if}}
+          </span>
+        </div>
+      {{/if}}
     {{/each}}
   </div>
 

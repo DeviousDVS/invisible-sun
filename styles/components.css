@@ -1881,3 +1881,27 @@ a.sentence-part:hover {
 .challenge-card .cc-outcome.auto { color: var(--isun-sun-green); }
 .challenge-card .cc-outcome.failure { color: var(--isun-wound); }
 .challenge-card .cc-outcome.impossible { color: var(--isun-flux); }
+
+/* The claim, under its row. A GM approves this, so it has to be readable at a
+   glance without opening anything.
+
+   Stacked rather than side by side: the card renders in the chat notification
+   toast as well as the sidebar, and the toast is ~300px, which squeezed the
+   parts into a one-word-per-line column. */
+.challenge-card .cc-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 0 3px 26px;      /* clears the avatar */
+  padding: 2px 4px;
+  font-size: 0.85em;
+  color: var(--isun-text-secondary);
+  border-left: 2px solid var(--isun-border);
+}
+
+.challenge-card .cc-parts { display: flex; flex-wrap: wrap; gap: 4px; }
+.challenge-card .cc-part::after { content: " ·"; color: var(--isun-border); }
+.challenge-card .cc-part:last-child::after { content: ""; }
+
+.challenge-card .cc-result { display: flex; flex-wrap: wrap; gap: 8px; }
+.challenge-card .cc-fig { color: var(--isun-text-primary); font-variant-numeric: tabular-nums; }

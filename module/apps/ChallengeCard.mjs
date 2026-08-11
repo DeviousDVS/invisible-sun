@@ -220,6 +220,26 @@ export class ChallengeCard {
   }
 
   /**
+   * Everything making up a venture, in words.
+   *
+   * The GM is asked to approve a proposal, so the proposal has to be legible:
+   * without this the card offered nothing but "proposed" and an Approve
+   * button, which is approving blind. It also builds the roll's own source
+   * list, so what the GM agreed to and what the dice message reports cannot
+   * drift apart.
+   */
+  static breakdown(data, response) {
+    const poolLabel = game.i18n.localize(CONFIG.ISUN.poolLabels[data.pool] ?? data.pool);
+    return [
+      ...(response.skills ?? []).map(s => `${s.name} +${s.level}`),
+      response.bene ? `${response.bene} ${poolLabel} ${game.i18n.localize("ISUN.Bene")}` : null,
+      response.sortilege ? `${response.sortilege} ${game.i18n.localize("ISUN.PoolSortilege")} +${response.sortilege} ${game.i18n.localize("ISUN.Die")}` : null,
+      response.scourge ? `${game.i18n.localize("ISUN.Scourge")} −${response.scourge}` : null,
+      response.vex ? `${game.i18n.localize("ISUN.Vex")} −${response.vex}` : null
+    ].filter(Boolean);
+  }
+
+  /**
    * Roll an approved response: spend, roll, record.
    *
    * This is the only place anything is deducted. The player proposed and the
@@ -259,14 +279,7 @@ export class ChallengeCard {
     if (sortilege) updates["system.stats.qualia.pools.sortilege.value"] = sortPool.value - sortilege;
     if (Object.keys(updates).length) await actor.update(updates);
 
-    const poolLabel = game.i18n.localize(CONFIG.ISUN.poolLabels[data.pool] ?? data.pool);
-    const sources = [
-      ...(response.skills ?? []).map(s => `${s.name} +${s.level}`),
-      bene ? `${bene} ${poolLabel} ${game.i18n.localize("ISUN.Bene")}` : null,
-      sortilege ? `${sortilege} ${game.i18n.localize("ISUN.PoolSortilege")}` : null,
-      scourge ? `${game.i18n.localize("ISUN.Scourge")} −${scourge}` : null,
-      vex ? `${game.i18n.localize("ISUN.Vex")} −${vex}` : null
-    ].filter(Boolean);
+    const sources = this.breakdown(data, { ...response, bene, vex, sortilege, scourge });
 
     const { rollVenture } = game.invisibleSun;
     const outcome = await rollVenture({
@@ -325,6 +338,17 @@ export class ChallengeCard {
         img: fromUuidSync(r.uuid)?.img ?? "icons/svg/mystery-man.svg",
         scourge: r.scourge, vex: r.vex,
         showCost: r.state !== "pending",
+        /* What the player is claiming, shown from the moment it is proposed.
+         * A GM cannot sensibly approve what they cannot see, and once rolled
+         * it is the record of what was agreed. */
+        breakdown: r.state === "pending" ? null : this.breakdown(data, r),
+        venturePreview: r.venture ?? 0,
+        // A target at or below zero needs no roll at all.
+        targetLabel: (data.challenge - (r.venture ?? 0)) <= 0
+          ? game.i18n.localize("ISUN.Auto")
+          : data.challenge - (r.venture ?? 0),
+        dice: 1 + (r.sortilege ?? 0),
+        showDice: (r.sortilege ?? 0) > 0,
         // Once rolled, the venture and how it went say more than the state.
         venture: r.state === "rolled" ? r.venture : null,
         outcome: r.outcome ?? null,
