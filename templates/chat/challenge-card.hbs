@@ -40,11 +40,17 @@
 
         <span class="cc-state">{{r.stateLabel}}</span>
 
+        {{!-- No data-actor-id here. The row carries it, and the handler reads
+              it from there: writing it onto the button meant repeating a value
+              inside a nested {{#each}}, where "../r.id" resolved to nothing —
+              block params are lexically scoped, so ".." walks the context path
+              past them. Every button rendered data-actor-id="" and every click
+              was refused. --}}
         {{#if r.actions.length}}
           <span class="cc-actions">
             {{#each r.actions as |a|}}
               <button type="button" class="cc-btn {{a.action}}"
-                      data-action="{{a.action}}" data-actor-id="{{../r.id}}">{{a.label}}</button>
+                      data-action="{{a.action}}">{{a.label}}</button>
             {{/each}}
           </span>
         {{/if}}

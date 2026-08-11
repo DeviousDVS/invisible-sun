@@ -286,7 +286,10 @@ export class ChallengeCard {
 
   static async #onAction(event, message) {
     event.preventDefault();
-    const { action, actorId } = event.currentTarget.dataset;
+    const { action } = event.currentTarget.dataset;
+    // Taken from the row rather than the button. One place holds it, so a
+    // change to the markup cannot leave the two disagreeing.
+    const actorId = event.currentTarget.closest("[data-actor-id]")?.dataset.actorId;
     switch (action) {
       case "accept":
         return this.accept(message, actorId);
