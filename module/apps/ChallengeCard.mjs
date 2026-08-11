@@ -219,6 +219,74 @@ export class ChallengeCard {
     return ChallengeResponse.open(message, actorId);
   }
 
+  /**
+   * Roll an approved response: spend, roll, record.
+   *
+   * This is the only place anything is deducted. The player proposed and the
+   * GM approved, but neither of those touched a pool, because a proposal can
+   * be refused and a refund is worse than a late spend.
+   *
+   * What is spent is re-clamped against the pools as they stand now rather
+   * than trusting the proposal, and the scourge is re-read for the same
+   * reason: a rest, another action or a fresh Wound may have moved things
+   * since the GM approved. The venture is recomputed from what was actually
+   * paid, so the roll can never claim a bene the character no longer has.
+   */
+  static async roll(message, actorId) {
+    const data = this.read(message);
+    const response = this.responseFor(message, actorId);
+    if (!data || !response || response.state !== "approved") return false;
+
+    const actor = fromUuidSync(response.uuid);
+    if (!actor) return false;
+
+    const group = this.groupOf(data.pool);
+    const pool = actor.system?.stats?.[group]?.pools?.[data.pool];
+    const sortPool = actor.system?.stats?.qualia?.pools?.sortilege;
+    if (!pool) return false;
+
+    const bene = Math.min(response.bene ?? 0, pool.value ?? 0);
+    const vex = Math.min(response.vex ?? 0, pool.vex ?? 0);
+    const sortilege = Math.min(response.sortilege ?? 0, sortPool?.value ?? 0);
+    const scourge = pool.scourgeTotal ?? 0;
+    const skillTotal = (response.skills ?? []).reduce((n, s) => n + (s.level ?? 0), 0);
+    const venture = skillTotal + bene - scourge - vex;
+
+    // Sortilege is spent from its own pool, never from the declared one.
+    const updates = {};
+    if (bene) updates[`system.stats.${group}.pools.${data.pool}.value`] = pool.value - bene;
+    if (vex) updates[`system.stats.${group}.pools.${data.pool}.vex`] = pool.vex - vex;
+    if (sortilege) updates["system.stats.qualia.pools.sortilege.value"] = sortPool.value - sortilege;
+    if (Object.keys(updates).length) await actor.update(updates);
+
+    const poolLabel = game.i18n.localize(CONFIG.ISUN.poolLabels[data.pool] ?? data.pool);
+    const sources = [
+      ...(response.skills ?? []).map(s => `${s.name} +${s.level}`),
+      bene ? `${bene} ${poolLabel} ${game.i18n.localize("ISUN.Bene")}` : null,
+      sortilege ? `${sortilege} ${game.i18n.localize("ISUN.PoolSortilege")}` : null,
+      scourge ? `${game.i18n.localize("ISUN.Scourge")} −${scourge}` : null,
+      vex ? `${game.i18n.localize("ISUN.Vex")} −${vex}` : null
+    ].filter(Boolean);
+
+    const { rollVenture } = game.invisibleSun;
+    const outcome = await rollVenture({
+      challenge: data.challenge,
+      venture,
+      sortilege,
+      label: data.label || game.i18n.localize(data.defence ? "ISUN.Defence" : "ISUN.Challenge"),
+      actor,
+      sources
+    });
+
+    return this.update(message, actorId, {
+      state: "rolled",
+      bene, vex, sortilege, scourge, venture,
+      outcome: outcome?.autoSuccess ? "auto"
+        : outcome?.impossible ? "impossible"
+        : outcome?.success ? "success" : "failure"
+    });
+  }
+
   /* ──────────────────────────────────────────────
    * Wiring
    * ────────────────────────────────────────────── */
@@ -257,6 +325,12 @@ export class ChallengeCard {
         img: fromUuidSync(r.uuid)?.img ?? "icons/svg/mystery-man.svg",
         scourge: r.scourge, vex: r.vex,
         showCost: r.state !== "pending",
+        // Once rolled, the venture and how it went say more than the state.
+        venture: r.state === "rolled" ? r.venture : null,
+        outcome: r.outcome ?? null,
+        outcomeLabel: r.outcome
+          ? game.i18n.localize(`ISUN.Outcome${r.outcome.charAt(0).toUpperCase()}${r.outcome.slice(1)}`)
+          : null,
         stateLabel: game.i18n.localize(`ISUN.ChallengeState${r.state.charAt(0).toUpperCase()}${r.state.slice(1)}`),
         actions
       };
@@ -290,10 +364,7 @@ export class ChallengeCard {
         if (!game.user.isGM) return;
         return this.update(message, actorId, { state: "approved" });
       case "roll":
-        // The roll itself belongs with the response dialog, which knows what
-        // the player is bringing. Until that exists the card only records that
-        // the moment was reached.
-        return this.update(message, actorId, { state: "rolled" });
+        return this.roll(message, actorId);
       case "close-challenge":
         return this.close(message);
     }

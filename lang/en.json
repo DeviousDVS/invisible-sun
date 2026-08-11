@@ -433,7 +433,11 @@
     "Spend": "Spend",
     "Die": "die",
     "Auto": "auto",
-    "ProposeHint": "Nothing is spent yet. The GM approves your venture, then you roll."
+    "ProposeHint": "Nothing is spent yet. The GM approves your venture, then you roll.",
+    "OutcomeSuccess": "success",
+    "OutcomeFailure": "failure",
+    "OutcomeAuto": "automatic",
+    "OutcomeImpossible": "impossible"
   },
   "TYPES": {
     "Actor": {

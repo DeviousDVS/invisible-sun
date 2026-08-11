@@ -38,7 +38,15 @@
           </span>
         {{/if}}
 
-        <span class="cc-state">{{r.stateLabel}}</span>
+        {{!-- Once rolled, what it came to. The dice themselves are their own
+              message, so this is the summary that keeps the exchange readable
+              when the log has moved on. --}}
+        {{#if r.outcome}}
+          <span class="cc-venture" data-tooltip="{{localize 'ISUN.Venture'}}">{{r.venture}}</span>
+          <span class="cc-outcome {{r.outcome}}">{{r.outcomeLabel}}</span>
+        {{else}}
+          <span class="cc-state">{{r.stateLabel}}</span>
+        {{/if}}
 
         {{!-- No data-actor-id here. The row carries it, and the handler reads
               it from there: writing it onto the button meant repeating a value

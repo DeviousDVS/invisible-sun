@@ -1868,3 +1868,16 @@ a.sentence-part:hover {
 .challenge-response .cr-target.auto { color: var(--isun-sun-green); }
 .challenge-response .cr-target.impossible { color: var(--isun-wound); }
 .challenge-response .cr-note { margin-top: 6px; font-style: italic; }
+
+/* The result, once rolled. The dice are their own message; this is what keeps
+   the exchange readable after the log has moved on. */
+.challenge-card .cc-venture {
+  font-variant-numeric: tabular-nums;
+  color: var(--isun-text-secondary);
+  cursor: help;
+}
+.challenge-card .cc-outcome { font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.04em; }
+.challenge-card .cc-outcome.success { color: var(--isun-sun-green); }
+.challenge-card .cc-outcome.auto { color: var(--isun-sun-green); }
+.challenge-card .cc-outcome.failure { color: var(--isun-wound); }
+.challenge-card .cc-outcome.impossible { color: var(--isun-flux); }
