@@ -207,23 +207,16 @@ export class ChallengeCard {
   }
 
   /**
-   * Accept a challenge: record what the pool costs and stand ready.
+   * Accept a challenge: open the response dialog so the player can answer it.
    *
-   * The player's own contribution — skills, bene, sortilege — is added
-   * separately; this fixes only the part they cannot argue with.
+   * Imported here rather than at the top of the file: ChallengeResponse reads
+   * this class, so a static import each way would be a cycle.
    */
   static async accept(message, actorId) {
-    const data = this.read(message);
     const response = this.responseFor(message, actorId);
-    if (!data || !response || response.state !== "pending") return false;
-
-    const actor = fromUuidSync(response.uuid);
-    if (!actor) return false;
-
-    const { scourge, vex } = this.poolCost(actor, data.pool, data.maxVex);
-    return this.update(message, actorId, {
-      state: "proposed", scourge, vex, venture: -(scourge + vex)
-    });
+    if (!response || response.state !== "pending") return false;
+    const { ChallengeResponse } = await import("./ChallengeResponse.mjs");
+    return ChallengeResponse.open(message, actorId);
   }
 
   /* ──────────────────────────────────────────────

@@ -1786,3 +1786,85 @@ a.sentence-part:hover {
 
 .challenge-card .cc-foot { margin-top: 6px; text-align: right; }
 .challenge-card.closed { opacity: 0.7; }
+
+/* ── Answering a challenge ────────────────────────────────
+   Dense, like the declaration: this opens every time a player is asked for
+   anything. Scoped to the dialog, not to a form — DialogV2 supplies its own. */
+.challenge-response .dialog-content { font-size: 0.9em; }
+
+.challenge-response .cr-terms {
+  border-bottom: 1px solid var(--isun-border);
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+}
+.challenge-response .cr-label { font-size: 1.05em; }
+.challenge-response .cr-pool { color: var(--isun-text-secondary); font-size: 0.9em; }
+
+/* Fixed penalties: shown so the player can weigh them, never editable. */
+.challenge-response .cr-cost {
+  display: flex;
+  justify-content: space-between;
+  padding: 1px 4px;
+  color: var(--isun-text-secondary);
+  cursor: help;
+}
+.challenge-response .cr-penalty { color: var(--isun-wound); font-variant-numeric: tabular-nums; }
+
+.challenge-response fieldset {
+  border: 1px solid var(--isun-border);
+  border-radius: 4px;
+  padding: 4px 6px 6px;
+  margin: 6px 0 0;
+}
+.challenge-response legend {
+  font-family: var(--isun-font-smallcaps, inherit);
+  font-size: 0.8em;
+  color: var(--isun-text-secondary);
+  padding: 0 4px;
+}
+.challenge-response .hint { font-size: 0.8em; margin: 0 0 4px; }
+
+.challenge-response .cr-skill-list { max-height: 9rem; overflow-y: auto; }
+.challenge-response .cr-skill-row,
+.challenge-response .cr-spend-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 2px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.challenge-response .cr-skill-row:hover { background: var(--isun-bg-elevated); }
+.challenge-response .cr-skill-name,
+.challenge-response .cr-spend-name { flex: 1; }
+.challenge-response .cr-skill-level { color: var(--isun-text-accent); }
+
+.challenge-response .cr-spend-row input { width: 3.5rem; height: 1.7rem; padding: 2px 6px; }
+.challenge-response .cr-avail,
+.challenge-response .cr-effect { font-size: 0.8em; color: var(--isun-text-secondary); }
+.challenge-response .cr-effect { width: 5.5rem; text-align: right; }
+.challenge-response .cr-spend-row.enhancement .cr-effect { color: var(--isun-text-primary); }
+
+/* The three numbers the player is actually deciding between. */
+.challenge-response .cr-summary {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 8px;
+  padding: 5px;
+  background: var(--isun-bg-secondary);
+  border: 1px solid var(--isun-border);
+  border-radius: 4px;
+}
+.challenge-response .cr-cell { display: flex; flex-direction: column; align-items: center; }
+.challenge-response .cr-cap {
+  font-size: 0.7em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--isun-text-secondary);
+}
+.challenge-response .cr-venture,
+.challenge-response .cr-dice,
+.challenge-response .cr-target { font-size: 1.3em; font-variant-numeric: tabular-nums; }
+.challenge-response .cr-target.auto { color: var(--isun-sun-green); }
+.challenge-response .cr-target.impossible { color: var(--isun-wound); }
+.challenge-response .cr-note { margin-top: 6px; font-style: italic; }

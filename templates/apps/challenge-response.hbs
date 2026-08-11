@@ -1,0 +1,74 @@
+{{!-- A div, not a form: DialogV2 supplies its own and discards any the content
+      brings, which would take this class with it and leave every selector and
+      style below unmatched. --}}
+<div class="challenge-response">
+
+  <div class="cr-terms">
+    {{#if label}}<div class="cr-label">{{label}}</div>{{/if}}
+    <div class="cr-pool">
+      {{localize "ISUN.Pool"}} <strong>{{poolLabel}}</strong>
+      · {{localize "ISUN.ChallengeRating"}} <strong>{{challenge}}</strong>
+    </div>
+  </div>
+
+  {{!-- What the pool costs before anything is added. Shown, never editable:
+        a scourge applies because the pool was named, and the vex is the GM's
+        ruling bounded by what the pool holds. --}}
+  {{#if scourge}}
+    <div class="cr-cost" data-tooltip="{{localize 'ISUN.ScourgeHint'}}">
+      <span>{{localize "ISUN.Scourge"}}</span><span class="cr-penalty">−{{scourge}}</span>
+    </div>
+  {{/if}}
+  {{#if vex}}
+    <div class="cr-cost" data-tooltip="{{localize 'ISUN.VexHint'}}">
+      <span>{{localize "ISUN.Vex"}}</span><span class="cr-penalty">−{{vex}}</span>
+    </div>
+  {{/if}}
+
+  {{#if skills.length}}
+    <fieldset class="cr-skills">
+      <legend>{{localize "ISUN.Skills"}}</legend>
+      <p class="hint">{{localize "ISUN.VentureTwoSkillsHint"}}</p>
+      <div class="cr-skill-list">
+        {{#each skills as |s|}}
+          <label class="cr-skill-row">
+            <input type="checkbox" class="cr-skill" name="skill.{{s.id}}" data-level="{{s.level}}" />
+            <span class="cr-skill-name">{{s.name}}</span>
+            <span class="cr-skill-level">+{{s.level}}</span>
+          </label>
+        {{/each}}
+      </div>
+    </fieldset>
+  {{/if}}
+
+  <fieldset class="cr-spend">
+    <legend>{{localize "ISUN.Spend"}}</legend>
+
+    {{!-- Only the declared pool's bene: a bene "can be used with any action
+          relevant to that pool" (The Key, p1902), so another pool's cannot
+          pay for this one. --}}
+    <label class="cr-spend-row">
+      <span class="cr-spend-name">{{poolLabel}} {{localize "ISUN.Bene"}}</span>
+      <input type="number" class="cr-bene" name="bene" value="0" min="0" max="{{bene}}" />
+      <span class="cr-avail">/ {{bene}}</span>
+      <span class="cr-effect">+1 {{localize "ISUN.Venture"}}</span>
+    </label>
+
+    {{!-- Sortilege is the exception: its enhancements "can be used with any
+          action", so it is offered whatever pool was declared. It buys a die. --}}
+    <label class="cr-spend-row enhancement">
+      <span class="cr-spend-name">{{localize "ISUN.PoolSortilege"}}</span>
+      <input type="number" class="cr-sortilege" name="sortilege" value="0" min="0" max="{{sortilege}}" />
+      <span class="cr-avail">/ {{sortilege}}</span>
+      <span class="cr-effect">+1 {{localize "ISUN.Die"}}</span>
+    </label>
+  </fieldset>
+
+  <div class="cr-summary">
+    <div class="cr-cell"><span class="cr-cap">{{localize "ISUN.Venture"}}</span><span class="cr-venture">0</span></div>
+    <div class="cr-cell"><span class="cr-cap">{{localize "ISUN.Dice"}}</span><span class="cr-dice">1</span></div>
+    <div class="cr-cell target"><span class="cr-cap">{{localize "ISUN.NeedToRoll"}}</span><span class="cr-target">0</span></div>
+  </div>
+
+  <p class="hint cr-note">{{localize "ISUN.ProposeHint"}}</p>
+</div>

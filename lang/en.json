@@ -425,7 +425,15 @@
     "ChallengeStateProposed": "proposed",
     "ChallengeStateApproved": "approved",
     "ChallengeStateRolled": "rolled",
-    "ChallengeStateDeclined": "declined"
+    "ChallengeStateDeclined": "declined",
+    "AnswerChallenge": "Answer the Challenge",
+    "AnswerDefence": "Answer the Attack",
+    "Propose": "Propose",
+    "Vex": "Vex",
+    "Spend": "Spend",
+    "Die": "die",
+    "Auto": "auto",
+    "ProposeHint": "Nothing is spent yet. The GM approves your venture, then you roll."
   },
   "TYPES": {
     "Actor": {
