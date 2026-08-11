@@ -1670,3 +1670,119 @@ a.sentence-part:hover {
   white-space: nowrap;
 }
 .challenge-declaration .cd-target.offline { opacity: 0.55; }
+
+/* ── The challenge card ───────────────────────────────────
+   Drawn per client: a player sees the row they can answer, a GM sees them all.
+   Compact, because several of these stack up in a chat log.
+
+   Self-contained colour, as .dice-result is. A chat message sits outside the
+   .invisible-sun.sheet scope, so it inherits Foundry's chat palette instead —
+   which rendered the name in near-black on our dark card and the buttons as
+   rgb(17,17,17) on rgba(0,0,0,0.1): an unreadable black box. */
+.challenge-card {
+  font-size: 0.9em;
+  background: var(--isun-bg-primary);
+  border: 1px solid var(--isun-border-accent);
+  border-radius: 4px;
+  padding: var(--isun-space-sm);
+  color: var(--isun-text-primary);
+  font-family: var(--isun-font-ui);
+}
+
+.challenge-card .cc-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  border-bottom: 1px solid var(--isun-border);
+  padding-bottom: 3px;
+  margin-bottom: 5px;
+}
+
+.challenge-card .cc-kind {
+  font-family: var(--isun-font-smallcaps, inherit);
+  font-size: 0.8em;
+  letter-spacing: 0.06em;
+  color: var(--isun-text-accent);
+}
+.challenge-card.defence .cc-kind { color: var(--isun-sun-blue); }
+.challenge-card .cc-label { flex: 1; }
+
+.challenge-card .cc-terms { display: flex; gap: 10px; margin-bottom: 6px; }
+.challenge-card .cc-term { display: flex; align-items: baseline; gap: 4px; }
+.challenge-card .cc-term > label {
+  font-size: 0.75em;
+  letter-spacing: 0.04em;
+  color: var(--isun-text-secondary);
+  text-transform: uppercase;
+}
+.challenge-card .cc-term.vex { color: var(--isun-wound); cursor: help; }
+
+.challenge-card .cc-rows { display: flex; flex-direction: column; gap: 3px; }
+
+.challenge-card .cc-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: var(--isun-bg-secondary);
+}
+
+.challenge-card .cc-row img {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
+  border: 1px solid var(--isun-border);
+  border-radius: 3px;
+}
+
+.challenge-card .cc-name { flex: 1; }
+
+/* What the pool costs before anything is added. Both read as penalties, so
+   both are red; the scourge is the one that cannot be got rid of. */
+.challenge-card .cc-cost { display: flex; gap: 4px; }
+.challenge-card .cc-scourge,
+.challenge-card .cc-vex {
+  color: var(--isun-wound);
+  font-variant-numeric: tabular-nums;
+  cursor: help;
+}
+.challenge-card .cc-scourge { border-bottom: 1px dotted var(--isun-wound); }
+
+.challenge-card .cc-state {
+  font-size: 0.8em;
+  color: var(--isun-text-secondary);
+  font-style: italic;
+}
+.challenge-card .cc-row.rolled .cc-state { color: var(--isun-text-accent); font-style: normal; }
+
+.challenge-card .cc-btn {
+  padding: 1px 10px;
+  line-height: 1.5;
+  font-size: 0.85em;
+  width: auto;
+  background: var(--isun-bg-elevated);
+  border: 1px solid var(--isun-border-accent);
+  border-radius: 3px;
+  color: var(--isun-text-accent);
+  cursor: pointer;
+}
+.challenge-card .cc-btn:hover {
+  background: var(--isun-border-accent);
+  color: var(--isun-bg-primary);
+  box-shadow: var(--isun-glow-gold);
+}
+/* Closing is not the move the card is inviting, so it does not compete. */
+.challenge-card .cc-btn.close {
+  border-color: var(--isun-border);
+  color: var(--isun-text-secondary);
+}
+.challenge-card .cc-btn.close:hover {
+  background: var(--isun-bg-elevated);
+  color: var(--isun-text-primary);
+  box-shadow: none;
+}
+
+.challenge-card .cc-foot { margin-top: 6px; text-align: right; }
+.challenge-card.closed { opacity: 0.7; }

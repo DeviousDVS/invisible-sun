@@ -179,6 +179,54 @@ export class ChallengeCard {
   }
 
   /* ──────────────────────────────────────────────
+   * What the declared pool costs
+   * ────────────────────────────────────────────── */
+
+  /** Which half of the stats a pool belongs to. */
+  static groupOf(pool) {
+    return CONFIG.ISUN.certesPoolNames.includes(pool) ? "certes" : "qualia";
+  }
+
+  /**
+   * The scourge and vex the declared pool brings, before the player adds
+   * anything. Neither is a choice.
+   *
+   * A scourge applies to every action related to its pool and is not spent
+   * (The Key, p2242), so it is simply the pool's scourgeTotal — which already
+   * sums the four scopes that reach it. A vex is spent, and how many is the
+   * lesser of the GM's ceiling and what the pool actually holds.
+   */
+  static poolCost(actor, pool, maxVex = 0) {
+    const p = actor?.system?.stats?.[this.groupOf(pool)]?.pools?.[pool];
+    if (!p) return { scourge: 0, vex: 0, bene: 0 };
+    return {
+      scourge: p.scourgeTotal ?? 0,
+      vex: Math.min(Math.max(0, maxVex), p.vex ?? 0),
+      bene: p.value ?? 0
+    };
+  }
+
+  /**
+   * Accept a challenge: record what the pool costs and stand ready.
+   *
+   * The player's own contribution — skills, bene, sortilege — is added
+   * separately; this fixes only the part they cannot argue with.
+   */
+  static async accept(message, actorId) {
+    const data = this.read(message);
+    const response = this.responseFor(message, actorId);
+    if (!data || !response || response.state !== "pending") return false;
+
+    const actor = fromUuidSync(response.uuid);
+    if (!actor) return false;
+
+    const { scourge, vex } = this.poolCost(actor, data.pool, data.maxVex);
+    return this.update(message, actorId, {
+      state: "proposed", scourge, vex, venture: -(scourge + vex)
+    });
+  }
+
+  /* ──────────────────────────────────────────────
    * Wiring
    * ────────────────────────────────────────────── */
 
@@ -191,6 +239,70 @@ export class ChallengeCard {
    * re-checked here rather than taken from the sender, so a forged request
    * still has to pass the same test the sender's own client applied.
    */
+  /**
+   * Draw the card into a rendered message, and bind its controls.
+   *
+   * Rendered per client rather than stored, because the card says different
+   * things to different people: a player sees the one row they can answer, a
+   * GM sees every row and the approvals. Storing one rendering would show the
+   * GM's view to everyone.
+   */
+  static async render(message, html) {
+    const data = this.read(message);
+    if (!data) return;
+
+    const answerable = this.answerableBy(message);
+    const closed = data.state !== "open";
+    const rows = Object.entries(data.responses ?? {}).map(([id, r]) => {
+      const mine = answerable.includes(id);
+      const actions = [];
+      if (!closed && mine && r.state === "pending") actions.push({ action: "accept", label: game.i18n.localize("ISUN.Accept") });
+      if (!closed && game.user.isGM && r.state === "proposed") actions.push({ action: "approve", label: game.i18n.localize("ISUN.Approve") });
+      if (!closed && mine && r.state === "approved") actions.push({ action: "roll", label: game.i18n.localize("ISUN.Roll") });
+      return {
+        id, name: r.name, state: r.state,
+        img: fromUuidSync(r.uuid)?.img ?? "icons/svg/mystery-man.svg",
+        scourge: r.scourge, vex: r.vex,
+        showCost: r.state !== "pending",
+        stateLabel: game.i18n.localize(`ISUN.ChallengeState${r.state.charAt(0).toUpperCase()}${r.state.slice(1)}`),
+        actions
+      };
+    });
+
+    const { renderTemplate } = foundry.applications.handlebars;
+    const content = await renderTemplate(
+      "systems/invisible-sun/templates/chat/challenge-card.hbs",
+      { data, rows, closed,
+        poolLabel: game.i18n.localize(CONFIG.ISUN.poolLabels[data.pool] ?? data.pool),
+        canClose: game.user.isGM && !closed });
+
+    const target = html.querySelector(".message-content") ?? html;
+    target.innerHTML = content;
+
+    target.querySelectorAll("[data-action]").forEach(el => {
+      el.addEventListener("click", ev => this.#onAction(ev, message));
+    });
+  }
+
+  static async #onAction(event, message) {
+    event.preventDefault();
+    const { action, actorId } = event.currentTarget.dataset;
+    switch (action) {
+      case "accept":
+        return this.accept(message, actorId);
+      case "approve":
+        if (!game.user.isGM) return;
+        return this.update(message, actorId, { state: "approved" });
+      case "roll":
+        // The roll itself belongs with the response dialog, which knows what
+        // the player is bringing. Until that exists the card only records that
+        // the moment was reached.
+        return this.update(message, actorId, { state: "rolled" });
+      case "close-challenge":
+        return this.close(message);
+    }
+  }
+
   static listen() {
     game.socket.on(SOCKET, async (payload) => {
       if (!game.user.isGM || payload?.action !== "challengeResponse") return;

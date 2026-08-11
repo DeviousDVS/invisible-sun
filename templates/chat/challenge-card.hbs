@@ -1,0 +1,62 @@
+{{!-- A challenge, and every answer to it. The card is the record: the ruling,
+      what was claimed against it, and what it came to all stay on one message. --}}
+<div class="challenge-card{{#if data.defence}} defence{{/if}}{{#if closed}} closed{{/if}}">
+
+  <div class="cc-head">
+    <span class="cc-kind">
+      {{#if data.defence}}{{localize "ISUN.Defence"}}{{else}}{{localize "ISUN.Challenge"}}{{/if}}
+    </span>
+    {{#if data.label}}<span class="cc-label">{{data.label}}</span>{{/if}}
+  </div>
+
+  <div class="cc-terms">
+    <span class="cc-term"><label>{{localize "ISUN.Pool"}}</label>{{poolLabel}}</span>
+    <span class="cc-term"><label>{{localize "ISUN.ChallengeRating"}}</label>{{data.challenge}}</span>
+    {{#if data.maxVex}}
+      <span class="cc-term vex" data-tooltip="{{localize 'ISUN.MaxVexHint'}}">
+        <label>{{localize "ISUN.MaxVex"}}</label>{{data.maxVex}}
+      </span>
+    {{/if}}
+  </div>
+
+  <div class="cc-rows">
+    {{#each rows as |r|}}
+      <div class="cc-row {{r.state}}" data-actor-id="{{r.id}}">
+        <img src="{{r.img}}" alt="" />
+        <span class="cc-name">{{r.name}}</span>
+
+        {{!-- What the pool costs before the player adds anything. Both are
+              computed, not chosen: a scourge applies because the pool was
+              named, and a vex is the lesser of the GM's ceiling and what the
+              pool holds. --}}
+        {{#if r.showCost}}
+          <span class="cc-cost">
+            {{#if r.scourge}}<span class="cc-scourge"
+              data-tooltip="{{localize 'ISUN.ScourgeHint'}}">−{{r.scourge}}</span>{{/if}}
+            {{#if r.vex}}<span class="cc-vex"
+              data-tooltip="{{localize 'ISUN.VexHint'}}">−{{r.vex}}</span>{{/if}}
+          </span>
+        {{/if}}
+
+        <span class="cc-state">{{r.stateLabel}}</span>
+
+        {{#if r.actions.length}}
+          <span class="cc-actions">
+            {{#each r.actions as |a|}}
+              <button type="button" class="cc-btn {{a.action}}"
+                      data-action="{{a.action}}" data-actor-id="{{../r.id}}">{{a.label}}</button>
+            {{/each}}
+          </span>
+        {{/if}}
+      </div>
+    {{/each}}
+  </div>
+
+  {{#if canClose}}
+    <div class="cc-foot">
+      <button type="button" class="cc-btn close" data-action="close-challenge">
+        {{localize "ISUN.CloseChallenge"}}
+      </button>
+    </div>
+  {{/if}}
+</div>

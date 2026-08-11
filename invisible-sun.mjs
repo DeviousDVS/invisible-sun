@@ -268,6 +268,11 @@ Hooks.once("ready", async () => {
    * a GM client, which applies it. Every client listens; only a GM acts. */
   ChallengeCard.listen();
 
+  /* The card is drawn per client, not stored: it says different things to a
+   * player and to the GM, so one saved rendering would show the GM's view to
+   * everyone. renderChatMessage is deprecated in v13 and warns. */
+  Hooks.on("renderChatMessageHTML", (message, html) => ChallengeCard.render(message, html));
+
   await migrateSavingsToPurse();
 
   // Migration for ForteAbility level (String -> Number)

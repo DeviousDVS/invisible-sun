@@ -415,7 +415,17 @@
     "Offline": "offline",
     "ChallengeGMOnly": "Only the GM declares a challenge.",
     "ChallengeNoTargets": "No player-owned vislae to challenge.",
-    "ChallengeNoGM": "No GM is connected, so the challenge cannot be answered."
+    "ChallengeNoGM": "No GM is connected, so the challenge cannot be answered.",
+    "Defence": "Defence",
+    "Accept": "Accept",
+    "Approve": "Approve",
+    "Roll": "Roll",
+    "CloseChallenge": "Close",
+    "ChallengeStatePending": "awaiting",
+    "ChallengeStateProposed": "proposed",
+    "ChallengeStateApproved": "approved",
+    "ChallengeStateRolled": "rolled",
+    "ChallengeStateDeclined": "declined"
   },
   "TYPES": {
     "Actor": {
