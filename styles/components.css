@@ -1575,3 +1575,98 @@ a.sentence-part:hover {
 /* The type a conation incantation is asked for. Full width, because the
    options carry a count and "— none" and would otherwise clip. */
 .incantation-grant .conation-type { width: 100%; }
+
+/* ── Declaring a challenge ────────────────────────────────
+   A GM opens this constantly, so it is built for density: label above control
+   but both small and tight, three scalars on one row, and the vex rule on a
+   tooltip rather than a paragraph. The stock .form-group centres a full-width
+   label above its control, which cost two rows a field and made this 922px
+   tall for six inputs.
+
+   Scoped to the dialog, not to the form. DialogV2 supplies its own <form> and
+   discards the one the template declares, so anything written as a descendant
+   of .challenge-declaration-form matched nothing at all. */
+.challenge-declaration .dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9em;
+}
+
+.challenge-declaration .cd-row {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.challenge-declaration .cd-field { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.challenge-declaration .cd-narrow { flex: 0 0 5.5rem; }
+
+.challenge-declaration .cd-field > label {
+  font-family: var(--isun-font-smallcaps, inherit);
+  font-size: 0.8em;
+  letter-spacing: 0.04em;
+  color: var(--isun-text-secondary);
+  text-align: left;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.challenge-declaration input,
+.challenge-declaration select { padding: 2px 6px; height: 1.8rem; }
+
+.challenge-declaration .cd-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--isun-text-secondary);
+  cursor: help;
+}
+.challenge-declaration .cd-check input { height: auto; }
+
+/* The target list is the part that ran away: the avatar had no size at all, so
+   one candidate filled the dialog. It is an identifying glance, not a portrait. */
+.challenge-declaration .cd-targets {
+  border: 1px solid var(--isun-border);
+  border-radius: 4px;
+  padding: 4px 6px 6px;
+  margin: 0;
+  max-height: 11rem;
+  overflow-y: auto;
+}
+
+.challenge-declaration .cd-targets legend {
+  font-family: var(--isun-font-smallcaps, inherit);
+  font-size: 0.8em;
+  color: var(--isun-text-secondary);
+  padding: 0 4px;
+}
+
+.challenge-declaration .cd-target {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 2px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.challenge-declaration .cd-target:hover { background: var(--isun-bg-elevated); }
+
+.challenge-declaration .cd-target img {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  object-fit: cover;
+  border: 1px solid var(--isun-border);
+  border-radius: 3px;
+  background: var(--isun-bg-secondary);
+}
+
+.challenge-declaration .cd-name { flex: 1; }
+.challenge-declaration .cd-player {
+  font-size: 0.8em;
+  color: var(--isun-text-secondary);
+  white-space: nowrap;
+}
+.challenge-declaration .cd-target.offline { opacity: 0.55; }

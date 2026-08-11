@@ -1,17 +1,21 @@
 {{!-- The GM's half of a challenge. Naming the pool is the point: it decides
-      which scourge applies, which vexes are drawn, and which bene may pay. --}}
+      which scourge applies, which vexes are drawn, and which bene may pay.
+
+      Deliberately not using .form-group — that lays a centred, full-width
+      label above its control, which costs two rows per field and made this
+      dialog 922px tall for six inputs. --}}
 <form class="challenge-declaration-form">
 
-  <div class="form-group">
-    <label>{{localize "ISUN.Action"}}</label>
-    <input type="text" name="label" value="{{label}}"
+  <div class="cd-field cd-wide">
+    <label for="cd-label">{{localize "ISUN.Action"}}</label>
+    <input id="cd-label" type="text" name="label" value="{{label}}"
            placeholder="{{localize 'ISUN.ChallengeLabelPlaceholder'}}" />
   </div>
 
-  <div class="grid-2col">
-    <div class="form-group">
-      <label>{{localize "ISUN.Pool"}}</label>
-      <select name="pool">
+  <div class="cd-row">
+    <div class="cd-field">
+      <label for="cd-pool">{{localize "ISUN.Pool"}}</label>
+      <select id="cd-pool" name="pool">
         <optgroup label="{{localize 'ISUN.Certes'}}">
           {{#each pools as |p|}}{{#if (eq p.group "certes")}}
             <option value="{{p.key}}" {{#if (eq p.key @root.pool)}}selected{{/if}}>{{p.label}}</option>
@@ -25,36 +29,36 @@
       </select>
     </div>
 
-    <div class="form-group">
-      <label>{{localize "ISUN.ChallengeRating"}}</label>
-      <input type="number" name="challenge" value="{{challenge}}" min="0" max="10" />
+    <div class="cd-field cd-narrow">
+      <label for="cd-rating">{{localize "ISUN.ChallengeRating"}}</label>
+      <input id="cd-rating" type="number" name="challenge" value="{{challenge}}" min="0" max="10" />
+    </div>
+
+    {{!-- A ceiling, not a count: what applies is bounded by what the pool
+          holds, and the player cannot decline it. The full rule is on the
+          tooltip rather than a line of its own. --}}
+    <div class="cd-field cd-narrow">
+      <label for="cd-vex" data-tooltip="{{localize 'ISUN.MaxVexHint'}}">
+        {{localize "ISUN.MaxVex"}}
+      </label>
+      <input id="cd-vex" type="number" name="maxVex" value="0" min="0" max="10"
+             data-tooltip="{{localize 'ISUN.MaxVexHint'}}" />
     </div>
   </div>
 
-  {{!-- A ceiling, not a count. What applies is bounded by what the pool holds,
-        and the player cannot decline it. --}}
-  <div class="form-group">
-    <label>{{localize "ISUN.MaxVex"}}</label>
-    <input type="number" name="maxVex" value="0" min="0" max="10" />
-    <p class="hint">{{localize "ISUN.MaxVexHint"}}</p>
-  </div>
+  <label class="cd-check" data-tooltip="{{localize 'ISUN.IsDefenceHint'}}">
+    <input type="checkbox" name="defence" {{#if defence}}checked{{/if}} />
+    <span>{{localize "ISUN.IsDefence"}}</span>
+  </label>
 
-  <div class="form-group">
-    <label class="checkbox">
-      <input type="checkbox" name="defence" {{#if defence}}checked{{/if}} />
-      {{localize "ISUN.IsDefence"}}
-    </label>
-    <p class="hint">{{localize "ISUN.IsDefenceHint"}}</p>
-  </div>
-
-  <fieldset class="challenge-targets">
+  <fieldset class="cd-targets">
     <legend>{{localize "ISUN.Challenging"}}</legend>
     {{#each candidates as |c|}}
-      <label class="target-row{{#unless c.active}} offline{{/unless}}">
+      <label class="cd-target{{#unless c.active}} offline{{/unless}}">
         <input type="checkbox" name="target.{{c.uuid}}" />
-        <img src="{{c.img}}" alt="{{c.name}}" />
-        <span class="target-name">{{c.name}}</span>
-        <span class="target-player">{{c.players}}{{#unless c.active}} · {{localize "ISUN.Offline"}}{{/unless}}</span>
+        <img src="{{c.img}}" alt="" />
+        <span class="cd-name">{{c.name}}</span>
+        <span class="cd-player">{{c.players}}{{#unless c.active}} · {{localize "ISUN.Offline"}}{{/unless}}</span>
       </label>
     {{/each}}
   </fieldset>
