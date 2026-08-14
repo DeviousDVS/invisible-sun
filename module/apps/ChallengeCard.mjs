@@ -5,11 +5,18 @@
  * Invisible Sun. When a character acts, the player rolls dice for the action.
  * When an NPC acts against a PC, the player rolls to defend" (The Gate, p1240),
  * and the GM determines the challenge (The Gate, p4016). So a single card
- * carries the whole exchange — declaration, response, approval, result — and
- * combat needs no second mechanism: a defence is this card with another label.
+ * carries the whole exchange — declaration, answer, result — and combat needs
+ * no second mechanism: a defence is this card with another label.
  *
  * The card is also the record. A GM saying "this action costs you two vex" is a
  * ruling, and the table should be able to see it was made.
+ *
+ * ── Two beats, not four ──
+ * The GM declares; the player answers and rolls. An earlier version put a
+ * proposal and a GM approval between those, which is the right shape for a
+ * table that cannot talk to each other and needless friction for one that can.
+ * The card still shows the whole claim — it just shows it once the dice have
+ * landed rather than asking anyone to sign off first.
  *
  * ── Why the socket ──
  * ChatMessage declares no `update` permission (BaseChatMessage.metadata), so a
@@ -207,26 +214,12 @@ export class ChallengeCard {
   }
 
   /**
-   * Accept a challenge: open the response dialog so the player can answer it.
-   *
-   * Imported here rather than at the top of the file: ChallengeResponse reads
-   * this class, so a static import each way would be a cycle.
-   */
-  static async accept(message, actorId) {
-    const response = this.responseFor(message, actorId);
-    if (!response || response.state !== "pending") return false;
-    const { ChallengeResponse } = await import("./ChallengeResponse.mjs");
-    return ChallengeResponse.open(message, actorId);
-  }
-
-  /**
    * Everything making up a venture, in words.
    *
-   * The GM is asked to approve a proposal, so the proposal has to be legible:
-   * without this the card offered nothing but "proposed" and an Approve
-   * button, which is approving blind. It also builds the roll's own source
-   * list, so what the GM agreed to and what the dice message reports cannot
-   * drift apart.
+   * The card has to be legible after the fact — "rolled 4" says nothing about
+   * whether that was two skills or a fistful of bene, and a table reviewing a
+   * ruling needs the parts. It also builds the roll's own source list, so the
+   * card and the dice message cannot drift apart.
    */
   static breakdown(data, response) {
     const poolLabel = game.i18n.localize(CONFIG.ISUN.poolLabels[data.pool] ?? data.pool);
@@ -239,38 +232,72 @@ export class ChallengeCard {
     ].filter(Boolean);
   }
 
+  /** In-flight answers, as `messageId:actorId`. See `answer`. */
+  static #busy = new Set();
+
   /**
-   * Roll an approved response: spend, roll, record.
+   * Answer a challenge and roll it: ask, spend, roll, record.
    *
-   * This is the only place anything is deducted. The player proposed and the
-   * GM approved, but neither of those touched a pool, because a proposal can
-   * be refused and a refund is worse than a late spend.
+   * One step, because the table is the approval. This is also the only place
+   * anything is deducted — the dialog decides nothing, so dismissing it costs
+   * the character nothing.
    *
-   * What is spent is re-clamped against the pools as they stand now rather
-   * than trusting the proposal, and the scourge is re-read for the same
-   * reason: a rest, another action or a fresh Wound may have moved things
-   * since the GM approved. The venture is recomputed from what was actually
+   * What the player chose is re-clamped against the pools as they stand at
+   * this moment, and the scourge and vex are re-read rather than taken from
+   * the dialog: a rest, another action or a fresh Wound may have moved things
+   * while it sat open. The venture is then computed from what was actually
    * paid, so the roll can never claim a bene the character no longer has.
    */
-  static async roll(message, actorId) {
+  static async answer(message, actorId) {
     const data = this.read(message);
     const response = this.responseFor(message, actorId);
-    if (!data || !response || response.state !== "approved") return false;
+    if (!data || data.state !== "open") return false;
+    if (!response || response.state !== "pending") return false;
+    // A GM never rolls, and answerableBy returns nothing for one.
+    if (!this.answerableBy(message).includes(actorId)) return false;
 
     const actor = fromUuidSync(response.uuid);
     if (!actor) return false;
 
+    /* Checked before the dialog opens rather than when the card is written:
+     * the write is relayed through a GM client, so with none connected the
+     * pool would be spent and the dice thrown against a card that records
+     * neither. Better to refuse while it is still free to refuse. */
+    if (!game.user.isGM && !game.users.some(u => u.isGM && u.active)) {
+      ui.notifications?.warn(game.i18n.localize("ISUN.ChallengeNoGM"));
+      return false;
+    }
+
+    /* The row's button survives until the card re-renders, and the card only
+     * re-renders once the roll has been recorded — a second click in that
+     * window would open a second dialog and spend the pool twice. */
+    const key = `${message.id}:${actorId}`;
+    if (this.#busy.has(key)) return false;
+    this.#busy.add(key);
+    try {
+      /* Imported here rather than at the top of the file: ChallengeResponse
+       * reads this class, so a static import each way would be a cycle. */
+      const { ChallengeResponse } = await import("./ChallengeResponse.mjs");
+      const choice = await ChallengeResponse.open(message, actorId);
+      if (!choice) return false;
+      return this.#spendAndRoll(message, actorId, data, actor, choice);
+    } finally {
+      this.#busy.delete(key);
+    }
+  }
+
+  static async #spendAndRoll(message, actorId, data, actor, choice) {
     const group = this.groupOf(data.pool);
     const pool = actor.system?.stats?.[group]?.pools?.[data.pool];
     const sortPool = actor.system?.stats?.qualia?.pools?.sortilege;
     if (!pool) return false;
 
-    const bene = Math.min(response.bene ?? 0, pool.value ?? 0);
-    const vex = Math.min(response.vex ?? 0, pool.vex ?? 0);
-    const sortilege = Math.min(response.sortilege ?? 0, sortPool?.value ?? 0);
-    const scourge = pool.scourgeTotal ?? 0;
-    const skillTotal = (response.skills ?? []).reduce((n, s) => n + (s.level ?? 0), 0);
-    const venture = skillTotal + bene - scourge - vex;
+    // Scourge and vex are the pool's, not the player's: neither is a choice.
+    const { scourge, vex } = this.poolCost(actor, data.pool, data.maxVex);
+    const bene = Math.min(choice.bene ?? 0, pool.value ?? 0);
+    const sortilege = Math.min(choice.sortilege ?? 0, sortPool?.value ?? 0);
+    const skills = choice.skills ?? [];
+    const venture = skills.reduce((n, s) => n + (s.level ?? 0), 0) + bene - scourge - vex;
 
     // Sortilege is spent from its own pool, never from the declared one.
     const updates = {};
@@ -279,8 +306,7 @@ export class ChallengeCard {
     if (sortilege) updates["system.stats.qualia.pools.sortilege.value"] = sortPool.value - sortilege;
     if (Object.keys(updates).length) await actor.update(updates);
 
-    const sources = this.breakdown(data, { ...response, bene, vex, sortilege, scourge });
-
+    const record = { skills, bene, vex, sortilege, scourge, venture };
     const { rollVenture } = game.invisibleSun;
     const outcome = await rollVenture({
       challenge: data.challenge,
@@ -288,12 +314,12 @@ export class ChallengeCard {
       sortilege,
       label: data.label || game.i18n.localize(data.defence ? "ISUN.Defence" : "ISUN.Challenge"),
       actor,
-      sources
+      sources: this.breakdown(data, record)
     });
 
     return this.update(message, actorId, {
+      ...record,
       state: "rolled",
-      bene, vex, sortilege, scourge, venture,
       outcome: outcome?.autoSuccess ? "auto"
         : outcome?.impossible ? "impossible"
         : outcome?.success ? "success" : "failure"
@@ -304,15 +330,6 @@ export class ChallengeCard {
    * Wiring
    * ────────────────────────────────────────────── */
 
-  /**
-   * Listen for relayed responses. Called once at ready on every client; only a
-   * GM acts on what arrives.
-   *
-   * The relay is trusted to the extent the table is: a client could emit a
-   * patch for an actor it does not own. The permission that matters is
-   * re-checked here rather than taken from the sender, so a forged request
-   * still has to pass the same test the sender's own client applied.
-   */
   /**
    * Draw the card into a rendered message, and bind its controls.
    *
@@ -329,21 +346,28 @@ export class ChallengeCard {
     const closed = data.state !== "open";
     const rows = Object.entries(data.responses ?? {}).map(([id, r]) => {
       const mine = answerable.includes(id);
+      const actor = fromUuidSync(r.uuid);
       const actions = [];
-      if (!closed && mine && r.state === "pending") actions.push({ action: "accept", label: game.i18n.localize("ISUN.Accept") });
-      if (!closed && game.user.isGM && r.state === "proposed") actions.push({ action: "approve", label: game.i18n.localize("ISUN.Approve") });
-      if (!closed && mine && r.state === "approved") actions.push({ action: "roll", label: game.i18n.localize("ISUN.Roll") });
+      if (!closed && mine && r.state === "pending") actions.push({ action: "answer", label: game.i18n.localize("ISUN.Roll") });
+
+      /* Before the roll the price is quoted, not remembered: both figures are
+       * knowable now, and the player is about to pay them. An actor nobody at
+       * this client can see yields nothing, which is the right answer for
+       * another table's row. */
+      const quoted = r.state === "pending" && actor
+        ? this.poolCost(actor, data.pool, data.maxVex)
+        : null;
+      const scourge = quoted ? quoted.scourge : r.scourge;
+      const vex = quoted ? quoted.vex : r.vex;
+
       return {
         id, name: r.name, state: r.state,
-        img: fromUuidSync(r.uuid)?.img ?? "icons/svg/mystery-man.svg",
-        scourge: r.scourge, vex: r.vex,
-        showCost: r.state !== "pending",
-        /* What the player is claiming, shown from the moment it is proposed.
-         * A GM cannot sensibly approve what they cannot see, and once rolled
-         * it is the record of what was agreed. */
-        breakdown: r.state === "pending" ? null : this.breakdown(data, r),
-        venturePreview: r.venture ?? 0,
-        // A target at or below zero needs no roll at all.
+        img: actor?.img ?? "icons/svg/mystery-man.svg",
+        scourge, vex,
+        showCost: !!(scourge || vex),
+        // Once rolled, the whole claim: what it was made of and what it needed.
+        breakdown: r.state === "rolled" ? this.breakdown(data, r) : null,
+        // A target at or below zero needed no roll at all.
         targetLabel: (data.challenge - (r.venture ?? 0)) <= 0
           ? game.i18n.localize("ISUN.Auto")
           : data.challenge - (r.venture ?? 0),
@@ -382,18 +406,22 @@ export class ChallengeCard {
     // change to the markup cannot leave the two disagreeing.
     const actorId = event.currentTarget.closest("[data-actor-id]")?.dataset.actorId;
     switch (action) {
-      case "accept":
-        return this.accept(message, actorId);
-      case "approve":
-        if (!game.user.isGM) return;
-        return this.update(message, actorId, { state: "approved" });
-      case "roll":
-        return this.roll(message, actorId);
+      case "answer":
+        return this.answer(message, actorId);
       case "close-challenge":
         return this.close(message);
     }
   }
 
+  /**
+   * Listen for relayed answers. Called once at ready on every client; only a
+   * GM acts on what arrives.
+   *
+   * The relay is trusted to the extent the table is: a client could emit a
+   * patch for an actor it does not own. The permission that matters is
+   * re-checked here rather than taken from the sender, so a forged request
+   * still has to pass the same test the sender's own client applied.
+   */
   static listen() {
     game.socket.on(SOCKET, async (payload) => {
       if (!game.user.isGM || payload?.action !== "challengeResponse") return;

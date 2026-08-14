@@ -16,9 +16,11 @@
  * enhancements rather than bene and they "can be used with any action", so it
  * is offered whatever was declared. It buys dice, not venture.
  *
- * ── Nothing is spent here ──
- * This proposes. The GM may still refuse it, so deducting now would mean
- * refunding later; the spend happens when the roll is made.
+ * ── This only collects ──
+ * The dialog decides nothing. It hands back what the player chose and
+ * ChallengeCard does the spending, the rolling and the recording in one step,
+ * so there is no window in which a pool has been debited but the card does not
+ * yet say why.
  */
 import { ChallengeCard } from "./ChallengeCard.mjs";
 
@@ -27,16 +29,18 @@ const { DialogV2 } = foundry.applications.api;
 export class ChallengeResponse {
 
   /**
-   * Open the response dialog and record what the player brings.
-   * @returns {Promise<boolean>} whether a response was proposed
+   * Ask the player what the character brings to the challenge.
+   *
+   * @returns {Promise<?{skills: object[], bene: number, sortilege: number}>}
+   *   what was chosen, or null if the dialog was dismissed
    */
   static async open(message, actorId) {
     const data = ChallengeCard.read(message);
     const response = ChallengeCard.responseFor(message, actorId);
-    if (!data || !response) return false;
+    if (!data || !response) return null;
 
     const actor = fromUuidSync(response.uuid);
-    if (!actor) return false;
+    if (!actor) return null;
 
     const cost = ChallengeCard.poolCost(actor, data.pool, data.maxVex);
     const sortilege = actor.system?.stats?.qualia?.pools?.sortilege?.value ?? 0;
@@ -67,7 +71,7 @@ export class ChallengeResponse {
       position: { width: 420 },
       content,
       buttons: [
-        { action: "propose", label: game.i18n.localize("ISUN.Propose"), default: true,
+        { action: "roll", label: game.i18n.localize("ISUN.Roll"), default: true,
           callback: (_e, button) => new FormDataExtended(button.form).object },
         { action: "cancel", label: game.i18n.localize("ISUN.Cancel") }
       ],
@@ -75,22 +79,17 @@ export class ChallengeResponse {
       rejectClose: false
     });
 
-    if (!result || result === "cancel") return false;
+    if (!result || result === "cancel") return null;
 
-    const picked = skills.filter(s => result[`skill.${s.id}`]);
-    const beneSpend = this.#clamp(result.bene, cost.bene);
-    const sortSpend = this.#clamp(result.sortilege, sortilege);
-    const venture = picked.reduce((n, s) => n + s.level, 0) + beneSpend - cost.scourge - cost.vex;
-
-    return ChallengeCard.update(message, actorId, {
-      state: "proposed",
-      skills: picked.map(s => ({ id: s.id, name: s.name, level: s.level })),
-      bene: beneSpend,
-      sortilege: sortSpend,
-      scourge: cost.scourge,
-      vex: cost.vex,
-      venture
-    });
+    /* Clamped here as well as at the spend. A browser does not enforce `max`
+     * on a typed number, and the caller re-reads the pools anyway — but a
+     * choice that leaves this method should already be a legal one. */
+    return {
+      skills: skills.filter(s => result[`skill.${s.id}`])
+        .map(s => ({ id: s.id, name: s.name, level: s.level })),
+      bene: this.#clamp(result.bene, cost.bene),
+      sortilege: this.#clamp(result.sortilege, sortilege)
+    };
   }
 
   static #clamp(value, max) {

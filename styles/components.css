@@ -1755,7 +1755,6 @@ a.sentence-part:hover {
   color: var(--isun-text-secondary);
   font-style: italic;
 }
-.challenge-card .cc-row.rolled .cc-state { color: var(--isun-text-accent); font-style: normal; }
 
 .challenge-card .cc-btn {
   padding: 1px 10px;

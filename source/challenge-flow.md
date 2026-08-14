@@ -44,16 +44,34 @@ Interaction and Intellect.
 
 ```
 1. DECLARED   GM     pool · challenge rating · label · max vex · target(s)
-2. PROPOSED   player skills · bene · sortilege        → venture published
-3. APPROVED   GM     (skippable, see auto-approve)
-4. ROLLED     player
-5. RESOLVED
+2. ROLLED     player skills · bene · sortilege → spend → dice
 ```
 
 Each step is a button on one chat card. The card is the record: the
-declaration, what was claimed, what was approved and what was rolled all stay
-visible, which matters because a GM saying "this costs you 2 vex" is a ruling
-the table should see.
+declaration, what was claimed and what was rolled all stay visible, which
+matters because a GM saying "this costs you 2 vex" is a ruling the table should
+see.
+
+### The two beats this used to have in the middle
+
+The first build ran five states: the player *proposed* a venture, the GM
+*approved* it, and only then did the player roll. Test play cut them.
+
+The argument for approval was that "two skills may both apply when the
+situation warrants it" needs adjudicating, and that a claim ought to be visible
+before it becomes dice. Both are true and neither needs a button. A table is
+two people who can talk; asking the GM to click Approve on a claim they just
+heard out loud is ceremony charged against every roll of the session to buy
+something the conversation already provided.
+
+What went with them is worth naming, so it can come back if play misses it:
+
+- there is no point at which the GM sees a claim and can refuse it, so a
+  disputed venture is settled by talking and re-declaring;
+- the card shows the working after the roll rather than before it.
+
+The rest survived the cut intact. Nothing about which pool pays, what a scourge
+costs or how vex is bounded depended on the approval step.
 
 ## The three kinds of modifier are not alike
 
@@ -63,7 +81,7 @@ Keeping them distinct is most of the interface design.
 |---|---|---|---|
 | Scourge | Nobody | Automatic on the declared pool | No |
 | Vex | GM | Declared as a maximum | No |
-| Skills, bene, sortilege | Player | Step 2 | Yes |
+| Skills, bene, sortilege | Player | Step 2, in the answer dialog | Yes |
 
 **Scourge** applies because the pool was named. "You don't 'spend' a scourge.
 You have to get rid of it somehow" (The Key, p2242). It is `scourgeTotal` for
@@ -136,10 +154,10 @@ flags["invisible-sun"].challenge = {
   maxVex:    2,
   targets:   [actorUuid, ...],
   responses: {
-    [actorUuid]: {
-      state:    "pending" | "proposed" | "approved" | "rolled" | "declined",
+    [actorId]: {                   // id, not UUID: a dot in a flag key becomes
+      state:    "pending" | "rolled",   // a nested path, so the key never exists
       skills:   [itemId, ...],
-      bene:     { accuracy: 2 },   // by pool, spent at step 4
+      bene:     2,                 // from the declared pool, spent at the roll
       sortilege: 1,
       vex:      2,                 // computed, not chosen
       scourge:  1,                 // computed
@@ -152,42 +170,52 @@ flags["invisible-sun"].challenge = {
 
 ## Rules the implementation has to hold
 
-**Nothing is spent before the roll.** `VentureDialog` deducts bene when it
-rolls, which is right there because the dialog *is* the roll. Here the player
-proposes at step 2 and may be refused at step 3, so deducting on proposal would
-need refunding. Deduct at step 4 and the problem cannot arise. Same for vex.
+**Nothing is spent before the roll.** The answer dialog decides nothing: it
+hands back what the player chose, and the spend, the roll and the card write
+happen together. Dismissing it costs the character nothing, and there is no
+window in which a pool is short but the card cannot say why.
+
+**What is spent is re-read at the moment of spending.** The dialog can sit open
+across a rest, another action or a fresh Wound. Bene and Sortilege are clamped
+against the pools as they stand, and scourge and vex are recomputed rather than
+carried from the dialog, so a roll can never claim what the character no longer
+has.
+
+**The card must be writable before anything is charged.** A player's write is
+relayed through a GM client, so with no GM connected the pool would be debited
+and the dice thrown against a card that records neither. Refuse while it is
+still free to refuse.
+
+**A row's button outlives the click.** The card only re-renders once the roll is
+recorded, so the same button is live throughout — an in-flight guard keys the
+answer by message and actor, or a double-click spends the pool twice.
 
 **Permissions are enforced where the update happens.** Only a targeted player
-may propose or roll; only the GM may declare, approve or cancel. Hiding a
-button only stops it being offered — the check has to sit in the handler, as
-`_onModifyVex` already does.
+may answer; only the GM may declare or cancel. Hiding a button only stops it
+being offered — the check has to sit in the handler, as `_onModifyVex` already
+does.
 
 **Cards get abandoned.** A player logs off, the scene moves on, the GM changes
 their mind. Cancel is needed, and probably a stale state, or chat fills with
 half-finished challenges.
 
-## Auto-approve
+## If approval is ever wanted back
 
-Four interactions per roll is right for a significant action and heavy for a
-routine one. Step 3 is the one to watch.
-
-A GM setting for auto-approve keeps the ceremony where it earns its keep: the
-venture still publishes, so the table sees what was claimed, but the player may
-roll straight away unless this particular challenge was flagged as needing
-sign-off. Approval is what makes "two skills may both apply when the situation
-warrants it" workable without pre-authorising anything, so it should stay
-available per-challenge even when off by default.
+Not as a state. A per-challenge flag on the declaration — *this one needs
+sign-off* — would keep the ceremony where it earns its keep and leave routine
+rolls at two beats. Adding it back as a state everything passes through is the
+mistake this note already records making once.
 
 ## Build order
 
-1. The card's data shape and its renderer, states inert.
-2. Step 1 — the GM's declaration dialog.
-3. Step 2 — the player's response, reusing `VentureDialog`'s body: it already
+1. The card's data shape and its renderer, states inert. ✓
+2. Step 1 — the GM's declaration dialog. ✓
+3. Step 2 — the player's answer, reusing `VentureDialog`'s body: it already
    does skills, bene, sortilege and a live target preview that clamps
-   overspending. It becomes a responder rather than a self-service window.
-4. Steps 3 and 4, and the spend at roll time.
-5. Scourge and vex into the venture — small, once the pool is known.
-6. Auto-approve, cancel, stale.
+   overspending. It becomes a responder rather than a self-service window. ✓
+4. The spend and the roll, at the moment the answer is given. ✓
+5. Scourge and vex into the venture — small, once the pool is known. ✓
+6. Cancel and stale. The result card wants a pass of its own.
 
 ## Open questions
 

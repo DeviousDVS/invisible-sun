@@ -25,10 +25,10 @@
         <img src="{{r.img}}" alt="" />
         <span class="cc-name">{{r.name}}</span>
 
-        {{!-- What the pool costs before the player adds anything. Both are
-              computed, not chosen: a scourge applies because the pool was
-              named, and a vex is the lesser of the GM's ceiling and what the
-              pool holds. --}}
+        {{!-- What the pool costs, quoted before the roll and kept after it.
+              Both are computed, not chosen: a scourge applies because the pool
+              was named, and a vex is the lesser of the GM's ceiling and what
+              the pool holds. --}}
         {{#if r.showCost}}
           <span class="cc-cost">
             {{#if r.scourge}}<span class="cc-scourge"
@@ -64,15 +64,15 @@
         {{/if}}
       </div>
 
-      {{!-- The claim itself. Approving without this is approving blind, which
-            is the one thing the approval step exists to prevent. --}}
+      {{!-- What the venture was made of. The row gives the total and how it
+            went; this is the working, so a ruling can be reviewed later
+            without anyone having to remember it. --}}
       {{#if r.breakdown}}
         <div class="cc-detail">
           <span class="cc-parts">
             {{#each r.breakdown as |part|}}<span class="cc-part">{{part}}</span>{{/each}}
           </span>
           <span class="cc-result">
-            <span class="cc-fig" data-tooltip="{{localize 'ISUN.Venture'}}">{{localize "ISUN.Venture"}} {{r.venturePreview}}</span>
             <span class="cc-fig" data-tooltip="{{localize 'ISUN.NeedToRoll'}}">{{localize "ISUN.NeedToRoll"}} {{r.targetLabel}}</span>
             {{#if r.showDice}}<span class="cc-fig">{{r.dice}} {{localize "ISUN.Dice"}}</span>{{/if}}
           </span>
