@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "description": "A system for the Invisible Sun RPG by Monte Cook Games.",
   "scripts": {
-    "test": "node scripts/check.mjs",
+    "lint": "eslint .",
+    "test": "npm run lint && node scripts/check.mjs",
+    "smoke": "node scripts/smoke.mjs",
     "packs:build": "node scripts/build_compendia.js",
     "packs:compile": "node scripts/compile_packs.js",
     "packs:verify": "node scripts/verify_packs.js",
@@ -16,6 +18,7 @@
   "type": "commonjs",
   "devDependencies": {
     "@foundryvtt/foundryvtt-cli": "^3.0.4",
+    "eslint": "^9.39.5",
     "playwright": "^1.62.1"
   }
 }

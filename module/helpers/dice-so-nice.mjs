@@ -22,9 +22,6 @@ import { ISUN } from "./config.mjs";
  * Latin and basic punctuation only.
  */
 
-/** Font Awesome 7 `fa-solid fa-disease`. */
-const FLUX_GLYPH = "";
-
 /**
  * The family name, quotes included — Dice So Nice's own FA_PRO_FAMILY is the
  * same string.

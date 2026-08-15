@@ -27,7 +27,6 @@ export class ForteAbilityPicker {
   }
 
   static async #render(actor, forte, abilities) {
-    let dialog;
     const build = () => {
       const held = actor.items.filter(i => i.type === "ForteAbility");
       const crux = actor.system.advancement?.crux ?? 0;
@@ -70,7 +69,7 @@ export class ForteAbilityPicker {
       }
     };
 
-    dialog = await DialogV2.wait({
+    await DialogV2.wait({
       window: { title: game.i18n.format("ISUN.FortePickerTitle", { forte: forte.name }),
                 resizable: true },
       position: { width: 620, height: 640 },

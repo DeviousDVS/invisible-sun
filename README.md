@@ -144,12 +144,33 @@ requests alike. A few things worth knowing before you start.
 
 ```bash
 npm install       # dependencies (all dev-only; nothing ships)
-npm test          # sources parse, manifest agrees with the tree
+npm test          # lint, then check the tree against itself
+npm run smoke     # drive a running world and click everything
 ```
 
-`npm test` is a smoke check rather than a test suite — it catches a module that
-does not parse, a manifest declaring a file that is not there, and a version
-that disagrees with the release tag it points at. Run it before you push.
+**`npm test`** never launches anything. It lints, then checks that the tree
+agrees with itself: every module parses, the manifest declares no file that is
+missing, its version matches the release tag it points at, no `data-action` in a
+template lacks a handler, every registered item type is either collected by the
+vislae sheet or explicitly excluded, no localisation key is used without being
+defined, and the generated `quirks.mjs` still matches its source. It is fast and
+safe to run at any time. Run it before you push.
+
+**`npm run smoke`** needs a world running, and a GM password in the
+environment. It logs in, builds a throwaway vislae holding one of every item
+type, walks all six tabs clicking every control it can reach, rolls something,
+and fails on any console error or any control Foundry does not recognise.
+
+```bash
+export FOUNDRY_PASSWORD='...'          # never committed; read from the environment
+npm run smoke
+```
+
+The two catch different things, and both are needed. A handler that references
+a name which does not exist is caught by the lint; one that reads a property of
+the wrong object is not, and only shows up when something clicks it. Four
+separate bugs in this project have been a control that rendered, clicked and did
+nothing — every one found weeks later by a human noticing.
 
 ### The content pipeline
 
