@@ -443,19 +443,29 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'secrets.json'))) {
 if (fs.existsSync(path.join(SOURCE_DIR, 'character-arcs.json'))) {
   const arcsData = JSON.parse(fs.readFileSync(path.join(SOURCE_DIR, 'character-arcs.json'), 'utf8'));
 
+  /* Arc text is stored plain, not wrapped in <p>.
+   *
+   * Everything else here goes through cleanHtml because it lands in an
+   * HTMLField and is rendered as markup. An arc is the exception: the model
+   * declares these as StringFields, the arc sheet edits them with plain text
+   * inputs, and system.json lists no htmlFields for the type. Wrapping them
+   * meant the tracker printed the tags — literal "<p>" on the Character Arcs
+   * tab, on the description and on every step. */
+  const plain = text => String(text ?? '').trim();
+
   // A beat reads "Naming the Secret. 1 Acumen reward. You give your goal a
   // name..." — the reward is stated inline, so lift it into its own field while
   // keeping the whole text as the description.
   const beat = text => {
-    const t = String(text ?? '').trim();
+    const t = plain(text);
     if (!t) return { description: '', reward: '', completed: false };
     const m = t.match(/(\d+\s+Acumen[^.]*|1\s+Joy[^.]*|1\s+Despair[^.]*)/i);
-    return { description: cleanHtml(t), reward: m ? m[1].trim() : '', completed: false };
+    return { description: t, reward: m ? m[1].trim() : '', completed: false };
   };
 
   for (const data of arcsData) {
     const item = createItem(titleCase(data.name), "CharacterArc", {
-      description: cleanHtml(data.description),
+      description: plain(data.description),
       cost: data.cost || '',
       status: 'planned',
       opening: beat(data.opening),
