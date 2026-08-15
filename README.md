@@ -47,6 +47,16 @@ These scripts utilize the `@foundryvtt/foundryvtt-cli` to help compile your sour
 
 - **DeviousDVS**
 
+## Licence
+
+The system's code — sheets, templates, styles, and the tools under `scripts/` — is released under the [MIT licence](LICENSE). Use it, fork it, learn from it.
+
+That licence covers the software only. It does not cover the game.
+
 ## Legal
 
-*Invisible Sun* and its associated properties are trademarks and copyrights of Monte Cook Games. This system is a community creation designed for playing the game on Foundry VTT and is not officially affiliated with Monte Cook Games.
+*Invisible Sun* and its associated properties are trademarks and copyrights of Monte Cook Games. This system is an unofficial fan creation for playing the game on Foundry VTT, produced under the [Monte Cook Games Fan Use Policy](https://www.montecookgames.com/fan-support/fan-use-policy/). It is not affiliated with, endorsed by, or published by Monte Cook Games.
+
+No Invisible Sun rules text is distributed with this system. If you own the books, the tools under `scripts/` let you generate compendium content from your own copy for your own table's use; that content remains the property of Monte Cook Games and should not be redistributed.
+
+If you do not own Invisible Sun, [buy it from Monte Cook Games](https://www.montecookgames.com/store/product-category/invisible-sun/) — this system is no substitute for the books, and is not much use without them.

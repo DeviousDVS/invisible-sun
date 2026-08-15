@@ -8,7 +8,7 @@
   },
   "keywords": [],
   "author": "DeviousDVS",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs",
   "dependencies": {
     "@foundryvtt/foundryvtt-cli": "^3.0.4"

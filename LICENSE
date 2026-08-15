@@ -1,0 +1,54 @@
+MIT License
+
+Copyright (c) 2026 DeviousDVS
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+--------------------------------------------------------------------------
+
+WHAT THIS LICENCE COVERS
+
+The MIT licence above applies to the software in this repository: the system
+code, sheets, templates, stylesheets and the tools under scripts/.
+
+IT DOES NOT APPLY TO THE INVISIBLE SUN GAME ITSELF.
+
+Invisible Sun, and all associated names, terms, mechanics and text, are the
+property of Monte Cook Games, LLC. This is an unofficial fan-made system for
+playing Invisible Sun on Foundry Virtual Tabletop, produced under the Monte
+Cook Games Fan Use Policy. It is not affiliated with, endorsed by, or
+published by Monte Cook Games.
+
+No Invisible Sun rules text is distributed with this system. The tools under
+scripts/ let an owner of the books generate compendium content from their own
+copy, which is the only supported way to obtain it. Content you generate that
+way is derived from your books and remains the property of Monte Cook Games;
+it is for your own table's use and must not be redistributed.
+
+If you do not own Invisible Sun, please buy it from Monte Cook Games:
+https://www.montecookgames.com/store/product-category/invisible-sun/
+
+--------------------------------------------------------------------------
+
+ACKNOWLEDGEMENT
+
+This system began life as a fork of the Boilerplate system by Asacolips
+Projects / Foundry Mods (MIT, copyright (c) 2020), and has since been fully
+rewritten for Foundry v14's ApplicationV2 and DataModel APIs. No substantial
+portion of that code remains, but the debt is worth recording.
