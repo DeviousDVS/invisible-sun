@@ -36,6 +36,41 @@ const pathOfSuns = Object.entries(suns)
   .sort((a, b) => a[1].order - b[1].order)
   .map(([key]) => key);
 
+/**
+ * Localisation keys that are built at runtime rather than written out.
+ *
+ * Two syntaxes compose them. In a module it is a template literal —
+ * `` `ISUN.Outcome${capitalise(outcome)}` `` — and in a template it is
+ * `{{localize (concat "ISUN.Arc" (capitalize status))}}`. Either way the key
+ * that reaches game.i18n exists in no file, so a search for it finds nothing
+ * and a key audit cannot tell a live one from a dead one.
+ *
+ * Declaring the prefixes here is what makes that audit possible.
+ * scripts/check.mjs reads this list: a literal matching one of these is treated
+ * as a prefix rather than a whole key, and every key beneath it counts as used.
+ *
+ * Add to this list when you add a composition, and keep the note. A prefix that
+ * matches no keys at all is reported as an error, since that means it is stale
+ * or misspelled — which is the failure this list exists to catch.
+ */
+export const DYNAMIC_KEY_PREFIXES = Object.freeze([
+  "ISUN.Arc",            // arc status:      character-arc-tracker.hbs
+  "ISUN.ChallengeState", // response state:  ChallengeCard.mjs
+  "ISUN.Flux",           // flux intensity:  dice.mjs
+  "ISUN.Injury",         // injury source:   wound-tracker.hbs, _fields.mjs
+  "ISUN.Kind",           // practice kind:   ISUNVislaeSheet.mjs
+  "ISUN.Outcome",        // roll outcome:    ChallengeCard.mjs
+  "ISUN.Pool",           // pool name:       several
+  "ISUN.Rest",           // rest length:     ISUNVislaeSheet.mjs
+
+  /* Foundry's own namespace for document type labels. SheetMixin composes
+   * `TYPES.Item.${type}` when naming a new item, and core reads these directly
+   * to label types in its own dialogs — so they are used twice over, and by
+   * nothing that a search of this repository would find. */
+  "TYPES.Actor.",
+  "TYPES.Item."
+]);
+
 export const ISUN = Object.freeze({
 
   /* ──────────────────────────────────────────────

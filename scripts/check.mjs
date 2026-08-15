@@ -207,6 +207,80 @@ try {
   }
 }
 
+/* ── Localisation keys ──
+ *
+ * Two questions, and only one of them is an error.
+ *
+ * A key referenced but not defined is a real fault: game.i18n returns the key
+ * itself, so the player reads "ISUN.Whatever" on their sheet. That fails.
+ *
+ * A key defined but not referenced is only ever information. Item 11 is the
+ * reason: ISUN.AutoSuccess, ISUN.MundaneDie, ISUN.MagicDie and the three Flux
+ * keys all sat unreferenced for months — not because they were dead, but
+ * because dice-result.hbs had hardcoded English where it should have used them.
+ * A checker that deleted its orphans would have deleted the fix. So these are
+ * counted, and listed on request, and never fatal.
+ */
+{
+  const flatten = (obj, prefix = "") => Object.entries(obj).flatMap(([k, v]) => {
+    const key = prefix ? `${prefix}.${k}` : k;
+    return (v && typeof v === "object") ? flatten(v, key) : [key];
+  });
+  const defined = new Set(flatten(json["lang/en.json"] ?? {}));
+
+  const config = readFileSync(path.join(ROOT, "module/helpers/config.mjs"), "utf8");
+  const declared = config.match(/DYNAMIC_KEY_PREFIXES\s*=\s*Object\.freeze\(\[([\s\S]*?)\]\)/);
+  const prefixes = declared
+    ? [...declared[1].matchAll(/"([^"]+)"/g)].map(m => m[1])
+    : [];
+  if (!prefixes.length) fail("could not read DYNAMIC_KEY_PREFIXES from module/helpers/config.mjs");
+
+  // Files that can reference a key: shipped modules and every template.
+  const referencing = [...sources];
+  (function walk(dir) {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name.endsWith(".hbs")) referencing.push(full);
+    }
+  })(path.join(ROOT, "templates"));
+
+  const referenced = new Set();
+  for (const file of referencing) {
+    const src = readFileSync(file, "utf8");
+    for (const m of src.matchAll(/["'`](ISUN\.[A-Za-z0-9_.]+)["'`]/g)) {
+      // A literal that *is* a declared prefix is the stem of a composed key,
+      // not a key: "ISUN.Arc" only ever appears inside (concat "ISUN.Arc" …).
+      if (!prefixes.includes(m[1])) referenced.add(m[1]);
+    }
+  }
+
+  for (const key of referenced) {
+    if (!defined.has(key)) {
+      const where = referencing.find(f => readFileSync(f, "utf8").includes(key));
+      fail(`"${key}" is used but not defined in lang/en.json — it will render as `
+         + `its own key.\n    First seen in ${path.relative(ROOT, where ?? "?")}`);
+    }
+  }
+
+  for (const prefix of prefixes) {
+    if (![...defined].some(k => k.startsWith(prefix) && k !== prefix)) {
+      fail(`DYNAMIC_KEY_PREFIXES declares "${prefix}", but no key in lang/en.json `
+         + `begins with it.\n    The composition it describes is stale, or the prefix is misspelled.`);
+    }
+  }
+
+  const unreferenced = [...defined].filter(k =>
+    !referenced.has(k) && !prefixes.some(p => k.startsWith(p)));
+  if (unreferenced.length) {
+    const listed = process.argv.includes("--unused");
+    console.log(`note: ${unreferenced.length} of ${defined.size} localisation keys are not `
+      + `referenced anywhere.${listed ? "" : " Run `npm test -- --unused` to list them."}`);
+    if (listed) for (const k of unreferenced.sort()) console.log(`  ${k}`);
+    console.log("  Not an error: a key can be unused because something forgot to use it.");
+  }
+}
+
 /* ── Report ── */
 if (problems.length) {
   console.error(`\n${problems.length} problem${problems.length === 1 ? "" : "s"}:\n`);
