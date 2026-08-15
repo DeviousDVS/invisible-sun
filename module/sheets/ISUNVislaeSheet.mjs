@@ -785,23 +785,30 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     }
   }
 
-  _onItemRoll(event) {
+  async _onItemRoll(event) {
     event.preventDefault();
     const li = event.currentTarget.closest(".item");
     if (!li) return;
     const doc = this.document;
     const item = doc.items.get(li.dataset.itemId);
     if (!item) return;
-    
-    game.invisibleSun.rollVenture({
+
+    await game.invisibleSun.rollVenture({
       challenge: 0,
       venture: 0,
       magicDice: 1,
-      label: `Used ${item.name}`
+      label: `Used ${item.name}`,
+      actor: doc
     });
-    
-    if (game.invisibleSun.checkDepletion && item.system.depletion) {
-      game.invisibleSun.checkDepletion(item);
+
+    /* The depletion value, not the item holding it. checkDepletion parses a
+     * string, so passing the Item put an object through .match() and threw —
+     * and the guard above it could not catch that, because an Item is truthy.
+     *
+     * Awaited, so the depletion result cannot reach chat ahead of the roll it
+     * follows, and given the actor so the message has a speaker. */
+    if (item.system.depletion) {
+      await game.invisibleSun.checkDepletion(item.system.depletion, doc);
     }
   }
 }

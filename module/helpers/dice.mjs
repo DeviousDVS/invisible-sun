@@ -104,12 +104,23 @@ export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, so
 
 /**
  * Parse a depletion string and roll for it.
+ *
+ * Takes the value, not the item that holds it: the books write depletion as
+ * prose — "0–1 (check each use)", "Ends automatically when the sun next sets" —
+ * so the number has to be read out of a sentence, and an entry with no digits
+ * in it simply does not deplete.
  */
 export async function checkDepletion(depletionString, actor = null) {
-  if (!depletionString || depletionString === "" || depletionString === "—") return null;
-  
-  // Parse "X-Y" or just "X" from the string
-  const match = depletionString.match(/(\d+)(?:-(\d+))?/);
+  if (typeof depletionString !== "string") return null;
+  if (!depletionString || depletionString === "—") return null;
+
+  /* "X" or "X–Y". The dash is the point: every ranged entry in the packs — all
+   * 153 of them — is written with an en dash, and not one uses a hyphen, so a
+   * pattern accepting only "-" never matched a range at all. It read "1–3" as
+   * 1 and "0–1" as 0, understating depletion on every ranged item in the game.
+   * Both dashes and the em dash are accepted now; the leading guard above still
+   * catches a bare "—" used to mean "does not deplete". */
+  const match = depletionString.match(/(\d+)\s*(?:[-–—]\s*(\d+))?/);
   if (!match) return null;
   
   const low = parseInt(match[1]);
