@@ -210,11 +210,48 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'fortes.json'))) {
   console.log(`Processed ${fortesData.length} fortes and ${abilitiesCount} forte abilities.`);
 }
 
+/**
+ * What a degree ability entitles its holder to, read out of its own prose.
+ *
+ * "Your degree determines how many ephemera a vislae can bear at a time, and —
+ * at higher degrees — how many of these can be incantations you choose rather
+ * than incantations granted to you" (The Key, p36). The books state those
+ * numbers in words, inside the ability's description, and each ability restates
+ * the total rather than an increment.
+ *
+ * This runs here, once, rather than in ISUNActor at derivation time. Reading
+ * the ladder rather than hardcoding a table is still right — a GM who edits an
+ * order should be followed — but doing it against live text meant a reworded or
+ * translated description silently dropped a character's caps back to the base.
+ * Extracting at build time keeps the benefit and moves the fragility to a place
+ * where it is visible: verify_packs and check.mjs both see the result, and an
+ * ability whose numbers stop parsing shows up as a diff rather than as a
+ * quietly weaker character.
+ */
+const DEGREE_GRANTS = (() => {
+  const NUMBERS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 };
+  const word = m => NUMBERS[m?.[1]?.toLowerCase()] ?? 0;
+  const EPHEMERA = /\b(one|two|three|four|five|six)\s+ephemera\b/i;
+  const INCANTATIONS = /only\s+(one|two|three|four|five|six)\s+of these can be incantations/i;
+  const CONATION = /\b(one|two|three|four|five|six)\b[^.]*conation/i;
+  return text => ({
+    ephemera:     word(String(text ?? '').match(EPHEMERA)),
+    incantations: word(String(text ?? '').match(INCANTATIONS)),
+    conation:     word(String(text ?? '').match(CONATION)),
+  });
+})();
+
 // Orders
 if (fs.existsSync(path.join(SOURCE_DIR, 'orders.json'))) {
   const ordersData = JSON.parse(fs.readFileSync(path.join(SOURCE_DIR, 'orders.json'), 'utf8'));
+  let granting = 0;
   for (const data of ordersData) {
-    const named = list => (list ?? []).map(a => ({ name: a.name, description: cleanHtml(a.description) }));
+    const named = list => (list ?? []).map(a => {
+      const description = cleanHtml(a.description);
+      const grants = DEGREE_GRANTS(description);
+      if (grants.ephemera || grants.incantations || grants.conation) granting++;
+      return { name: a.name, description, grants };
+    });
     const item = createItem(data.name, "Order", {
       description: cleanHtml(data.description),
       otherNames: data.other_names || "",
@@ -237,7 +274,7 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'orders.json'))) {
     }, "icons/magic/symbols/ring-circle-smoke-blue.webp");
     writeItem("orders", item);
   }
-  console.log(`Processed ${ordersData.length} orders.`);
+  console.log(`Processed ${ordersData.length} orders (${granting} abilities carrying a degree grant).`);
 }
 
 // Objects of power and ephemera, both from their card decks. They share a

@@ -217,6 +217,26 @@ that has to hit a regex.
 This is the only place in the system where mechanics depend on prose. Worth
 closing before a translation exists to break it.
 
+**Done (item 18).** `grants: { ephemera, incantations, conation }` is on the
+degree ability schema and populated by `build_compendia.js`. `degreeEntitlements`
+reads the numbers and no longer parses anything. The patterns survive in two
+places, both bounded: the build script, where the text is known to be the
+English they were written against, and `OrderModel.migrateData`, which fills the
+field for an Order dragged into a world before it existed — once, against source
+that predates the change. Verified across all five orders at every degree
+against the old derivation, and then by translating every description into
+French: entitlements held at 5 and 2 where the old code returned zeros.
+
+**Found while doing it: an Apostate gets nothing from this, and should.** Their
+starting "Ephemera Use" grants three ephemera and their purchasable
+"Incantation" grants a conation slot — the extractor now records both — but
+`degreeEntitlements` walks `degrees`, and an Apostate has none. Nothing yet
+tracks *which* apostate abilities a character has taken, so there is nothing to
+read the grants against; `apostateAbilities` on the Order item is the catalogue,
+not the holding. The base cap of three happens to match their starting
+entitlement, so only the conation slot is actually wrong today. Fixing it needs
+apostate progression modelled first.
+
 ---
 
 ## 5. The imperative migrations have no version gate

@@ -530,18 +530,24 @@ export class ISUNActor extends Actor {
    * Vance hold the same Order item — so it cannot come from `grants.limits`
    * and has to be read against the degree actually held.
    *
-   * The degree abilities state their numbers in words, and each restates the
-   * total rather than an increment, so the highest attained wins rather than
-   * the sum. Reading them rather than hardcoding a table means an order whose
-   * ladder a GM has edited is followed instead of overridden.
+   * Each ability restates the total rather than an increment, so the highest
+   * attained wins rather than the sum. Reading the ladder rather than
+   * hardcoding a table means an order whose degrees a GM has edited is followed
+   * instead of overridden.
+   *
+   * The numbers come from `ability.grants`, extracted once at build time. They
+   * used to be read here, by regexes run over the description on every data
+   * preparation — which worked, and would have failed silently the first time
+   * anyone reworded a sentence or translated the compendium: the caps would
+   * simply drop back to the base with nothing said. See build_compendia.js.
+   *
+   * An Apostate still gets nothing from this, because they have no degrees.
+   * Their starting "Ephemera Use" and purchasable "Incantation" carry real
+   * entitlements and the extractor now records them, but nothing yet tracks
+   * which apostate abilities a character has taken, so there is nothing to read
+   * them against.
    */
   degreeEntitlements() {
-    const NUMBERS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 };
-    const word = m => NUMBERS[m?.[1]?.toLowerCase()] ?? 0;
-    const EPHEMERA = /\b(one|two|three|four|five|six)\s+ephemera\b/i;
-    const INCANTATIONS = /only\s+(one|two|three|four|five|six)\s+of these can be incantations/i;
-    const CONATION = /\b(one|two|three|four|five|six)\b[^.]*conation/i;
-
     const order = this.items.find(i => i.type === "Order");
     const held = this.system.meta?.orderDegree ?? 0;
     const out = { ephemera: 0, incantations: 0, conation: 0 };
@@ -549,10 +555,11 @@ export class ISUNActor extends Actor {
     for (const degree of order?.system?.degrees ?? []) {
       if ((degree.degree ?? 0) > held) continue;
       for (const ability of degree.abilities ?? []) {
-        const text = ability.description ?? "";
-        out.ephemera = Math.max(out.ephemera, word(text.match(EPHEMERA)));
-        out.incantations = Math.max(out.incantations, word(text.match(INCANTATIONS)));
-        out.conation = Math.max(out.conation, word(text.match(CONATION)));
+        const grants = ability.grants;
+        if (!grants) continue;
+        for (const key of Object.keys(out)) {
+          out[key] = Math.max(out[key], grants[key] ?? 0);
+        }
       }
     }
     return out;
