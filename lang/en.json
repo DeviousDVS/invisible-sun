@@ -442,6 +442,7 @@
     "DepletionSafe": "Safe",
     "DepletionRange": "Depletes on {range}",
     "MigratedSavings": "Savings moved into the purse on {count} character(s).",
+    "MigrationFailed": "Invisible Sun: the \"{id}\" migration failed. Your world has not been fully updated — check the console, and report it before playing on.",
     "OutcomeSuccess": "success",
     "OutcomeFailure": "failure",
     "OutcomeAuto": "automatic",

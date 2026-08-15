@@ -40,6 +40,9 @@ import { ExperimentalDie } from "./module/dice/ExperimentalDie.mjs";
 import { registerDiceSoNice } from "./module/helpers/dice-so-nice.mjs";
 import { CompendiumBrowser } from "./module/apps/CompendiumBrowser.mjs";
 
+// ── Migrations ───────────────────────────────────────────
+import { registerMigrationSetting, runMigrations } from "./module/migrations/index.mjs";
+
 /* ═══════════════════════════════════════════════════════════
  * INIT HOOK — Register everything
  * ═══════════════════════════════════════════════════════════ */
@@ -218,6 +221,10 @@ Hooks.once("init", () => {
     })
   });
 
+  // ── Migrations ───────────────────────────────────────
+  // Registered in init because the ready hook reads it.
+  registerMigrationSetting();
+
   // ── Handlebars ───────────────────────────────────────
   registerHandlebarsHelpers();
   preloadHandlebarsTemplates();
@@ -228,65 +235,6 @@ Hooks.once("init", () => {
 /* ═══════════════════════════════════════════════════════════
  * READY HOOK — Post-init setup
  * ═══════════════════════════════════════════════════════════ */
-
-/**
- * Whether this client is the one that should run migrations.
- *
- * A GM — a player has no business rewriting everyone's documents, and an owner
- * has enough permission to succeed at it, so hoping they will not is not a
- * safeguard.
- *
- * And only *one* GM. A world may have several GM accounts connected at once
- * (this one has two), and every GM client running the same migration at the
- * same moment means each reads the pre-migration value before any of them
- * writes. That happens to be survivable for the migrations here, because both
- * clients compute the same result from the same starting value — but it is
- * survivable by luck rather than by design, and the next migration need not be
- * so forgiving.
- *
- * The lowest-id active GM is elected, which is the same rule ChallengeCard uses
- * to decide which GM applies a relayed response. If that client never gets
- * there, the migration simply runs on the next load.
- */
-function isMigrationRunner() {
-  if (!game.user.isGM) return false;
-  const first = game.users.filter(u => u.isGM && u.active)
-    .sort((a, b) => a.id.localeCompare(b.id))[0];
-  return first?.id === game.user.id;
-}
-
-/**
- * economy.savings was a single number of crystal orbs, matching the Foundation
- * entries in The Key ("Initial Savings: 100 crystal orbs"). It is now one
- * denomination among nine in economy.purse.
- *
- * The legacy field is deliberately still declared in VislaeModel: Foundry
- * prunes keys that are absent from the schema, so dropping it outright would
- * make the stored value unreadable here and silently lose a character's money.
- * Migrated actors are left with null, which is the signal not to re-run.
- */
-async function migrateSavingsToPurse() {
-  if (!isMigrationRunner()) return;
-
-  const updates = [];
-  for (const actor of game.actors) {
-    if (actor.type !== "Vislae") continue;
-    const legacy = actor.system?.economy?.savings;
-    if (typeof legacy !== "number") continue;
-
-    updates.push({
-      _id: actor.id,
-      "system.economy.purse.crystal": (actor.system.economy.purse?.crystal ?? 0) + legacy,
-      "system.economy.savings": null
-    });
-  }
-
-  if (!updates.length) return;
-  await Actor.updateDocuments(updates);
-  console.log(`invisible-sun | moved economy.savings into economy.purse.crystal on ${updates.length} actor(s)`);
-  ui.notifications?.info(game.i18n.format("ISUN.MigratedSavings", { count: updates.length }));
-}
-
 Hooks.once("ready", async () => {
   console.log("invisible-sun | System ready");
 
@@ -300,31 +248,9 @@ Hooks.once("ready", async () => {
    * everyone. renderChatMessage is deprecated in v13 and warns. */
   Hooks.on("renderChatMessageHTML", (message, html) => ChallengeCard.render(message, html));
 
-  await migrateSavingsToPurse();
-
-  // Migration for ForteAbility level (String -> Number)
-  if (isMigrationRunner()) {
-    for (const pack of game.packs) {
-      if (pack.metadata.type === "Item") {
-        // In a real migration we'd unlock the pack, update items, and lock it again.
-        // We will leave this stubbed or log for now.
-      }
-    }
-
-    for (const item of game.items) {
-      if (item.type === "ForteAbility" && typeof item.system.level === "string") {
-        item.update({ "system.level": parseInt(item.system.level) || 1 });
-      }
-    }
-
-    for (const actor of game.actors) {
-      for (const item of actor.items) {
-        if (item.type === "ForteAbility" && typeof item.system.level === "string") {
-          item.update({ "system.level": parseInt(item.system.level) || 1 });
-        }
-      }
-    }
-  }
+  /* Whatever this world has not had yet. Elects a single GM, runs only what is
+   * outstanding, and records how far it got. See module/migrations/. */
+  await runMigrations();
 });
 
 /* There was a /venture chat command here. It took a challenge rating and rolled

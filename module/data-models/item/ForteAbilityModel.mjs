@@ -17,6 +17,11 @@ export class ForteAbilityModel extends foundry.abstract.DataModel {
     const fields = foundry.data.fields;
 
     return {
+      /* A world built before this was a NumberField stored the level as a
+       * string. No migration is needed and none should be added: NumberField
+       * casts a stored "3" to 3 during cleaning, before anything reads it. The
+       * ready hook carried a loop testing `typeof level === "string"` for a
+       * long time; the condition can never be true, so it never once ran. */
       level:       new fields.NumberField({ required: true, initial: 1, integer: true, min: 0 }),
       /** Extra dice this ability adds to the roll, from "(+1 die)" / "(+2 dice)". */
       bonusDice:   new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
