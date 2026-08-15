@@ -89,6 +89,51 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     form: { template: "systems/invisible-sun/templates/actor/vislae-sheet.hbs" }
   };
 
+  /**
+   * Which context key each item type is collected into.
+   *
+   * One map, where there were sixteen array declarations and a sixteen-case
+   * switch that had to agree with them — a type added to one and not the other
+   * produced an empty list rather than an error.
+   *
+   * Deliberately a map and not a rule. Three of these are irregular in English:
+   * a CharacterArc lands in `arcs`, Ephemera is already plural, and
+   * ObjectOfPower pluralises in the middle. A rule clever enough to derive the
+   * regular thirteen would still need those three declared, and would have
+   * renamed `objectsOfPower` to `objectOfPowers` to earn it — the tail wagging
+   * the dog. The names here are the ones the templates read.
+   */
+  static ITEM_BUCKETS = {
+    Heart:         "hearts",
+    Foundation:    "foundations",
+    Soul:          "souls",
+    Order:         "orders",
+    Forte:         "fortes",
+    ForteAbility:  "forteAbilities",
+    Spell:         "spells",
+    Incantation:   "incantations",
+    Secret:        "secrets",
+    Skill:         "skills",
+    CharacterArc:  "arcs",
+    Ephemera:      "ephemera",
+    ObjectOfPower: "objectsOfPower",
+    Thread:        "threads",
+    MinorMagic:    "minorMagics",
+    Connection:    "connections"
+  };
+
+  /**
+   * Item types this sheet deliberately does not collect.
+   *
+   * Declared rather than simply omitted, so the difference between "decided
+   * against" and "forgotten" is written down. npm test holds every registered
+   * item type to appearing in one list or the other.
+   */
+  static UNBUCKETED_ITEM_TYPES = [
+    // A Sooth card is drawn and read, not carried; nothing on the sheet shows one.
+    "SoothCard"
+  ];
+
 
 
   // Application V2 Context prep
@@ -124,45 +169,10 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
 
 
   _prepareSheetData(context) {
-    const items = context.actor.items;
-    
-    // Categorize embedded items
-    context.spells = [];
-    context.incantations = [];
-    context.forteAbilities = [];
-    context.secrets = [];
-    context.skills = [];
-    context.arcs = [];
-    context.ephemera = [];
-    context.objectsOfPower = [];
-    context.hearts = [];
-    context.foundations = [];
-    context.souls = [];
-    context.orders = [];
-    context.fortes = [];
-    context.threads = [];
-    context.minorMagics = [];
-    context.connections = [];
-
-    for (let item of items) {
-      switch(item.type) {
-        case "Spell": context.spells.push(item); break;
-        case "Incantation": context.incantations.push(item); break;
-        case "ForteAbility": context.forteAbilities.push(item); break;
-        case "Secret": context.secrets.push(item); break;
-        case "Skill": context.skills.push(item); break;
-        case "CharacterArc": context.arcs.push(item); break;
-        case "Ephemera": context.ephemera.push(item); break;
-        case "ObjectOfPower": context.objectsOfPower.push(item); break;
-        case "Heart": context.hearts.push(item); break;
-        case "Foundation": context.foundations.push(item); break;
-        case "Soul": context.souls.push(item); break;
-        case "Order": context.orders.push(item); break;
-        case "Forte": context.fortes.push(item); break;
-        case "Thread": context.threads.push(item); break;
-        case "MinorMagic": context.minorMagics.push(item); break;
-        case "Connection": context.connections.push(item); break;
-      }
+    for (const bucket of Object.values(ISUNVislaeSheet.ITEM_BUCKETS)) context[bucket] = [];
+    for (const item of context.actor.items) {
+      const bucket = ISUNVislaeSheet.ITEM_BUCKETS[item.type];
+      if (bucket) context[bucket].push(item);
     }
 
     // Connections are one type distinguished by bondType, so the sheet groups

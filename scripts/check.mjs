@@ -173,6 +173,40 @@ try {
   }
 }
 
+/* ── Every registered item type is accounted for on the vislae sheet ──
+ *
+ * The sheet collects embedded items into named buckets. A type registered in
+ * the system but missing from that map is not an error Foundry can see: the
+ * item exists, the sheet just never shows it. So the sheet declares which types
+ * it deliberately does not collect, and this holds every registered type to
+ * appearing in one list or the other. */
+{
+  const entry = readFileSync(path.join(ROOT, "invisible-sun.mjs"), "utf8");
+  const sheet = readFileSync(path.join(ROOT, "module/sheets/ISUNVislaeSheet.mjs"), "utf8");
+
+  const block = entry.match(/CONFIG\.Item\.dataModels,\s*\{([\s\S]*?)\}\)/);
+  const buckets = sheet.match(/static ITEM_BUCKETS\s*=\s*\{([\s\S]*?)\n\s{2}\}/);
+  const skipped = sheet.match(/static UNBUCKETED_ITEM_TYPES\s*=\s*\[([\s\S]*?)\]/);
+
+  if (!block || !buckets || !skipped) {
+    fail("could not read the item type registration or the sheet's bucket map "
+       + "— one of them has been renamed or reformatted, and this check is now blind");
+  } else {
+    const registered = [...block[1].matchAll(/(\w+):\s*\w+Model/g)].map(m => m[1]);
+    const covered = new Set([
+      ...[...buckets[1].matchAll(/(\w+):\s*"/g)].map(m => m[1]),
+      ...[...skipped[1].matchAll(/"(\w+)"/g)].map(m => m[1])
+    ]);
+    for (const type of registered) {
+      if (!covered.has(type)) {
+        fail(`item type "${type}" is registered but the vislae sheet neither collects\n`
+           + `    it nor lists it in UNBUCKETED_ITEM_TYPES — items of that type would be\n`
+           + `    silently invisible on the sheet.`);
+      }
+    }
+  }
+}
+
 /* ── Report ── */
 if (problems.length) {
   console.error(`\n${problems.length} problem${problems.length === 1 ? "" : "s"}:\n`);
