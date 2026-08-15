@@ -121,6 +121,10 @@ export class ISUNActor extends Actor {
 
     // Three Wounds is death. Three Anguish is a GM call among catatonia,
     // madness, utter suggestibility or death, so it is only flagged.
+    //
+    // Derived, not applied: nothing yet turns either into a token status effect.
+    // These two flags are what such a thing would read, and are the reason a
+    // second death check does not belong anywhere else.
     h.dead = h.wounds.value >= h.wounds.max;
     h.broken = h.anguish.value >= h.anguish.max;
   }
@@ -467,18 +471,6 @@ export class ISUNActor extends Actor {
   /* ────────────────────────────────────────────── */
 
   /**
-   * Derive the effective caps as base + item contributions + GM override.
-   *
-   * Any owned item may raise a limit by declaring `system.grants.limits.<key>`.
-   * Nothing does so yet — the Magical Management secret, Maker degree
-   * progression and forte abilities each need their item type modelled first —
-   * but the summing is in place so those only have to supply the number.
-   *
-   * Caps are advisory: `over` is reported for the sheet to flag, and nothing is
-   * blocked. A limit we compute too low must never stop a player recording what
-   * the rules allow.
-   */
-  /**
    * A stat's score is the sum of what its pools hold, and what remains to be
    * placed in each.
    *
@@ -566,6 +558,19 @@ export class ISUNActor extends Actor {
     return out;
   }
 
+  /**
+   * Derive the effective caps as base + item contributions + GM override.
+   *
+   * Any owned item may raise a limit by declaring `system.grants.limits.<key>`.
+   * The Magical Management secret does — "two additional objects of power above
+   * and beyond the normal limit of three at a time" (The Way, p90) — and the
+   * summing is general, so anything else that entitles its owner to more only
+   * has to supply the number.
+   *
+   * Caps are advisory: `over` is reported for the sheet to flag, and nothing is
+   * blocked. A limit we compute too low must never stop a player recording what
+   * the rules allow.
+   */
   _prepareLimits(system) {
     const base = { ...(CONFIG.ISUN?.limits ?? {}) };
 
@@ -683,26 +688,5 @@ export class ISUNActor extends Actor {
     this._prepareStatAllocation(system);
     this._prepareLimits(system);
     this._prepareEconomy(system);
-
-    // 1. Crux Calculation: You can only have Crux equal to the pairs of Joy & Despair
-    // Actually in IS, you "spend" Joy and Despair to get Crux, so this might be manually managed.
-    // However, if we want to auto-calculate available crux pairs:
-    // This is often manually managed, so we just ensure they are non-negative.
-    
-    
-    // 3. Death/Incapacity Check
-    const isDead = system.status.wounds.value >= system.status.wounds.max 
-                || system.status.anguish.value >= system.status.anguish.max;
-    
-    // We could apply a status effect here for Dead/Incapacitated in the future
-    
-    // 4. Validate Pool Totals
-    // Ensure the sum of Certes pool maxes doesn't exceed Certes value
-    const certesPools = system.stats.certes.pools;
-    const totalCertesMax = certesPools.accuracy.max + certesPools.movement.max + certesPools.physicality.max + certesPools.perception.max;
-    if (totalCertesMax > system.stats.certes.value) {
-      // In a real system we might warn the user, but for now we just compute it.
-      // We don't forcefully overwrite it to avoid destroying user data during edit.
-    }
   }
 }

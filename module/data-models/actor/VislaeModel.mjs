@@ -267,7 +267,6 @@ export class VislaeModel extends foundry.abstract.DataModel {
       savings: new fields.NumberField({ required: false, nullable: true, initial: null, min: 0 }),
     });
 
-    /* ── House ── */
     /* ── House ──
      * A vislae's home and the neighbourhood around it; the fan sheet pairs the
      * two, and in play they are consulted together. */
