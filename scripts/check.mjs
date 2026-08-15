@@ -24,8 +24,7 @@ const problems = [];
 const fail = (msg) => problems.push(msg);
 
 /* ── Every shipped .mjs parses ──
- * Only what ships. scripts/ is developer tooling and old_char_sheet/ is a
- * superseded system kept for reference; neither reaches a player. */
+ * Only what ships: scripts/ is developer tooling and never reaches a player. */
 const sources = [];
 (function walk(dir) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {

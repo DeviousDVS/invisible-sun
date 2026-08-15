@@ -177,8 +177,10 @@ source/                design notes and the data the packs are built from
 packs/_source/         compendium JSON; the compiled LevelDB is a build artifact
 ```
 
-`old_char_sheet/` is the superseded pre-v14 system, kept for reference only.
-Nothing in it is live, and it will be removed.
+The pre-v14 system this replaced is not in the working tree. If you need it —
+its `template.json` records the data shape the migrations in
+`module/data-models/` migrate away from — it is at the `archive/old-char-sheet`
+tag.
 
 ### Conventions
 
