@@ -335,9 +335,14 @@ first-time reader, which matters for a public release.
   its own `system.json`, `package.json` and `LICENSE.txt`. `trash/` is correctly
   gitignored; this is not. If it is kept for reference, a git tag would keep it
   without shipping it to everyone who clones.
-- **`module/helpers/quirks.mjs` is generated** by `scripts/build_quirks.py` from
-  `source/data/quirks.json`, but carries no "generated — do not edit" marker, so
-  a direct edit is silently lost on the next build.
+- ~~**`module/helpers/quirks.mjs` carries no "generated" marker.**~~ **Wrong —
+  it already did**, on the last line of its docblock. The finding came from a
+  case-sensitive grep for `generated` against a capitalised "Generated", inside
+  a pipeline whose exit status was masked by `head`, so an empty result was read
+  as absence. Worth recording as a caution about the method: a check that cannot
+  distinguish "found nothing" from "did not run" will eventually report both the
+  same way. The real gap was that a header cannot *stop* an overwrite, so
+  `npm test` now compares the generated list against its source (item 9).
 
 ---
 
@@ -491,7 +496,7 @@ the answer might not be.
 |---|---|---|---|
 | 7 | Delete the `/venture` command and its README line | A stub the challenge flow superseded, currently advertised as a feature | 7 |
 | 8 | Delete the dead tail of `_prepareVislaeData`, the orphaned JSDoc, the duplicate `House` comment | What makes a codebase read as unfinished to a first-time visitor | 7 |
-| 9 | Mark `module/helpers/quirks.mjs` as generated | A direct edit is currently lost silently on the next build | 7 |
+| 9 | Enforce that `module/helpers/quirks.mjs` matches its source | It was already marked as generated; the gap was that a marker cannot stop an overwrite. `npm test` now compares the two | 7 |
 | 10 | Remove `old_char_sheet/` (tag it first if you want it kept) | 47 tracked files of a superseded system, with its own `system.json` | 7 |
 | 11 | Localise the remaining hardcoded strings | `checkDepletion`'s chat text, "Choose instead", `"Action"`, `` `Used ${item.name}` `` | 8 |
 | 12 | Add `npm run build` / `compile` / `verify`, and a pipeline section in the README | The content pipeline is good and currently undiscoverable | 11 |

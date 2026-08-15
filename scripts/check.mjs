@@ -17,7 +17,7 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const problems = [];
@@ -91,6 +91,33 @@ if (manifest) {
   if (pkg && pkg.version !== manifest.version) {
     fail(`package.json version (${pkg.version}) and system.json version (${manifest.version}) disagree`);
   }
+}
+
+/* ── Generated files still match what generated them ──
+ *
+ * quirks.mjs is written from quirks.json by scripts/build_quirks.py, and says
+ * so in its header. A header cannot stop anyone editing the module directly and
+ * losing the change at the next build; this can. The generator preserves
+ * everything before `export const`, so the two only ever disagree when someone
+ * has edited the list itself. */
+try {
+  const mod = await import(pathToFileURL(path.join(ROOT, "module/helpers/quirks.mjs")).href);
+  const source = JSON.parse(readFileSync(path.join(ROOT, "source/data/quirks.json"), "utf8"));
+  const built = mod.QUIRKS ?? [];
+  const at = built.findIndex((q, i) => q !== source[i]);
+  if (built.length !== source.length || at !== -1) {
+    /* Name where they diverge. "50 entries vs 50" is no help when the counts
+     * agree and a line was reworded, which is the likeliest way this happens. */
+    const where = built.length !== source.length
+      ? `${built.length} entries vs ${source.length}`
+      : `first difference at entry ${at}:\n`
+        + `      built:  ${JSON.stringify(built[at]?.slice(0, 60))}\n`
+        + `      source: ${JSON.stringify(source[at]?.slice(0, 60))}`;
+    fail(`module/helpers/quirks.mjs is out of step with source/data/quirks.json — ${where}\n`
+       + `    Edit the JSON, then run: python3 scripts/build_quirks.py`);
+  }
+} catch (err) {
+  fail(`could not compare quirks.mjs against quirks.json: ${err.message}`);
 }
 
 /* ── Report ── */
