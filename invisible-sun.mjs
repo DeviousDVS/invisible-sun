@@ -327,22 +327,16 @@ Hooks.once("ready", async () => {
   }
 });
 
-/* ═══════════════════════════════════════════════════════════
- * CHAT MESSAGE HOOK — Intercept /venture commands
- * ═══════════════════════════════════════════════════════════ */
-Hooks.on("chatMessage", (chatLog, messageText, chatData) => {
-  if (messageText.startsWith("/venture")) {
-    const parts = messageText.split(" ");
-    let challenge = 0;
-    if (parts.length > 1 && !isNaN(parseInt(parts[1]))) {
-      challenge = parseInt(parts[1]);
-    }
-    
-    // In the future, this will open the Venture Dialog. 
-    // For now, just fire off a basic roll.
-    game.invisibleSun.rollVenture({ challenge, venture: 0, magicDice: 0, label: "Basic Venture" });
-    
-    return false; // Prevent Foundry from sending the literal "/venture" string
-  }
-  return true;
-});
+/* There was a /venture chat command here. It took a challenge rating and rolled
+ * with venture 0, no actor and no skills — a placeholder, by its own comment,
+ * for a dialog that would come later.
+ *
+ * That dialog came, and then the challenge flow replaced the need for it: a
+ * roll starts with the GM declaring a pool and a rating, because only players
+ * roll dice and the GM sets the challenge. A command that rolls against nothing,
+ * for nobody, is not a shortcut into that — it is a different and worse way to
+ * resolve an action, and it was advertised in the README as a feature.
+ *
+ * Deleted rather than promoted into a command registry. Building infrastructure
+ * around a placeholder is how placeholders become permanent. If slash commands
+ * earn their place later, they can arrive with a registry of their own. */
