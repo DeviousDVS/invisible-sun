@@ -151,6 +151,60 @@ npm test          # sources parse, manifest agrees with the tree
 does not parse, a manifest declaring a file that is not there, and a version
 that disagrees with the release tag it points at. Run it before you push.
 
+### The content pipeline
+
+Compendium content is built, not hand-written. Four stages, each feeding the
+next:
+
+```
+source/books/*.pdf        your own copy of the books — gitignored, never distributed
+        │
+        │  scripts/extract_*.py          (Python; 8 of them read the books)
+        ▼
+source/data/*.json        structured game data                        ← tracked
+        │
+        │  npm run packs:build
+        ▼
+packs/_source/<pack>/     one JSON file per compendium entry           ← tracked
+        │
+        │  npm run packs:compile         ⚠ Foundry must be stopped
+        ▼
+packs/<pack>/             LevelDB databases Foundry reads    ← gitignored artifact
+        │
+        │  npm run packs:verify          ⚠ Foundry must be stopped
+        ▼
+                          compiled output diffed back against packs/_source
+```
+
+`npm run packs` runs the last three in order.
+
+**Which stage do I edit?** Whichever is furthest upstream, or your change is
+overwritten by the next build:
+
+| To change | Edit | Then run |
+|---|---|---|
+| a description, cost, level — anything in a compendium entry | `source/data/*.json` | `npm run packs` |
+| how entries are *shaped* (fields, icons, ids) | `scripts/build_compendia.js` | `npm run packs` |
+| what gets pulled out of the books | `scripts/extract_*.py` | that script, then `npm run packs` |
+| the quirks list | `source/data/quirks.json` | `python3 scripts/build_quirks.py` |
+
+Editing `packs/_source` directly works until the next `packs:build` silently
+reverts it. `npm run packs:build` is deterministic — ids are hashed from name
+and type — so a re-run on an unchanged tree produces an empty diff. If a re-run
+moves something you did not touch, your edit did more than you meant.
+
+**Two constraints worth knowing before you hit them:**
+
+- **`packs:compile` and `packs:verify` need Foundry stopped.** LevelDB permits a
+  single writer. Both refuse rather than risking a half-written pack, and change
+  nothing when they refuse — but the error will look like a failure if you were
+  not expecting it.
+- **The extractors are Python**; everything else is Node. You need both
+  toolchains only if you are regenerating from the books. Editing
+  `source/data/*.json` and rebuilding needs Node alone.
+
+### Screenshots
+
 There is also a headless screenshot harness for checking sheets without
 eyeballing every one by hand:
 

@@ -4,6 +4,10 @@
   "description": "A system for the Invisible Sun RPG by Monte Cook Games.",
   "scripts": {
     "test": "node scripts/check.mjs",
+    "packs:build": "node scripts/build_compendia.js",
+    "packs:compile": "node scripts/compile_packs.js",
+    "packs:verify": "node scripts/verify_packs.js",
+    "packs": "npm run packs:build && npm run packs:compile && npm run packs:verify",
     "shot": "node scripts/shoot.mjs"
   },
   "keywords": [],

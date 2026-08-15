@@ -1,3 +1,23 @@
+/**
+ * Compile the compendium JSON into the LevelDB packs Foundry reads.
+ *
+ * Stage 3 of four:
+ *
+ *   source/books/*.pdf  --extract_*.py-->   source/data/*.json
+ *   source/data/*.json  --build_compendia--> packs/_source/<pack>/*.json
+ *   packs/_source       --THIS SCRIPT-->     packs/<pack>  (LevelDB)
+ *   packs               --verify_packs-->    diffed back against the source
+ *
+ * The output is a build artifact and is gitignored: it rewrites itself whenever
+ * Foundry runs. packs/_source is what gets committed.
+ *
+ * FOUNDRY MUST BE STOPPED. LevelDB permits one writer, and compiling replaces
+ * each pack directory wholesale — see assertPacksUnlocked below for what
+ * happens otherwise. The script refuses rather than risking it, and changes
+ * nothing when it does.
+ *
+ * Usage:  npm run packs:compile        (or npm run packs for all three stages)
+ */
 const { compilePack } = require('@foundryvtt/foundryvtt-cli');
 const path = require('path');
 const fs = require('fs');

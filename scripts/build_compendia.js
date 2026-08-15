@@ -1,3 +1,22 @@
+/**
+ * Build the compendium JSON from the structured game data.
+ *
+ * Stage 2 of four:
+ *
+ *   source/books/*.pdf  --extract_*.py-->  source/data/*.json
+ *   source/data/*.json  --THIS SCRIPT-->   packs/_source/<pack>/*.json
+ *   packs/_source       --compile_packs-->  packs/<pack>  (LevelDB)
+ *   packs               --verify_packs-->   diffed back against the source
+ *
+ * Deterministic: ids are hashed from name and type, so running it twice
+ * produces byte-identical output and a re-run shows up as an empty diff. That
+ * is the check worth making after editing source/data — if anything unexpected
+ * moves, the edit did more than intended.
+ *
+ * Safe to run at any time; it touches no database and needs no Foundry.
+ *
+ * Usage:  npm run packs:build
+ */
 const fs = require('fs');
 const path = require('path');
 
