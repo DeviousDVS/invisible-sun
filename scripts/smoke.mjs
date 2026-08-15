@@ -17,6 +17,10 @@
  * Everything it creates is named "ZZ …" and deleted afterwards, including on
  * failure. It touches no existing actor.
  *
+ * What it does not cover, and why: the challenge flow needs a GM and a player
+ * connected at once, and a second set of credentials this script has no way to
+ * ask for. Exercise that by hand, or with a two-session script of your own.
+ *
  *   export FOUNDRY_PASSWORD='...'        # required; never committed
  *   export FOUNDRY_USER='Claude'         # optional, must be a GM
  *   export FOUNDRY_URL='http://localhost:30000'
@@ -137,7 +141,53 @@ try {
   ok("every control clicked is one the sheet knows", unknown.length === 0,
      unknown[0] ?? `${clicked} controls`);
 
-  /* ── 5. A roll reaches chat, and so does its depletion check ── */
+  /* ── 5. The other two actor sheets, and every item sheet ──
+   *
+   * Cheap, and it covers what the vislae walk cannot: a template edit that
+   * breaks the NPC sheet, or an item type whose sheet throws on open, is
+   * otherwise found by a person opening it weeks later. */
+  for (const type of ["NPC", "Creature"]) {
+    const before = errors.length;
+    const one = await page.evaluate(async ({ type }) => {
+      const a = await Actor.create({ name: `ZZ ${type}`, type });
+      a.sheet.render(true);
+      return { id: a.id, sheetId: a.sheet.id };
+    }, { type });
+    const shown = await page.locator(`#${one.sheetId}`)
+      .waitFor({ state: "visible", timeout: 15_000 }).then(() => true).catch(() => false);
+    await page.waitForTimeout(300);
+    ok(`the ${type} sheet opens`, shown && errors.length === before,
+       !shown ? "never became visible" : (errors[errors.length - 1] ?? ""));
+    await page.evaluate(async ({ id }) => {
+      game.actors.get(id)?.sheet?.close();
+      await game.actors.get(id)?.delete();
+    }, one);
+  }
+
+  {
+    const itemTypes = await page.evaluate(() => Object.keys(CONFIG.Item.dataModels));
+    const broken = [];
+    for (const type of itemTypes) {
+      const before = errors.length;
+      const one = await page.evaluate(async ({ type }) => {
+        const i = await Item.create({ name: `ZZ ${type}`, type });
+        i.sheet.render(true);
+        return { id: i.id, sheetId: i.sheet.id };
+      }, { type });
+      const shown = await page.locator(`#${one.sheetId}`)
+        .waitFor({ state: "visible", timeout: 15_000 }).then(() => true).catch(() => false);
+      await page.waitForTimeout(200);
+      if (!shown || errors.length > before) broken.push(type);
+      await page.evaluate(async ({ id }) => {
+        game.items.get(id)?.sheet?.close();
+        await game.items.get(id)?.delete();
+      }, one);
+    }
+    ok("every item type's sheet opens", broken.length === 0,
+       broken.length ? broken.join(", ") : `${itemTypes.length} types`);
+  }
+
+  /* ── 6. A roll reaches chat, and so does its depletion check ── */
   const rolled = await page.evaluate(async ({ id }) => {
     const before = game.messages.size;
     const actor = game.actors.get(id);
