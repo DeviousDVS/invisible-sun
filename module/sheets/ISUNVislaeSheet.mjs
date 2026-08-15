@@ -168,7 +168,35 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   }
 
 
+  /**
+   * Everything the template reads, assembled in dependency order.
+   *
+   * This was one 206-line method. Splitting it changes no behaviour — the
+   * pieces below are the blocks it already had, in the order it already ran
+   * them — but it gives each concern a name and a place, so a new feature lands
+   * in one of them rather than in the middle of everything.
+   *
+   * Items come first and everything else reads what they produced: the order
+   * panel needs context.orders, the practices table needs four of the buckets,
+   * the sentence needs four more.
+   */
   _prepareSheetData(context) {
+    // Config for template dropdowns
+    context.config = CONFIG.ISUN;
+
+    this.#prepareItems(context);
+    this.#prepareOrder(context);
+    this.#preparePractices(context);
+    this.#prepareAllocation(context);
+    this.#prepareRests(context);
+    this.#prepareSecrets(context);
+    this.#prepareSentence(context);
+  }
+
+  /**
+   * Sort the embedded items into their buckets, and group the connections.
+   */
+  #prepareItems(context) {
     for (const bucket of Object.values(ISUNVislaeSheet.ITEM_BUCKETS)) context[bucket] = [];
     for (const item of context.actor.items) {
       const bucket = ISUNVislaeSheet.ITEM_BUCKETS[item.type];
@@ -182,7 +210,12 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       label: CONFIG.ISUN.bondTypeGroups?.[key] ?? CONFIG.ISUN.bondTypes[key],
       items: context.connections.filter(c => c.system?.bondType === key)
     }));
+  }
 
+  /**
+   * The order panel: which order, which degree, and the ladder either side of it.
+   */
+  #prepareOrder(context) {
     // Which order's subsystem to show. Prefer the Order item the character
     // holds; fall back to the free-text meta field for characters set up by
     // hand before drag-and-drop population exists.
@@ -222,12 +255,12 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     // Both are rules about the list rather than about any one ability.
     context.apostateStartingNote = context.order?.system?.startingNote ?? "";
     context.apostatePurchasableNote = context.order?.system?.apostateNote ?? "";
+  }
 
-    // A vislae's soul is secret — the fan sheet this was modelled on keeps it
-    // in a hidden row. Owners and GMs see it; observers with read access do not.
-    context.showSecrets = this.document.isOwner;
-    context.soul = context.showSecrets ? (context.souls[0] ?? null) : null;
-
+  /**
+   * Spells, incantations, forte abilities and minor magics as one sortable list.
+   */
+  #preparePractices(context) {
     // Spells, incantations, forte abilities and minor magics share a shape —
     // level, colour, cost, dice, depletion — because the rules treat them the
     // same way: a forte ability "unless stated otherwise, costs Sorcery to use,
@@ -267,7 +300,33 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       count: context.practices.filter(p => p.kind === k).length
     }));
     context.practiceFilter = this._practiceFilter ?? "all";
+  }
 
+  /**
+   * Stat points still to place, the forte, and Crux.
+   */
+  #prepareAllocation(context) {
+    /* The controls appear only while points are waiting to be placed — at
+     * creation, and again whenever advancement grants more. A finished sheet
+     * carries none of it. Reallocating afterwards is still possible through the
+     * pool's own max field, which sits beside them. */
+    const stats = this.document.system.stats ?? {};
+    context.unspentPoints = stats.unspentPoints ?? 0;
+    context.unspent = stats.unspent ?? { certes: 0, qualia: 0, shared: 0 };
+    context.canPlace = stats.canPlace ?? { certes: 0, qualia: 0 };
+    context.showAllocation = context.unspentPoints > 0;
+
+    /* A forte's abilities are a tree, so the panel needs the whole forte's
+     * abilities from the compendium, not only the ones already taken. Loading
+     * them is async, so it is done in _prepareContext and cached per forte. */
+    context.forte = context.fortes[0] ?? null;
+    context.crux = context.actor.system.advancement?.crux ?? 0;
+  }
+
+  /**
+   * Rests remaining, what refreshing costs, and who may type in a pool.
+   */
+  #prepareRests(context) {
     // Rests remaining today, as pips rather than a used-count.
     const remaining = context.actor.restsRemaining;
     // Skills are grouped by category because that is what a new level costs
@@ -285,22 +344,6 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     for (const g of context.skillGroups) {
       for (const sk of g.skills) sk.maxLevel = cfg.skillMaxLevel;
     }
-
-    /* The controls appear only while points are waiting to be placed — at
-     * creation, and again whenever advancement grants more. A finished sheet
-     * carries none of it. Reallocating afterwards is still possible through the
-     * pool's own max field, which sits beside them. */
-    const stats = this.document.system.stats ?? {};
-    context.unspentPoints = stats.unspentPoints ?? 0;
-    context.unspent = stats.unspent ?? { certes: 0, qualia: 0, shared: 0 };
-    context.canPlace = stats.canPlace ?? { certes: 0, qualia: 0 };
-    context.showAllocation = context.unspentPoints > 0;
-
-    /* A forte's abilities are a tree, so the panel needs the whole forte's
-     * abilities from the compendium, not only the ones already taken. Loading
-     * them is async, so it is done in _prepareContext and cached per forte. */
-    context.forte = context.fortes[0] ?? null;
-    context.crux = context.actor.system.advancement?.crux ?? 0;
 
     context.restRows = [
       { key: "quick",  label: "ISUN.RestQuick",  max: 2, left: remaining.quick },
@@ -324,6 +367,16 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
      * something a player should type over. A GM keeps inputs as the escape
      * hatch — the difference is invisible to a player, who just sees numbers. */
     context.canEditPools = game.user.isGM;
+  }
+
+  /**
+   * The soul, and secrets split by where on the sheet they belong.
+   */
+  #prepareSecrets(context) {
+    // A vislae's soul is secret — the fan sheet this was modelled on keeps it
+    // in a hidden row. Owners and GMs see it; observers with read access do not.
+    context.showSecrets = this.document.isOwner;
+    context.soul = context.showSecrets ? (context.souls[0] ?? null) : null;
 
     /* Secrets are split by what they apply to, and each kind is shown where the
      * thing it applies to lives. House secrets are augments to a house, capped
@@ -341,10 +394,12 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     context.changerySecrets = secretsOfType("changery");
     context.characterSecrets =
       context.secrets.filter(i => !ELSEWHERE.includes(i.system?.secretType));
+  }
 
-    // Config for template dropdowns
-    context.config = CONFIG.ISUN;
-
+  /**
+   * The character sentence, pre-rendered with each part linking to its item.
+   */
+  #prepareSentence(context) {
     // Character Sentence derivation
     context.characterSentence = {
       foundation: context.foundations[0]?.name || "[Foundation]",
@@ -374,6 +429,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       forte:      part("forte",      context.fortes[0],      "[Forte]")
     });
   }
+
 
   /** Narrative lists the sheet can add rows to. */
   static ENTRY_LISTS = ["system.narrative.memories", "system.narrative.personality"];
