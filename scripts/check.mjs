@@ -119,6 +119,60 @@ try {
   fail(`could not compare quirks.mjs against quirks.json: ${err.message}`);
 }
 
+/* ── Every data-action in a sheet template has a handler ──
+ *
+ * This is the check the project actually needed. Four separate incidents came
+ * from markup naming a control that nothing was listening for, each failing in
+ * silence: a button that rendered, clicked, and did nothing. ApplicationV2
+ * warns at runtime now, but only if someone happens to click it — this refuses
+ * before the commit.
+ *
+ * Parsed rather than imported: the sheets reach for `foundry`, `game` and
+ * `CONFIG` at module scope, none of which exist outside a browser. */
+{
+  const CORE_ACTIONS = new Set([
+    // Provided by ApplicationV2 / DocumentSheetV2 / ActorSheetV2.
+    "tab", "attach", "detach", "close", "submit",
+    "configureSheet", "configureOwnership", "copyUuid", "editImage", "importDocument",
+    "configurePrototypeToken", "configureToken", "showPortraitArtwork", "showTokenArtwork"
+  ]);
+  // Chat cards bind their own listeners; they are not Application parts.
+  const CHAT_TEMPLATES = /templates[\\/]chat[\\/]/;
+
+  const declared = new Set(CORE_ACTIONS);
+  for (const file of sources) {
+    const src = readFileSync(file, "utf8");
+    const block = src.match(/actions:\s*\{([\s\S]*?)\n\s{4}\}/);
+    if (!block) continue;
+    for (const m of block[1].matchAll(/["']?([\w-]+)["']?\s*:/g)) declared.add(m[1]);
+  }
+
+  const templates = [];
+  (function walk(dir) {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name.endsWith(".hbs")) templates.push(full);
+    }
+  })(path.join(ROOT, "templates"));
+
+  const orphans = new Map();
+  for (const file of templates) {
+    if (CHAT_TEMPLATES.test(file)) continue;
+    const src = readFileSync(file, "utf8");
+    for (const m of src.matchAll(/data-action="([^"{}]+)"/g)) {
+      if (!declared.has(m[1])) {
+        const line = src.slice(0, m.index).split("\n").length;
+        orphans.set(`${m[1]}`, `${path.relative(ROOT, file)}:${line}`);
+      }
+    }
+  }
+  for (const [action, where] of orphans) {
+    fail(`data-action="${action}" at ${where} has no handler.\n`
+       + `    Add it to a sheet's DEFAULT_OPTIONS.actions, or remove it from the markup.`);
+  }
+}
+
 /* ── Report ── */
 if (problems.length) {
   console.error(`\n${problems.length} problem${problems.length === 1 ? "" : "s"}:\n`);

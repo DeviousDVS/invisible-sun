@@ -18,7 +18,57 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     classes: ["invisible-sun", "sheet", "actor", "vislae"],
     position: { width: 1010, height: 755 },
     window: { resizable: true },
-    form: { submitOnChange: true, closeOnSubmit: false }
+    form: { submitOnChange: true, closeOnSubmit: false },
+
+    /* Every control the sheet answers, named once.
+     *
+     * These were bound by hand — twenty-five querySelectorAll calls against a
+     * mix of classes and [data-action] attributes — and the two conventions had
+     * already drifted apart: refresh-pool, add-wound, remove-wound, add-anguish
+     * and remove-anguish were written in the markup with no handler of that
+     * name anywhere, working only because the same elements happened to carry a
+     * class that was bound. A reader could not tell which convention was live.
+     *
+     * ApplicationV2 dispatches these itself and warns about an action it does
+     * not recognise, so the failure that has cost this project four incidents —
+     * markup and handler both correct in isolation, never joined up, failing
+     * silently — becomes a console warning. scripts/check.mjs then refuses any
+     * data-action in a template that has no entry here.
+     *
+     * Handlers are called with `this` set to the sheet and the element carrying
+     * the attribute as the second argument, so they read that argument and
+     * never `event.currentTarget`, which under delegation is the part root
+     * rather than the control that was clicked. */
+    actions: {
+      "refresh-pool":       this.prototype._onRefreshPool,
+      "alloc-pool":         this.prototype._onAllocatePool,
+      "add-wound":          this.prototype._onAddWound,
+      "remove-wound":       this.prototype._onRemoveWound,
+      "add-anguish":        this.prototype._onAddAnguish,
+      "remove-anguish":     this.prototype._onRemoveAnguish,
+      "add-vex":            this.prototype._onAddVex,
+      "remove-vex":         this.prototype._onRemoveVex,
+      "add-injury":         this.prototype._onAddInjury,
+      "remove-injury":      this.prototype._onRemoveInjury,
+      "apply-damage":       this.prototype._onApplyDamage,
+      "rest-recover":       this.prototype._onRestRecover,
+      "new-day":            this.prototype._onNewDay,
+      "roll-skill":         this.prototype._onRollSkill,
+      "open-item":          this.prototype._onOpenItem,
+      "toggle-ladder":      this.prototype._onToggleLadder,
+      "toggle-degree":      this.prototype._onToggleDegree,
+      "pick-forte-ability": this.prototype._onPickForteAbility,
+      "pick-thread":        this.prototype._onPickThread,
+      "grant-incantation":  this.prototype._onGrantIncantation,
+      "filter-practices":   this.prototype._onFilterPractices,
+      "entry-add":          this.prototype._onEntryAdd,
+      "entry-delete":       this.prototype._onEntryDelete,
+      /* The practices list emits one of these three from {{p.action}}. They all
+       * mean "use this", and all reach the same handler. */
+      "roll-spell":         this.prototype._onItemRoll,
+      "roll-incantation":   this.prototype._onItemRoll,
+      "use-ability":        this.prototype._onItemRoll
+    }
   };
 
   static TABS = {
@@ -338,17 +388,28 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   }
 
   // Application V2 Event Listeners
+  /* Everything clickable is declared in DEFAULT_OPTIONS.actions. This remains
+   * for the one control that is not a click: a skill's level is an <input>, and
+   * an action map only dispatches clicks.
+   *
+   * It is marked data-change rather than data-action deliberately. Letting a
+   * change-bound control wear data-action would put back the exact ambiguity
+   * this commit removes — that an attribute sometimes means "ApplicationV2
+   * dispatches this" and sometimes means "something, somewhere, binds this".
+   * data-action now means the first and only the first, which is what lets
+   * check.mjs treat any unhandled one as an error. */
   _attachPartListeners(partId, htmlElement, options) {
     super._attachPartListeners(partId, htmlElement, options);
-    this._attachCustomListeners(htmlElement);
+    htmlElement.querySelectorAll('[data-change="skill-level"]').forEach(el =>
+      el.addEventListener("change", this._onSkillLevel.bind(this)));
   }
 
   /** Filter the practices list by kind, without a re-render. */
-  _onFilterPractices(event) {
+  _onFilterPractices(event, target) {
     event.preventDefault();
-    const kind = event.currentTarget.dataset.kind ?? "all";
+    const kind = target.dataset.kind ?? "all";
     this._practiceFilter = kind;
-    const root = event.currentTarget.closest(".practices");
+    const root = target.closest(".practices");
     root.dataset.filter = kind;
     root.querySelectorAll(".practice-filter").forEach(el =>
       el.classList.toggle("active", el.dataset.kind === kind));
@@ -400,9 +461,9 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
    * raising the allocation should not hand them a free bene. So value only
    * follows while it still matches what the pool held.
    */
-  async _onAllocatePool(event) {
+  async _onAllocatePool(event, target) {
     event.preventDefault();
-    const el = event.currentTarget;
+    const el = target;
     if (el.classList.contains("disabled")) return;
 
     const { pool, stat, delta } = el.dataset;
@@ -430,21 +491,21 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
    * re-render would rebuild the tab and lose the scroll position for what is
    * only a change of view.
    */
-  _onToggleLadder(event) {
+  _onToggleLadder(event, target) {
     event.preventDefault();
-    const root = event.currentTarget.closest(".degree-ladder");
+    const root = target.closest(".degree-ladder");
     this._ladderOpen = !root.classList.contains("open");
     root.classList.toggle("open", this._ladderOpen);
-    const caret = event.currentTarget.querySelector("i");
+    const caret = target.querySelector("i");
     caret?.classList.toggle("fa-caret-right", !this._ladderOpen);
     caret?.classList.toggle("fa-caret-down", this._ladderOpen);
   }
 
   /** Expand one degree, closing whichever was open. */
-  _onToggleDegree(event) {
+  _onToggleDegree(event, target) {
     event.preventDefault();
-    const degree = Number(event.currentTarget.dataset.degree);
-    const root = event.currentTarget.closest(".degree-ladder");
+    const degree = Number(target.dataset.degree);
+    const root = target.closest(".degree-ladder");
     const already = this._openDegree === degree;
     this._openDegree = already ? null : degree;
     for (const el of root.querySelectorAll(".degree")) {
@@ -453,7 +514,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   }
 
   /** Open the forte's tree to pick the next ability. */
-  async _onPickForteAbility(event) {
+  async _onPickForteAbility(event, target) {
     event.preventDefault();
     const forte = this.document.items.find(i => i.type === "Forte");
     // Abilities come from a forte, so without one there is nothing to offer —
@@ -477,7 +538,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
    * absences, so a blank one is a page of retyping. The picker offers the pack
    * and keeps the option to invent one.
    */
-  async _onPickThread(event) {
+  async _onPickThread(event, target) {
     event.preventDefault();
     await CompendiumPicker.open({
       actor: this.document,
@@ -505,25 +566,25 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
    * the universe decides to give, so this draws one. Choosing is offered only
    * where the character's degree has earned a conation slot.
    */
-  async _onGrantIncantation(event) {
+  async _onGrantIncantation(event, target) {
     event.preventDefault();
     await IncantationGrant.open(this.document);
     this.render();
   }
 
   /** Roll a skill: open the venture dialog with that skill already ticked. */
-  async _onRollSkill(event) {
+  async _onRollSkill(event, target) {
     event.preventDefault();
-    const li = event.currentTarget.closest(".item");
+    const li = target.closest(".item");
     const skill = this.document.items.get(li?.dataset.itemId);
     if (!skill) return;
     return VentureDialog.open(this.document, { skill, label: skill.name });
   }
 
   /** Edit a skill's level in place, clamped to the cap of 4. */
-  async _onSkillLevel(event) {
+  async _onSkillLevel(event, target) {
     event.preventDefault();
-    const input = event.currentTarget;
+    const input = target;
     const item = this.document.items.get(input.dataset.itemId);
     if (!item) return;
     const level = Math.clamp(Math.round(Number(input.value) || 0), 0, CONFIG.ISUN.skillMaxLevel);
@@ -532,119 +593,46 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   }
 
   /** Open an item named elsewhere on the sheet, by id. */
-  _onOpenItem(event) {
+  _onOpenItem(event, target) {
     event.preventDefault();
-    const item = this.document.items.get(event.currentTarget.dataset.itemId);
+    const item = this.document.items.get(target.dataset.itemId);
     item?.sheet?.render(true);
   }
 
   /** Add one Injury of the given source; conversion happens in _preUpdate. */
-  async _onAddInjury(event) {
+  async _onAddInjury(event, target) {
     event.preventDefault();
-    const source = event.currentTarget.dataset.source === "mental" ? "mental" : "physical";
+    const source = target.dataset.source === "mental" ? "mental" : "physical";
     return this.document.applyDamage({ amount: 1, type: source, ignoreArmor: true });
   }
 
   /** Remove a single Injury from the track — healing, not negation. */
-  async _onRemoveInjury(event) {
+  async _onRemoveInjury(event, target) {
     event.preventDefault();
-    const idx = Number(event.currentTarget.dataset.index);
+    const idx = Number(target.dataset.index);
     const track = [...(this.document.system.status.injuries ?? [])];
     if (!Number.isInteger(idx) || idx < 0 || idx >= track.length) return;
     track.splice(idx, 1);
     return this.document.update({ "system.status.injuries": track });
   }
 
-  async _onEntryAdd(event) {
+  async _onEntryAdd(event, target) {
     event.preventDefault();
-    const path = event.currentTarget.dataset.path;
+    const path = target.dataset.path;
     if (!path) return;
     const list = foundry.utils.getProperty(this.document, path) ?? [];
     return this.document.update({ [path]: [...list, { title: "", description: "" }] });
   }
 
-  async _onEntryDelete(event) {
+  async _onEntryDelete(event, target) {
     event.preventDefault();
-    const { path, index } = event.currentTarget.dataset;
+    const { path, index } = target.dataset;
     if (!path) return;
     const list = [...(foundry.utils.getProperty(this.document, path) ?? [])];
     list.splice(Number(index), 1);
     return this.document.update({ [path]: list });
   }
   
-  _attachCustomListeners(html) {
-    /* Pips are a readout, not a control. Spending a bene happens in the venture
-     * dialog, where it is attached to the action it is being spent on and can
-     * be weighed against the challenge; clicking a pip on the sheet spent one
-     * into thin air, with nothing recording what for. */
-    html.querySelectorAll('.btn-refresh').forEach(el => el.addEventListener('click', this._onRefreshPool.bind(this)));
-
-    // Wound/Anguish add/remove
-    html.querySelectorAll('.wound-pip.empty').forEach(el => el.addEventListener('click', ev => this._onModifyHealth(ev, 'wounds', 1)));
-    html.querySelectorAll('.wound-pip.full').forEach(el => el.addEventListener('click', ev => this._onModifyHealth(ev, 'wounds', -1)));
-    html.querySelectorAll('.anguish-pip.empty').forEach(el => el.addEventListener('click', ev => this._onModifyHealth(ev, 'anguish', 1)));
-    html.querySelectorAll('.anguish-pip.full').forEach(el => el.addEventListener('click', ev => this._onModifyHealth(ev, 'anguish', -1)));
-    
-    // A skill opens the venture dialog seeded with itself; other rollables
-    // still take the generic path until they have dialogs of their own.
-    html.querySelectorAll('[data-action="roll-skill"]').forEach(el =>
-      el.addEventListener('click', this._onRollSkill.bind(this)));
-    html.querySelectorAll('[data-action="skill-level"]').forEach(el =>
-      el.addEventListener('change', this._onSkillLevel.bind(this)));
-    html.querySelectorAll('[data-action="alloc-pool"]').forEach(el =>
-      el.addEventListener('click', this._onAllocatePool.bind(this)));
-    html.querySelectorAll('[data-action="toggle-ladder"]').forEach(el =>
-      el.addEventListener('click', this._onToggleLadder.bind(this)));
-    html.querySelectorAll('[data-action="toggle-degree"]').forEach(el =>
-      el.addEventListener('click', this._onToggleDegree.bind(this)));
-    html.querySelectorAll('[data-action="pick-forte-ability"]').forEach(el =>
-      el.addEventListener('click', this._onPickForteAbility.bind(this)));
-    html.querySelectorAll('[data-action="pick-thread"]').forEach(el =>
-      el.addEventListener('click', this._onPickThread.bind(this)));
-    html.querySelectorAll('[data-action="grant-incantation"]').forEach(el =>
-      el.addEventListener('click', this._onGrantIncantation.bind(this)));
-
-    // Roll items
-    html.querySelectorAll('[data-action^="roll-"]:not([data-action="roll-skill"]), [data-action="use-ability"]').forEach(el => {
-      el.addEventListener('click', this._onItemRoll.bind(this));
-    });
-
-    html.querySelectorAll('[data-action="apply-damage"]').forEach(el =>
-      el.addEventListener('click', this._onApplyDamage.bind(this)));
-
-    // Rests
-    html.querySelectorAll('[data-action="rest-recover"]').forEach(el =>
-      el.addEventListener('click', this._onRestRecover.bind(this)));
-    html.querySelectorAll('[data-action="new-day"]').forEach(el =>
-      el.addEventListener('click', this._onNewDay.bind(this)));
-
-    // Practice kind filter. Held on the sheet instance rather than the actor:
-    // it is a view preference, not character data, and should not write to the
-    // document or sync to other players.
-    html.querySelectorAll('.practice-filter').forEach(el =>
-      el.addEventListener('click', this._onFilterPractices.bind(this)));
-
-    // Sentence parts open the item they name
-    html.querySelectorAll('[data-action="open-item"]').forEach(el =>
-      el.addEventListener('click', this._onOpenItem.bind(this)));
-
-    // Injury track
-    // Vexes. GM-only, and the controls are not rendered for anyone else.
-    html.querySelectorAll('[data-action="add-vex"]').forEach(el =>
-      el.addEventListener('click', ev => this._onModifyVex(ev, 1)));
-    html.querySelectorAll('[data-action="remove-vex"]').forEach(el =>
-      el.addEventListener('click', ev => this._onModifyVex(ev, -1)));
-
-    html.querySelectorAll('[data-action="add-injury"]').forEach(el =>
-      el.addEventListener('click', this._onAddInjury.bind(this)));
-    html.querySelectorAll('[data-action="remove-injury"]').forEach(el =>
-      el.addEventListener('click', this._onRemoveInjury.bind(this)));
-
-    // Repeatable narrative entries
-    html.querySelectorAll('.entry-add').forEach(el => el.addEventListener('click', this._onEntryAdd.bind(this)));
-    html.querySelectorAll('.entry-delete').forEach(el => el.addEventListener('click', this._onEntryDelete.bind(this)));
-  }
-
   /**
    * Place or clear a vex. The GM's to give: a vex comes from a kindled item or
    * a piece of weird magic, never from something the character chooses.
@@ -658,11 +646,14 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
    * dataset, matching _onAllocatePool, so the two cannot disagree about where
    * a pool lives.
    */
-  async _onModifyVex(event, delta) {
+  _onAddVex(event, target)    { return this._onModifyVex(event, target, 1); }
+  _onRemoveVex(event, target) { return this._onModifyVex(event, target, -1); }
+
+  async _onModifyVex(event, target, delta) {
     event.preventDefault();
     if (!game.user.isGM) return;
 
-    const pool = event.currentTarget.dataset.pool;
+    const pool = target.dataset.pool;
     if (!pool) return;
     const group = CONFIG.ISUN.certesPoolNames.includes(pool) ? "certes" : "qualia";
     const path = `system.stats.${group}.pools.${pool}.vex`;
@@ -678,10 +669,10 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
    * without spending — the GM "can state that pools reset to their starting
    * values" at any time (The Key, p2300).
    */
-  async _onRefreshPool(event) {
+  async _onRefreshPool(event, target) {
     event.preventDefault();
-    if (event.currentTarget.classList.contains("disabled")) return;
-    const pool = event.currentTarget.dataset.pool;
+    if (target.classList.contains("disabled")) return;
+    const pool = target.dataset.pool;
     if (!pool) return;
 
     const group = CONFIG.ISUN.certesPoolNames.includes(pool) ? "certes" : "qualia";
@@ -699,7 +690,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
    * sustained, a character cannot use Physicality to negate a Wound" — so it is
    * offered here, immediately, and nowhere else on the sheet.
    */
-  async _onApplyDamage(event) {
+  async _onApplyDamage(event, target) {
     event.preventDefault();
     const DialogV2 = foundry.applications.api.DialogV2;
 
@@ -758,20 +749,27 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   }
 
   /** Spend a longer rest to recover a Wound or an Anguish. */
-  async _onRestRecover(event) {
+  async _onRestRecover(event, target) {
     event.preventDefault();
-    const kind = event.currentTarget.dataset.kind;
+    const kind = target.dataset.kind;
     const result = await this.document.restRecoverHealth(kind);
     if (result?.refused === "noRests") ui.notifications?.warn(game.i18n.localize("ISUN.NoLongRestsLeft"));
     else if (result?.refused === "nothingToHeal") ui.notifications?.info(game.i18n.localize("ISUN.NothingToHeal"));
   }
 
   /** A night's sleep: pools reset, vexes cleared, rests restored. */
-  async _onNewDay(event) {
+  async _onNewDay(event, target) {
     event.preventDefault();
     await this.document.newDay();
     ui.notifications?.info(game.i18n.localize("ISUN.NewDayDone"));
   }
+
+  /* The pip that adds and the pip that removes are different elements with
+   * different actions, so which way they move is markup rather than argument. */
+  _onAddWound(event, target)      { return this._onModifyHealth(event, "wounds", 1); }
+  _onRemoveWound(event, target)   { return this._onModifyHealth(event, "wounds", -1); }
+  _onAddAnguish(event, target)    { return this._onModifyHealth(event, "anguish", 1); }
+  _onRemoveAnguish(event, target) { return this._onModifyHealth(event, "anguish", -1); }
 
   async _onModifyHealth(event, type, delta) {
     event.preventDefault();
@@ -785,9 +783,9 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     }
   }
 
-  async _onItemRoll(event) {
+  async _onItemRoll(event, target) {
     event.preventDefault();
-    const li = event.currentTarget.closest(".item");
+    const li = target.closest(".item");
     if (!li) return;
     const doc = this.document;
     const item = doc.items.get(li.dataset.itemId);

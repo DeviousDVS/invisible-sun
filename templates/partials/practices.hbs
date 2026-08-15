@@ -7,12 +7,12 @@
   <div class="practices-head">
     <h3>{{localize "ISUN.Practices"}}</h3>
     <div class="practice-filters">
-      <a class="practice-filter{{#if (eq practiceFilter "all")}} active{{/if}}" data-kind="all">
+      <a data-action="filter-practices" class="practice-filter{{#if (eq practiceFilter "all")}} active{{/if}}" data-kind="all">
         {{localize "ISUN.KindAll"}} <span class="count">{{practices.length}}</span>
       </a>
       {{#each practiceKinds as |k|}}
         {{#if k.count}}
-          <a class="practice-filter{{#if (eq ../practiceFilter k.key)}} active{{/if}}" data-kind="{{k.key}}">
+          <a data-action="filter-practices" class="practice-filter{{#if (eq ../practiceFilter k.key)}} active{{/if}}" data-kind="{{k.key}}">
             {{localize k.label}} <span class="count">{{k.count}}</span>
           </a>
         {{/if}}
@@ -46,8 +46,8 @@
           <a class="btn-cast" data-action="{{p.action}}" title="{{localize 'ISUN.Use'}}">
             <i class="fa-solid fa-wand-sparkles"></i>
           </a>
-          <a class="item-edit" title="{{localize 'ISUN.Edit'}}"><i class="fa-solid fa-edit"></i></a>
-          <a class="item-delete" title="{{localize 'ISUN.Remove'}}"><i class="fa-solid fa-trash"></i></a>
+          <a class="item-edit" title="{{localize 'ISUN.Edit'}}" data-action="item-edit"><i class="fa-solid fa-edit"></i></a>
+          <a class="item-delete" title="{{localize 'ISUN.Remove'}}" data-action="item-delete"><i class="fa-solid fa-trash"></i></a>
         </div>
       </div>
     {{else}}
@@ -56,7 +56,7 @@
   </div>
 
   <div class="practice-add">
-    <a class="item-create" data-type="Spell"><i class="fa-solid fa-plus"></i> {{localize "TYPES.Item.Spell"}}</a>
+    <a class="item-create" data-type="Spell" data-action="item-create"><i class="fa-solid fa-plus"></i> {{localize "TYPES.Item.Spell"}}</a>
     {{!-- An incantation is granted, not picked: the universe decides what the
           character gets. So this draws one rather than making a blank item or
           opening a list. --}}
@@ -67,6 +67,6 @@
     <a data-action="pick-forte-ability" data-tooltip="{{localize 'ISUN.FortePickerHint'}}">
       <i class="fa-solid fa-plus"></i> {{localize "TYPES.Item.ForteAbility"}}
     </a>
-    <a class="item-create" data-type="MinorMagic"><i class="fa-solid fa-plus"></i> {{localize "TYPES.Item.MinorMagic"}}</a>
+    <a class="item-create" data-type="MinorMagic" data-action="item-create"><i class="fa-solid fa-plus"></i> {{localize "TYPES.Item.MinorMagic"}}</a>
   </div>
 </div>

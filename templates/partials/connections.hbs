@@ -7,7 +7,7 @@
       <div class="entry-list-header">
         <h3>{{localize group.label}}</h3>
         <a class="item-create connection-create" data-type="Connection" data-preset='{"bondType":"{{group.key}}"}'
-           title="{{localize 'ISUN.AddConnection'}}"><i class="fa-solid fa-plus"></i></a>
+           title="{{localize 'ISUN.AddConnection'}}" data-action="item-create"><i class="fa-solid fa-plus"></i></a>
       </div>
       <div class="item-list">
         {{#each group.items as |c|}}
@@ -16,8 +16,8 @@
             <div class="name">{{c.name}}</div>
             <div class="relationship">{{c.system.relationship}}</div>
             <div class="actions">
-              <a class="item-edit" title="{{localize 'ISUN.Edit'}}"><i class="fa-solid fa-edit"></i></a>
-              <a class="item-delete" title="{{localize 'ISUN.Remove'}}"><i class="fa-solid fa-trash"></i></a>
+              <a class="item-edit" title="{{localize 'ISUN.Edit'}}" data-action="item-edit"><i class="fa-solid fa-edit"></i></a>
+              <a class="item-delete" title="{{localize 'ISUN.Remove'}}" data-action="item-delete"><i class="fa-solid fa-trash"></i></a>
             </div>
           </div>
         {{else}}

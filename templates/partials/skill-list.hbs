@@ -4,7 +4,7 @@
 <div class="skills-block">
   <div class="skills-header">
     <h3>{{localize "ISUN.Skills"}}</h3>
-    <a class="item-create" data-type="Skill" title="{{localize 'ISUN.SkillCreate'}}">
+    <a class="item-create" data-type="Skill" title="{{localize 'ISUN.SkillCreate'}}" data-action="item-create">
       <i class="fa-solid fa-plus"></i>
     </a>
   </div>
@@ -29,15 +29,15 @@
               </a>
               <div class="level">
                 <input type="number" min="0" max="{{item.maxLevel}}"
-                       data-action="skill-level" data-item-id="{{item.id}}"
+                       data-change="skill-level" data-item-id="{{item.id}}"
                        value="{{item.system.level}}" />
               </div>
               <div class="venture" data-tooltip="{{localize 'ISUN.SkillVentureHint'}}">
                 +{{item.system.level}}
               </div>
               <div class="actions">
-                <a class="item-edit" title="{{localize 'ISUN.Edit'}}"><i class="fa-solid fa-edit"></i></a>
-                <a class="item-delete" title="{{localize 'ISUN.Delete'}}"><i class="fa-solid fa-trash"></i></a>
+                <a class="item-edit" title="{{localize 'ISUN.Edit'}}" data-action="item-edit"><i class="fa-solid fa-edit"></i></a>
+                <a class="item-delete" title="{{localize 'ISUN.Delete'}}" data-action="item-delete"><i class="fa-solid fa-trash"></i></a>
               </div>
             </div>
           {{/each}}

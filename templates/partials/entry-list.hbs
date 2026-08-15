@@ -3,7 +3,7 @@
 <div class="narrative-section mt-4">
   <div class="entry-list-header">
     <h3>{{heading}}</h3>
-    <a class="entry-add" data-path="{{path}}" title="{{localize 'ISUN.AddEntry'}}">
+    <a class="entry-add" data-path="{{path}}" title="{{localize 'ISUN.AddEntry'}}" data-action="entry-add">
       <i class="fa-solid fa-plus"></i>
     </a>
   </div>
@@ -15,7 +15,7 @@
              value="{{entry.title}}" placeholder="{{localize 'ISUN.EntryTitle'}}" />
       <input type="text" class="entry-desc" name="{{../path}}.{{i}}.description"
              value="{{entry.description}}" placeholder="{{localize 'ISUN.EntryDescription'}}" />
-      <a class="entry-delete" data-path="{{../path}}" data-index="{{i}}" title="{{localize 'ISUN.RemoveEntry'}}">
+      <a class="entry-delete" data-path="{{../path}}" data-index="{{i}}" title="{{localize 'ISUN.RemoveEntry'}}" data-action="entry-delete">
         <i class="fa-solid fa-trash"></i>
       </a>
     </div>

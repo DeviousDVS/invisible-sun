@@ -49,42 +49,34 @@ export const SheetMixin = (Base) => class extends Base {
     return context;
   }
 
-  _attachPartListeners(partId, htmlElement, options) {
-    super._attachPartListeners(partId, htmlElement, options);
-    
-    htmlElement.querySelectorAll('.profile-img').forEach(el => {
-      el.addEventListener('click', () => {
-        new foundry.applications.apps.FilePicker.implementation({
-          type: "image",
-          current: this.document.img,
-          callback: path => this.document.update({ img: path })
-        }).render(true);
-      });
-    });
-  }
+  /* The portrait used to bind its own FilePicker here. DocumentSheetV2 ships an
+   * `editImage` action that does the same thing and respects permissions, and
+   * every profile-img already carried the data-edit="img" it reads — so the
+   * templates name the core action and this mixin no longer needs a listener. */
 }
 
 export const ActorSheetMixin = (Base) => class extends SheetMixin(Base) {
-  _attachPartListeners(partId, htmlElement, options) {
-    super._attachPartListeners(partId, htmlElement, options);
-    
-    // Bound by class, matching the markup the templates actually emit. These
-    // were previously bound to [data-action="item-create"], an attribute no
-    // template sets, so no listener was ever attached.
-    htmlElement.querySelectorAll('.item-create').forEach(el => {
-      el.addEventListener('click', ev => this._onItemCreate(ev));
-    });
-    htmlElement.querySelectorAll('.item-edit').forEach(el => {
-      el.addEventListener('click', ev => this._onItemEdit(ev));
-    });
-    htmlElement.querySelectorAll('.item-delete').forEach(el => {
-      el.addEventListener('click', ev => this._onItemDelete(ev));
-    });
-  }
+  /* Declared rather than bound by hand. ApplicationV2 merges an actions map up
+   * the class hierarchy, so a mixin can contribute its three and the sheet its
+   * own without either knowing about the other.
+   *
+   * This is the fix for a bug that happened twice here. These were once bound
+   * to [data-action="item-create"], an attribute no template set, so nothing
+   * was ever attached; then they were bound by class, and the secret chips —
+   * which are not .item rows — silently did nothing. Both failed in silence.
+   * An action named in markup with no entry in this map now raises a console
+   * warning, and npm test refuses the commit. */
+  static DEFAULT_OPTIONS = {
+    actions: {
+      "item-create": this.prototype._onItemCreate,
+      "item-edit":   this.prototype._onItemEdit,
+      "item-delete": this.prototype._onItemDelete
+    }
+  };
 
-  async _onItemCreate(event) {
+  async _onItemCreate(event, target) {
     event.preventDefault();
-    const type = event.currentTarget.dataset.type;
+    const type = target.dataset.type;
     if (!type) return;
     const label = game.i18n.localize(`TYPES.Item.${type}`);
     const itemData = {
@@ -96,7 +88,7 @@ export const ActorSheetMixin = (Base) => class extends SheetMixin(Base) {
     // A create button may seed system fields via data-preset, so that e.g. the
     // "PC Bonds" heading creates a Connection already set to that bond type
     // rather than making the user pick it afterwards.
-    const preset = event.currentTarget.dataset.preset;
+    const preset = target.dataset.preset;
     if (preset) {
       try {
         itemData.system = JSON.parse(preset);
@@ -108,9 +100,9 @@ export const ActorSheetMixin = (Base) => class extends SheetMixin(Base) {
     return this.document.createEmbeddedDocuments("Item", [itemData]);
   }
 
-  _onItemEdit(event) {
+  _onItemEdit(event, target) {
     event.preventDefault();
-    const id = this._itemIdFor(event.currentTarget);
+    const id = this._itemIdFor(target);
     if (!id) return;
     this.document.items.get(id)?.sheet?.render(true);
   }
@@ -130,9 +122,9 @@ export const ActorSheetMixin = (Base) => class extends SheetMixin(Base) {
     return element.closest("[data-item-id]")?.dataset.itemId ?? null;
   }
 
-  _onItemDelete(event) {
+  _onItemDelete(event, target) {
     event.preventDefault();
-    const id = this._itemIdFor(event.currentTarget);
+    const id = this._itemIdFor(target);
     if (!id) return;
     this.document.deleteEmbeddedDocuments("Item", [id]);
   }

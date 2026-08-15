@@ -1,7 +1,7 @@
 <div class="arcs-container">
   <div class="arcs-header">
     <h2>Character Arcs</h2>
-    <a class="item-create" data-type="CharacterArc" title="Create Arc"><i class="fa-solid fa-plus"></i> New Arc</a>
+    <a class="item-create" data-type="CharacterArc" title="Create Arc" data-action="item-create"><i class="fa-solid fa-plus"></i> New Arc</a>
   </div>
   
   {{#each arcs as |arc|}}
@@ -9,8 +9,8 @@
       <div class="arc-header">
         <h3>{{arc.name}} <span class="arc-status {{arc.system.status}}">{{localize (concat "ISUN.Arc" (capitalize arc.system.status))}}</span></h3>
         <div class="arc-actions">
-          <a class="item-edit" title="Edit Arc"><i class="fa-solid fa-edit"></i></a>
-          <a class="item-delete" title="Delete Arc"><i class="fa-solid fa-trash"></i></a>
+          <a class="item-edit" title="Edit Arc" data-action="item-edit"><i class="fa-solid fa-edit"></i></a>
+          <a class="item-delete" title="Delete Arc" data-action="item-delete"><i class="fa-solid fa-trash"></i></a>
         </div>
       </div>
       <p class="arc-desc">{{arc.system.description}}</p>
