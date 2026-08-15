@@ -3,8 +3,13 @@
 
       Deliberately not using .form-group — that lays a centred, full-width
       label above its control, which costs two rows per field and made this
-      dialog 922px tall for six inputs. --}}
-<form class="challenge-declaration-form">
+      dialog 922px tall for six inputs.
+
+      A div, not a form: DialogV2 supplies its own and discards any the content
+      brings, so a <form> here is both dead markup and a nested form inside
+      one. The styles below hang off the dialog's own .challenge-declaration
+      class for that reason. --}}
+<div class="challenge-declaration-body">
 
   <div class="cd-field cd-wide">
     <label for="cd-label">{{localize "ISUN.Action"}}</label>
@@ -63,4 +68,4 @@
     {{/each}}
   </fieldset>
 
-</form>
+</div>

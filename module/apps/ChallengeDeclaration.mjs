@@ -40,7 +40,8 @@ export class ChallengeDeclaration {
       content,
       buttons: [
         { action: "declare", label: game.i18n.localize("ISUN.Declare"), default: true,
-          callback: (_e, button) => new FormDataExtended(button.form).object },
+          callback: (_e, button) =>
+            new foundry.applications.ux.FormDataExtended(button.form).object },
         { action: "cancel", label: game.i18n.localize("ISUN.Cancel") }
       ],
       rejectClose: false

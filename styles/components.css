@@ -1585,7 +1585,8 @@ a.sentence-part:hover {
 
    Scoped to the dialog, not to the form. DialogV2 supplies its own <form> and
    discards the one the template declares, so anything written as a descendant
-   of .challenge-declaration-form matched nothing at all. */
+   of the template's own wrapper matched nothing at all. The template now uses
+   a plain div for that reason. */
 .challenge-declaration .dialog-content {
   display: flex;
   flex-direction: column;

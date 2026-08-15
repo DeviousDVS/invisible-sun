@@ -72,7 +72,8 @@ export class ChallengeResponse {
       content,
       buttons: [
         { action: "roll", label: game.i18n.localize("ISUN.Roll"), default: true,
-          callback: (_e, button) => new FormDataExtended(button.form).object },
+          callback: (_e, button) =>
+            new foundry.applications.ux.FormDataExtended(button.form).object },
         { action: "cancel", label: game.i18n.localize("ISUN.Cancel") }
       ],
       render: (_e, dialog) => this.#live(dialog.element ?? dialog, { ...data, ...cost, sortilege }),
