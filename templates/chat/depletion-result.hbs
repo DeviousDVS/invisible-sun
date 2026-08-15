@@ -1,0 +1,20 @@
+{{!-- A depletion check. Its own template rather than markup built in dice.mjs:
+      the venture roll has rendered through a template since the beginning, and
+      a chat card assembled from a string literal cannot be localised without
+      putting game.i18n calls in the middle of the HTML. --}}
+<div class="dice-result {{#if depleted}}failure{{else}}success{{/if}}">
+  <div class="roll-title">{{localize "ISUN.DepletionCheck"}}</div>
+
+  <div class="dice-display">
+    <div class="die mundane-die" title="{{localize 'ISUN.MundaneDie'}}">{{result}}</div>
+  </div>
+
+  <div class="{{#if depleted}}failure-banner{{else}}success-banner{{/if}}"
+       data-tooltip="{{rangeLabel}}">
+    {{#if depleted}}{{localize "ISUN.Depleted"}}{{else}}{{localize "ISUN.DepletionSafe"}}{{/if}}
+  </div>
+
+  {{!-- What was printed on the item, kept because the range this rolled against
+        was read out of it and a reader may want to check the reading. --}}
+  {{#if original}}<div class="depletion-source">{{original}}</div>{{/if}}
+</div>

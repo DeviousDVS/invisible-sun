@@ -284,7 +284,7 @@ async function migrateSavingsToPurse() {
   if (!updates.length) return;
   await Actor.updateDocuments(updates);
   console.log(`invisible-sun | moved economy.savings into economy.purse.crystal on ${updates.length} actor(s)`);
-  ui.notifications?.info(`Invisible Sun: moved savings into the purse on ${updates.length} character(s).`);
+  ui.notifications?.info(game.i18n.format("ISUN.MigratedSavings", { count: updates.length }));
 }
 
 Hooks.once("ready", async () => {

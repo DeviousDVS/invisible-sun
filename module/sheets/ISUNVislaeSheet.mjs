@@ -797,7 +797,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       challenge: 0,
       venture: 0,
       magicDice: 1,
-      label: `Used ${item.name}`,
+      label: game.i18n.format("ISUN.UsedItem", { name: item.name }),
       actor: doc
     });
 

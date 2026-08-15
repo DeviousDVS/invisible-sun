@@ -23,15 +23,20 @@ const FLUX_INTENSITY = { 1: "minor", 2: "major", 3: "grand" };
  * @returns {Object} result
  */
 export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, sortilege = 0,
-                                   experimentalDice = 0, label = "Action", actor = null,
+                                   experimentalDice = 0, label = "", actor = null,
                                    sources = [], sun = ""}) {
   const target = challenge - venture;
-  
+
+  /* Resolved here rather than as a default parameter: a default is evaluated at
+   * call time, which is fine, but writing game.i18n into the signature reads as
+   * though it were evaluated at module load, when i18n is not ready. */
+  label = label || game.i18n.localize("ISUN.Action");
+
   // Auto-success
   if (target <= 0) {
     return postResult({ label, challenge, venture, target: 0, autoSuccess: true, actor, sources });
   }
-  
+
   // Impossible: a die reads 0-9, so a target of 10 cannot be met without more
   // dice to try it on. Experimental dice do not count — they never succeed.
   if (target >= 10 && magicDice === 0 && sortilege === 0) {
@@ -84,6 +89,11 @@ export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, so
   // Die "increases the chance for greater flux", so it counts towards this.
   const diceCast = totalMagicDice + experimentalDice;
   const fluxIntensity = !hasFlux ? "" : FLUX_INTENSITY[Math.min(diceCast, 3)] ?? "grand";
+  /* The bare value is a key fragment and a CSS class, not something to show a
+   * player — the card was printing "minor" where it meant "Minor flux". */
+  const fluxIntensityLabel = fluxIntensity
+    ? game.i18n.localize(`ISUN.Flux${fluxIntensity.charAt(0).toUpperCase()}${fluxIntensity.slice(1)}`)
+    : "";
 
   // Success comes from the mundane die and any magic dice — never from an
   // Experimental Die, whose other nine faces are blank.
@@ -97,7 +107,7 @@ export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, so
     mundaneResult: mappedMundane, 
     magicResults: mappedMagic,
     experimentalResults: mappedExperimental,
-    success, successes, hasFlux, fluxCount, fluxIntensity,
+    success, successes, hasFlux, fluxCount, fluxIntensity, fluxIntensityLabel,
     roll, actor, sources
   });
 }
@@ -131,25 +141,24 @@ export async function checkDepletion(depletionString, actor = null) {
   const result = rawResult === 10 ? 0 : rawResult; // Map 10 to 0
   
   const depleted = result >= low && result <= high;
-  
-  // Create simple chat message
-  const content = `
-    <div class="dice-result ${depleted ? 'failure' : 'success'}">
-      <div class="roll-title">Depletion Check</div>
-      <div class="dice-display"><div class="die mundane-die">${result}</div></div>
-      <div class="${depleted ? 'failure-banner' : 'success-banner'}">
-        ${depleted ? "DEPLETED" : "Safe"} (Range: ${low}${high !== low ? '-'+high : ''})
-      </div>
-    </div>
-  `;
-  
+  const range = low === high ? String(low) : `${low}–${high}`;
+
+  const { renderTemplate } = foundry.applications.handlebars;
+  const content = await renderTemplate(
+    "systems/invisible-sun/templates/chat/depletion-result.hbs",
+    {
+      result, depleted, range,
+      rangeLabel: game.i18n.format("ISUN.DepletionRange", { range }),
+      original: depletionString
+    });
+
   await ChatMessage.create({
     speaker: actor ? ChatMessage.getSpeaker({ actor }) : {},
     content,
     rolls: [roll]
   });
-  
-  return { roll, result, depleted, range: `${low}-${high}`, original: depletionString };
+
+  return { roll, result, depleted, range, original: depletionString };
 }
 
 /**
