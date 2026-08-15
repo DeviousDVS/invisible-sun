@@ -260,12 +260,19 @@ several directories would make navigation worse rather than better. The two
 inline hooks in the entry point (`renderCompendiumDirectory`, `renderChatLog`)
 are ~30 lines together and can wait until there are enough to fill a file.
 
-The `ForteAbility.level` string→number conversion should
-additionally move into `ForteAbilityModel.migrateData`, where it costs nothing
-per load and needs no version tracking at all — the same pattern `VislaeModel`
-already uses well. There is currently no `migrationVersion` anywhere in the
-repo; adding one before the first public release is much easier than adding one
-after strangers have worlds.
+**Correction, found while adding the guard (item 5):** the `ForteAbility.level`
+loops should be *deleted*, not moved. `ForteAbilityModel` declares `level` as a
+`NumberField`, so the DataModel casts a stored `"3"` to `3` before anything
+reads it, and the loops' condition — `typeof item.system.level === "string"` —
+can never be true. Verified in the live world: writing a string with
+`validate: false` still reads back as the number `3`. The schema has been doing
+this migration silently and correctly all along; the imperative version has
+never once fired. Nothing needs to move into `migrateData` either, for the same
+reason.
+
+There is currently no `migrationVersion` anywhere in the repo; adding one before
+the first public release is much easier than adding one after strangers have
+worlds.
 
 ---
 
@@ -493,7 +500,7 @@ the answer might not be.
 
 | # | Do | Why | § |
 |---|---|---|---|
-| 13 | `migrationVersion` setting, GM-gated runner in `module/migrations/`, delete the stub, batch the writes, move `ForteAbility.level` into `migrateData` | Far cheaper before strangers have worlds than after | 5 |
+| 13 | `migrationVersion` setting, runner in `module/migrations/`, delete the pack stub *and* the unreachable `ForteAbility` loops, batch the writes | Far cheaper before strangers have worlds than after. The GM election landed early, in item 5 | 5 |
 | 14 | Move the sheets onto declarative `actions` | Retires a bug class that has cost four incidents, all of them silent | 1 |
 | 15 | Make the item bucketing data-driven from `CONFIG.Item.dataModels` | Adding an item type stops being a two-place edit | 2 |
 

@@ -228,6 +228,33 @@ Hooks.once("init", () => {
 /* ═══════════════════════════════════════════════════════════
  * READY HOOK — Post-init setup
  * ═══════════════════════════════════════════════════════════ */
+
+/**
+ * Whether this client is the one that should run migrations.
+ *
+ * A GM — a player has no business rewriting everyone's documents, and an owner
+ * has enough permission to succeed at it, so hoping they will not is not a
+ * safeguard.
+ *
+ * And only *one* GM. A world may have several GM accounts connected at once
+ * (this one has two), and every GM client running the same migration at the
+ * same moment means each reads the pre-migration value before any of them
+ * writes. That happens to be survivable for the migrations here, because both
+ * clients compute the same result from the same starting value — but it is
+ * survivable by luck rather than by design, and the next migration need not be
+ * so forgiving.
+ *
+ * The lowest-id active GM is elected, which is the same rule ChallengeCard uses
+ * to decide which GM applies a relayed response. If that client never gets
+ * there, the migration simply runs on the next load.
+ */
+function isMigrationRunner() {
+  if (!game.user.isGM) return false;
+  const first = game.users.filter(u => u.isGM && u.active)
+    .sort((a, b) => a.id.localeCompare(b.id))[0];
+  return first?.id === game.user.id;
+}
+
 /**
  * economy.savings was a single number of crystal orbs, matching the Foundation
  * entries in The Key ("Initial Savings: 100 crystal orbs"). It is now one
@@ -239,7 +266,7 @@ Hooks.once("init", () => {
  * Migrated actors are left with null, which is the signal not to re-run.
  */
 async function migrateSavingsToPurse() {
-  if (!game.user.isGM) return;
+  if (!isMigrationRunner()) return;
 
   const updates = [];
   for (const actor of game.actors) {
@@ -276,23 +303,25 @@ Hooks.once("ready", async () => {
   await migrateSavingsToPurse();
 
   // Migration for ForteAbility level (String -> Number)
-  for (const pack of game.packs) {
-    if (pack.metadata.type === "Item") {
-      // In a real migration we'd unlock the pack, update items, and lock it again.
-      // We will leave this stubbed or log for now.
+  if (isMigrationRunner()) {
+    for (const pack of game.packs) {
+      if (pack.metadata.type === "Item") {
+        // In a real migration we'd unlock the pack, update items, and lock it again.
+        // We will leave this stubbed or log for now.
+      }
     }
-  }
 
-  for (const item of game.items) {
-    if (item.type === "ForteAbility" && typeof item.system.level === "string") {
-      item.update({ "system.level": parseInt(item.system.level) || 1 });
-    }
-  }
-
-  for (const actor of game.actors) {
-    for (const item of actor.items) {
+    for (const item of game.items) {
       if (item.type === "ForteAbility" && typeof item.system.level === "string") {
         item.update({ "system.level": parseInt(item.system.level) || 1 });
+      }
+    }
+
+    for (const actor of game.actors) {
+      for (const item of actor.items) {
+        if (item.type === "ForteAbility" && typeof item.system.level === "string") {
+          item.update({ "system.level": parseInt(item.system.level) || 1 });
+        }
       }
     }
   }
