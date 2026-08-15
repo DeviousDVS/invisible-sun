@@ -16,6 +16,8 @@
   "version": "0.1.0",
   "license": "LICENSE",
   "readme": "https://github.com/DeviousDVS/invisible-sun#readme",
+  "bugs": "https://github.com/DeviousDVS/invisible-sun/issues",
+  "changelog": "https://github.com/DeviousDVS/invisible-sun/blob/master/CHANGELOG.md",
   "manifest": "https://github.com/DeviousDVS/invisible-sun/releases/latest/download/system.json",
   "download": "https://github.com/DeviousDVS/invisible-sun/releases/download/v0.1.0/invisible-sun.zip",
   "esmodules": [

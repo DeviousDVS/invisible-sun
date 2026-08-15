@@ -3,17 +3,15 @@
   "version": "0.1.0",
   "description": "A system for the Invisible Sun RPG by Monte Cook Games.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node scripts/check.mjs",
     "shot": "node scripts/shoot.mjs"
   },
   "keywords": [],
   "author": "DeviousDVS",
   "license": "MIT",
   "type": "commonjs",
-  "dependencies": {
-    "@foundryvtt/foundryvtt-cli": "^3.0.4"
-  },
   "devDependencies": {
+    "@foundryvtt/foundryvtt-cli": "^3.0.4",
     "playwright": "^1.62.1"
   }
 }
