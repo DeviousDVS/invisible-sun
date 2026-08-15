@@ -1575,3 +1575,333 @@ a.sentence-part:hover {
 /* The type a conation incantation is asked for. Full width, because the
    options carry a count and "— none" and would otherwise clip. */
 .incantation-grant .conation-type { width: 100%; }
+
+/* ── Declaring a challenge ────────────────────────────────
+   A GM opens this constantly, so it is built for density: label above control
+   but both small and tight, three scalars on one row, and the vex rule on a
+   tooltip rather than a paragraph. The stock .form-group centres a full-width
+   label above its control, which cost two rows a field and made this 922px
+   tall for six inputs.
+
+   Scoped to the dialog, not to the form. DialogV2 supplies its own <form> and
+   discards the one the template declares, so anything written as a descendant
+   of the template's own wrapper matched nothing at all. The template now uses
+   a plain div for that reason. */
+.challenge-declaration .dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9em;
+}
+
+.challenge-declaration .cd-row {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.challenge-declaration .cd-field { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.challenge-declaration .cd-narrow { flex: 0 0 5.5rem; }
+
+.challenge-declaration .cd-field > label {
+  font-family: var(--isun-font-smallcaps, inherit);
+  font-size: 0.8em;
+  letter-spacing: 0.04em;
+  color: var(--isun-text-secondary);
+  text-align: left;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.challenge-declaration input,
+.challenge-declaration select { padding: 2px 6px; height: 1.8rem; }
+
+.challenge-declaration .cd-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--isun-text-secondary);
+  cursor: help;
+}
+.challenge-declaration .cd-check input { height: auto; }
+
+/* The target list is the part that ran away: the avatar had no size at all, so
+   one candidate filled the dialog. It is an identifying glance, not a portrait. */
+.challenge-declaration .cd-targets {
+  border: 1px solid var(--isun-border);
+  border-radius: 4px;
+  padding: 4px 6px 6px;
+  margin: 0;
+  max-height: 11rem;
+  overflow-y: auto;
+}
+
+.challenge-declaration .cd-targets legend {
+  font-family: var(--isun-font-smallcaps, inherit);
+  font-size: 0.8em;
+  color: var(--isun-text-secondary);
+  padding: 0 4px;
+}
+
+.challenge-declaration .cd-target {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 2px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.challenge-declaration .cd-target:hover { background: var(--isun-bg-elevated); }
+
+.challenge-declaration .cd-target img {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  object-fit: cover;
+  border: 1px solid var(--isun-border);
+  border-radius: 3px;
+  background: var(--isun-bg-secondary);
+}
+
+.challenge-declaration .cd-name { flex: 1; }
+.challenge-declaration .cd-player {
+  font-size: 0.8em;
+  color: var(--isun-text-secondary);
+  white-space: nowrap;
+}
+.challenge-declaration .cd-target.offline { opacity: 0.55; }
+
+/* ── The challenge card ───────────────────────────────────
+   Drawn per client: a player sees the row they can answer, a GM sees them all.
+   Compact, because several of these stack up in a chat log.
+
+   Self-contained colour, as .dice-result is. A chat message sits outside the
+   .invisible-sun.sheet scope, so it inherits Foundry's chat palette instead —
+   which rendered the name in near-black on our dark card and the buttons as
+   rgb(17,17,17) on rgba(0,0,0,0.1): an unreadable black box. */
+.challenge-card {
+  font-size: 0.9em;
+  background: var(--isun-bg-primary);
+  border: 1px solid var(--isun-border-accent);
+  border-radius: 4px;
+  padding: var(--isun-space-sm);
+  color: var(--isun-text-primary);
+  font-family: var(--isun-font-ui);
+}
+
+.challenge-card .cc-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  border-bottom: 1px solid var(--isun-border);
+  padding-bottom: 3px;
+  margin-bottom: 5px;
+}
+
+.challenge-card .cc-kind {
+  font-family: var(--isun-font-smallcaps, inherit);
+  font-size: 0.8em;
+  letter-spacing: 0.06em;
+  color: var(--isun-text-accent);
+}
+.challenge-card.defence .cc-kind { color: var(--isun-sun-blue); }
+.challenge-card .cc-label { flex: 1; }
+
+.challenge-card .cc-terms { display: flex; gap: 10px; margin-bottom: 6px; }
+.challenge-card .cc-term { display: flex; align-items: baseline; gap: 4px; }
+.challenge-card .cc-term > label {
+  font-size: 0.75em;
+  letter-spacing: 0.04em;
+  color: var(--isun-text-secondary);
+  text-transform: uppercase;
+}
+.challenge-card .cc-term.vex { color: var(--isun-wound); cursor: help; }
+
+.challenge-card .cc-rows { display: flex; flex-direction: column; gap: 3px; }
+
+.challenge-card .cc-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: var(--isun-bg-secondary);
+}
+
+.challenge-card .cc-row img {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
+  border: 1px solid var(--isun-border);
+  border-radius: 3px;
+}
+
+.challenge-card .cc-name { flex: 1; }
+
+/* What the pool costs before anything is added. Both read as penalties, so
+   both are red; the scourge is the one that cannot be got rid of. */
+.challenge-card .cc-cost { display: flex; gap: 4px; }
+.challenge-card .cc-scourge,
+.challenge-card .cc-vex {
+  color: var(--isun-wound);
+  font-variant-numeric: tabular-nums;
+  cursor: help;
+}
+.challenge-card .cc-scourge { border-bottom: 1px dotted var(--isun-wound); }
+
+.challenge-card .cc-state {
+  font-size: 0.8em;
+  color: var(--isun-text-secondary);
+  font-style: italic;
+}
+
+.challenge-card .cc-btn {
+  padding: 1px 10px;
+  line-height: 1.5;
+  font-size: 0.85em;
+  width: auto;
+  background: var(--isun-bg-elevated);
+  border: 1px solid var(--isun-border-accent);
+  border-radius: 3px;
+  color: var(--isun-text-accent);
+  cursor: pointer;
+}
+.challenge-card .cc-btn:hover {
+  background: var(--isun-border-accent);
+  color: var(--isun-bg-primary);
+  box-shadow: var(--isun-glow-gold);
+}
+/* Closing is not the move the card is inviting, so it does not compete. */
+.challenge-card .cc-btn.close {
+  border-color: var(--isun-border);
+  color: var(--isun-text-secondary);
+}
+.challenge-card .cc-btn.close:hover {
+  background: var(--isun-bg-elevated);
+  color: var(--isun-text-primary);
+  box-shadow: none;
+}
+
+.challenge-card .cc-foot { margin-top: 6px; text-align: right; }
+.challenge-card.closed { opacity: 0.7; }
+
+/* ── Answering a challenge ────────────────────────────────
+   Dense, like the declaration: this opens every time a player is asked for
+   anything. Scoped to the dialog, not to a form — DialogV2 supplies its own. */
+.challenge-response .dialog-content { font-size: 0.9em; }
+
+.challenge-response .cr-terms {
+  border-bottom: 1px solid var(--isun-border);
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+}
+.challenge-response .cr-label { font-size: 1.05em; }
+.challenge-response .cr-pool { color: var(--isun-text-secondary); font-size: 0.9em; }
+
+/* Fixed penalties: shown so the player can weigh them, never editable. */
+.challenge-response .cr-cost {
+  display: flex;
+  justify-content: space-between;
+  padding: 1px 4px;
+  color: var(--isun-text-secondary);
+  cursor: help;
+}
+.challenge-response .cr-penalty { color: var(--isun-wound); font-variant-numeric: tabular-nums; }
+
+.challenge-response fieldset {
+  border: 1px solid var(--isun-border);
+  border-radius: 4px;
+  padding: 4px 6px 6px;
+  margin: 6px 0 0;
+}
+.challenge-response legend {
+  font-family: var(--isun-font-smallcaps, inherit);
+  font-size: 0.8em;
+  color: var(--isun-text-secondary);
+  padding: 0 4px;
+}
+.challenge-response .hint { font-size: 0.8em; margin: 0 0 4px; }
+
+.challenge-response .cr-skill-list { max-height: 9rem; overflow-y: auto; }
+.challenge-response .cr-skill-row,
+.challenge-response .cr-spend-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 2px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.challenge-response .cr-skill-row:hover { background: var(--isun-bg-elevated); }
+.challenge-response .cr-skill-name,
+.challenge-response .cr-spend-name { flex: 1; }
+.challenge-response .cr-skill-level { color: var(--isun-text-accent); }
+
+.challenge-response .cr-spend-row input { width: 3.5rem; height: 1.7rem; padding: 2px 6px; }
+.challenge-response .cr-avail,
+.challenge-response .cr-effect { font-size: 0.8em; color: var(--isun-text-secondary); }
+.challenge-response .cr-effect { width: 5.5rem; text-align: right; }
+.challenge-response .cr-spend-row.enhancement .cr-effect { color: var(--isun-text-primary); }
+
+/* The three numbers the player is actually deciding between. */
+.challenge-response .cr-summary {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 8px;
+  padding: 5px;
+  background: var(--isun-bg-secondary);
+  border: 1px solid var(--isun-border);
+  border-radius: 4px;
+}
+.challenge-response .cr-cell { display: flex; flex-direction: column; align-items: center; }
+.challenge-response .cr-cap {
+  font-size: 0.7em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--isun-text-secondary);
+}
+.challenge-response .cr-venture,
+.challenge-response .cr-dice,
+.challenge-response .cr-target { font-size: 1.3em; font-variant-numeric: tabular-nums; }
+.challenge-response .cr-target.auto { color: var(--isun-sun-green); }
+.challenge-response .cr-target.impossible { color: var(--isun-wound); }
+.challenge-response .cr-note { margin-top: 6px; font-style: italic; }
+
+/* The result, once rolled. The dice are their own message; this is what keeps
+   the exchange readable after the log has moved on. */
+.challenge-card .cc-venture {
+  font-variant-numeric: tabular-nums;
+  color: var(--isun-text-secondary);
+  cursor: help;
+}
+.challenge-card .cc-outcome { font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.04em; }
+.challenge-card .cc-outcome.success { color: var(--isun-sun-green); }
+.challenge-card .cc-outcome.auto { color: var(--isun-sun-green); }
+.challenge-card .cc-outcome.failure { color: var(--isun-wound); }
+.challenge-card .cc-outcome.impossible { color: var(--isun-flux); }
+
+/* The claim, under its row. A GM approves this, so it has to be readable at a
+   glance without opening anything.
+
+   Stacked rather than side by side: the card renders in the chat notification
+   toast as well as the sidebar, and the toast is ~300px, which squeezed the
+   parts into a one-word-per-line column. */
+.challenge-card .cc-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 0 3px 26px;      /* clears the avatar */
+  padding: 2px 4px;
+  font-size: 0.85em;
+  color: var(--isun-text-secondary);
+  border-left: 2px solid var(--isun-border);
+}
+
+.challenge-card .cc-parts { display: flex; flex-wrap: wrap; gap: 4px; }
+.challenge-card .cc-part::after { content: " ·"; color: var(--isun-border); }
+.challenge-card .cc-part:last-child::after { content: ""; }
+
+.challenge-card .cc-result { display: flex; flex-wrap: wrap; gap: 8px; }
+.challenge-card .cc-fig { color: var(--isun-text-primary); font-variant-numeric: tabular-nums; }

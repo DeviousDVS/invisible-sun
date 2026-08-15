@@ -1,0 +1,91 @@
+{{!-- A challenge, and every answer to it. The card is the record: the ruling,
+      what was claimed against it, and what it came to all stay on one message. --}}
+<div class="challenge-card{{#if data.defence}} defence{{/if}}{{#if closed}} closed{{/if}}">
+
+  <div class="cc-head">
+    <span class="cc-kind">
+      {{#if data.defence}}{{localize "ISUN.Defence"}}{{else}}{{localize "ISUN.Challenge"}}{{/if}}
+    </span>
+    {{#if data.label}}<span class="cc-label">{{data.label}}</span>{{/if}}
+  </div>
+
+  <div class="cc-terms">
+    <span class="cc-term"><label>{{localize "ISUN.Pool"}}</label>{{poolLabel}}</span>
+    <span class="cc-term"><label>{{localize "ISUN.ChallengeRating"}}</label>{{data.challenge}}</span>
+    {{#if data.maxVex}}
+      <span class="cc-term vex" data-tooltip="{{localize 'ISUN.MaxVexHint'}}">
+        <label>{{localize "ISUN.MaxVex"}}</label>{{data.maxVex}}
+      </span>
+    {{/if}}
+  </div>
+
+  <div class="cc-rows">
+    {{#each rows as |r|}}
+      <div class="cc-row {{r.state}}" data-actor-id="{{r.id}}">
+        <img src="{{r.img}}" alt="" />
+        <span class="cc-name">{{r.name}}</span>
+
+        {{!-- What the pool costs, quoted before the roll and kept after it.
+              Both are computed, not chosen: a scourge applies because the pool
+              was named, and a vex is the lesser of the GM's ceiling and what
+              the pool holds. --}}
+        {{#if r.showCost}}
+          <span class="cc-cost">
+            {{#if r.scourge}}<span class="cc-scourge"
+              data-tooltip="{{localize 'ISUN.ScourgeHint'}}">−{{r.scourge}}</span>{{/if}}
+            {{#if r.vex}}<span class="cc-vex"
+              data-tooltip="{{localize 'ISUN.VexHint'}}">−{{r.vex}}</span>{{/if}}
+          </span>
+        {{/if}}
+
+        {{!-- Once rolled, what it came to. The dice themselves are their own
+              message, so this is the summary that keeps the exchange readable
+              when the log has moved on. --}}
+        {{#if r.outcome}}
+          <span class="cc-venture" data-tooltip="{{localize 'ISUN.Venture'}}">{{r.venture}}</span>
+          <span class="cc-outcome {{r.outcome}}">{{r.outcomeLabel}}</span>
+        {{else}}
+          <span class="cc-state">{{r.stateLabel}}</span>
+        {{/if}}
+
+        {{!-- No data-actor-id here. The row carries it, and the handler reads
+              it from there: writing it onto the button meant repeating a value
+              inside a nested {{#each}}, where "../r.id" resolved to nothing —
+              block params are lexically scoped, so ".." walks the context path
+              past them. Every button rendered data-actor-id="" and every click
+              was refused. --}}
+        {{#if r.actions.length}}
+          <span class="cc-actions">
+            {{#each r.actions as |a|}}
+              <button type="button" class="cc-btn {{a.action}}"
+                      data-action="{{a.action}}">{{a.label}}</button>
+            {{/each}}
+          </span>
+        {{/if}}
+      </div>
+
+      {{!-- What the venture was made of. The row gives the total and how it
+            went; this is the working, so a ruling can be reviewed later
+            without anyone having to remember it. --}}
+      {{#if r.breakdown}}
+        <div class="cc-detail">
+          <span class="cc-parts">
+            {{#each r.breakdown as |part|}}<span class="cc-part">{{part}}</span>{{/each}}
+          </span>
+          <span class="cc-result">
+            <span class="cc-fig" data-tooltip="{{localize 'ISUN.NeedToRoll'}}">{{localize "ISUN.NeedToRoll"}} {{r.targetLabel}}</span>
+            {{#if r.showDice}}<span class="cc-fig">{{r.dice}} {{localize "ISUN.Dice"}}</span>{{/if}}
+          </span>
+        </div>
+      {{/if}}
+    {{/each}}
+  </div>
+
+  {{#if canClose}}
+    <div class="cc-foot">
+      <button type="button" class="cc-btn close" data-action="close-challenge">
+        {{localize "ISUN.CloseChallenge"}}
+      </button>
+    </div>
+  {{/if}}
+</div>

@@ -1,0 +1,71 @@
+{{!-- The GM's half of a challenge. Naming the pool is the point: it decides
+      which scourge applies, which vexes are drawn, and which bene may pay.
+
+      Deliberately not using .form-group — that lays a centred, full-width
+      label above its control, which costs two rows per field and made this
+      dialog 922px tall for six inputs.
+
+      A div, not a form: DialogV2 supplies its own and discards any the content
+      brings, so a <form> here is both dead markup and a nested form inside
+      one. The styles below hang off the dialog's own .challenge-declaration
+      class for that reason. --}}
+<div class="challenge-declaration-body">
+
+  <div class="cd-field cd-wide">
+    <label for="cd-label">{{localize "ISUN.Action"}}</label>
+    <input id="cd-label" type="text" name="label" value="{{label}}"
+           placeholder="{{localize 'ISUN.ChallengeLabelPlaceholder'}}" />
+  </div>
+
+  <div class="cd-row">
+    <div class="cd-field">
+      <label for="cd-pool">{{localize "ISUN.Pool"}}</label>
+      <select id="cd-pool" name="pool">
+        <optgroup label="{{localize 'ISUN.Certes'}}">
+          {{#each pools as |p|}}{{#if (eq p.group "certes")}}
+            <option value="{{p.key}}" {{#if (eq p.key @root.pool)}}selected{{/if}}>{{p.label}}</option>
+          {{/if}}{{/each}}
+        </optgroup>
+        <optgroup label="{{localize 'ISUN.Qualia'}}">
+          {{#each pools as |p|}}{{#if (eq p.group "qualia")}}
+            <option value="{{p.key}}" {{#if (eq p.key @root.pool)}}selected{{/if}}>{{p.label}}</option>
+          {{/if}}{{/each}}
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="cd-field cd-narrow">
+      <label for="cd-rating">{{localize "ISUN.ChallengeRating"}}</label>
+      <input id="cd-rating" type="number" name="challenge" value="{{challenge}}" min="0" max="10" />
+    </div>
+
+    {{!-- A ceiling, not a count: what applies is bounded by what the pool
+          holds, and the player cannot decline it. The full rule is on the
+          tooltip rather than a line of its own. --}}
+    <div class="cd-field cd-narrow">
+      <label for="cd-vex" data-tooltip="{{localize 'ISUN.MaxVexHint'}}">
+        {{localize "ISUN.MaxVex"}}
+      </label>
+      <input id="cd-vex" type="number" name="maxVex" value="0" min="0" max="10"
+             data-tooltip="{{localize 'ISUN.MaxVexHint'}}" />
+    </div>
+  </div>
+
+  <label class="cd-check" data-tooltip="{{localize 'ISUN.IsDefenceHint'}}">
+    <input type="checkbox" name="defence" {{#if defence}}checked{{/if}} />
+    <span>{{localize "ISUN.IsDefence"}}</span>
+  </label>
+
+  <fieldset class="cd-targets">
+    <legend>{{localize "ISUN.Challenging"}}</legend>
+    {{#each candidates as |c|}}
+      <label class="cd-target{{#unless c.active}} offline{{/unless}}">
+        <input type="checkbox" name="target.{{c.uuid}}" />
+        <img src="{{c.img}}" alt="" />
+        <span class="cd-name">{{c.name}}</span>
+        <span class="cd-player">{{c.players}}{{#unless c.active}} · {{localize "ISUN.Offline"}}{{/unless}}</span>
+      </label>
+    {{/each}}
+  </fieldset>
+
+</div>

@@ -28,6 +28,10 @@ import { ISUNSpellSheet } from "./module/sheets/items/ISUNSpellSheet.mjs";
 import { ISUNCharacterArcSheet } from "./module/sheets/items/ISUNCharacterArcSheet.mjs";
 import { ISUNForteSheet } from "./module/sheets/items/ISUNForteSheet.mjs";
 
+// ── Challenges ───────────────────────────────────────────
+import { ChallengeCard } from "./module/apps/ChallengeCard.mjs";
+import { ChallengeDeclaration } from "./module/apps/ChallengeDeclaration.mjs";
+
 // ── Helpers ──────────────────────────────────────────────
 import { ISUN } from "./module/helpers/config.mjs";
 import { registerHandlebarsHelpers, preloadHandlebarsTemplates } from "./module/helpers/templates.mjs";
@@ -70,7 +74,9 @@ Hooks.once("init", () => {
     rollVenture,
     checkDepletion,
     ExperimentalDie,
-    CompendiumBrowser
+    CompendiumBrowser,
+    ChallengeCard,
+    ChallengeDeclaration
   };
 
   // The stylesheet draws the flux mark too — on the chat card and on Foundry's
@@ -102,6 +108,28 @@ Hooks.once("init", () => {
       + game.i18n.localize("ISUN.BrowserButton");
     button.addEventListener("click", () => new CompendiumBrowser().render(true));
     footer.appendChild(button);
+  });
+
+  /* Declaring a challenge belongs with chat, because the card is a chat
+   * message and the declaration is the first thing the table sees of it.
+   * GM only: only the GM declares, and only players roll. */
+  Hooks.on("renderChatLog", (app, element) => {
+    if (!game.user.isGM) return;
+    const root = element instanceof HTMLElement ? element : element?.[0];
+    // v14 has no #chat-controls. The chat form is where core puts its own
+    // control (the jump-to-bottom button), so the declaration sits beside it.
+    const form = root?.querySelector(".chat-form");
+    if (!form || form.querySelector(".isun-challenge-btn")) return;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    // Core styles a chat control by putting the icon classes on the button
+    // itself rather than nesting an <i>, so this matches rather than fights it.
+    button.className = "ui-control icon fa-solid fa-dice-d20 isun-challenge-btn";
+    button.dataset.tooltip = game.i18n.localize("ISUN.DeclareChallenge");
+    button.setAttribute("aria-label", game.i18n.localize("ISUN.DeclareChallenge"));
+    button.addEventListener("click", () => ChallengeDeclaration.open());
+    form.prepend(button);
   });
 
   // ── Register Data Models ─────────────────────────────
@@ -234,6 +262,16 @@ async function migrateSavingsToPurse() {
 
 Hooks.once("ready", async () => {
   console.log("invisible-sun | System ready");
+
+  /* A player cannot write to a chat message the GM authored — ChatMessage
+   * declares no update permission — so a response to a challenge is relayed to
+   * a GM client, which applies it. Every client listens; only a GM acts. */
+  ChallengeCard.listen();
+
+  /* The card is drawn per client, not stored: it says different things to a
+   * player and to the GM, so one saved rendering would show the GM's view to
+   * everyone. renderChatMessage is deprecated in v13 and warns. */
+  Hooks.on("renderChatMessageHTML", (message, html) => ChallengeCard.render(message, html));
 
   await migrateSavingsToPurse();
 
