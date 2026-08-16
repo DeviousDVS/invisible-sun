@@ -46,13 +46,23 @@
             {{#each advancement as |a|}}
               <div class="advancement-row {{a.key}}" data-tooltip="{{localize a.hint}}">
                 <span class="advancement-name">{{localize a.label}}</span>
+                {{!-- GM only. Joy and Despair are awarded, and Acumen is what
+                      an arc beat pays out — none of it is a player's to set. A
+                      player still sees every number, which is the part that
+                      matters at the table.
+
+                      @root.isGM, not isGM: inside {{#each}} the context is the
+                      row, so a bare lookup finds nothing on it and the controls
+                      silently never render. --}}
+                {{#if @root.isGM}}
+                  <span class="advancement-adjust">
+                    <a data-action="advancement-adjust" data-key="{{a.key}}" data-delta="1"
+                       data-tooltip="{{localize 'ISUN.AdvGain'}}">+</a>
+                    <a data-action="advancement-adjust" data-key="{{a.key}}" data-delta="-1"
+                       data-tooltip="{{localize 'ISUN.AdvSpend'}}">−</a>
+                  </span>
+                {{/if}}
                 <span class="advancement-value">{{a.value}}</span>
-                <span class="advancement-adjust">
-                  <a data-action="advancement-adjust" data-key="{{a.key}}" data-delta="1"
-                     data-tooltip="{{localize 'ISUN.AdvGain'}}">+</a>
-                  <a data-action="advancement-adjust" data-key="{{a.key}}" data-delta="-1"
-                     data-tooltip="{{localize 'ISUN.AdvSpend'}}">−</a>
-                </span>
                 <i class="fa-solid {{a.icon}}"></i>
               </div>
             {{/each}}

@@ -676,18 +676,20 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   }
 
   /**
-   * Award or spend one of the four advancement values.
+   * Award or spend one of the four advancement values. The GM's to give.
    *
-   * Not GM-gated, unlike vex. Joy and Despair are recognised at the table
-   * rather than handed down — every forte and order prints the paths that lead
-   * to them — and Acumen is stated by the arc beat the player just finished.
-   * The owner marking their own sheet is how that actually works in play.
+   * Checked here as well as hidden in the template, the same way vex is.
+   * Hiding a control only stops it being offered — an owner has permission to
+   * update their own actor — so this is what actually holds, for as long as a
+   * client-side check holds anything.
    *
    * Hidden Knowledge lives under stats rather than advancement, so the row
    * carries its own path; the rest are addressed by key.
    */
   async _onAdjustAdvancement(event, target) {
     event.preventDefault();
+    if (!game.user.isGM) return;
+
     const { key, delta } = target.dataset;
     if (!key) return;
 

@@ -385,9 +385,12 @@
 
 .advancement-row {
   display: grid;
-  /* name | value | adjust | icon. The last three are fixed so the numbers and
-     the icons each line up down the panel; only the name flexes. */
-  grid-template-columns: 1fr 2.5ch 2.4rem 1.2em;
+  /* name | adjust | value | icon. The last three are fixed so the numbers and
+     the icons each line up down the panel; only the name flexes.
+     Every cell below names its own column rather than relying on source order:
+     the controls are GM-only and the Crux line has none, so a row with a gap in
+     it must not slide everything after it left. That already happened once. */
+  grid-template-columns: 1fr 2.4rem 2.5ch 1.2em;
   align-items: center;
   gap: var(--isun-space-xs);
   padding: 3px 6px;
@@ -400,27 +403,32 @@
    that identifies the row, and at 0.75em in secondary it read as a label on
    something else — legible in the strict sense and not actually readable. */
 .advancement-row .advancement-name {
+  grid-column: 1;
   font-family: var(--isun-font-heading);
   font-size: 0.95em;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--isun-text-primary);
+  /* Secondary, not primary. The size is what made these readable — they were
+     10.5px before — so the colour can sit back down and let the numbers lead. */
+  color: var(--isun-text-secondary);
   min-width: 0;
   white-space: nowrap;
 }
 
 .advancement-row .advancement-value {
+  grid-column: 3;
   font-family: var(--isun-font-heading);
   font-size: 1.15em;
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
 
-.advancement-row i { justify-self: center; }
+.advancement-row i { grid-column: 4; justify-self: center; }
 
 /* Only offered on hover: these are read far more often than they are changed,
    and a row of live +/- controls reads as a form rather than a tally. */
 .advancement-row .advancement-adjust {
+  grid-column: 2;
   display: flex;
   justify-content: flex-end;
   gap: 2px;
@@ -457,7 +465,7 @@
   /* Deliberately the same four columns as a row above, so the star sits under
      the icons and the number under the numbers — it is a different kind of
      thing, but it should still read as part of the same table. */
-  grid-template-columns: 1fr 2.5ch 2.4rem 1.2em;
+  grid-template-columns: 1fr 2.4rem 2.5ch 1.2em;
   align-items: center;
   gap: var(--isun-space-xs);
   margin-top: var(--isun-space-sm);
@@ -475,6 +483,7 @@
 }
 
 .crux-readout .crux-value {
+  grid-column: 3;
   font-family: var(--isun-font-heading);
   font-size: 1.15em;
   color: var(--isun-crux);
@@ -483,6 +492,7 @@
 }
 
 .crux-readout .crux-label {
+  grid-column: 1;
   font-family: var(--isun-font-heading);
   font-size: 0.95em;
   letter-spacing: 0.04em;
