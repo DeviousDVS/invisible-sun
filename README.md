@@ -224,6 +224,38 @@ moves something you did not touch, your edit did more than you meant.
   toolchains only if you are regenerating from the books. Editing
   `source/data/*.json` and rebuilding needs Node alone.
 
+### Cutting a release
+
+```bash
+npm run packs      # compile and verify the compendia — Foundry must be stopped
+npm test           # lint and check the tree
+npm run dist       # build dist/invisible-sun.zip and dist/system.json
+```
+
+Both files go on the GitHub release: the zip is what Foundry downloads, and
+`system.json` has to be uploaded **as its own asset** or the manifest URL in
+the install dialog resolves to nothing.
+
+`dist` refuses to run against a dirty working tree, so the archive always
+matches a commit. It also asserts that the manifest version matches the tag you
+pass, since a release tagged one thing and declaring another installs as the
+wrong version.
+
+**What ends up in the archive is an allowlist, derived from the manifest** —
+the modules reached by following imports out of the declared entry point, the
+stylesheets and language files `system.json` names, the licence it points at,
+the compiled packs, and the templates and fonts that are referenced by string
+rather than imported. Nothing else is copied.
+
+That is deliberate rather than tidy. A list of things to *leave out* is one
+forgotten entry away from publishing `source/data`, which is the extracted text
+of somebody else's books. The build then re-checks the staged tree anyway and
+refuses outright if anything from `source/`, `scripts/`, `packs/_source/` or any
+PDF has found its way in.
+
+The shipped manifest also drops `hotReload`: watching files for changes is a
+convenience for whoever is writing the system, and costs everyone else.
+
 ### Screenshots
 
 There is also a headless screenshot harness for checking sheets without

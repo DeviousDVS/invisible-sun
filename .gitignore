@@ -14,3 +14,7 @@ node_modules/
 packs/*
 !packs/_source/
 __pycache__/
+
+# Built by scripts/dist.mjs. The archive is assembled from the manifest and
+# the compiled packs, neither of which is worth versioning.
+dist/
