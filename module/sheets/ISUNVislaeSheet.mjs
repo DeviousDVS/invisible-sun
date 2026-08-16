@@ -61,7 +61,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       "pick-thread":        this.prototype._onPickThread,
       "grant-incantation":  this.prototype._onGrantIncantation,
       "filter-practices":   this.prototype._onFilterPractices,
-      "adv-adjust":         this.prototype._onAdjustAdvancement,
+      "advancement-adjust": this.prototype._onAdjustAdvancement,
       "entry-add":          this.prototype._onEntryAdd,
       "entry-delete":       this.prototype._onEntryDelete,
       /* The practices list emits one of these three from {{p.action}}. They all

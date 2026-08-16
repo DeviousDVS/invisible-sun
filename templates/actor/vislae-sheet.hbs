@@ -29,22 +29,28 @@
         <div class="overview-advancement">
           <h3>{{localize "ISUN.Advancement"}}</h3>
 
-          {{!-- Four things that are earned and kept. Each is labelled and says
-                where it comes from on hover, because a sun and a moon side by
-                side do not tell anyone which is Joy. --}}
-          {{!-- Name, value, icon — in that order and in fixed columns, so the
-                four numbers form a line the eye can run down. The adjust
-                controls sit between value and icon and reserve their space
-                whether shown or not, or the icons would jump on hover. --}}
+          {{!-- Four things that are earned and kept: name, value, icon, in
+                fixed columns so the numbers form a line the eye can run down.
+                Each says where it comes from on hover, because a sun and a moon
+                side by side do not tell anyone which is Joy. The adjust controls
+                reserve their space whether shown or not, or the icons would
+                jump on hover.
+
+                Named "advancement-" and not "adv-" on purpose. Ad blockers hide
+                .adv-label outright — it is the conventional class for the
+                "Advertisement" disclosure a publisher is required to show — so
+                the labels rendered as nothing at all in Vivaldi, which ships
+                with blocking on. uBlock, Brave and AdGuard carry the same
+                lists. Do not shorten these back. --}}
           <div class="advancement-bar">
             {{#each advancement as |a|}}
-              <div class="adv-item {{a.key}}" data-tooltip="{{localize a.hint}}">
-                <span class="adv-label">{{localize a.label}}</span>
-                <span class="adv-value">{{a.value}}</span>
-                <span class="adv-adjust">
-                  <a data-action="adv-adjust" data-key="{{a.key}}" data-delta="1"
+              <div class="advancement-row {{a.key}}" data-tooltip="{{localize a.hint}}">
+                <span class="advancement-name">{{localize a.label}}</span>
+                <span class="advancement-value">{{a.value}}</span>
+                <span class="advancement-adjust">
+                  <a data-action="advancement-adjust" data-key="{{a.key}}" data-delta="1"
                      data-tooltip="{{localize 'ISUN.AdvGain'}}">+</a>
-                  <a data-action="adv-adjust" data-key="{{a.key}}" data-delta="-1"
+                  <a data-action="advancement-adjust" data-key="{{a.key}}" data-delta="-1"
                      data-tooltip="{{localize 'ISUN.AdvSpend'}}">−</a>
                 </span>
                 <i class="fa-solid {{a.icon}}"></i>
