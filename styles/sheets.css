@@ -396,12 +396,15 @@
   background: var(--isun-bg-surface);
 }
 
+/* Full strength, not caption grey. Leading with the name makes it the thing
+   that identifies the row, and at 0.75em in secondary it read as a label on
+   something else — legible in the strict sense and not actually readable. */
 .adv-item .adv-label {
   font-family: var(--isun-font-heading);
-  font-size: 0.75em;
+  font-size: 0.95em;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--isun-text-secondary);
+  color: var(--isun-text-primary);
   min-width: 0;
   white-space: nowrap;
 }
@@ -463,7 +466,13 @@
   border-radius: 3px;
   background: var(--isun-bg-elevated);
 }
-.crux-readout i { color: var(--isun-crux); justify-self: center; }
+.crux-readout i {
+  color: var(--isun-crux);
+  justify-self: center;
+  /* Column 4 by name. This row has no adjust controls, so left to place itself
+     the star landed in column 3 and sat 32px left of the icons above it. */
+  grid-column: 4;
+}
 
 .crux-readout .crux-value {
   font-family: var(--isun-font-heading);
@@ -475,10 +484,10 @@
 
 .crux-readout .crux-label {
   font-family: var(--isun-font-heading);
-  font-size: 0.75em;
+  font-size: 0.95em;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--isun-text-secondary);
+  color: var(--isun-text-accent);
 }
 
 /* Which of the two is the shorter, when they are uneven. Its own line beneath
