@@ -32,10 +32,13 @@
           {{!-- Four things that are earned and kept. Each is labelled and says
                 where it comes from on hover, because a sun and a moon side by
                 side do not tell anyone which is Joy. --}}
+          {{!-- Name, value, icon — in that order and in fixed columns, so the
+                four numbers form a line the eye can run down. The adjust
+                controls sit between value and icon and reserve their space
+                whether shown or not, or the icons would jump on hover. --}}
           <div class="advancement-bar">
             {{#each advancement as |a|}}
               <div class="adv-item {{a.key}}" data-tooltip="{{localize a.hint}}">
-                <i class="fa-solid {{a.icon}}"></i>
                 <span class="adv-label">{{localize a.label}}</span>
                 <span class="adv-value">{{a.value}}</span>
                 <span class="adv-adjust">
@@ -44,6 +47,7 @@
                   <a data-action="adv-adjust" data-key="{{a.key}}" data-delta="-1"
                      data-tooltip="{{localize 'ISUN.AdvSpend'}}">−</a>
                 </span>
+                <i class="fa-solid {{a.icon}}"></i>
               </div>
             {{/each}}
           </div>
@@ -55,9 +59,9 @@
                 Despair is what tells a player which path to walk next. --}}
           <div class="crux-readout{{#unless crux}} empty{{/unless}}"
                data-tooltip="{{localize 'ISUN.CruxHint'}}">
-            <i class="fa-solid fa-star"></i>
-            <span class="crux-value">{{crux}}</span>
             <span class="crux-label">{{localize "ISUN.CruxAvailable"}}</span>
+            <span class="crux-value">{{crux}}</span>
+            <i class="fa-solid fa-star"></i>
             {{#if cruxShortOf}}
               <span class="crux-limit">{{localize "ISUN.CruxShortOf"}} {{cruxShortOf}}</span>
             {{/if}}

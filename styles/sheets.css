@@ -385,7 +385,9 @@
 
 .adv-item {
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  /* name | value | adjust | icon. The last three are fixed so the numbers and
+     the icons each line up down the panel; only the name flexes. */
+  grid-template-columns: 1fr 2.5ch 2.4rem 1.2em;
   align-items: center;
   gap: var(--isun-space-xs);
   padding: 3px 6px;
@@ -408,12 +410,16 @@
   font-family: var(--isun-font-heading);
   font-size: 1.15em;
   font-variant-numeric: tabular-nums;
+  text-align: right;
 }
+
+.adv-item i { justify-self: center; }
 
 /* Only offered on hover: these are read far more often than they are changed,
    and a row of live +/- controls reads as a form rather than a tally. */
 .adv-item .adv-adjust {
   display: flex;
+  justify-content: flex-end;
   gap: 2px;
   opacity: 0;
   transition: opacity 0.15s ease;
@@ -444,22 +450,27 @@
 /* Crux is not one of them: it is what a pair is worth, and it exists only at
    the moment of spending. Set apart so it does not read as a fifth holding. */
 .crux-readout {
-  display: flex;
-  align-items: baseline;
+  display: grid;
+  /* Deliberately the same four columns as a row above, so the star sits under
+     the icons and the number under the numbers — it is a different kind of
+     thing, but it should still read as part of the same table. */
+  grid-template-columns: 1fr 2.5ch 2.4rem 1.2em;
+  align-items: center;
   gap: var(--isun-space-xs);
   margin-top: var(--isun-space-sm);
-  padding: 4px 8px;
+  padding: 4px 6px;
   border: 1px dashed var(--isun-crux);
   border-radius: 3px;
   background: var(--isun-bg-elevated);
 }
-.crux-readout i { color: var(--isun-crux); align-self: center; }
+.crux-readout i { color: var(--isun-crux); justify-self: center; }
 
 .crux-readout .crux-value {
   font-family: var(--isun-font-heading);
-  font-size: 1.35em;
+  font-size: 1.15em;
   color: var(--isun-crux);
   font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .crux-readout .crux-label {
@@ -470,9 +481,11 @@
   color: var(--isun-text-secondary);
 }
 
-/* Which of the two is the shorter, when they are uneven. */
+/* Which of the two is the shorter, when they are uneven. Its own line beneath
+   rather than squeezed onto the end, so it cannot push the number out of
+   column with the four above it. */
 .crux-readout .crux-limit {
-  margin-left: auto;
+  grid-column: 1 / -1;
   font-size: 0.75em;
   font-style: italic;
   color: var(--isun-text-secondary);
