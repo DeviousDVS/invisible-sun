@@ -29,7 +29,7 @@ export class ForteAbilityPicker {
   static async #render(actor, forte, abilities) {
     const build = () => {
       const held = actor.items.filter(i => i.type === "ForteAbility");
-      const crux = actor.system.advancement?.crux ?? 0;
+      const crux = actor.system.advancement?.cruxAvailable ?? 0;
       const rows = ForteTree.layout(abilities, held, crux);
       return { rows, crux, html: this.#content(forte, rows, crux) };
     };

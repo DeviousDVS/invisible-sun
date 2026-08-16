@@ -131,14 +131,17 @@ export class ForteTree {
    * may draw on, and the sheet's own controls place them.
    */
   static async take(actor, ability, cost) {
-    const crux = actor.system.advancement?.crux ?? 0;
-    if (crux < cost) return { refused: "crux", need: cost, have: crux };
+    /* Charged through spendCrux, which takes the Joy and the Despair that back
+     * it. Crux is never held, so there is no stored total to decrement. The
+     * charge happens first: an ability added and then not paid for is worse
+     * than one refused. */
+    const paid = await actor.spendCrux(cost);
+    if (paid.refused) return paid;
 
     const data = ability.toObject();
     delete data._id;
     await actor.createEmbeddedDocuments("Item", [data]);
     await actor.update({
-      "system.advancement.crux": crux - cost,
       "system.stats.statPoints.shared":
         (actor.system.stats?.statPoints?.shared ?? 0) + ISUN.forteAbilityStatPoints
     });

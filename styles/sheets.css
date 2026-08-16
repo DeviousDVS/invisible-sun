@@ -369,35 +369,116 @@
 }
 
 /* Advancement Bar */
+/* ── Advancement ──
+   Four things earned and kept, then the rate they buy at. Each row is a
+   labelled tile rather than a bare icon and number: a sun beside a moon does
+   not tell anyone which one is Joy. */
 .advancement-bar {
-  display: flex;
-  gap: var(--isun-space-md);
+  display: grid;
+  /* One column, not two. "Hidden Knowledge" is the longest label the sheet has
+     and a half-width tile ellipsised it to "Hidden Knowled…", which is worse
+     than the height a fourth row costs. */
+  grid-template-columns: 1fr;
+  gap: 3px;
   margin-top: var(--isun-space-sm);
 }
 
 .adv-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: var(--isun-space-xs);
-  font-size: 1.2em;
+  padding: 3px 6px;
+  border: 1px solid var(--isun-border);
+  border-radius: 3px;
+  background: var(--isun-bg-surface);
+}
+
+.adv-item .adv-label {
   font-family: var(--isun-font-heading);
+  font-size: 0.75em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--isun-text-secondary);
+  min-width: 0;
+  white-space: nowrap;
 }
 
-.adv-item.joy i {
-  color: var(--isun-joy);
+.adv-item .adv-value {
+  font-family: var(--isun-font-heading);
+  font-size: 1.15em;
+  font-variant-numeric: tabular-nums;
 }
 
-.adv-item.despair i {
-  color: var(--isun-despair);
+/* Only offered on hover: these are read far more often than they are changed,
+   and a row of live +/- controls reads as a form rather than a tally. */
+.adv-item .adv-adjust {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.adv-item:hover .adv-adjust,
+.adv-item:focus-within .adv-adjust { opacity: 1; }
+
+.adv-item .adv-adjust a {
+  width: 15px;
+  text-align: center;
+  line-height: 1.3;
+  border: 1px solid var(--isun-border);
+  border-radius: 2px;
+  font-size: 0.85em;
+  color: var(--isun-text-secondary);
+  cursor: pointer;
+}
+.adv-item .adv-adjust a:hover {
+  color: var(--isun-text-accent);
+  border-color: var(--isun-border-accent);
 }
 
-.adv-item.acumen i {
-  color: var(--isun-acumen);
-}
+.adv-item.joy i     { color: var(--isun-joy); }
+.adv-item.despair i { color: var(--isun-despair); }
+.adv-item.acumen i  { color: var(--isun-acumen); }
+.adv-item.hiddenKnowledge i { color: var(--isun-text-accent); }
 
-.adv-item.crux i {
+/* Crux is not one of them: it is what a pair is worth, and it exists only at
+   the moment of spending. Set apart so it does not read as a fifth holding. */
+.crux-readout {
+  display: flex;
+  align-items: baseline;
+  gap: var(--isun-space-xs);
+  margin-top: var(--isun-space-sm);
+  padding: 4px 8px;
+  border: 1px dashed var(--isun-crux);
+  border-radius: 3px;
+  background: var(--isun-bg-elevated);
+}
+.crux-readout i { color: var(--isun-crux); align-self: center; }
+
+.crux-readout .crux-value {
+  font-family: var(--isun-font-heading);
+  font-size: 1.35em;
   color: var(--isun-crux);
+  font-variant-numeric: tabular-nums;
 }
+
+.crux-readout .crux-label {
+  font-family: var(--isun-font-heading);
+  font-size: 0.75em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--isun-text-secondary);
+}
+
+/* Which of the two is the shorter, when they are uneven. */
+.crux-readout .crux-limit {
+  margin-left: auto;
+  font-size: 0.75em;
+  font-style: italic;
+  color: var(--isun-text-secondary);
+}
+
+.crux-readout.empty { opacity: 0.6; border-style: dotted; }
 
 /* Arcs Timeline */
 .arc-timeline {

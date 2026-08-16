@@ -691,9 +691,47 @@ export class ISUNActor extends Actor {
     };
   }
 
+  /**
+   * What the character could spend, and what it would cost them.
+   *
+   * Crux is not held. A Joy and a Despair together are worth one, and the
+   * exchange only happens when something is bought — so what a character "has"
+   * is however many pairs they are sitting on, and spending three Crux spends
+   * three Joy and three Despair.
+   *
+   * `spendCrux` is the counterpart, and the two belong together: anything that
+   * charges Crux should go through it rather than reaching for the pools.
+   */
+  _prepareAdvancement(system) {
+    const a = system.advancement ?? {};
+    a.cruxAvailable = Math.min(a.joy ?? 0, a.despair ?? 0);
+    // Which of the two is holding them back, for the sheet to say so.
+    a.cruxShortOf = (a.joy ?? 0) === (a.despair ?? 0) ? null
+      : ((a.joy ?? 0) < (a.despair ?? 0) ? "joy" : "despair");
+  }
+
+  /**
+   * Charge Crux by spending the Joy and Despair that back it.
+   *
+   * @returns {object} `{ spent }`, or `{ refused: "crux", need, have }`.
+   */
+  async spendCrux(cost) {
+    const a = this.system.advancement ?? {};
+    const have = a.cruxAvailable ?? 0;
+    if (cost > have) return { refused: "crux", need: cost, have };
+    if (cost <= 0) return { spent: 0 };
+
+    await this.update({
+      "system.advancement.joy": (a.joy ?? 0) - cost,
+      "system.advancement.despair": (a.despair ?? 0) - cost,
+    });
+    return { spent: cost };
+  }
+
   _prepareVislaeData(system) {
     this._prepareStatAllocation(system);
     this._prepareLimits(system);
     this._prepareEconomy(system);
+    this._prepareAdvancement(system);
   }
 }

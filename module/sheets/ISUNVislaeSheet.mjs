@@ -61,6 +61,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       "pick-thread":        this.prototype._onPickThread,
       "grant-incantation":  this.prototype._onGrantIncantation,
       "filter-practices":   this.prototype._onFilterPractices,
+      "adv-adjust":         this.prototype._onAdjustAdvancement,
       "entry-add":          this.prototype._onEntryAdd,
       "entry-delete":       this.prototype._onEntryDelete,
       /* The practices list emits one of these three from {{p.action}}. They all
@@ -320,7 +321,34 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
      * abilities from the compendium, not only the ones already taken. Loading
      * them is async, so it is done in _prepareContext and cached per forte. */
     context.forte = context.fortes[0] ?? null;
-    context.crux = context.actor.system.advancement?.crux ?? 0;
+
+    /* What a character can advance with.
+     *
+     * Crux is derived rather than held: a Joy and a Despair together are worth
+     * one, and the exchange happens when something is bought. So the row shows
+     * how many pairs are in hand, and says which of the two is the limit when
+     * they are uneven — "you have the Joy for four but the Despair for one" is
+     * the useful thing to know when deciding what to chase next.
+     *
+     * Hidden Knowledge sits here rather than with the pools it is stored beside.
+     * It is not spent and refreshed the way a pool is; it grows, like Acumen.
+     */
+    const adv = context.actor.system.advancement ?? {};
+    context.crux = adv.cruxAvailable ?? 0;
+    context.advancement = [
+      { key: "joy", value: adv.joy ?? 0, icon: "fa-sun",
+        label: "ISUN.Joy", hint: "ISUN.JoyHint" },
+      { key: "despair", value: adv.despair ?? 0, icon: "fa-moon",
+        label: "ISUN.Despair", hint: "ISUN.DespairHint" },
+      { key: "acumen", value: adv.acumen ?? 0, icon: "fa-graduation-cap",
+        label: "ISUN.Acumen", hint: "ISUN.AcumenHint" },
+      { key: "hiddenKnowledge", value: context.actor.system.stats?.hiddenKnowledge?.value ?? 0,
+        icon: "fa-eye", label: "ISUN.StatHiddenKnowledge", hint: "ISUN.HiddenKnowledgeHint",
+        path: "system.stats.hiddenKnowledge.value" },
+    ];
+    context.cruxShortOf = adv.cruxShortOf
+      ? game.i18n.localize(adv.cruxShortOf === "joy" ? "ISUN.Joy" : "ISUN.Despair")
+      : null;
   }
 
   /**
@@ -646,6 +674,34 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     if (!skill) return;
     return VentureDialog.open(this.document, { skill, label: skill.name });
   }
+
+  /**
+   * Award or spend one of the four advancement values.
+   *
+   * Not GM-gated, unlike vex. Joy and Despair are recognised at the table
+   * rather than handed down — every forte and order prints the paths that lead
+   * to them — and Acumen is stated by the arc beat the player just finished.
+   * The owner marking their own sheet is how that actually works in play.
+   *
+   * Hidden Knowledge lives under stats rather than advancement, so the row
+   * carries its own path; the rest are addressed by key.
+   */
+  async _onAdjustAdvancement(event, target) {
+    event.preventDefault();
+    const { key, delta } = target.dataset;
+    if (!key) return;
+
+    const row = (this.constructor.ADVANCEMENT_PATHS ?? {})[key] ?? `system.advancement.${key}`;
+    const current = foundry.utils.getProperty(this.document, row) ?? 0;
+    const next = Math.max(0, current + (Number(delta) || 0));
+    if (next === current) return;
+    return this.document.update({ [row]: next });
+  }
+
+  /** Where each advancement value is stored, where it is not under advancement. */
+  static ADVANCEMENT_PATHS = {
+    hiddenKnowledge: "system.stats.hiddenKnowledge.value"
+  };
 
   /** Edit a skill's level in place, clamped to the cap of 4. */
   async _onSkillLevel(event, target) {

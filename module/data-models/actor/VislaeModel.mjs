@@ -74,6 +74,21 @@ export class VislaeModel extends foundry.abstract.DataModel {
       }
     }
 
+    /* Crux was stored. It is now what a Joy and a Despair are worth together,
+     * so a stored total has to go back where it came from: one Crux held is one
+     * Joy and one Despair that were never spent. Adding it to both restores the
+     * character to the state the new reading describes.
+     *
+     * Read from the raw source, which is the only place it still exists — the
+     * schema no longer declares the key, so it is gone by the time anything
+     * else could look. */
+    const heldCrux = source?.advancement?.crux;
+    if (typeof heldCrux === "number" && heldCrux > 0) {
+      source.advancement.joy = (Number(source.advancement.joy) || 0) + heldCrux;
+      source.advancement.despair = (Number(source.advancement.despair) || 0) + heldCrux;
+    }
+    if (source?.advancement) delete source.advancement.crux;
+
     const inj = source?.status?.injuries;
     if (inj && !Array.isArray(inj) && typeof inj === "object") {
       const physical = Number(inj.physical) || 0;
@@ -169,11 +184,22 @@ export class VislaeModel extends foundry.abstract.DataModel {
     });
 
     /* ── Advancement ── */
+    /* ── Advancement ──
+     * Joy and Despair are earned along the paths every forte and every order
+     * describes — "the following events may bring me Joy" — so they arrive by
+     * recognition at the table rather than by any calculation. Acumen comes
+     * from character arc beats, which state their own rewards.
+     *
+     * Crux is deliberately absent. It is not a resource a character holds: it
+     * is what a Joy and a Despair are worth together, and it only comes into
+     * existence at the moment something is bought. Spending 2 Crux spends 2 Joy
+     * and 2 Despair. Holding a stored total beside the pair that backs it would
+     * be two numbers that can disagree, and the pair is the one the rules talk
+     * about. ISUNActor derives what is available. */
     const advancement = new fields.SchemaField({
       joy:     new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
       despair: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
       acumen:  new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
-      crux:    new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
     });
 
     /* ── Character Identity Metadata ── */

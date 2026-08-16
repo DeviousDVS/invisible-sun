@@ -28,11 +28,39 @@
         
         <div class="overview-advancement">
           <h3>{{localize "ISUN.Advancement"}}</h3>
+
+          {{!-- Four things that are earned and kept. Each is labelled and says
+                where it comes from on hover, because a sun and a moon side by
+                side do not tell anyone which is Joy. --}}
           <div class="advancement-bar">
-            <div class="adv-item joy"><i class="fa-solid fa-sun"></i> <span>{{system.advancement.joy}}</span></div>
-            <div class="adv-item despair"><i class="fa-solid fa-moon"></i> <span>{{system.advancement.despair}}</span></div>
-            <div class="adv-item acumen"><i class="fa-solid fa-graduation-cap"></i> <span>{{system.advancement.acumen}}</span></div>
-            <div class="adv-item crux"><i class="fa-solid fa-star"></i> <span>{{system.advancement.crux}}</span></div>
+            {{#each advancement as |a|}}
+              <div class="adv-item {{a.key}}" data-tooltip="{{localize a.hint}}">
+                <i class="fa-solid {{a.icon}}"></i>
+                <span class="adv-label">{{localize a.label}}</span>
+                <span class="adv-value">{{a.value}}</span>
+                <span class="adv-adjust">
+                  <a data-action="adv-adjust" data-key="{{a.key}}" data-delta="1"
+                     data-tooltip="{{localize 'ISUN.AdvGain'}}">+</a>
+                  <a data-action="adv-adjust" data-key="{{a.key}}" data-delta="-1"
+                     data-tooltip="{{localize 'ISUN.AdvSpend'}}">−</a>
+                </span>
+              </div>
+            {{/each}}
+          </div>
+
+          {{!-- Crux is not one of them. It is what a Joy and a Despair are
+                worth together, and it comes into existence only when something
+                is bought — so this is a rate, not a holding. Uneven pools are
+                worth saying out loud: knowing you have the Joy but not the
+                Despair is what tells a player which path to walk next. --}}
+          <div class="crux-readout{{#unless crux}} empty{{/unless}}"
+               data-tooltip="{{localize 'ISUN.CruxHint'}}">
+            <i class="fa-solid fa-star"></i>
+            <span class="crux-value">{{crux}}</span>
+            <span class="crux-label">{{localize "ISUN.CruxAvailable"}}</span>
+            {{#if cruxShortOf}}
+              <span class="crux-limit">{{localize "ISUN.CruxShortOf"}} {{cruxShortOf}}</span>
+            {{/if}}
           </div>
 
           {{!-- Degree sits with advancement: it is bought with Crux. --}}
