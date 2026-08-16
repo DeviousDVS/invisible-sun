@@ -171,10 +171,18 @@ if (problems.length) {
 rmSync(DIST, { recursive: true, force: true });
 mkdirSync(STAGE, { recursive: true });
 
+/* LevelDB leaves working files beside the data. LOCK is a lock, and LOG and
+ * LOG.old are its debug output, timestamped from whichever machine built the
+ * packs. None of it means anything to somebody who unzips this. */
+const PACK_NOISE = new Set(["LOCK", "LOG", "LOG.old"]);
+
 const copy = (rel) => {
   const dest = path.join(STAGE, rel);
   mkdirSync(path.dirname(dest), { recursive: true });
-  cpSync(path.join(ROOT, rel), dest, { recursive: true });
+  cpSync(path.join(ROOT, rel), dest, {
+    recursive: true,
+    filter: (src) => !PACK_NOISE.has(path.basename(src))
+  });
 };
 
 for (const rel of [...declared.filter(f => f !== "system.json"), ...courtesy]) copy(rel);
@@ -235,6 +243,17 @@ say(`  ${moduleFiles.length} modules reached from ${manifest.esmodules.join(", "
 say(`  ${(manifest.styles ?? []).length} stylesheets, ${(manifest.languages ?? []).length} language(s), `
   + `${packDirs.length} packs`);
 say(`  ${staged.length} files, ${mb} MB`);
+
+/* A pack carries its write-ahead log as well as its compacted data, and the
+ * log grows every time Foundry opens the world. Both are needed and the
+ * archive is correct either way — but a pack compiled and then played against
+ * ships the same rows twice, so it is worth saying when a rebuild would help. */
+const wal = staged.filter(f => f.startsWith("packs") && f.endsWith(".log"));
+if (wal.length) {
+  say(`\n  note: ${wal.length} pack(s) carry a write-ahead log, which grows every`);
+  say(`        time Foundry opens the world. Re-running npm run packs with`);
+  say(`        Foundry stopped produces a smaller archive.`);
+}
 if (orphans.length) {
   say(`\n  ${orphans.length} module(s) on disk that nothing imports, left out:`);
   for (const o of orphans) say(`    ${o}`);
