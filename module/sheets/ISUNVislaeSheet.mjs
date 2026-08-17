@@ -427,22 +427,23 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   /**
    * The character sentence, pre-rendered with each part linking to its item.
    */
+  /**
+   * The vertula kada — the sentence a vislae introduces themselves with.
+   *
+   * "I am a Connected Stoic of the order of Vance's who Caught Fire's Eye."
+   *
+   * Assembled rather than filled in, because its shape changes. An Apostate
+   * belongs to no order, so they are named rather than placed in one — "…, an
+   * Apostate who…" instead of the nonsense "…of the order of Apostate's…" — and
+   * the article follows the foundation, which may begin with a vowel.
+   *
+   * Every noun in it is a link to the item it names. That is the sheet's only
+   * route to a Heart, Foundation, Order or Forte, so a part the character does
+   * not hold is deliberately inert rather than looking clickable and doing
+   * nothing. Item names are user-supplied and escaped; the template emits the
+   * result with {{{ }}}.
+   */
   #prepareSentence(context) {
-    // Character Sentence derivation
-    context.characterSentence = {
-      foundation: context.foundations[0]?.name || "[Foundation]",
-      heart: context.hearts[0]?.name || "[Heart]",
-      order: context.orders[0]?.name || "[Order]",
-      forte: context.fortes[0]?.name || "[Forte]"
-    };
-
-    // Pre-render the sentence as markup. Item names are user-supplied, so each
-    // part is escaped before being wrapped — the template emits this with {{{ }}}.
-    //
-    // Where the character actually holds the item, the part is a link that
-    // opens it. That is the sheet's only route to a Heart, Foundation, Order or
-    // Forte, so the placeholder form is deliberately inert rather than looking
-    // clickable and doing nothing.
     const esc = Handlebars.escapeExpression;
     const part = (cls, item, placeholder) => {
       if (!item) return `<span class="sentence-part ${cls} unset">${esc(placeholder)}</span>`;
@@ -450,10 +451,26 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
            + ` data-tooltip="${esc(item.name)}">${esc(item.name)}</a>`;
     };
 
+    /* "an Iconoclastic", "a Connected". The test is on the letter rather than
+     * the sound: none of the eight foundations is an "hour" or a "unicorn", and
+     * a rule that reads the spelling is one a GM adding their own can predict.
+     * With no foundation yet, the placeholder takes the commoner article. */
+    const foundation = context.foundations[0]?.name ?? "";
+    const article = game.i18n.localize(
+      /^[aeiou]/i.test(foundation) ? "ISUN.SentenceArticleAn" : "ISUN.SentenceArticleA");
+
+    /* The possessive sits outside the link: "Vance" is the item's name, the
+     * "'s" is grammar wrapped around it. */
+    const orderPhrase = game.i18n.format(
+      context.isApostate ? "ISUN.SentenceApostate" : "ISUN.SentenceOfTheOrder",
+      { order: part("order", context.orders[0], "[Order]") });
+
     context.characterSentenceHTML = game.i18n.format("ISUN.CharacterSentence", {
+      article,
       foundation: part("foundation", context.foundations[0], "[Foundation]"),
       heart:      part("heart",      context.hearts[0],      "[Heart]"),
-      order:      part("order",      context.orders[0],      "[Order]"),
+      // Carries its own leading space or comma, since which one depends on it.
+      order:      orderPhrase,
       forte:      part("forte",      context.fortes[0],      "[Forte]")
     });
   }
