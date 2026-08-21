@@ -205,8 +205,18 @@ writeFileSync(path.join(DIST, "system.json"), JSON.stringify(shipped, null, 2) +
  * The allowlist should already have made this impossible. It runs anyway: this
  * is the guarantee the fan-use position rests on, and a guarantee that is only
  * true by construction is one nobody can check. */
+/* Card faces cut out of the deck PDFs are the same problem as the book text:
+ * Monte Cook Games' work, extracted locally, never shipped. They are supposed
+ * to live outside the repository entirely, so this is the case where that went
+ * wrong and one was copied in.
+ *
+ * Deliberately not a blanket ban on images — the system may want artwork of
+ * its own one day, and a rule that stops legitimate work is a rule somebody
+ * deletes. It refuses pictures sitting in a card directory, which is what the
+ * extractor produces and nothing else does. */
 const FORBIDDEN = [/^source[/\\]/, /^scripts[/\\]/, /^node_modules[/\\]/, /^\.git[/\\]/,
-                   /^packs[/\\]_source[/\\]/, /\.pdf$/i];
+                   /^packs[/\\]_source[/\\]/, /\.pdf$/i,
+                   /^assets[/\\]/, /(^|[/\\])cards[/\\].*\.(jpe?g|png|webp)$/i];
 const staged = [];
 (function walk(dir) {
   for (const e of readdirSync(dir, { withFileTypes: true })) {

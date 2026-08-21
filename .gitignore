@@ -8,6 +8,14 @@ source/*.txt
 trash/
 node_modules/
 
+# Card faces cut out of the deck PDFs by scripts/extract_card_images.py. They
+# belong under Foundry's data folder, not in here — but ISUN_ASSETS can point
+# anywhere, and a path that lands inside the repository would otherwise put
+# Monte Cook Games artwork into a commit. Ignored wherever it appears.
+assets/
+cards/*/*.jpg
+cards/*/index.json
+
 # Compendia are compiled from packs/_source by scripts/compile_packs.js.
 # The LevelDB output is a binary build artifact that rewrites itself whenever
 # Foundry runs; the JSON it is built from is worth reviewing, so keep that.

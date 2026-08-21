@@ -58,6 +58,22 @@ else
   echo "  (skipped the write-ups: $GATE not present)"
 fi
 
+# The card faces, cut out of the same PDFs. These are pictures of somebody
+# else's cards, so unlike the JSON they never enter the repository: they are
+# written into Foundry's data folder, beside the system rather than inside it,
+# where a system update cannot remove them and the release build cannot pick
+# them up. Set ISUN_ASSETS to put them somewhere else.
+#
+# Skipped with SKIP_IMAGES=1 — they take a minute a deck and only change when
+# MCG reissues a PDF, whereas the JSON above is re-extracted often.
+ASSETS=${ISUN_ASSETS:-../../invisible-sun/cards}
+if [ "${SKIP_IMAGES:-0}" != "1" ]; then
+  echo "== sooth card images"
+  "$PY" scripts/extract_card_images.py \
+    "$CARDS/Sooth Deck-Self Print-2019-02-13.pdf" "$DATA/sooth-cards.json" \
+    "$ASSETS/sooth"
+fi
+
 echo "== aggregates"
 "$PY" scripts/extract_aggregates.py \
   "$CARDS/Weaver Aggregates-Self Print-2019-02-13.pdf" "$DATA/aggregates.json" | head -1

@@ -88,6 +88,55 @@ function createItem(name, type, systemData, img) {
   };
 }
 
+/* ── Card art ─────────────────────────────────────────────
+ * The card decks are Monte Cook Games PDFs, so their faces cannot be shipped
+ * and are not in this repository. scripts/extract_card_images.py cuts them out
+ * of a copy you own and writes them under Foundry's data folder, leaving an
+ * index.json saying what it wrote and the path Foundry will serve it from.
+ *
+ * Where that has not been run the cards keep their generic icon and nothing
+ * else changes, which is the only sensible default — the alternative is sixty
+ * items pointing at files that do not exist. So the art is looked for, never
+ * required, and what was found is reported so that "I extracted the images and
+ * they did not appear" is a question the build output can already answer.
+ *
+ * Set ISUN_ASSETS if the images live somewhere other than Data/invisible-sun.
+ */
+const ASSETS_DIR = process.env.ISUN_ASSETS
+  || path.resolve(__dirname, '../../../invisible-sun/cards');
+
+/** Every image path emitted from a deck index, so the icon check can tell
+ *  these apart from Foundry's own icons — they live in the user's data folder
+ *  rather than in the application, and are verified as they are loaded. */
+const assetImages = new Set();
+
+function cardArt(deck) {
+  const indexFile = path.join(ASSETS_DIR, deck, 'index.json');
+  if (!fs.existsSync(indexFile)) return null;
+
+  const { base, cards } = JSON.parse(fs.readFileSync(indexFile, 'utf8'));
+  if (!base) {
+    console.warn(`  ${deck} card art: index.json has no base path, so Foundry `
+               + `cannot address these images. Re-extract them under Foundry's Data folder.`);
+    return null;
+  }
+
+  // An index that names a file which is not there would put a broken image on
+  // the card, which is worse than the generic icon it replaced.
+  const found = new Map();
+  for (const [name, file] of Object.entries(cards ?? {})) {
+    if (fs.existsSync(path.join(ASSETS_DIR, deck, file))) found.set(name, `${base}/${file}`);
+  }
+  return found;
+}
+
+/** The art for one card, or undefined to leave it on its generic icon. */
+function artFor(art, name) {
+  const img = art?.get(name);
+  if (img) assetImages.add(img);
+  return img;
+}
+
 // Packs emptied so far this run. A source entry that is renamed or dropped
 // would otherwise leave its old file behind and the item would keep appearing
 // in the compendium, so each pack is cleared the first time it is written to.
@@ -339,6 +388,7 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'skills.json'))) {
 // royalty effects come from the write-ups in The Gate.
 if (fs.existsSync(path.join(SOURCE_DIR, 'sooth.json'))) {
   const soothData = JSON.parse(fs.readFileSync(path.join(SOURCE_DIR, 'sooth.json'), 'utf8'));
+  const soothArt = cardArt('sooth');
   for (const c of soothData) {
     writeItem("sooth", createItem(c.name, "SoothCard", {
       family: c.family || "",
@@ -355,9 +405,12 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'sooth.json'))) {
       description: cleanHtml(c.description || ""),
       quote: c.quote || "",
       familyLine: c.familyLine || ""
-    }, "icons/sundries/gaming/playing-cards.webp"));
+    }, artFor(soothArt, c.name) || "icons/sundries/gaming/playing-cards.webp"));
   }
-  console.log(`Processed ${soothData.length} sooth cards.`);
+  const withArt = soothData.filter(c => soothArt?.has(c.name)).length;
+  console.log(`Processed ${soothData.length} sooth cards`
+    + (soothArt ? `, ${withArt} with card art.` : '. No card art found; run '
+      + 'scripts/extract_card_images.py to cut it from your own deck PDF.'));
 }
 
 // Weaver aggregates, from the Weaver Aggregates card deck
@@ -571,8 +624,11 @@ if (publicDir) {
       if (img) seen.set(img, (seen.get(img) ?? 0) + 1);
     }
   }
+  // Card art is exempt: it lives in the user's data folder rather than in the
+  // application, and cardArt() has already confirmed each file is on disk.
   const missing = [...seen].filter(([img]) =>
-    !img.startsWith('systems/') && !fs.existsSync(path.join(publicDir, img)));
+    !img.startsWith('systems/') && !assetImages.has(img)
+    && !fs.existsSync(path.join(publicDir, img)));
   if (missing.length) {
     console.error(`\n${missing.length} icon(s) do not exist in Foundry's icon set:`);
     for (const [img, n] of missing) console.error(`  ${img}  (${n} items)`);
