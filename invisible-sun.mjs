@@ -39,7 +39,7 @@ import { rollVenture, checkDepletion } from "./module/helpers/dice.mjs";
 import { ExperimentalDie } from "./module/dice/ExperimentalDie.mjs";
 import { registerDiceSoNice } from "./module/helpers/dice-so-nice.mjs";
 import { CompendiumBrowser } from "./module/apps/CompendiumBrowser.mjs";
-import { DeckImporter } from "./module/apps/DeckImporter.mjs";
+import { ContentImporter } from "./module/apps/ContentImporter.mjs";
 
 // ── Migrations ───────────────────────────────────────────
 import { registerMigrationSetting, runMigrations } from "./module/migrations/index.mjs";
@@ -99,7 +99,7 @@ Hooks.once("init", () => {
     checkDepletion,
     ExperimentalDie,
     CompendiumBrowser,
-    DeckImporter,
+    ContentImporter,
     ChallengeCard,
     ChallengeDeclaration
   };
@@ -143,7 +143,7 @@ Hooks.once("init", () => {
     importer.className = "isun-import-btn";
     importer.innerHTML = `<i class="fa-solid fa-file-import"></i> `
       + game.i18n.localize("ISUN.ImportButton");
-    importer.addEventListener("click", () => new DeckImporter().render(true));
+    importer.addEventListener("click", () => new ContentImporter().render(true));
     footer.appendChild(importer);
   });
 

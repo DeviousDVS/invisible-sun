@@ -1,0 +1,56 @@
+<form class="content-importer-form flexcol" autocomplete="off">
+
+  {{!-- Said plainly and first. Somebody arriving here has just installed a
+        system with empty compendia and wants to know what is being asked of
+        them and, before anything else, where their books are going. --}}
+  <p class="notes">{{localize "ISUN.ImportIntro"}}</p>
+
+  <ol class="import-steps">
+    <li>{{localize "ISUN.ImportStep1"}}</li>
+    <li>{{localize "ISUN.ImportStep2"}}</li>
+    <li>{{localize "ISUN.ImportStep3"}}</li>
+  </ol>
+
+  <div class="form-group">
+    <label>{{localize "ISUN.ImportFolder"}}</label>
+    {{!-- webkitdirectory is what turns a file picker into a folder picker. It
+          is prefixed but is what every current browser implements; `directory`
+          is set alongside it for anything that standardises on the plain name.
+          The files are read where they lie — nothing is uploaded. --}}
+    <input type="file" name="folder" webkitdirectory directory multiple />
+  </div>
+
+  <div class="form-group">
+    <label>{{localize "ISUN.ImportSize"}}</label>
+    <select name="size">
+      <option value="256">256 px</option>
+      <option value="512" selected>512 px</option>
+      <option value="768">768 px</option>
+    </select>
+  </div>
+  <p class="hint">{{localize "ISUN.ImportSizeHint"}}</p>
+
+  <footer class="sheet-footer flexrow">
+    <button type="button" data-action="run" {{#if busy}}disabled{{/if}}>
+      <i class="fa-solid {{#if busy}}fa-spinner fa-spin{{else}}fa-file-import{{/if}}"></i>
+      {{#if busy}}{{localize "ISUN.ImportWorking"}}{{else}}{{localize "ISUN.ImportStart"}}{{/if}}
+    </button>
+  </footer>
+
+  {{#if log}}
+    <ol class="import-log">
+      {{#each log as |line|}}<li class="{{#if line.failed}}failed{{/if}}">{{line.text}}</li>{{/each}}
+    </ol>
+  {{else}}
+    {{!-- What it can and cannot do, before it is asked to do it. A reader
+          pointing it at a full set of PDFs should know in advance which of
+          them will be picked up. --}}
+    <details class="import-coverage">
+      <summary>{{localize "ISUN.ImportCoverage"}}</summary>
+      <p><strong>{{localize "ISUN.ImportCoverageNow"}}</strong>
+        {{#each supported as |s|}}{{s}}{{#unless @last}}, {{/unless}}{{/each}}</p>
+      <p><strong>{{localize "ISUN.ImportCoverageLater"}}</strong>
+        {{#each planned as |s|}}{{s}}{{#unless @last}}, {{/unless}}{{/each}}</p>
+    </details>
+  {{/if}}
+</form>
