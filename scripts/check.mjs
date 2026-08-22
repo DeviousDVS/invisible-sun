@@ -92,31 +92,54 @@ if (manifest) {
   }
 }
 
-/* ── Generated files still match what generated them ──
+/* ── The quirks that ship stay empty, and the generated ones stay in step ──
  *
- * quirks.mjs is written from quirks.json by scripts/build_quirks.py, and says
- * so in its header. A header cannot stop anyone editing the module directly and
- * losing the change at the next build; this can. The generator preserves
- * everything before `export const`, so the two only ever disagree when someone
- * has edited the list itself. */
+ * The quirks list is book text. module/helpers/quirks.mjs ships, so it must
+ * hold nothing; the real list is generated into quirks.local.mjs, which is
+ * gitignored. Both halves are worth checking, and for different reasons.
+ *
+ * The stub being empty is the promise the release makes, and the way it would
+ * break is mundane — build_quirks.py used to write this very file, so anyone
+ * running an older copy of it, or restoring an old backup over the top, fills
+ * it straight back up. That is a release-blocking mistake that looks like
+ * nothing in a diff full of generated files.
+ *
+ * The generated file is checked the way it always was: it is written from the
+ * JSON, and an edit made to the module directly is lost at the next build. */
 try {
-  const mod = await import(pathToFileURL(path.join(ROOT, "module/helpers/quirks.mjs")).href);
-  const source = JSON.parse(readFileSync(path.join(ROOT, "source/data/quirks.json"), "utf8"));
-  const built = mod.QUIRKS ?? [];
-  const at = built.findIndex((q, i) => q !== source[i]);
-  if (built.length !== source.length || at !== -1) {
-    /* Name where they diverge. "50 entries vs 50" is no help when the counts
-     * agree and a line was reworded, which is the likeliest way this happens. */
-    const where = built.length !== source.length
-      ? `${built.length} entries vs ${source.length}`
-      : `first difference at entry ${at}:\n`
-        + `      built:  ${JSON.stringify(built[at]?.slice(0, 60))}\n`
-        + `      source: ${JSON.stringify(source[at]?.slice(0, 60))}`;
-    fail(`module/helpers/quirks.mjs is out of step with source/data/quirks.json — ${where}\n`
-       + `    Edit the JSON, then run: python3 scripts/build_quirks.py`);
+  const stub = await import(pathToFileURL(path.join(ROOT, "module/helpers/quirks.mjs")).href);
+  if ((stub.QUIRKS ?? []).length) {
+    fail(`module/helpers/quirks.mjs has ${stub.QUIRKS.length} entries and must be empty.\n`
+       + `    It ships. The generated list belongs in quirks.local.mjs — re-run:\n`
+       + `      python3 scripts/build_quirks.py`);
   }
 } catch (err) {
-  fail(`could not compare quirks.mjs against quirks.json: ${err.message}`);
+  fail(`could not read module/helpers/quirks.mjs: ${err.message}`);
+}
+
+const quirksLocal = path.join(ROOT, "module/helpers/quirks.local.mjs");
+const quirksJson = path.join(ROOT, "source/data/quirks.json");
+if (existsSync(quirksLocal) && existsSync(quirksJson)) {
+  try {
+    const mod = await import(pathToFileURL(quirksLocal).href);
+    const source = JSON.parse(readFileSync(quirksJson, "utf8"));
+    const built = mod.QUIRKS ?? [];
+    const at = built.findIndex((q, i) => q !== source[i]);
+    if (built.length !== source.length || at !== -1) {
+      /* Name where they diverge. "50 entries vs 50" is no help when the counts
+       * agree and a line was reworded, which is the likeliest way this happens. */
+      const where = built.length !== source.length
+        ? `${built.length} entries vs ${source.length}`
+        : `first difference at entry ${at}:\n`
+          + `      built:  ${JSON.stringify(built[at]?.slice(0, 60))}\n`
+          + `      source: ${JSON.stringify(source[at]?.slice(0, 60))}`;
+      fail(`module/helpers/quirks.local.mjs is out of step with `
+         + `source/data/quirks.json — ${where}\n`
+         + `    Edit the JSON, then run: python3 scripts/build_quirks.py`);
+    }
+  } catch (err) {
+    fail(`could not compare quirks.local.mjs against quirks.json: ${err.message}`);
+  }
 }
 
 /* ── Every data-action in a sheet template has a handler ──

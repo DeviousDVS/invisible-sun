@@ -52,6 +52,26 @@ Hooks.once("init", () => {
   // Store config on the global CONFIG object
   CONFIG.ISUN = ISUN;
 
+  /* The quirks list is Monte Cook Games' text, so the module that ships is an
+   * empty stub and the real list is generated from your own copy into
+   * quirks.local.mjs, which is gitignored. Fill it with:
+   *
+   *     python3 scripts/build_quirks.py
+   *
+   * ISUN is frozen, but the array it holds is not — so the entries are pushed
+   * into the existing list rather than the property being reassigned.
+   *
+   * Absent, this logs one 404 and the quirk field simply offers no
+   * suggestions, which is what a fresh install looks like until content is
+   * imported. It is deliberately not awaited: nothing needs quirks before the
+   * first character sheet opens. */
+  import("./module/helpers/quirks.local.mjs")
+    .then(({ QUIRKS: generated = [] }) => {
+      CONFIG.ISUN.quirks.push(...generated);
+      console.log(`invisible-sun | ${generated.length} quirks loaded`);
+    })
+    .catch(() => { /* not generated on this install; the field still works */ });
+
   // Make the bundled Duvall faces available in Foundry's font pickers
   // (journals, drawings, text tiles) alongside the sheet CSS.
   Object.assign(CONFIG.fontDefinitions, {

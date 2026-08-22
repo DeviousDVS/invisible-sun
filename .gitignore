@@ -16,11 +16,24 @@ assets/
 cards/*/*.jpg
 cards/*/index.json
 
-# Compendia are compiled from packs/_source by scripts/compile_packs.js.
-# The LevelDB output is a binary build artifact that rewrites itself whenever
-# Foundry runs; the JSON it is built from is worth reviewing, so keep that.
-packs/*
-!packs/_source/
+# The compendia, at both stages. packs/_source used to be tracked, on the
+# reasoning that the JSON it holds is worth reviewing — but what it holds is
+# Monte Cook Games' text, extracted from books you own, and reviewable is not
+# the same as distributable. It is generated on your machine by
+# scripts/build_compendia.js and stays there; scripts/data.mjs is what keeps
+# it safe now that git does not.
+packs/
+
+# The extracted game data, and the reference dump the extractors read. Same
+# reasoning: this is the book text itself, one stage before the compendia.
+source/data/
+source/forte-trees/
+source/isdata_2026.json
+
+# The quirks list, written from your own copy by scripts/build_quirks.py. The
+# stub that ships beside it is tracked and must stay empty.
+module/helpers/quirks.local.mjs
+
 __pycache__/
 
 # Built by scripts/dist.mjs. The archive is assembled from the manifest and

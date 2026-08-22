@@ -1,17 +1,28 @@
 """
-Write module/helpers/quirks.mjs from source/data/quirks.json.
+Write module/helpers/quirks.local.mjs from source/data/quirks.json.
 
-The list is static book data with no mechanics, so it ships as a module rather
-than being fetched at runtime; this keeps source/data as the one place it is
-edited.
+The quirks are book text, so the file that ships (quirks.mjs) is an empty stub
+and the real list goes beside it in quirks.local.mjs, which is gitignored. The
+system loads that at init when it is there and carries on without it when it is
+not, the same way the compendia and the card art behave.
+
+It used to write quirks.mjs itself. That put fifty lines of Monte Cook Games'
+text into a file the release archive shipped, which is exactly what this
+project promises not to do.
 
 Usage:  python3 scripts/build_quirks.py
 """
 import json, pathlib
 
+OUT = pathlib.Path('module/helpers/quirks.local.mjs')
+
 quirks = json.load(open('source/data/quirks.json', encoding='utf-8'))
 body = ",\n".join("  " + json.dumps(q, ensure_ascii=False) for q in quirks)
-header = pathlib.Path('module/helpers/quirks.mjs').read_text(encoding='utf-8').split('export const')[0]
-pathlib.Path('module/helpers/quirks.mjs').write_text(
-    f"{header}export const QUIRKS = [\n{body}\n];\n", encoding='utf-8')
-print(f"{len(quirks)} quirks -> module/helpers/quirks.mjs")
+OUT.write_text(
+    "/* GENERATED — do not edit, and do not commit.\n"
+    " *\n"
+    " * Written from source/data/quirks.json by scripts/build_quirks.py.\n"
+    " * This is Monte Cook Games' text and is gitignored on purpose.\n"
+    " */\n"
+    f"export const QUIRKS = [\n{body}\n];\n", encoding='utf-8')
+print(f"{len(quirks)} quirks -> {OUT}")
