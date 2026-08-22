@@ -184,6 +184,7 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
   async #importOne(file, spec, size) {
     const doc = await deck.openPdf(file);
     if (spec.kind === "book") return this.#importBook(doc, spec);
+    if (spec.kind === "deck-text") return this.#importTextDeck(doc, spec, size);
 
     const sheets = await deck.readSheets(doc, {
       onProgress: ({ stage, done, total }) => {
@@ -219,6 +220,75 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
       ? await this.#writeImages(doc, sheets, cards, spec, size)
       : new Map();
     return this.#writePack(cards, images, spec);
+  }
+
+  /**
+   * Import a deck that is read rather than looked at.
+   *
+   * No grid is measured and no card is cut: the text layer carries the whole
+   * card. The one picture taken is the deck's back, which is the same on every
+   * card in it, so it stands as the artwork for every entry — the faces carry
+   * no art of their own to use instead.
+   */
+  async #importTextDeck(doc, spec, size) {
+    const { cards, grid, sheets } = await spec.read(doc, {
+      onProgress: ({ done, total, found }) => {
+        if (done % 12 === 0 || done >= total) {
+          this.#say(game.i18n.format("ISUN.ImportReadingCards", { done, total, found }));
+        }
+      }
+    });
+    this.#say(game.i18n.format("ISUN.ImportFoundCards",
+      { count: cards.length, sheets, columns: grid?.columns.length ?? 0 }));
+
+    if (spec.expected && cards.length !== spec.expected) {
+      throw new Error(game.i18n.format("ISUN.ImportWrongCount",
+        { found: cards.length, expected: spec.expected }));
+    }
+
+    const img = spec.sharedBack ? await this.#writeBackArt(doc, spec, grid, size) : null;
+    if (img) this.#say(game.i18n.format("ISUN.ImportBackArt", { count: cards.length }));
+
+    return this.#writePack(cards, new Map(cards.map(c => [c.name, img])), spec);
+  }
+
+  /**
+   * Cut the deck's back and save it once.
+   *
+   * The sheets give no white gutter to find the cards by — they abut, and the
+   * crop marks bridge what gaps there are — so the rectangle is worked out
+   * instead: the columns come from where the cards print "Level:", and the
+   * rows from a strip taken down the middle of one column, which meets card
+   * and gutter but no crop marks.
+   */
+  async #writeBackArt(doc, spec, grid, size) {
+    if (!grid) return null;
+    const FP = foundry.applications.apps.FilePicker.implementation;
+    const dir = `${ASSET_ROOT}/${spec.folder}`;
+    for (const part of [ASSET_ROOT.split("/")[0], ASSET_ROOT, dir]) {
+      try { await FP.createDirectory("data", part); } catch { /* already there */ }
+    }
+
+    // A back sheet faces every front one; the second page of cards is a back.
+    const backPage = 3;
+    const column = grid.columns[Math.min(1, grid.columns.length - 1)];
+    const centre = (column.x + column.w / 2) / 72;
+    const bands = await deck.rowBandsAt(await doc.getPage(backPage), centre - 0.25, 0.5);
+    if (!bands.length) return null;
+
+    const rows = Math.max(1, Math.round(bands[0].h / (column.w / 72 * 1.4)));
+    const INSET = 0.1;
+    const image = await deck.cutRegion(doc, backPage, {
+      x: column.x / 72 + INSET,
+      y: bands[0].y + INSET,
+      w: column.w / 72 - INSET * 2,
+      h: bands[0].h / rows - INSET * 2
+    }, { size });
+
+    const name = `back.${image.extension}`;
+    await FP.upload("data", dir,
+      new File([image.blob], name, { type: image.blob.type }), {}, { notify: false });
+    return `${dir}/${name}`;
   }
 
   /**

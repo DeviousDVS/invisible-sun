@@ -578,3 +578,50 @@ export async function cutCards(doc, faces, { card, size = 512, quality = 0.9, ma
   }
   return images;
 }
+
+/**
+ * The vertical bands of ink in a narrow strip of a page.
+ *
+ * Used to find the rows of a deck whose cards abut. Measuring the whole page
+ * cannot separate them — the crop marks printed in the gutters bridge every
+ * gap, so the sheet reads as one block — but those marks sit at the cards'
+ * corners, so a strip taken through the middle of a column meets only card and
+ * gutter, and the rows fall out of it.
+ */
+export async function rowBandsAt(page, x, w) {
+  const canvas = await renderPage(page, DETECT_DPI);
+  const { width, height } = canvas;
+  const data = canvas.getContext("2d").getImageData(0, 0, width, height).data;
+
+  const left = Math.max(0, Math.round(x * DETECT_DPI));
+  const right = Math.min(width - 1, Math.round((x + w) * DETECT_DPI));
+
+  const inked = [];
+  for (let y = 0; y < height; y++) {
+    const base = y * width;
+    for (let px = left; px <= right; px++) {
+      if (data[(base + px) * 4] < INK) { inked.push(y); break; }
+    }
+  }
+  const floor = Math.round(MIN_CARD_INCHES * DETECT_DPI);
+  return runs(inked, Math.round(GUTTER_INCHES * DETECT_DPI))
+    .filter(([a, b]) => b - a + 1 >= floor)
+    .map(([a, b]) => ({ y: a / DETECT_DPI, h: (b - a + 1) / DETECT_DPI }));
+}
+
+/**
+ * Cut one arbitrary rectangle out of a page.
+ *
+ * Used for a deck's card back. Those decks are read rather than looked at, so
+ * nothing measures their grid in pixels — and it could not anyway, since the
+ * cards are printed hard against one another with crop marks bridging what
+ * gaps there are. But the back is the same picture on every card in the deck,
+ * so one rectangle taken from the middle of a back sheet is the whole of what
+ * is needed, and where exactly it falls does not matter as long as it is
+ * inside the card.
+ */
+export async function cutRegion(doc, page, box, { size = 512, quality = 0.9 } = {}) {
+  const [image] = await cutCards(doc, [{ page, box }],
+    { card: { w: box.w, h: box.h }, size, quality, mask: false });
+  return image;
+}

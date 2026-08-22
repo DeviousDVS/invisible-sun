@@ -22,6 +22,7 @@
  */
 import * as sooth from "./sooth.mjs";
 import * as gate from "./gate.mjs";
+import * as spells from "./spells.mjs";
 
 /**
  * Sources this can read.
@@ -52,6 +53,28 @@ export const SOURCES = [
     slug: sooth.slug
   },
   {
+    key: "spell",
+    label: "ISUN.SourceSpellDeck",
+    hint: /spell deck/i,
+    signature: /to print your spell deck/i,
+    /* A deck that is read rather than looked at. Its cards are a name, a level
+     * and a description — no art at all — so nothing here measures a grid in
+     * pixels or cuts a picture per card. It could not anyway: these sheets
+     * print their cards hard against one another, with crop marks bridging
+     * what gaps there are, so there is no white to find them by. The text
+     * layer carries everything. */
+    kind: "deck-text",
+    pack: "invisible-sun.spells",
+    folder: "spells",
+    expected: 300,
+    read: spells.readDeck,
+    toItem: spells.toItem,
+    /* Every card in the deck shares one back, so one picture stands for all
+     * three hundred spells. It is the deck's own livery rather than a generic
+     * rune, which is the most this deck can offer — the faces carry no art. */
+    sharedBack: true
+  },
+  {
     key: "gate",
     label: "ISUN.SourceGate",
     hint: /the.?gate/i,
@@ -73,8 +96,8 @@ export const SOURCES = [
  * of files it could not identify.
  */
 export const NOT_YET = [
-  { key: "spell", label: "ISUN.SourceSpellDeck", hint: /spell deck|spell cards/i,
-    signature: /to print your spell deck/i },
+  { key: "spell-cards-m", label: "ISUN.SourceSpellCardsM", hint: /book.?m.*spell/i,
+    signature: /to print your spell deck cards/i },
   { key: "vance", label: "ISUN.SourceVanceDeck", hint: /vance/i,
     signature: /to print your vance spell deck/i },
   { key: "incantations", label: "ISUN.SourceIncantationDeck", hint: /incantation/i,

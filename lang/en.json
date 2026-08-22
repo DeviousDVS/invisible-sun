@@ -523,7 +523,11 @@
     "ImportDeckFirst": "That compendium is empty, so there is nothing for this book to fill in. Import the matching deck first — put both in the folder and it will do them in the right order.",
     "ImportReadingEntries": "Reading entries… page {done} of {total}, {found} found",
     "ImportPageUnmatched": "Page {page} is a card write-up, but names no card in the compendium.",
-    "ImportValueMismatch": "{count} write-up(s) state a value the card disagrees with, starting with {first}. The two halves may be from different printings."
+    "ImportValueMismatch": "{count} write-up(s) state a value the card disagrees with, starting with {first}. The two halves may be from different printings.",
+    "SourceSpellCardsM": "Book M Spell Cards",
+    "ImportReadingCards": "Reading cards… page {done} of {total}, {found} found",
+    "ImportBackArt": "Cut the deck's card back as the artwork for all {count} entries.",
+    "ImportFoundCards": "Read {count} cards from {sheets} sheets of {columns} columns."
   },
   "TYPES": {
     "Actor": {
