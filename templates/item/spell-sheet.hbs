@@ -35,7 +35,7 @@
         <div class="form-group">
           <label>{{localize "ISUN.SpellClass"}}</label>
           <select name="system.spellClass">
-            {{selectOptions spellClassChoices selected=system.spellClass}}
+            {{selectOptions config.spellClassChoices selected=system.spellClass localize=true}}
           </select>
         </div>
       {{/if}}

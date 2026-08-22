@@ -19,8 +19,7 @@ export class SpellModel extends foundry.abstract.DataModel {
       /** Vancian spells only: how much room the spell takes in a Vance's mind.
        *  Blank on every other kind of spell, which have no such limit. */
       spellClass:  new fields.StringField({ required: false, initial: "", blank: true,
-                     choices: { "": "", ...Object.fromEntries(
-                       Object.entries(ISUN.spellClasses).map(([k, v]) => [k, v.label])) } }),
+                     choices: ISUN.spellClassChoices }),
       dice:        new fields.StringField({ required: false, initial: "" }),
       facets:      new fields.StringField({ required: false, initial: "" }),
       /** The italic aside printed under the card's labels — a rules

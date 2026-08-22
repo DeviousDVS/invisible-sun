@@ -71,6 +71,23 @@ export const DYNAMIC_KEY_PREFIXES = Object.freeze([
   "TYPES.Item."
 ]);
 
+/**
+ * The Vancian spell classes.
+ *
+ * A class is a size: a Vance prepares whatever fits into a square three inches
+ * on a side, and what a spell takes up is its class (The Key, p40). The
+ * dimensions are kept because they are the rule — anything that works out what
+ * a Vance can prepare needs them — but they are not shown. This is a virtual
+ * tabletop; nobody is laying cards out on a mat, and "Beta (3 x 3 in)" tells a
+ * player nothing they can act on.
+ */
+const spellClasses = {
+  alpha: { label: "ISUN.SpellClassAlpha", width: 3, height: 1.5 },
+  beta:  { label: "ISUN.SpellClassBeta",  width: 3, height: 3 },
+  gamma: { label: "ISUN.SpellClassGamma", width: 6, height: 3 },
+  omega: { label: "ISUN.SpellClassOmega", width: 6, height: 6 },
+};
+
 export const ISUN = Object.freeze({
 
   /* ──────────────────────────────────────────────
@@ -301,12 +318,13 @@ export const ISUN = Object.freeze({
    * The cards are printed at these sizes, which is the only place the class is
    * recorded — no card states it in words.
    */
-  spellClasses: {
-    alpha: { label: "ISUN.SpellClassAlpha", width: 3, height: 1.5 },
-    beta:  { label: "ISUN.SpellClassBeta",  width: 3, height: 3 },
-    gamma: { label: "ISUN.SpellClassGamma", width: 6, height: 3 },
-    omega: { label: "ISUN.SpellClassOmega", width: 6, height: 6 },
-  },
+  spellClasses,
+
+  /** The classes as a plain key-to-label map, for a select. */
+  spellClassChoices: Object.fromEntries([
+    ["", ""],
+    ...Object.entries(spellClasses).map(([key, spec]) => [key, spec.label])
+  ]),
 
   spellTypes: {
     general: "ISUN.SpellGeneral",
