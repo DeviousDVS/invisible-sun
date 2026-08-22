@@ -26,6 +26,19 @@
         <label>{{localize "ISUN.Cost"}}</label>
         <input type="text" name="system.cost" value="{{system.cost}}" />
       </div>
+
+      {{!-- Vancian spells only. A class is how much room the spell takes in a
+            Vance's mind, and nothing else has such a limit — so on a general
+            spell this would be a control that does nothing, on three hundred
+            of them. --}}
+      {{#if (eq system.spellType "vance")}}
+        <div class="form-group">
+          <label>{{localize "ISUN.SpellClass"}}</label>
+          <select name="system.spellClass">
+            {{selectOptions spellClassChoices selected=system.spellClass}}
+          </select>
+        </div>
+      {{/if}}
       
       <div class="form-group">
         <label>{{localize "ISUN.Range"}}</label>
