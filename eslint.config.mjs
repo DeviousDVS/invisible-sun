@@ -73,7 +73,11 @@ export default [
         clearTimeout: "readonly",
         URL: "readonly",
         FormData: "readonly",
-        HTMLElement: "readonly"
+        HTMLElement: "readonly",
+        // The importer reads PDFs and writes images in the browser.
+        Blob: "readonly",
+        File: "readonly",
+        Uint8Array: "readonly"
       }
     },
     linterOptions: { reportUnusedDisableDirectives: true },

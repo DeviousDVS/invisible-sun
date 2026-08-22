@@ -39,6 +39,7 @@ import { rollVenture, checkDepletion } from "./module/helpers/dice.mjs";
 import { ExperimentalDie } from "./module/dice/ExperimentalDie.mjs";
 import { registerDiceSoNice } from "./module/helpers/dice-so-nice.mjs";
 import { CompendiumBrowser } from "./module/apps/CompendiumBrowser.mjs";
+import { DeckImporter } from "./module/apps/DeckImporter.mjs";
 
 // ── Migrations ───────────────────────────────────────────
 import { registerMigrationSetting, runMigrations } from "./module/migrations/index.mjs";
@@ -98,6 +99,7 @@ Hooks.once("init", () => {
     checkDepletion,
     ExperimentalDie,
     CompendiumBrowser,
+    DeckImporter,
     ChallengeCard,
     ChallengeDeclaration
   };
@@ -131,6 +133,18 @@ Hooks.once("init", () => {
       + game.i18n.localize("ISUN.BrowserButton");
     button.addEventListener("click", () => new CompendiumBrowser().render(true));
     footer.appendChild(button);
+
+    /* The importer sits beside it, because "my compendia are empty" and "how do
+     * I search them" are the same question asked at two different moments, and
+     * this is where both get looked for. GM only: it writes to world packs. */
+    if (!game.user.isGM || footer.querySelector(".isun-import-btn")) return;
+    const importer = document.createElement("button");
+    importer.type = "button";
+    importer.className = "isun-import-btn";
+    importer.innerHTML = `<i class="fa-solid fa-file-import"></i> `
+      + game.i18n.localize("ISUN.ImportButton");
+    importer.addEventListener("click", () => new DeckImporter().render(true));
+    footer.appendChild(importer);
   });
 
   /* Declaring a challenge belongs with chat, because the card is a chat

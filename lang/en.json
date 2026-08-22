@@ -473,7 +473,27 @@
     "OutcomeSuccess": "success",
     "OutcomeFailure": "failure",
     "OutcomeAuto": "automatic",
-    "OutcomeImpossible": "impossible"
+    "OutcomeImpossible": "impossible",
+    "ImportTitle": "Import a Deck",
+    "ImportIntro": "The compendia ship empty, because Invisible Sun is Monte Cook Games' work. Point this at the self-print deck PDF that came with your copy and it will build the compendium and the card art here, on your machine. Your PDF is read in place and never copied anywhere.",
+    "ImportDeck": "Deck",
+    "ImportSoothDeck": "Sooth Deck",
+    "ImportPdf": "Deck PDF",
+    "ImportPdfHint": "The self-print PDF, e.g. \"Sooth Deck-Self Print-2019-02-13.pdf\".",
+    "ImportSize": "Card image size",
+    "ImportStart": "Import",
+    "ImportWorking": "Importing…",
+    "ImportNoFile": "Choose your deck PDF first.",
+    "ImportReading": "Opening the PDF…",
+    "ImportScanning": "Measuring the sheets… {done} of {total} pages",
+    "ImportFound": "Found {faces} card faces and {backs} backs, on sheets of {per}.",
+    "ImportVerified": "Checked all {count} cards against the names printed on them.",
+    "ImportImages": "Cutting card images… {done} of {total}",
+    "ImportDone": "Imported {created} new and {updated} existing cards, with {images} images.",
+    "ImportWrongCount": "Found {found} card faces, but this deck should have {expected}. Nothing has been changed — is this the right PDF?",
+    "ImportNameMismatch": "{count} card(s) do not carry the name they were matched to ({first}). Cards are matched to pictures by position, so this would have named them wrongly. Nothing has been changed.",
+    "ImportNoPack": "The compendium \"{pack}\" does not exist.",
+    "ImportButton": "Import a Deck"
   },
   "TYPES": {
     "Actor": {
