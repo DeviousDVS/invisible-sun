@@ -21,6 +21,7 @@
  * a later release; the second sends them looking for a fault of their own.
  */
 import * as sooth from "./sooth.mjs";
+import * as gate from "./gate.mjs";
 
 /**
  * Sources this can read.
@@ -49,6 +50,18 @@ export const SOURCES = [
     verify: sooth.verifyNames,
     toItem: sooth.toItem,
     slug: sooth.slug
+  },
+  {
+    key: "gate",
+    label: "ISUN.SourceGate",
+    hint: /the.?gate/i,
+    signature: /^\s*THE GATE/im,
+    /* A book rather than a deck: it carries no card faces and cuts no
+     * pictures. What it holds is the write-up behind a card that has already
+     * been imported — so it fills entries in rather than creating them. */
+    kind: "book",
+    pack: "invisible-sun.sooth",
+    read: gate.readEntries
   }
 ];
 
@@ -74,7 +87,6 @@ export const NOT_YET = [
     signature: /to print your nightside cards/i },
   { key: "aggregates", label: "ISUN.SourceAggregatesDeck", hint: /aggregates/i,
     signature: /to print your weaver aggregates/i },
-  { key: "gate", label: "ISUN.SourceGate", hint: /the.?gate/i, signature: /^\s*THE GATE/im },
   { key: "key", label: "ISUN.SourceKey", hint: /the.?key/i, signature: /^\s*THE KEY/im },
   { key: "way", label: "ISUN.SourceWay", hint: /the.?way/i, signature: /^\s*THE WAY/im },
   { key: "path", label: "ISUN.SourcePath", hint: /the.?path/i, signature: /^\s*THE PATH/im },

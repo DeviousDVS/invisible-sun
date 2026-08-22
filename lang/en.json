@@ -504,7 +504,7 @@
     "ImportUnknown": "Skipped {file} — not recognised as an Invisible Sun PDF.",
     "ImportUnreadable": "Skipped {file} — could not be opened ({why}).",
     "ImportNothingToDo": "Nothing in that folder can be imported yet.",
-    "ImportStarting": "Importing the {what}…",
+    "ImportStarting": "Importing {what}…",
     "ImportOneDone": "Done: {created} new and {updated} existing entries, with {images} images.",
     "ImportAllDone": "Import finished. {imported} source(s) imported, {skipped} skipped.",
     "SourceSoothDeck": "Sooth Deck",
@@ -519,7 +519,11 @@
     "SourceKey": "The Key",
     "SourceWay": "The Way",
     "SourcePath": "The Path",
-    "SourceBookM": "Book M"
+    "SourceBookM": "Book M",
+    "ImportDeckFirst": "That compendium is empty, so there is nothing for this book to fill in. Import the matching deck first — put both in the folder and it will do them in the right order.",
+    "ImportReadingEntries": "Reading entries… page {done} of {total}, {found} found",
+    "ImportPageUnmatched": "Page {page} is a card write-up, but names no card in the compendium.",
+    "ImportValueMismatch": "{count} write-up(s) state a value the card disagrees with, starting with {first}. The two halves may be from different printings."
   },
   "TYPES": {
     "Actor": {

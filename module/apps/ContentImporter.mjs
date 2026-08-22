@@ -104,7 +104,12 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const plan = await this.#identify(pdfs);
 
-    const doable = plan.filter(p => p.source && isSupported(p.source));
+    /* Decks first. A book explains cards a deck imported, so running The Gate
+     * before the Sooth Deck in the same folder would refuse for want of
+     * anything to fill — and the reader would have to work out that the order
+     * of files in their folder was the problem. */
+    const doable = plan.filter(p => p.source && isSupported(p.source))
+      .sort((a, b) => (a.source.kind === "book" ? 1 : 0) - (b.source.kind === "book" ? 1 : 0));
     const later = plan.filter(p => p.source && !isSupported(p.source));
     const unknown = plan.filter(p => !p.source);
 
@@ -178,6 +183,7 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
   /** Import one recognised source. */
   async #importOne(file, spec, size) {
     const doc = await deck.openPdf(file);
+    if (spec.kind === "book") return this.#importBook(doc, spec);
 
     const sheets = await deck.readSheets(doc, {
       onProgress: ({ stage, done, total }) => {
@@ -213,6 +219,74 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
       ? await this.#writeImages(doc, sheets, cards, spec, size)
       : new Map();
     return this.#writePack(cards, images, spec);
+  }
+
+  /**
+   * Import a book's write-ups into entries that already exist.
+   *
+   * A book carries no cards of its own — it explains ones already imported
+   * from a deck — so it fills entries in rather than creating them, and joins
+   * the two by the name printed at the head of each page. That is also why it
+   * refuses when there is nothing to fill: importing The Gate into an empty
+   * compendium would read a hundred and fifty pages and write nothing, and
+   * "0 updated" is not an explanation.
+   */
+  async #importBook(doc, spec) {
+    const pack = game.packs.get(spec.pack);
+    if (!pack) throw new Error(game.i18n.format("ISUN.ImportNoPack", { pack: spec.pack }));
+
+    /* Whole documents, not the index. An index carries a name and an id and
+     * nothing else, and what a write-up needs to know is the card's rank —
+     * that is what decides a royalty card's effect, which is printed once in
+     * the rules rather than on the card's own page. Indexed, every rank came
+     * back undefined and all six royalty effects were quietly left empty. */
+    const cards = await pack.getDocuments();
+    if (!cards.length) throw new Error(game.i18n.localize("ISUN.ImportDeckFirst"));
+
+    const squash = (name) => name.replace(/\s+/g, "").toLowerCase();
+    const byName = new Map(cards.map(c => [squash(c.name), {
+      _id: c._id, name: c.name, value: c.system?.value, rank: c.system?.rank
+    }]));
+
+    const found = await spec.read(doc, byName, {
+      onProgress: ({ done, total, found: n }) => {
+        if (done % 24 === 0 || done >= total) {
+          this.#say(game.i18n.format("ISUN.ImportReadingEntries", { done, total, found: n }));
+        }
+      }
+    });
+
+    const unmatched = found.filter(f => !f.card);
+    for (const { page } of unmatched) {
+      this.#say(game.i18n.format("ISUN.ImportPageUnmatched", { page }), true);
+    }
+
+    const wasLocked = pack.locked;
+    if (wasLocked) await pack.configure({ locked: false });
+    try {
+      const updates = found.filter(f => f.card).map(({ card, entry }) => ({
+        _id: card._id,
+        // statedValue is the page restating what the card already told us. It
+        // is checked below rather than stored.
+        system: Object.fromEntries(
+          Object.entries(entry).filter(([key]) => key !== "statedValue"))
+      }));
+      if (updates.length) await Item.updateDocuments(updates, { pack: spec.pack });
+
+      /* The write-up repeats the card's value, so it can check the deck import
+       * rather than merely restate it. A disagreement means the two halves are
+       * describing different cards, which is worth saying out loud. */
+      const mismatched = found.filter(f => f.card && f.entry.statedValue
+        && !f.entry.statedValue.startsWith(String(f.card.system?.value ?? "")));
+
+      if (mismatched.length) {
+        this.#say(game.i18n.format("ISUN.ImportValueMismatch",
+          { count: mismatched.length, first: mismatched[0].card.name }), true);
+      }
+      return { created: 0, updated: updates.length, images: 0 };
+    } finally {
+      if (wasLocked) await pack.configure({ locked: true });
+    }
   }
 
   /** Cut every card out and write it into the data folder. */
