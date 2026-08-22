@@ -45,8 +45,8 @@ const ANCHOR_RE = /^(Level|Form|Type|Depletion|Colou?r):$/;
 const FIELD_RE = /^(Level|Depletion|Colou?r|Facets?|Cost|Range|Duration|Form)\s*:\s*(.*)$/i;
 
 /** A name line is all capitals. The card-count furniture ("1 OF 4") is not. */
-const NAME_RE = /^[A-Z][A-Z '’\-,!]{2,30}$/;
-const NOISE_RE = /^(TM and ©|Permission granted|This page left|\d+\s*OF\s*\d+$)/i;
+export const NAME_RE = /^[A-Z][A-Z '’\-,!]{2,30}$/;
+export const NOISE_RE = /^(TM and ©|Permission granted|This page left|\d+\s*OF\s*\d+$)/i;
 
 /** Fields whose value can run onto the next line. Colour and Facet are always
  *  one word, so a line after them starts the card's closing note. */
@@ -112,8 +112,16 @@ export function findColumns(items, width, height) {
   return { columns, usable, pitch };
 }
 
-/** One column's text, as lines. */
-function columnLines(items, height, column, usable) {
+/**
+ * One column's text, as lines — with where each line begins.
+ *
+ * The left edge matters to anything reading these cards. The decks tell a
+ * label's continuation from a new block by indenting it, and pdftotext leaves
+ * that as leading spaces to be counted. Here the real coordinate is available,
+ * which is both exact and immune to a proportional font making a nonsense of
+ * space counting.
+ */
+export function columnLines(items, height, column, usable) {
   const inside = placed(items, height)
     .filter(w => w.y < usable && w.x >= column.x && w.x < column.x + column.w);
 
@@ -123,6 +131,14 @@ function columnLines(items, height, column, usable) {
     if (last && Math.abs(last.y - word.y) <= LINE_TOLERANCE) last.words.push(word);
     else lines.push({ y: word.y, words: [word] });
   }
+
+  /* Sorted across before being joined. The pieces arrive ordered by baseline
+   * first, and a line's baseline is not quite one number: a styled run sits a
+   * fraction of a point off its neighbours, which is well within the tolerance
+   * that groups them into one line but enough to order them by height instead
+   * of by position. Joined in that order a sentence comes out shuffled — "The
+   * wearer ,can see spirits and invisible things of notbut only at". */
+  for (const line of lines) line.words.sort((a, b) => a.x - b.x);
 
   /* Joined by both what the pieces carry and where they sit, because neither
    * alone is right. pdf.js puts a space inside a piece sometimes — "the " then
@@ -144,7 +160,11 @@ function columnLines(items, height, column, usable) {
     }
     return out.replace(/\s+/g, " ").trim();
   });
-  return { text, tops: lines.map(l => l.y / 72) };
+  return {
+    text,
+    tops: lines.map(l => l.y / 72),
+    lefts: lines.map(l => l.words[0].x / 72)
+  };
 }
 
 /**
@@ -159,7 +179,7 @@ const SMALL_WORDS = new Set(["a", "an", "and", "the", "of", "with", "to", "in",
                              "for", "or", "from", "on", "at", "by"]);
 
 /** Join a name that wrapped over several lines, and set it in title case. */
-function joinName(parts) {
+export function joinName(parts) {
   const words = parts.join(" ").replace(/\s+/g, " ").trim().toLowerCase().split(" ");
   return words.map((word, i) => {
     if (i > 0 && i < words.length - 1 && SMALL_WORDS.has(word)) return word;

@@ -23,6 +23,7 @@
 import * as sooth from "./sooth.mjs";
 import * as gate from "./gate.mjs";
 import * as spells from "./spells.mjs";
+import * as objects from "./objects.mjs";
 
 /**
  * Sources this can read.
@@ -93,6 +94,35 @@ export const SOURCES = [
     sharedBack: true
   },
   {
+    key: "objects",
+    label: "ISUN.SourceObjectDeck",
+    hint: /objects of power deck/i,
+    signature: /to print your objects of power deck/i,
+    kind: "deck-text",
+    pack: "invisible-sun.objects-of-power",
+    folder: "objects-of-power",
+    expected: 182,
+    read: objects.readDeck,
+    toItem: objects.toItem,
+    sharedBack: true
+  },
+  {
+    key: "objects-m",
+    label: "ISUN.SourceObjectCardsM",
+    hint: /book.?m.*objects of power/i,
+    signature: /to print your objects of power cards/i,
+    kind: "deck-text",
+    /* The same compendium as the main deck. These are the objects printed in
+     * Book M rather than a second kind of thing, and entries are matched by
+     * name, so the two simply fill in the one pack between them. */
+    pack: "invisible-sun.objects-of-power",
+    folder: "objects-of-power",
+    expected: 25,
+    read: objects.readDeck,
+    toItem: objects.toItem,
+    sharedBack: true
+  },
+  {
     key: "gate",
     label: "ISUN.SourceGate",
     hint: /the.?gate/i,
@@ -120,8 +150,6 @@ export const NOT_YET = [
     signature: /to print your incantations deck/i },
   { key: "ephemera", label: "ISUN.SourceEphemeraDeck", hint: /ephemera/i,
     signature: /to print your ephemera objects (deck|cards)/i },
-  { key: "objects", label: "ISUN.SourceObjectDeck", hint: /objects of power/i,
-    signature: /to print your objects of power (deck|cards)/i },
   { key: "nightside-cards", label: "ISUN.SourceNightsideCards", hint: /tn base/i,
     signature: /to print your nightside cards/i },
   { key: "aggregates", label: "ISUN.SourceAggregatesDeck", hint: /aggregates/i,

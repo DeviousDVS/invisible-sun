@@ -534,7 +534,8 @@
     "SpellClassOmega": "Omega",
     "ImportClasses": "Spell classes by card size: {classes}.",
     "SpellClass": "Class",
-    "ImportClassBacks": "Cut {count} card backs, one for each class: {classes}."
+    "ImportClassBacks": "Cut {count} card backs, one for each class: {classes}.",
+    "SourceObjectCardsM": "Book M Objects of Power Cards"
   },
   "TYPES": {
     "Actor": {
