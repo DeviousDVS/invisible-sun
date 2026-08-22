@@ -232,6 +232,7 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   async #importTextDeck(doc, spec, size) {
     const { cards, grid, sheets } = await spec.read(doc, {
+      classes: spec.classes,
       onProgress: ({ done, total, found }) => {
         if (done % 12 === 0 || done >= total) {
           this.#say(game.i18n.format("ISUN.ImportReadingCards", { done, total, found }));
@@ -248,6 +249,13 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const img = spec.sharedBack ? await this.#writeBackArt(doc, spec, grid, size) : null;
     if (img) this.#say(game.i18n.format("ISUN.ImportBackArt", { count: cards.length }));
+
+    if (spec.classes) {
+      const byClass = {};
+      for (const card of cards) byClass[card.spellClass || "?"] = (byClass[card.spellClass || "?"] ?? 0) + 1;
+      this.#say(game.i18n.format("ISUN.ImportClasses",
+        { classes: Object.entries(byClass).map(([k, n]) => `${k} ${n}`).join(", ") }));
+    }
 
     return this.#writePack(cards, new Map(cards.map(c => [c.name, img])), spec);
   }
@@ -428,7 +436,7 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
 
       const create = [], update = [];
       for (const card of cards) {
-        const data = spec.toItem(card, images.get(card.name));
+        const data = spec.toItem(card, images.get(card.name), spec.spellType);
         const id = byName.get(card.name);
         if (id) update.push({ _id: id, ...data });
         else create.push(data);

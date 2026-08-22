@@ -75,6 +75,24 @@ export const SOURCES = [
     sharedBack: true
   },
   {
+    key: "vance",
+    label: "ISUN.SourceVanceDeck",
+    hint: /vance/i,
+    signature: /to print your vance spell deck/i,
+    kind: "deck-text",
+    pack: "invisible-sun.vance-spells",
+    folder: "vance-spells",
+    expected: 50,
+    read: spells.readDeck,
+    toItem: spells.toItem,
+    spellType: "vance",
+    /* A Vancian spell's class is the size of the card it is printed on, and no
+     * card names it in words — so the sizes have to be measured off the sheets
+     * as they are read. Only this deck needs it; nothing else has a class. */
+    classes: true,
+    sharedBack: true
+  },
+  {
     key: "gate",
     label: "ISUN.SourceGate",
     hint: /the.?gate/i,
@@ -98,8 +116,6 @@ export const SOURCES = [
 export const NOT_YET = [
   { key: "spell-cards-m", label: "ISUN.SourceSpellCardsM", hint: /book.?m.*spell/i,
     signature: /to print your spell deck cards/i },
-  { key: "vance", label: "ISUN.SourceVanceDeck", hint: /vance/i,
-    signature: /to print your vance spell deck/i },
   { key: "incantations", label: "ISUN.SourceIncantationDeck", hint: /incantation/i,
     signature: /to print your incantations deck/i },
   { key: "ephemera", label: "ISUN.SourceEphemeraDeck", hint: /ephemera/i,

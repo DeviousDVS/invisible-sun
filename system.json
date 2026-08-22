@@ -122,6 +122,12 @@
       "type": "Item"
     },
     {
+      "name": "vance-spells",
+      "label": "Vance Spells",
+      "path": "packs/vance-spells",
+      "type": "Item"
+    },
+    {
       "name": "threads",
       "label": "Aggregates & Threads",
       "path": "packs/threads",

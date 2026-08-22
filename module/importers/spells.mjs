@@ -129,7 +129,7 @@ function columnLines(items, height, column, usable) {
    * them. Trusting only the text writes "inthe Key"; trusting only the gap
    * writes "Void ." and "theNoösphere". So a space is added only where neither
    * piece already brought one and the two do not touch. */
-  return lines.map(line => {
+  const text = lines.map(line => {
     let out = "";
     let previous = null;
     for (const word of line.words) {
@@ -142,6 +142,7 @@ function columnLines(items, height, column, usable) {
     }
     return out.replace(/\s+/g, " ").trim();
   });
+  return { text, tops: lines.map(l => l.y / 72) };
 }
 
 /**
@@ -160,8 +161,10 @@ function joinName(parts) {
   const words = parts.join(" ").replace(/\s+/g, " ").trim().toLowerCase().split(" ");
   return words.map((word, i) => {
     if (i > 0 && i < words.length - 1 && SMALL_WORDS.has(word)) return word;
-    // Capitalise after an apostrophe or hyphen too: "Abra's", "Half-Seen".
-    return word.replace(/(^|[’'\-])([a-z])/g, (m, a, b) => a + b.toUpperCase());
+    /* After a hyphen, but not after an apostrophe. These names are nearly all
+     * possessives — "Abra's Physique", "Zuil's Profuse Admiration" — and
+     * capitalising there gives "Abra'S". */
+    return word.replace(/(^|-)([a-z])/g, (m, a, b) => a + b.toUpperCase());
   }).join(" ");
 }
 
@@ -228,7 +231,7 @@ function parseCard(name, lines) {
  * Each begins with its name in capitals, which may wrap over several lines, so
  * a run of consecutive all-caps lines is one name.
  */
-function splitCards(lines) {
+function splitCards(lines, tops) {
   const runs = [];
   for (let i = 0; i < lines.length;) {
     const isName = (l) => NAME_RE.test(l.trim()) && !NOISE_RE.test(l.trim());
@@ -243,7 +246,12 @@ function splitCards(lines) {
   for (const [n, run] of runs.entries()) {
     const end = n + 1 < runs.length ? runs[n + 1].start : lines.length;
     const card = parseCard(run.name, lines.slice(run.bodyAt, end));
-    if (card) cards.push(card);
+    /* Where the card's first line sits. The Vance deck records a spell's class
+     * nowhere but in the size of the card it is printed on, so the grid has to
+     * be measured — and the top of a card is where its name starts. "Level:"
+     * will not do: it slides down whenever a name wraps to a second line, so
+     * its spacing is not the row pitch. */
+    if (card) cards.push({ ...card, top: tops[run.start] });
   }
   return cards;
 }
@@ -252,8 +260,83 @@ function splitCards(lines) {
 export function readPage(items, width, height) {
   const grid = findColumns(items, width, height);
   if (!grid) return { cards: [], grid: null };
-  const cards = grid.columns.flatMap(c => splitCards(columnLines(items, height, c, grid.usable)));
+  const cards = grid.columns.flatMap((column) => {
+    const { text, tops } = columnLines(items, height, column, grid.usable);
+    return splitCards(text, tops).map(card => ({ ...card, left: column.x / 72 }));
+  });
   return { cards, grid };
+}
+
+/** Group nearly-equal positions, so cards sharing a row or column count once. */
+function cluster(values, tolerance) {
+  const out = [];
+  for (const v of [...values].sort((a, b) => a - b)) {
+    if (!out.length || v - out[out.length - 1] > tolerance) out.push(v);
+  }
+  return out;
+}
+
+/**
+ * How much slack to allow when deciding two cards share a row.
+ *
+ * A card's name is set against the bottom of its title area, so a name that
+ * wraps to two lines begins about 0.4 inches higher than one that does not.
+ * That is the jitter to absorb, and it has to stay well under the tightest
+ * real row pitch, which is alpha's 1.7 inches.
+ */
+const ROW_TOLERANCE = 0.8;
+
+/** The sizes a Vancian spell's card can be, in inches (The Key, p40). */
+const CLASS_SIZES = [
+  { spellClass: "alpha", width: 3, height: 1.5 },
+  { spellClass: "beta",  width: 3, height: 3 },
+  { spellClass: "gamma", width: 6, height: 3 },
+  { spellClass: "omega", width: 6, height: 6 },
+];
+
+const nearest = (value, choices) =>
+  choices.reduce((best, c) => Math.abs(c - value) < Math.abs(best - value) ? c : best);
+
+/**
+ * Give every card its Vancian class, from the size of the card it is on.
+ *
+ * The class is a size and nothing else — a Vance prepares whatever fits into a
+ * three-inch square — and no card states it in words, so it is measured. The
+ * pitch between neighbouring cards gives the card's width across and its
+ * height down.
+ *
+ * Two things make that less simple than it sounds, and both are visible on the
+ * sheets rather than assumed:
+ *
+ *  - **A sheet is not always full.** Where a class runs out mid-sheet, the rest
+ *    of the grid is printed as blank cards to write your own on — so the grid
+ *    is there but the text is not, and a page left with one row reports no
+ *    height at all. Those sheets finish the run they belong to, so the height
+ *    carries forward from the last sheet that could be measured.
+ *  - **Omega cards are one to a sheet**, so they never show a pitch. What
+ *    identifies them is that only one fits: a six-inch-wide sheet holding two
+ *    cards is gamma, holding one is omega.
+ */
+function assignClasses(pages, pageWidth) {
+  let carried = null;
+
+  for (const page of pages) {
+    const lefts = cluster(page.cards.map(c => c.left), 0.5);
+    const tops = cluster(page.cards.map(c => c.top), ROW_TOLERANCE);
+    const pitch = (a) => a.length < 2 ? null : Math.min(...a.slice(1).map((v, i) => v - a[i]));
+
+    const width = nearest(pitch(lefts) ?? pageWidth - lefts[0] * 2, [3, 6]);
+    const measuredHeight = pitch(tops);
+
+    let height;
+    if (measuredHeight != null) height = nearest(measuredHeight, [1.5, 3, 6]);
+    else if (width === 6) height = page.cards.length > 1 ? 3 : 6;
+    else height = carried?.width === width ? carried.height : null;
+
+    if (height != null) carried = { width, height };
+    const match = CLASS_SIZES.find(c => c.width === width && c.height === height);
+    for (const card of page.cards) card.spellClass = match?.spellClass ?? "";
+  }
 }
 
 /**
@@ -263,10 +346,10 @@ export function readPage(items, width, height) {
  * the two copies are not equally complete — so the fuller one wins rather than
  * the later one.
  */
-export async function readDeck(doc, { onProgress } = {}) {
+export async function readDeck(doc, { classes = false, onProgress } = {}) {
   const PAGES_AT_ONCE = 6;
-  const best = new Map();
-  let grid = null, sheets = 0, read = 0;
+  const found = [];
+  let grid = null, read = 0, pageWidth = 0;
 
   for (let start = 1; start <= doc.numPages; start += PAGES_AT_ONCE) {
     const batch = [];
@@ -276,28 +359,41 @@ export async function readDeck(doc, { onProgress } = {}) {
       const page = await doc.getPage(n);
       const view = page.getViewport({ scale: 1 });
       const content = await page.getTextContent();
-      return { page: n, ...readPage(content.items, view.width, view.height) };
+      return { page: n, width: view.width / 72, ...readPage(content.items, view.width, view.height) };
     }));
 
     for (const result of results) {
       if (!result.cards.length) continue;
-      sheets++;
+      found.push(result);
       grid ??= result.grid;
-      for (const card of result.cards) {
-        const key = card.name.toUpperCase();
-        const previous = best.get(key);
-        if (!previous || card.description.length > previous.description.length) best.set(key, card);
-      }
+      pageWidth ||= result.width;
     }
     read += batch.length;
-    onProgress?.({ done: read, total: doc.numPages, found: best.size });
+    onProgress?.({ done: read, total: doc.numPages,
+                  found: found.reduce((n, p) => n + p.cards.length, 0) });
   }
 
-  return { cards: [...best.values()].sort((a, b) => a.name.localeCompare(b.name)), grid, sheets };
+  // Printed order is the order the classes run in, so sort before classifying.
+  found.sort((a, b) => a.page - b.page);
+  if (classes) assignClasses(found, pageWidth);
+
+  const best = new Map();
+  for (const page of found) {
+    for (const card of page.cards) {
+      const key = card.name.toUpperCase();
+      const previous = best.get(key);
+      if (!previous || card.description.length > previous.description.length) best.set(key, card);
+    }
+  }
+
+  return {
+    cards: [...best.values()].sort((a, b) => a.name.localeCompare(b.name)),
+    grid, sheets: found.length
+  };
 }
 
 /** The item a spell becomes, matching what build_compendia.js writes. */
-export function toItem(spell, img) {
+export function toItem(spell, img, spellType = "general") {
   return {
     name: spell.name,
     type: "Spell",
@@ -310,7 +406,9 @@ export function toItem(spell, img) {
       dice: spell.dice || "",
       facets: spell.facets || "",
       note: spell.note ? `<p>${spell.note}</p>` : "",
-      spellType: "general"
+      spellType,
+      // Vancian spells only; blank on everything else, which has no such limit.
+      spellClass: spell.spellClass ?? ""
     }
   };
 }

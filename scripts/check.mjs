@@ -68,13 +68,30 @@ if (manifest) {
     if (!existsSync(path.join(ROOT, rel))) fail(`system.json declares "${rel}", which does not exist`);
   }
 
-  /* Compiled packs are a build artifact and are gitignored, so a clean checkout
-   * has none. The source each is built from is what must be present. */
+  /* ── The packs the manifest declares are coherent ──
+   *
+   * This used to require packs/_source/<name> to exist, on the reasoning that
+   * the compiled pack is a build artifact but the JSON it is built from is
+   * committed. That stopped being true when the book text came out of git:
+   * packs/_source is generated on your own machine now and is gitignored like
+   * everything else derived from the books, so a clean checkout has neither —
+   * and this failed all fifteen packs on a fresh clone.
+   *
+   * What is still worth checking is that the declarations agree with
+   * themselves. A pack whose path does not match its name compiles to one
+   * place and is read from another, and the compendium is simply empty with
+   * nothing to say why. */
+  const packNames = new Set();
   for (const pack of manifest.packs ?? []) {
-    const source = path.join(ROOT, "packs", "_source", pack.name);
-    if (!existsSync(source)) {
-      fail(`pack "${pack.name}" has no source at packs/_source/${pack.name}`);
+    if (packNames.has(pack.name)) fail(`system.json declares pack "${pack.name}" twice`);
+    packNames.add(pack.name);
+
+    const expected = `packs/${pack.name}`;
+    if (pack.path !== expected) {
+      fail(`pack "${pack.name}" has path "${pack.path}", but compiling writes it to `
+         + `"${expected}" — the compendium would load from the wrong place`);
     }
+    if (!pack.label) fail(`pack "${pack.name}" has no label, so it shows as its id in the sidebar`);
   }
 
   /* ── The release URLs agree with the version they describe ── */

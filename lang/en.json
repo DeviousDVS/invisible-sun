@@ -527,7 +527,12 @@
     "SourceSpellCardsM": "Book M Spell Cards",
     "ImportReadingCards": "Reading cards… page {done} of {total}, {found} found",
     "ImportBackArt": "Cut the deck's card back as the artwork for all {count} entries.",
-    "ImportFoundCards": "Read {count} cards from {sheets} sheets of {columns} columns."
+    "ImportFoundCards": "Read {count} cards from {sheets} sheets of {columns} columns.",
+    "SpellClassAlpha": "Alpha",
+    "SpellClassBeta": "Beta",
+    "SpellClassGamma": "Gamma",
+    "SpellClassOmega": "Omega",
+    "ImportClasses": "Spell classes by card size: {classes}."
   },
   "TYPES": {
     "Actor": {

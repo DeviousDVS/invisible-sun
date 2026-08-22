@@ -289,6 +289,25 @@ export const ISUN = Object.freeze({
    * SPELL TYPES
    * ────────────────────────────────────────────── */
 
+  /**
+   * The Vancian spell classes.
+   *
+   * A class is a size, not a label. A Vance prepares spells by fitting them
+   * into a square three inches on a side, and what a spell takes up is its
+   * class — alpha 3x1.5, beta 3x3, gamma 3x6, omega 6x6 (The Key, p40). So the
+   * dimensions are carried here rather than just the names: they are the
+   * mechanic, and a sheet working out what a Vance can prepare needs them.
+   *
+   * The cards are printed at these sizes, which is the only place the class is
+   * recorded — no card states it in words.
+   */
+  spellClasses: {
+    alpha: { label: "ISUN.SpellClassAlpha", width: 3, height: 1.5 },
+    beta:  { label: "ISUN.SpellClassBeta",  width: 3, height: 3 },
+    gamma: { label: "ISUN.SpellClassGamma", width: 6, height: 3 },
+    omega: { label: "ISUN.SpellClassOmega", width: 6, height: 6 },
+  },
+
   spellTypes: {
     general: "ISUN.SpellGeneral",
     vance: "ISUN.SpellVance",
