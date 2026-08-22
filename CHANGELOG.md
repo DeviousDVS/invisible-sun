@@ -86,14 +86,19 @@ be. See [Content](#content) below.
 The compendia ship empty. Invisible Sun is Monte Cook Games' work, and
 redistributing their text is not something the [Fan Use
 Policy](https://www.montecookgames.com/fan-support/fan-use-policy/) allows, so
-none of it is in the repository and the release build refuses to assemble an
-archive if any appears.
+none of it is in the repository — not in the working tree and not in the
+history, which was rewritten to remove it — and the release build refuses to
+assemble an archive if any appears.
 
-Every item type has a working sheet, so content can be entered by hand and will
-behave correctly. Tooling to generate the compendia from your own copy of the
-books, on your own machine, is the next piece of work and is **not finished**;
-`scripts/` currently holds the author's extraction pipeline, which assumes their
-own filenames and is not yet usable by anyone else.
+You fill them from your own copy of the books with the tooling under
+`scripts/`, documented in the README under *Content and the books*. It reads
+the book and deck PDFs, cuts the card faces out of the decks, and builds the
+compendia. It is a command line for now: Python, Node and `pdftotext`. Moving
+it into Foundry, so that installing the system and pointing it at your PDFs is
+all that is needed, is the next piece of work and has not started.
+
+Every item type also has a working sheet, so anything you would rather enter by
+hand, you can.
 
 ### Known limitations
 

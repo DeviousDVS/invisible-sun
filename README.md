@@ -25,9 +25,17 @@ cites them; where the books leave a call to the table, the system leaves it too.
 ## Requirements
 
 - **Foundry VTT v14** — minimum `14.354`, verified against `14.365`.
-- Nothing else. [Dice So Nice!](https://foundryvtt.com/packages/dice-so-nice) is
-  supported if you have it — magic dice are tinted by the sun being drawn on —
-  but it is entirely optional.
+- **Your own copy of the Invisible Sun books.** The compendia arrive empty and
+  you fill them from the PDFs you bought; see *Content and the books*.
+- Nothing else to run it. [Dice So
+  Nice!](https://foundryvtt.com/packages/dice-so-nice) is supported if you have
+  it — magic dice are tinted by the sun being drawn on — but it is entirely
+  optional.
+
+Filling the compendia currently also needs Python 3, Node, and `pdftotext` and
+`pdftoppm` from poppler. That is a fair thing to ask of someone editing the
+system and not of someone who wants to play, which is why it is being moved
+into Foundry itself.
 
 ## Installation
 
@@ -109,11 +117,15 @@ descriptions, secrets, forte abilities and the rest are Monte Cook Games'
 copyright, and redistributing them is not something the [Fan Use
 Policy](https://www.montecookgames.com/fan-support/fan-use-policy/) allows.
 
-The intended answer is that the tools under `scripts/` let you generate the
-compendium content **from your own copy of the books**, on your own machine,
-for your own table. That is being finished now and is the main work outstanding
-before a first release. Until it lands, you can enter content by hand — every
-item type has a working sheet — but there is no supported bulk route yet.
+That is enforced rather than promised. None of it is in this repository — not
+in the working tree and not in the history either, which was rewritten to
+remove it. The release build refuses to assemble an archive if any appears, and
+`npm test` fails if the quirks list that ships stops being empty.
+
+So the compendia arrive empty, and you fill them **from your own copy of the
+books**, on your own machine, for your own table. The tooling to do that is
+below. Every item type also has a working sheet, so anything you would rather
+enter by hand, you can.
 
 Content you generate this way remains the property of Monte Cook Games. Keep it
 to your own table and do not redistribute it.
@@ -121,6 +133,127 @@ to your own table and do not redistribute it.
 **If you do not own Invisible Sun**, [buy it from Monte Cook
 Games](https://www.montecookgames.com/store/product-category/invisible-sun/).
 This system is no substitute for the books and is not much use without them.
+
+### Generating the content
+
+Compendium content is built, not hand-written. Four stages feed one another,
+with the card art coming off the same PDFs on a branch of its own:
+
+```
+source/books/*.pdf        your own copy of the books
+source/cards/*.pdf        your own copy of the card decks
+        │
+        │  scripts/extract_*.py          (Python; 8 read the books, 4 read the decks)
+        │  scripts/extract_all_cards.sh  runs every deck in one go
+        ▼
+source/data/*.json        structured game data
+        │
+        │  npm run packs:build
+        ▼
+packs/_source/<pack>/     one JSON file per compendium entry
+        │
+        │  npm run packs:compile         ⚠ Foundry must be stopped
+        ▼
+packs/<pack>/             LevelDB databases Foundry reads
+        │
+        │  npm run packs:verify          ⚠ Foundry must be stopped
+        ▼
+                          compiled output diffed back against packs/_source
+
+  ─ and, alongside ─
+
+source/cards/*.pdf
+        │
+        │  scripts/extract_card_images.py
+        ▼
+Data/invisible-sun/cards/<deck>/   the card faces, outside the system folder
+```
+
+**Every one of those paths is gitignored.** All of it is Monte Cook Games'
+text and artwork, so none of it is in the repository at any stage — which
+means git is not protecting it either. See *Backing up what you generate*.
+
+`npm run packs` runs the last three in order. The card images are separate
+because they take about a minute a deck and only change when MCG reissues a
+PDF; they go into Foundry's data folder rather than the system folder, so a
+system update cannot delete them, and the release build refuses to include
+them.
+
+**Which stage do I edit?** Whichever is furthest upstream, or your change is
+overwritten by the next build:
+
+| To change | Edit | Then run |
+|---|---|---|
+| a description, cost, level — anything in a compendium entry | `source/data/*.json` | `npm run packs` |
+| how entries are *shaped* (fields, icons, ids) | `scripts/build_compendia.js` | `npm run packs` |
+| what gets pulled out of the books | `scripts/extract_*.py` | that script, then `npm run packs` |
+| the quirks list | `source/data/quirks.json` | `python3 scripts/build_quirks.py` |
+| the card faces | — | `python3 scripts/extract_card_images.py <deck.pdf> <cards.json> <out>` |
+
+Editing `packs/_source` directly works until the next `packs:build` silently
+reverts it. `npm run packs:build` is deterministic — ids are hashed from name
+and type — so a re-run on an unchanged tree produces an empty diff. If a re-run
+moves something you did not touch, your edit did more than you meant.
+
+**Two constraints worth knowing before you hit them:**
+
+- **`packs:compile` and `packs:verify` need Foundry stopped.** LevelDB permits a
+  single writer. Both refuse rather than risking a half-written pack, and change
+  nothing when they refuse — but the error will look like a failure if you were
+  not expecting it.
+- **The extractors are Python**; everything else is Node. You need both
+  toolchains only if you are regenerating from the books. Editing
+  `source/data/*.json` and rebuilding needs Node alone.
+
+### Backing up what you generate
+
+The generated content is not in git and never will be — it is Monte Cook Games'
+text and artwork, pulled out of books you own. That means git is not protecting
+it, and a bad rebuild or a wrong path loses the lot.
+
+```
+npm run data:backup                  write a new archive
+npm run data:list                    what has been kept, newest first
+npm run data:verify                  check the newest archive is intact
+npm run data:verify -- --disk        compare the newest archive to disk
+npm run data:restore                 restore the newest archive in place
+npm run data:restore -- --to /tmp/x  restore beside the real data instead
+```
+
+Archives go to `~/invisible-sun-backups` (`ISUN_BACKUP_DIR` to change that),
+carrying `source/data`, `source/forte-trees`, `source/isdata_2026.json`,
+`packs/_source` and the extracted card art. Every file is checksummed
+individually, so a damaged archive names what broke rather than just failing.
+Restoring over data that is already there refuses and lists what it would
+replace; `--force` overrides, `--to` puts it somewhere harmless.
+
+The deck and book PDFs are **not** captured. They are large and you own them
+already. Nor is anything cheaply regenerated from what is here —
+`quirks.local.mjs` comes back from `build_quirks.py`, and the compiled packs
+from `packs/_source`.
+
+**`--disk` is the useful one.** It reports what on disk no longer matches the
+archive, file by file. That makes a backup taken today the reference for
+checking tomorrow's extractor against: run it, compare, and any drift is named
+rather than discovered months later in play.
+
+
+### Where this is going
+
+The pipeline above is a command line: Python, Node, and a shell that can find
+`pdftotext`. That is a reasonable thing to ask of someone editing the system
+and an unreasonable thing to ask of someone who just wants to play.
+
+So the intended end state is that none of this is needed. You install the
+system, Foundry walks you through pointing at the PDFs you bought, and it
+builds the compendia itself. Everything required is already in Foundry —
+it bundles pdf.js, which reads both the text and the page images, and
+`FilePicker` can write the extracted art into your data folder. Reading the
+books through a file picker also means they never need to be copied anywhere.
+
+That work has not started. What is above is what exists today, and it
+will stay as the development and test harness once the in-Foundry importer
+lands — the same parsers, driven from a terminal instead of a dialog.
 
 ---
 
@@ -153,7 +286,7 @@ agrees with itself: every module parses, the manifest declares no file that is
 missing, its version matches the release tag it points at, no `data-action` in a
 template lacks a handler, every registered item type is either collected by the
 vislae sheet or explicitly excluded, no localisation key is used without being
-defined, and the generated `quirks.mjs` still matches its source. It is fast and
+defined, and the quirks list that ships is still empty. It is fast and
 safe to run at any time. Run it before you push.
 
 **`npm run smoke`** needs a world running, and a GM password in the
@@ -171,90 +304,6 @@ a name which does not exist is caught by the lint; one that reads a property of
 the wrong object is not, and only shows up when something clicks it. Four
 separate bugs in this project have been a control that rendered, clicked and did
 nothing — every one found weeks later by a human noticing.
-
-### The content pipeline
-
-Compendium content is built, not hand-written. Four stages, each feeding the
-next:
-
-```
-source/books/*.pdf        your own copy of the books — gitignored, never distributed
-        │
-        │  scripts/extract_*.py          (Python; 8 of them read the books)
-        ▼
-source/data/*.json        structured game data                        ← tracked
-        │
-        │  npm run packs:build
-        ▼
-packs/_source/<pack>/     one JSON file per compendium entry           ← tracked
-        │
-        │  npm run packs:compile         ⚠ Foundry must be stopped
-        ▼
-packs/<pack>/             LevelDB databases Foundry reads    ← gitignored artifact
-        │
-        │  npm run packs:verify          ⚠ Foundry must be stopped
-        ▼
-                          compiled output diffed back against packs/_source
-```
-
-`npm run packs` runs the last three in order.
-
-**Which stage do I edit?** Whichever is furthest upstream, or your change is
-overwritten by the next build:
-
-| To change | Edit | Then run |
-|---|---|---|
-| a description, cost, level — anything in a compendium entry | `source/data/*.json` | `npm run packs` |
-| how entries are *shaped* (fields, icons, ids) | `scripts/build_compendia.js` | `npm run packs` |
-| what gets pulled out of the books | `scripts/extract_*.py` | that script, then `npm run packs` |
-| the quirks list | `source/data/quirks.json` | `python3 scripts/build_quirks.py` |
-
-Editing `packs/_source` directly works until the next `packs:build` silently
-reverts it. `npm run packs:build` is deterministic — ids are hashed from name
-and type — so a re-run on an unchanged tree produces an empty diff. If a re-run
-moves something you did not touch, your edit did more than you meant.
-
-**Two constraints worth knowing before you hit them:**
-
-- **`packs:compile` and `packs:verify` need Foundry stopped.** LevelDB permits a
-  single writer. Both refuse rather than risking a half-written pack, and change
-  nothing when they refuse — but the error will look like a failure if you were
-  not expecting it.
-- **The extractors are Python**; everything else is Node. You need both
-  toolchains only if you are regenerating from the books. Editing
-  `source/data/*.json` and rebuilding needs Node alone.
-
-### Backing up the data
-
-The generated content is not in git and never will be — it is Monte Cook Games'
-text and artwork, pulled out of books you own. That means git is not protecting
-it, and a bad rebuild or a wrong path loses the lot.
-
-```
-npm run data:backup                  write a new archive
-npm run data:list                    what has been kept, newest first
-npm run data:verify                  check the newest archive is intact
-npm run data:verify -- --disk        compare the newest archive to disk
-npm run data:restore                 restore the newest archive in place
-npm run data:restore -- --to /tmp/x  restore beside the real data instead
-```
-
-Archives go to `~/invisible-sun-backups` (`ISUN_BACKUP_DIR` to change that),
-carrying `source/data`, `source/forte-trees`, `source/isdata_2026.json`,
-`packs/_source` and the extracted card art. Every file is checksummed
-individually, so a damaged archive names what broke rather than just failing.
-Restoring over data that is already there refuses and lists what it would
-replace; `--force` overrides, `--to` puts it somewhere harmless.
-
-The deck and book PDFs are **not** captured. They are large and you own them
-already. Nor is anything cheaply regenerated from what is here — `quirks.mjs`
-comes back from `build_quirks.py`, and the compiled packs from `packs/_source`.
-
-**`--disk` is the useful one.** It reports what on disk no longer matches the
-archive, file by file. That makes a backup taken today the reference for
-checking tomorrow's extractor against: run it, compare, and any drift is named
-rather than discovered months later in play.
-
 
 ### Cutting a release
 
@@ -282,8 +331,8 @@ rather than imported. Nothing else is copied.
 That is deliberate rather than tidy. A list of things to *leave out* is one
 forgotten entry away from publishing `source/data`, which is the extracted text
 of somebody else's books. The build then re-checks the staged tree anyway and
-refuses outright if anything from `source/`, `scripts/`, `packs/_source/` or any
-PDF has found its way in.
+refuses outright if anything from `source/`, `scripts/`, `packs/_source/`, any
+PDF, or any card image has found its way in.
 
 The shipped manifest also drops `hotReload`: watching files for changes is a
 convenience for whoever is writing the system, and costs everyone else.
@@ -312,14 +361,26 @@ templates/             Handlebars: actor/, item/, apps/, chat/, partials/
 styles/                invisible-sun.css (theme vars), sheets.css, components.css
 lang/                  localisation
 scripts/               developer tooling — extraction, pack building, checks
-source/                design notes and the data the packs are built from
-packs/_source/         compendium JSON; the compiled LevelDB is a build artifact
+source/                design notes and schemas (the extracted data is gitignored)
 ```
 
-The pre-v14 system this replaced is not in the working tree. If you need it —
-its `template.json` records the data shape the migrations in
-`module/data-models/` migrate away from — it is at the `archive/old-char-sheet`
-tag.
+Two directories exist on a working machine but are in no commit, because what
+they hold is Monte Cook Games' text and artwork: `source/data/` and
+`packs/_source/`, along with `source/books/`, `source/cards/` and the card
+faces under `Data/invisible-sun/`. `npm run data:backup` is what keeps them.
+
+The pre-v14 system this replaced is not in the working tree, but it is in the
+history. If you need it — its `template.json` records the data shape the
+migrations in `module/data-models/` migrate away from — it was removed in
+`7f84f7f`, so any commit before that has it:
+
+```bash
+git show 821067e:old_char_sheet/template.json
+```
+
+It is [Asacolips Projects' Boilerplate
+system](https://github.com/asacolips-projects/boilerplate), MIT licensed, and
+its licence travels with it in that directory.
 
 ### Conventions
 
@@ -340,10 +401,14 @@ A few habits this codebase keeps, which are worth keeping:
 - **Never compile packs while Foundry is running.** LevelDB permits one
   reader-writer; `compile_packs.js` guards against it, but do not fight the
   guard.
-- **`module/helpers/quirks.mjs` is generated** from `source/data/quirks.json` by
-  `scripts/build_quirks.py`. Edit the JSON, not the module.
-- Compiled packs under `packs/` are gitignored build artifacts. The JSON they
-  are built from, in `packs/_source/`, is what gets committed.
+- **`module/helpers/quirks.mjs` ships empty and must stay that way.** The list
+  is book text, so `scripts/build_quirks.py` writes it to `quirks.local.mjs`
+  beside it, gitignored and loaded at init when present. `npm test` fails if
+  the shipped stub ever gains an entry — which is exactly what an older copy of
+  the generator, or an old backup restored over the top, would do.
+- **Nothing generated is committed.** Not `packs/` and not `packs/_source/`,
+  which used to be tracked and no longer is. Both are rebuilt from
+  `source/data/`, which is not committed either.
 
 ---
 
