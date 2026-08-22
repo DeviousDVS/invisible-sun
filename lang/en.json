@@ -485,7 +485,7 @@
     "ImportWorking": "Importing…",
     "ImportNoFile": "Choose your deck PDF first.",
     "ImportReading": "Opening the PDF…",
-    "ImportScanning": "Measuring the sheets… {done} of {total} pages",
+    "ImportScanning": "Measuring the sheets… {done} of {total}",
     "ImportFound": "Found {faces} card faces and {backs} backs, on sheets of {per}.",
     "ImportVerified": "Checked all {count} cards against the names printed on them.",
     "ImportImages": "Cutting card images… {done} of {total}",
@@ -493,7 +493,9 @@
     "ImportWrongCount": "Found {found} card faces, but this deck should have {expected}. Nothing has been changed — is this the right PDF?",
     "ImportNameMismatch": "{count} card(s) do not carry the name they were matched to ({first}). Cards are matched to pictures by position, so this would have named them wrongly. Nothing has been changed.",
     "ImportNoPack": "The compendium \"{pack}\" does not exist.",
-    "ImportButton": "Import a Deck"
+    "ImportButton": "Import a Deck",
+    "ImportUploading": "Saving card images… {done} of {total}",
+    "ImportReadingPages": "Reading the pages… {done} of {total}"
   },
   "TYPES": {
     "Actor": {

@@ -124,8 +124,13 @@ export class DeckImporter extends HandlebarsApplicationMixin(ApplicationV2) {
     const doc = await deck.openPdf(file);
 
     const sheets = await deck.readSheets(doc, {
-      onProgress: ({ done, total }) => {
-        if (done % 8 === 0 || done === total) {
+      onProgress: ({ stage, done, total }) => {
+        // Two stages, and they count different things: the text of every page,
+        // then a sample of sheets measured. Reporting both as one number would
+        // have it counting up twice and appear to go backwards.
+        if (stage === "text" && (done % 8 === 0 || done === total)) {
+          this.#say(game.i18n.format("ISUN.ImportReadingPages", { done, total }));
+        } else if (stage === "scan") {
           this.#say(game.i18n.format("ISUN.ImportScanning", { done, total }));
         }
       }
@@ -174,9 +179,12 @@ export class DeckImporter extends HandlebarsApplicationMixin(ApplicationV2) {
       }
     });
 
+    // Names are settled first, in order, because the rule for a repeat depends
+    // on what came before it — which is not something to work out while sixty
+    // uploads are in flight.
     const images = new Map();
     const seen = new Map();
-    for (const [i, card] of cards.entries()) {
+    const files = cards.map((card, i) => {
       // Two cards in a deck may share a name. Overwriting would lose one and
       // point both items at the same picture.
       let stem = spec.slug(card.name);
@@ -185,8 +193,23 @@ export class DeckImporter extends HandlebarsApplicationMixin(ApplicationV2) {
 
       const { blob, extension } = blobs[i];
       const name = `${stem}.${extension}`;
-      await FP.upload("data", dir, new File([blob], name, { type: blob.type }), {}, { notify: false });
       images.set(card.name, `${dir}/${name}`);
+      return new File([blob], name, { type: blob.type });
+    });
+
+    /* Uploaded a few at a time. Each one is a round trip to the server, and
+     * done strictly in turn the browser spends most of the import waiting.
+     * Six at once is a ceiling rather than a target: browsers cap connections
+     * per host anyway, so asking for sixty would queue fifty-four of them and
+     * gain nothing but a longer list of things to go wrong at once. */
+    const UPLOADS_AT_ONCE = 6;
+    let uploaded = 0;
+    for (let start = 0; start < files.length; start += UPLOADS_AT_ONCE) {
+      const batch = files.slice(start, start + UPLOADS_AT_ONCE);
+      await Promise.all(batch.map(file =>
+        FP.upload("data", dir, file, {}, { notify: false })));
+      uploaded += batch.length;
+      this.#say(game.i18n.format("ISUN.ImportUploading", { done: uploaded, total: files.length }));
     }
 
     // The back is the same picture on every card, so one copy is enough.

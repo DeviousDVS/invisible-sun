@@ -224,55 +224,181 @@ export function readLine(box, words, from, to, gap = 1.5 / 72) {
 }
 
 /**
+ * How many sheets are measured before the grid is taken as settled.
+ *
+ * Every sheet in a deck is laid out by the same template, so measuring all of
+ * them is repeating one measurement thirty times — and measuring means
+ * rendering, which is most of the time an import takes. A handful is enough to
+ * establish the grid *and* to notice if it is not consistent, which is the
+ * part that matters: the sample has to be able to disagree with itself.
+ */
+const SAMPLE_SHEETS = 4;
+
+/** Two boxes describe the same slot if they agree to within this. */
+const SAME_BOX_INCHES = SIZE_TOLERANCE_PX / DETECT_DPI;
+
+const sameBox = (a, b) =>
+  Math.abs(a.x - b.x) <= SAME_BOX_INCHES && Math.abs(a.y - b.y) <= SAME_BOX_INCHES
+  && Math.abs(a.w - b.w) <= SAME_BOX_INCHES && Math.abs(a.h - b.h) <= SAME_BOX_INCHES;
+
+const boxHoldsWords = (box, words) => words.some(w => inside(box, w));
+
+/**
  * Work out which blocks are cards, and which of those are faces.
  *
  * Three things have to be told apart, and each is a rule rather than a special
  * case:
  *
  *  - **Cards from furniture.** A deck is mostly cards and every card is the
- *    same size, so the size that turns up most often across the whole document
- *    is the card. Deciding this per page could not work: the front matter's
- *    printing instructions sit beside a sample card back that is exactly
- *    card-sized.
+ *    same size, so the size that turns up most often is the card. Deciding
+ *    this across several sheets rather than one is what lets the front matter
+ *    be discarded: the printing instructions sit beside a sample card back
+ *    that is exactly card-sized.
  *  - **Faces from backs.** A face is printed with its name and value; a back
  *    carries art alone. So the test is text *inside the block* — not anywhere
- *    on the page, because every sheet has a copyright line and the front matter
- *    has whole paragraphs beside a sample card.
+ *    on the page, because every sheet has a copyright line and the front
+ *    matter has whole paragraphs beside a sample card.
  *  - **Print sheets from front matter.** The credits are printed on a card. It
  *    is card-shaped, card-sized, and has writing on it, so every test above
  *    says it is a face. What gives it away is sitting alone: a print sheet
  *    carries a full grid.
+ *
+ * ── Why only a few sheets are measured ──
+ * Measuring a page means rendering it, and rendering a page of this kind means
+ * decoding the four full-size photographs printed on it. That is the bulk of
+ * an import. But the sheets are all struck from one template, so the grid
+ * found on one holds for the rest — and once it is known, every other page can
+ * be classified from its text layer alone, which costs nothing to read.
+ *
+ * The sample is required to agree with itself. If it does not, this is a deck
+ * laid out in some way that has not been seen, and it falls back to measuring
+ * every page rather than pressing on with a grid it has reason to doubt.
  */
 export async function readSheets(doc, { onProgress } = {}) {
-  /* Scanned a few pages at a time rather than one after another. Measuring a
-   * page means rendering it, and rendering means decoding the four full-size
-   * photographs printed on it — which is nearly all of the time this takes. A
-   * deck runs to thirty-odd sheets, so doing them strictly in turn leaves the
-   * machine idle waiting on each decode. Four at once is a deliberate ceiling:
-   * every page in flight holds a full-page canvas and its decoded images, and
-   * a whole deck at once would ask for far more memory than it saves time. */
-  const CONCURRENCY = 4;
-  const found = [];
-  let scanned = 0;
+  const pages = [...Array(doc.numPages).keys()].map(n => n + 1);
 
-  for (let start = 1; start <= doc.numPages; start += CONCURRENCY) {
-    const batch = [];
-    for (let n = start; n < start + CONCURRENCY && n <= doc.numPages; n++) batch.push(n);
+  /* The text layer for the whole document — no rendering, and it is what every
+   * page is classified by once the grid is known.
+   *
+   * Read several pages at a time. "No rendering" is not the same as free:
+   * pdf.js still has to parse each page's content stream and resolve its
+   * fonts, and across thirty-odd sheets that was costing more than measuring
+   * the sample did. The pages are independent, so there is no reason to wait
+   * for each one. */
+  const PAGES_AT_ONCE = 6;
+  const words = new Map();
+  let read = 0;
 
-    const results = await Promise.all(batch.map(async (n) => {
-      const page = await doc.getPage(n);
-      const blocks = await detectBlocks(page);
-      return blocks.length ? { page: n, blocks, words: await pageWords(page) } : null;
-    }));
-
-    for (const result of results) if (result) found.push(result);
-    scanned += batch.length;
-    onProgress?.({ stage: "scan", done: scanned, total: doc.numPages });
+  for (let start = 0; start < pages.length; start += PAGES_AT_ONCE) {
+    const batch = pages.slice(start, start + PAGES_AT_ONCE);
+    const got = await Promise.all(batch.map(async (n) => [n, await pageWords(await doc.getPage(n))]));
+    for (const [n, list] of got) words.set(n, list);
+    read += batch.length;
+    onProgress?.({ stage: "text", done: read, total: doc.numPages });
   }
 
-  // Promise.all preserves order within a batch, and batches run in order, so
-  // `found` is already in page order — which is the order the cards are
-  // numbered in, and the order everything downstream depends on.
+  /* Sheets are sampled by how much text they carry. A face sheet holds four
+   * cards' worth of names and numbers; front matter and back sheets hold
+   * little or none. So the busiest pages are the likeliest full sheets, which
+   * is what the grid needs to be measured from. */
+  const busiest = [...pages].sort((a, b) => words.get(b).length - words.get(a).length);
+  const sample = [...new Set(busiest.slice(0, SAMPLE_SHEETS))].sort((a, b) => a - b);
+
+  const measured = new Map();
+  let done = 0;
+  for (const n of sample) {
+    measured.set(n, await detectBlocks(await doc.getPage(n)));
+    onProgress?.({ stage: "scan", done: ++done, total: sample.length });
+  }
+
+  const grid = agreedGrid(measured);
+  const scan = grid
+    ? classifyByText(grid, words, pages)
+    : await measureEveryPage(doc, words, pages, onProgress);
+
+  if (!scan.faces.length) throw new Error("No card faces found — is this a self-print deck PDF?");
+  return scan;
+}
+
+/**
+ * The grid the sampled sheets agree on, or null if they do not.
+ *
+ * Agreement means: the same number of card-sized blocks, in the same places.
+ * A single sheet agreeing with itself proves nothing, so at least two have to
+ * say the same thing before the rest of the document is classified from it.
+ */
+function agreedGrid(measured) {
+  const tally = new Map();
+  for (const blocks of measured.values()) {
+    for (const b of blocks) {
+      const key = `${b.w.toFixed(1)}x${b.h.toFixed(1)}`;
+      tally.set(key, (tally.get(key) ?? 0) + 1);
+    }
+  }
+  if (!tally.size) return null;
+
+  const [cardKey] = [...tally.entries()].sort((a, b) => b[1] - a[1])[0];
+  const [cardW, cardH] = cardKey.split("x").map(Number);
+  const card = { w: cardW, h: cardH };
+  const isCard = (b) => Math.abs(b.w - cardW) <= SAME_BOX_INCHES
+                     && Math.abs(b.h - cardH) <= SAME_BOX_INCHES;
+
+  const layouts = [...measured.values()].map(blocks => blocks.filter(isCard)).filter(l => l.length);
+  if (!layouts.length) return null;
+
+  const counts = new Map();
+  for (const l of layouts) counts.set(l.length, (counts.get(l.length) ?? 0) + 1);
+  const [fullSheet, agreeing] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+  if (agreeing < 2) return null;
+
+  const full = layouts.filter(l => l.length === fullSheet);
+  const [reference] = full;
+  const consistent = full.every(l => l.every((box, i) => sameBox(box, reference[i])));
+  return consistent ? { card, fullSheet, boxes: reference } : null;
+}
+
+/** Classify every page against a known grid, using its text alone. */
+function classifyByText(grid, words, pages) {
+  const { card, fullSheet, boxes } = grid;
+  const faces = [], backs = [], frontMatter = [];
+
+  for (const page of pages) {
+    const pageWordList = words.get(page);
+    const filled = boxes.filter(box => boxHoldsWords(box, pageWordList));
+
+    if (filled.length === fullSheet) {
+      for (const box of boxes) faces.push({ page, box, words: pageWordList });
+    } else if (filled.length === 0) {
+      // Nothing written in any slot. Either a sheet of backs or a page with no
+      // cards at all; cutCards will only ever be asked for one of them, and a
+      // page with no cards would be a blank, which no deck prints.
+      for (const box of boxes) backs.push({ page, box, words: pageWordList });
+    } else {
+      frontMatter.push(page);
+    }
+  }
+  return { card, fullSheet, frontMatter, faces, backs };
+}
+
+/**
+ * The original: measure every page. Used when the sample disagrees, which
+ * means a layout this has not seen and no business guessing about.
+ */
+async function measureEveryPage(doc, words, pages, onProgress) {
+  const found = [];
+  const CONCURRENCY = 4;
+  let scanned = 0;
+
+  for (let start = 0; start < pages.length; start += CONCURRENCY) {
+    const batch = pages.slice(start, start + CONCURRENCY);
+    const results = await Promise.all(batch.map(async (n) => {
+      const blocks = await detectBlocks(await doc.getPage(n));
+      return blocks.length ? { page: n, blocks } : null;
+    }));
+    for (const r of results) if (r) found.push(r);
+    scanned += batch.length;
+    onProgress?.({ stage: "scan", done: scanned, total: pages.length });
+  }
 
   const tally = new Map();
   for (const { blocks } of found) {
@@ -284,16 +410,15 @@ export async function readSheets(doc, { onProgress } = {}) {
   if (!tally.size) throw new Error("No cards found — is this a self-print deck PDF?");
   const [cardKey] = [...tally.entries()].sort((a, b) => b[1] - a[1])[0];
   const [cardW, cardH] = cardKey.split("x").map(Number);
-
-  const isCard = (b) =>
-    Math.abs(b.w - cardW) * DETECT_DPI <= SIZE_TOLERANCE_PX
-    && Math.abs(b.h - cardH) * DETECT_DPI <= SIZE_TOLERANCE_PX;
+  const isCard = (b) => Math.abs(b.w - cardW) <= SAME_BOX_INCHES
+                     && Math.abs(b.h - cardH) <= SAME_BOX_INCHES;
 
   const faces = [], backs = [];
-  for (const { page, blocks, words } of found) {
+  for (const { page, blocks } of found) {
     for (const box of blocks) {
       if (!isCard(box)) continue;
-      (wordsIn(box, words).length ? faces : backs).push({ page, box, words });
+      const list = words.get(page);
+      (boxHoldsWords(box, list) ? faces : backs).push({ page, box, words: list });
     }
   }
 
