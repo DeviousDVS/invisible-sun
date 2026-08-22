@@ -1,5 +1,5 @@
 /**
- * Invisible Sun — reading the objects of power decks.
+ * Invisible Sun — reading the objects of power and ephemera decks.
  *
  * These cards share the spell decks' layout and are read with the same
  * column-finding code, so nothing here renders a page either. What they add is
@@ -229,6 +229,32 @@ export function toItem(object, img) {
       note: object.note ? `<p>${object.note}</p>` : "",
       effectDepletion: object.effectDepletion || "",
       reference: object.reference || ""
+    }
+  };
+}
+
+/**
+ * The item an ephemera becomes.
+ *
+ * Ephemera are typed conflux, charm, cypher or oddity, and the cards do not
+ * print which — so every one arrives at the schema default rather than being
+ * guessed at from its Form. That is a gap to fill from a book later, not
+ * something to invent here.
+ */
+export function toEphemeraItem(object, img) {
+  return {
+    name: object.name,
+    type: "Ephemera",
+    img: img || "icons/commodities/materials/bowl-liquid-white.webp",
+    system: {
+      level: parseInt(object.level, 10) || 1,
+      description: object.description ? `<p>${object.description}</p>` : "",
+      depletion: object.depletion === "—" ? "" : (object.depletion || ""),
+      form: object.form || "",
+      color: object.color || "",
+      dice: object.dice || "",
+      note: object.note ? `<p>${object.note}</p>` : "",
+      ephemeraType: "conflux"
     }
   };
 }

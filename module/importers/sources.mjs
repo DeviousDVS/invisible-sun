@@ -123,6 +123,32 @@ export const SOURCES = [
     sharedBack: true
   },
   {
+    key: "ephemera",
+    label: "ISUN.SourceEphemeraDeck",
+    hint: /ephemera objects deck/i,
+    signature: /to print your ephemera objects deck/i,
+    kind: "deck-text",
+    pack: "invisible-sun.ephemera",
+    folder: "ephemera",
+    expected: 240,
+    read: objects.readDeck,
+    toItem: objects.toEphemeraItem,
+    sharedBack: true
+  },
+  {
+    key: "ephemera-m",
+    label: "ISUN.SourceEphemeraCardsM",
+    hint: /book.?m.*ephemera/i,
+    signature: /to print your ephemera objects cards/i,
+    kind: "deck-text",
+    pack: "invisible-sun.ephemera",
+    folder: "ephemera",
+    expected: 52,
+    read: objects.readDeck,
+    toItem: objects.toEphemeraItem,
+    sharedBack: true
+  },
+  {
     key: "gate",
     label: "ISUN.SourceGate",
     hint: /the.?gate/i,
@@ -148,8 +174,6 @@ export const NOT_YET = [
     signature: /to print your spell deck cards/i },
   { key: "incantations", label: "ISUN.SourceIncantationDeck", hint: /incantation/i,
     signature: /to print your incantations deck/i },
-  { key: "ephemera", label: "ISUN.SourceEphemeraDeck", hint: /ephemera/i,
-    signature: /to print your ephemera objects (deck|cards)/i },
   { key: "nightside-cards", label: "ISUN.SourceNightsideCards", hint: /tn base/i,
     signature: /to print your nightside cards/i },
   { key: "aggregates", label: "ISUN.SourceAggregatesDeck", hint: /aggregates/i,

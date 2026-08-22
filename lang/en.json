@@ -535,7 +535,8 @@
     "ImportClasses": "Spell classes by card size: {classes}.",
     "SpellClass": "Class",
     "ImportClassBacks": "Cut {count} card backs, one for each class: {classes}.",
-    "SourceObjectCardsM": "Book M Objects of Power Cards"
+    "SourceObjectCardsM": "Book M Objects of Power Cards",
+    "SourceEphemeraCardsM": "Book M Ephemera Cards"
   },
   "TYPES": {
     "Actor": {
