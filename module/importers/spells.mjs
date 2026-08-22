@@ -287,8 +287,20 @@ const CLASS_SIZES = [
 
 const CLASS_ORDER = CLASS_SIZES.map(c => c.spellClass);
 
-/** Two sheets share a layout if their blocks of ink agree to within this. */
-const LAYOUT_TOLERANCE = 0.3;
+/**
+ * Two sheets share a layout if their blocks of ink agree to within this.
+ *
+ * It can be this tight because the measurement is exact. The four layouts on
+ * this deck come out 9.75x7.00, 9.75x6.50, 6.26x6.50 and 6.26x6.25 — and the
+ * last two are a quarter inch apart, which is the whole margin available. A
+ * looser figure merges gamma into omega and hands twenty spells the wrong
+ * card size.
+ *
+ * That precision is only available because the hairline trim rules are
+ * excluded; while they were being counted, gamma measured 7.00 wide instead of
+ * 6.26 and the two separated by accident rather than by measurement.
+ */
+const LAYOUT_TOLERANCE = 0.15;
 
 /**
  * Work out each card's Vancian class from the deck's card backs.

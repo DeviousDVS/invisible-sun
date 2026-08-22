@@ -287,7 +287,7 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
       try { await FP.createDirectory("data", part); } catch { /* already there */ }
     }
 
-    const INSET = 0.16;
+    const INSET = 0.06;
     const images = new Map();
 
     for (const [spellClass, place] of classPages) {
@@ -488,10 +488,27 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
       const index = await pack.getIndex();
       const byName = new Map(index.map(e => [e.name, e._id]));
 
+      /* A second index that ignores case and punctuation, tried only when the
+       * name does not match outright.
+       *
+       * Naming rules change. When the apostrophe rule was corrected — "Abra'S
+       * Physique" to "Abra's" — twenty spells stopped matching what was
+       * already in the pack, so they were created afresh and the old ones were
+       * left sitting beside them. Matching exactly is right, but failing to
+       * match should mean "this is a new card", not "this card is spelled
+       * slightly differently than last time". */
+      const loose = new Map();
+      for (const entry of index) {
+        const key = entry.name.toUpperCase().replace(/[^A-Z0-9]/g, "");
+        // Ambiguous keys are no help: leave those to the exact match.
+        loose.set(key, loose.has(key) ? null : entry._id);
+      }
+
       const create = [], update = [];
       for (const card of cards) {
         const data = spec.toItem(card, images.get(card.name), spec.spellType);
-        const id = byName.get(card.name);
+        const id = byName.get(card.name)
+          ?? loose.get(card.name.toUpperCase().replace(/[^A-Z0-9]/g, ""));
         if (id) update.push({ _id: id, ...data });
         else create.push(data);
       }

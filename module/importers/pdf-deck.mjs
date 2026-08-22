@@ -58,6 +58,23 @@ const GUTTER_INCHES = 0.08;
  *  moves an edge by a pixel; a misdetected grid moves it by hundreds. */
 const SIZE_TOLERANCE_PX = 6;
 
+/**
+ * How much of a strip must be inked before it counts as card rather than rule.
+ *
+ * These sheets are printed with hairline trim rules along the card edges, and
+ * to a test that asks "is there any ink here?" a hairline and a card look
+ * identical. They are not: measured across a strip six tenths of an inch deep,
+ * a card's edge inks every row and a trim rule inks two or three per cent of
+ * them. Asking for coverage rather than presence tells them apart, and it is
+ * the difference between cropping the card and cropping a quarter inch of
+ * white paper beside it.
+ *
+ * Half is a wide margin either way — nothing observed lands between 3% and
+ * 100% — and it is the right side of cautious: a rule mistaken for a card
+ * shifts every picture, a card mistaken for a rule fails loudly.
+ */
+const STRIP_COVERAGE = 0.5;
+
 let pdfjs = null;
 
 /** Load Foundry's own copy of pdf.js. */
@@ -596,12 +613,13 @@ export async function rowBandsAt(page, x, w) {
   const left = Math.max(0, Math.round(x * DETECT_DPI));
   const right = Math.min(width - 1, Math.round((x + w) * DETECT_DPI));
 
+  const span = right - left + 1;
   const inked = [];
   for (let y = 0; y < height; y++) {
     const base = y * width;
-    for (let px = left; px <= right; px++) {
-      if (data[(base + px) * 4] < INK) { inked.push(y); break; }
-    }
+    let hits = 0;
+    for (let px = left; px <= right; px++) if (data[(base + px) * 4] < INK) hits++;
+    if (hits / span >= STRIP_COVERAGE) inked.push(y);
   }
   const floor = Math.round(MIN_CARD_INCHES * DETECT_DPI);
   return runs(inked, Math.round(GUTTER_INCHES * DETECT_DPI))
@@ -626,11 +644,12 @@ export async function colBandsAt(page, y, h) {
   const top = Math.max(0, Math.round(y * DETECT_DPI));
   const bottom = Math.min(height - 1, Math.round((y + h) * DETECT_DPI));
 
+  const span = bottom - top + 1;
   const inked = [];
   for (let x = 0; x < width; x++) {
-    for (let py = top; py <= bottom; py++) {
-      if (data[(py * width + x) * 4] < INK) { inked.push(x); break; }
-    }
+    let hits = 0;
+    for (let py = top; py <= bottom; py++) if (data[(py * width + x) * 4] < INK) hits++;
+    if (hits / span >= STRIP_COVERAGE) inked.push(x);
   }
   const floor = Math.round(MIN_CARD_INCHES * DETECT_DPI);
   return runs(inked, Math.round(GUTTER_INCHES * DETECT_DPI))
