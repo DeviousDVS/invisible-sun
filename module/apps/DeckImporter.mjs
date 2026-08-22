@@ -43,6 +43,10 @@ const DECKS = {
     pack: "invisible-sun.sooth",
     folder: "sooth",
     expected: 60,
+    /* The Sooth cards are round, so a square crop of one carries four white
+     * corners that read as a box on any dark background. Rectangular decks
+     * fill their crop and want nothing done to them. */
+    mask: true,
     read: sooth.readDeck,
     verify: sooth.verifyNames,
     toItem: sooth.toItem,
@@ -162,7 +166,7 @@ export class DeckImporter extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     const blobs = await deck.cutCards(doc, sheets.faces, {
-      card: sheets.card, size,
+      card: sheets.card, size, mask: spec.mask,
       onProgress: ({ done, total }) => {
         if (done % 10 === 0 || done === total) {
           this.#say(game.i18n.format("ISUN.ImportImages", { done, total }));
@@ -179,15 +183,18 @@ export class DeckImporter extends HandlebarsApplicationMixin(ApplicationV2) {
       seen.set(stem, (seen.get(stem) ?? 0) + 1);
       if (seen.get(stem) > 1) stem = `${stem}-${seen.get(stem)}`;
 
-      const name = `${stem}.jpg`;
-      await FP.upload("data", dir, new File([blobs[i]], name, { type: "image/jpeg" }), {}, { notify: false });
+      const { blob, extension } = blobs[i];
+      const name = `${stem}.${extension}`;
+      await FP.upload("data", dir, new File([blob], name, { type: blob.type }), {}, { notify: false });
       images.set(card.name, `${dir}/${name}`);
     }
 
     // The back is the same picture on every card, so one copy is enough.
     if (sheets.backs.length) {
-      const [back] = await deck.cutCards(doc, [sheets.backs[0]], { card: sheets.card, size });
-      await FP.upload("data", dir, new File([back], "back.jpg", { type: "image/jpeg" }), {}, { notify: false });
+      const [back] = await deck.cutCards(doc, [sheets.backs[0]],
+        { card: sheets.card, size, mask: spec.mask });
+      await FP.upload("data", dir,
+        new File([back.blob], `back.${back.extension}`, { type: back.blob.type }), {}, { notify: false });
     }
     return images;
   }

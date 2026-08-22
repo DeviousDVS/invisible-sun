@@ -316,7 +316,100 @@ export async function readSheets(doc, { onProgress } = {}) {
 }
 
 /**
- * Cut cards out as JPEG blobs, in the order given.
+ * Make the sheet showing around a card transparent.
+ *
+ * The Sooth cards are round, so a square crop of one carries four white
+ * corners. On a dark sheet or a dark table they read as a white box with a
+ * circle in it.
+ *
+ * ── Why this is a flood fill and not "white becomes transparent" ──
+ * The cards write their own name, value and suns in white. Keying out every
+ * white pixel would erase the writing along with the background — the card
+ * would come back with its name punched out of it. Only white that is joined
+ * to the outside edge is background; white enclosed by the card is the card's.
+ * So the fill starts at the border and spreads inward, and stops where the ink
+ * does.
+ *
+ * ── The soft edge ──
+ * A hard threshold leaves a stair-stepped rim, because the printed edge is
+ * anti-aliased: there is a band of part-white pixels between sheet and card.
+ * Those get partial alpha in proportion to how white they are, which is what
+ * the renderer meant by drawing them that way.
+ */
+export function maskBackground(canvas, { white = 232, soft = 60 } = {}) {
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  const image = context.getImageData(0, 0, canvas.width, canvas.height);
+  const { data, width, height } = image;
+  const count = width * height;
+
+  const luminance = new Uint8Array(count);
+  for (let i = 0, p = 0; p < count; i += 4, p++) {
+    // Rough on purpose: this is deciding "is this the paper", not colour work.
+    luminance[p] = (data[i] + data[i + 1] + data[i + 2]) / 3;
+  }
+
+  // Flood fill inward from every edge pixel that is paper-coloured. An explicit
+  // stack rather than recursion: a 512-square card is a quarter of a million
+  // pixels and the call stack would not survive it.
+  const outside = new Uint8Array(count);
+  const stack = [];
+  const consider = (p) => {
+    if (!outside[p] && luminance[p] >= white) { outside[p] = 1; stack.push(p); }
+  };
+  for (let x = 0; x < width; x++) { consider(x); consider((height - 1) * width + x); }
+  for (let y = 0; y < height; y++) { consider(y * width); consider(y * width + width - 1); }
+
+  while (stack.length) {
+    const p = stack.pop();
+    const x = p % width, y = (p - x) / width;
+    if (x > 0) consider(p - 1);
+    if (x < width - 1) consider(p + 1);
+    if (y > 0) consider(p - width);
+    if (y < height - 1) consider(p + width);
+  }
+
+  for (let p = 0; p < count; p++) {
+    if (outside[p]) { data[p * 4 + 3] = 0; continue; }
+
+    // Kept, but if it sits against the background and is nearly as pale, it is
+    // part of the printed edge rather than the face — fade it by how pale.
+    const x = p % width, y = (p - x) / width;
+    const touching =
+      (x > 0 && outside[p - 1]) || (x < width - 1 && outside[p + 1]) ||
+      (y > 0 && outside[p - width]) || (y < height - 1 && outside[p + width]);
+    if (!touching) continue;
+
+    const alpha = Math.round(255 * Math.min(1, (white - luminance[p]) / soft));
+    data[p * 4 + 3] = Math.max(0, alpha);
+  }
+
+  context.putImageData(image, 0, 0);
+  return canvas;
+}
+
+/**
+ * Encode a canvas, keeping transparency if it has any.
+ *
+ * JPEG has no alpha channel, so a masked card written as JPEG comes back with
+ * its corners white again — the mask silently undone at the last step. WebP
+ * carries alpha and is a fraction of PNG's size on artwork like this, so it is
+ * preferred; PNG is the fallback for a browser that will not encode WebP,
+ * where the cost is file size rather than correctness.
+ */
+async function encode(canvas, { alpha, quality }) {
+  const attempt = (type) => new Promise(resolve => canvas.toBlob(resolve, type, quality));
+
+  if (!alpha) return { blob: await attempt("image/jpeg"), extension: "jpg" };
+
+  const webp = await attempt("image/webp");
+  if (webp?.type === "image/webp") return { blob: webp, extension: "webp" };
+  return { blob: await attempt("image/png"), extension: "png" };
+}
+
+/**
+ * Cut cards out, in the order given. Each comes back as { blob, extension }:
+ * what a card is encoded as depends on whether its background was masked, and
+ * the name it is saved under has to follow.
  *
  * Rendering is the expensive part by a wide margin, so the work is grouped by
  * page: a sheet is drawn once and every card on it is cut from that one
@@ -328,7 +421,7 @@ export async function readSheets(doc, { onProgress } = {}) {
  * card is. So the crop is the nominal card, centred on where this one was
  * actually found.
  */
-export async function cutCards(doc, faces, { card, size = 512, quality = 0.9, onProgress } = {}) {
+export async function cutCards(doc, faces, { card, size = 512, quality = 0.9, mask = false, onProgress } = {}) {
   const dpi = Math.round(size / card.w);
   const width = size;
   const height = Math.round(size * card.h / card.w);
@@ -339,7 +432,7 @@ export async function cutCards(doc, faces, { card, size = 512, quality = 0.9, on
     byPage.get(face.page).push({ face, i });
   });
 
-  const blobs = new Array(faces.length);
+  const images = new Array(faces.length);
   let done = 0;
   for (const [pageNumber, entries] of byPage) {
     const sheet = await renderPage(await doc.getPage(pageNumber), dpi);
@@ -347,14 +440,16 @@ export async function cutCards(doc, faces, { card, size = 512, quality = 0.9, on
       const crop = document.createElement("canvas");
       crop.width = width;
       crop.height = height;
-      crop.getContext("2d").drawImage(
+      crop.getContext("2d", { willReadFrequently: true }).drawImage(
         sheet,
         Math.round((face.box.x + face.box.w / 2) * dpi) - Math.round(width / 2),
         Math.round((face.box.y + face.box.h / 2) * dpi) - Math.round(height / 2),
         width, height, 0, 0, width, height);
-      blobs[i] = await new Promise(resolve => crop.toBlob(resolve, "image/jpeg", quality));
+
+      if (mask) maskBackground(crop);
+      images[i] = await encode(crop, { alpha: mask, quality });
       onProgress?.({ done: ++done, total: faces.length });
     }
   }
-  return blobs;
+  return images;
 }
