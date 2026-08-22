@@ -224,6 +224,38 @@ moves something you did not touch, your edit did more than you meant.
   toolchains only if you are regenerating from the books. Editing
   `source/data/*.json` and rebuilding needs Node alone.
 
+### Backing up the data
+
+The generated content is not in git and never will be — it is Monte Cook Games'
+text and artwork, pulled out of books you own. That means git is not protecting
+it, and a bad rebuild or a wrong path loses the lot.
+
+```
+npm run data:backup                  write a new archive
+npm run data:list                    what has been kept, newest first
+npm run data:verify                  check the newest archive is intact
+npm run data:verify -- --disk        compare the newest archive to disk
+npm run data:restore                 restore the newest archive in place
+npm run data:restore -- --to /tmp/x  restore beside the real data instead
+```
+
+Archives go to `~/invisible-sun-backups` (`ISUN_BACKUP_DIR` to change that),
+carrying `source/data`, `source/forte-trees`, `source/isdata_2026.json`,
+`packs/_source` and the extracted card art. Every file is checksummed
+individually, so a damaged archive names what broke rather than just failing.
+Restoring over data that is already there refuses and lists what it would
+replace; `--force` overrides, `--to` puts it somewhere harmless.
+
+The deck and book PDFs are **not** captured. They are large and you own them
+already. Nor is anything cheaply regenerated from what is here — `quirks.mjs`
+comes back from `build_quirks.py`, and the compiled packs from `packs/_source`.
+
+**`--disk` is the useful one.** It reports what on disk no longer matches the
+archive, file by file. That makes a backup taken today the reference for
+checking tomorrow's extractor against: run it, compare, and any drift is named
+rather than discovered months later in play.
+
+
 ### Cutting a release
 
 ```bash

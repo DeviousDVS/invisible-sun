@@ -26,3 +26,10 @@ __pycache__/
 # Built by scripts/dist.mjs. The archive is assembled from the manifest and
 # the compiled packs, neither of which is worth versioning.
 dist/
+
+# Data backups written by scripts/data.mjs. They belong outside the repository
+# and default to ~/invisible-sun-backups, but ISUN_BACKUP_DIR can point
+# anywhere — and an archive landing in here would commit the very MCG text and
+# artwork the backups exist to hold. Ignored wherever it appears.
+*.tar.gz
+invisible-sun-backups/
