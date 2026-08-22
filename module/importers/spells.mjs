@@ -18,6 +18,8 @@
  * deck three.
  */
 
+import * as deckPdf from "./pdf-deck.mjs";
+
 /** Two anchors closer together than this belong to the same card. */
 const MIN_PITCH = 60;
 
@@ -267,26 +269,15 @@ export function readPage(items, width, height) {
   return { cards, grid };
 }
 
-/** Group nearly-equal positions, so cards sharing a row or column count once. */
-function cluster(values, tolerance) {
-  const out = [];
-  for (const v of [...values].sort((a, b) => a - b)) {
-    if (!out.length || v - out[out.length - 1] > tolerance) out.push(v);
-  }
-  return out;
-}
-
 /**
- * How much slack to allow when deciding two cards share a row.
+ * The classes and their card sizes in inches (The Key, p40), smallest first —
+ * which is also the order a deck prints them in, since the sheets are laid out
+ * by size.
  *
- * A card's name is set against the bottom of its title area, so a name that
- * wraps to two lines begins about 0.4 inches higher than one that does not.
- * That is the jitter to absorb, and it has to stay well under the tightest
- * real row pitch, which is alpha's 1.7 inches.
+ * The sizes are used for their proportions rather than their absolute values:
+ * a card's width is measured off the sheet, and its height follows from the
+ * shape, because rows of backs abut with no gutter to find.
  */
-const ROW_TOLERANCE = 0.8;
-
-/** The sizes a Vancian spell's card can be, in inches (The Key, p40). */
 const CLASS_SIZES = [
   { spellClass: "alpha", width: 3, height: 1.5 },
   { spellClass: "beta",  width: 3, height: 3 },
@@ -294,49 +285,85 @@ const CLASS_SIZES = [
   { spellClass: "omega", width: 6, height: 6 },
 ];
 
-const nearest = (value, choices) =>
-  choices.reduce((best, c) => Math.abs(c - value) < Math.abs(best - value) ? c : best);
+const CLASS_ORDER = CLASS_SIZES.map(c => c.spellClass);
+
+/** Two sheets share a layout if their blocks of ink agree to within this. */
+const LAYOUT_TOLERANCE = 0.3;
 
 /**
- * Give every card its Vancian class, from the size of the card it is on.
+ * Work out each card's Vancian class from the deck's card backs.
  *
  * The class is a size and nothing else — a Vance prepares whatever fits into a
- * three-inch square — and no card states it in words, so it is measured. The
- * pitch between neighbouring cards gives the card's width across and its
- * height down.
+ * three-inch square — and no card says which it is in words. The obvious place
+ * to measure is the sheet of faces, and it is the wrong one: a sheet is not
+ * always full, and where a class runs out the rest of the grid prints as blank
+ * cards to write your own on. A gamma sheet holding one spell then looks
+ * exactly like an omega sheet, which is a whole card size wrong.
  *
- * Two things make that less simple than it sounds, and both are visible on the
- * sheets rather than assumed:
+ * The backs have no such problem. A back is a solid printed rectangle, so a
+ * sheet of them shows the grid whether or not anyone wrote on the other side —
+ * and the block of ink is the grid: wide for the three-across classes, narrow
+ * for the six-inch ones, tall for four rows, short for one.
  *
- *  - **A sheet is not always full.** Where a class runs out mid-sheet, the rest
- *    of the grid is printed as blank cards to write your own on — so the grid
- *    is there but the text is not, and a page left with one row reports no
- *    height at all. Those sheets finish the run they belong to, so the height
- *    carries forward from the last sheet that could be measured.
- *  - **Omega cards are one to a sheet**, so they never show a pitch. What
- *    identifies them is that only one fits: a six-inch-wide sheet holding two
- *    cards is gamma, holding one is omega.
+ * The layouts are not compared against measurements written down here. They
+ * are collected from the deck, grouped, and named in the order they appear,
+ * because a deck prints its classes smallest first. That way a reissue set at
+ * a different scale still reads correctly.
  */
-function assignClasses(pages, pageWidth) {
-  let carried = null;
-
-  for (const page of pages) {
-    const lefts = cluster(page.cards.map(c => c.left), 0.5);
-    const tops = cluster(page.cards.map(c => c.top), ROW_TOLERANCE);
-    const pitch = (a) => a.length < 2 ? null : Math.min(...a.slice(1).map((v, i) => v - a[i]));
-
-    const width = nearest(pitch(lefts) ?? pageWidth - lefts[0] * 2, [3, 6]);
-    const measuredHeight = pitch(tops);
-
-    let height;
-    if (measuredHeight != null) height = nearest(measuredHeight, [1.5, 3, 6]);
-    else if (width === 6) height = page.cards.length > 1 ? 3 : 6;
-    else height = carried?.width === width ? carried.height : null;
-
-    if (height != null) carried = { width, height };
-    const match = CLASS_SIZES.find(c => c.width === width && c.height === height);
-    for (const card of page.cards) card.spellClass = match?.spellClass ?? "";
+async function assignClasses(pages, backs) {
+  // Distinct sheet layouts, in the order the deck prints them.
+  const layouts = [];
+  for (const back of backs) {
+    const match = layouts.find(l =>
+      Math.abs(l.box.w - back.box.w) <= LAYOUT_TOLERANCE
+      && Math.abs(l.box.h - back.box.h) <= LAYOUT_TOLERANCE);
+    if (match) match.pages.push(back.page);
+    else layouts.push({ box: back.box, pages: [back.page] });
   }
+
+  const named = new Map();
+  layouts.forEach((layout, i) => {
+    const spellClass = CLASS_ORDER[i] ?? "";
+    for (const page of layout.pages) named.set(page, { spellClass, box: layout.box });
+  });
+
+  /* A sheet of faces is backed by the page before it. Where that page is not
+   * one of the backs — the deck has a blank or two between its runs — the
+   * nearest back before it is the one that belongs to it. */
+  const classPages = new Map();
+  for (const page of pages) {
+    let backPage = page.page - 1;
+    while (backPage > 0 && !named.has(backPage)) backPage--;
+    const found = named.get(backPage);
+    if (!found) continue;
+
+    for (const card of page.cards) card.spellClass = found.spellClass;
+
+    if (!classPages.has(found.spellClass)) {
+      /* The card's width comes off the sheet — the block of backs divided by
+       * how many are across it. Its height comes from the class's own
+       * proportions instead, because rows of backs abut with no gutter worth
+       * finding, so nothing on the page marks where one card ends and the next
+       * begins. The ratio is the rule itself: alpha is twice as wide as it is
+       * tall, beta and omega are square, gamma is twice as wide as tall. */
+      const shape = CLASS_SIZES.find(c => c.spellClass === found.spellClass);
+      /* How many cards are across the sheet. Counting the gaps does not work
+       * — the columns of backs abut as closely as the rows do — but the block
+       * of ink divided by the class's own card width does, and lands on a
+       * whole number every time. */
+      const across = Math.max(1, Math.round(found.box.w / shape.width));
+      const width = found.box.w / across;
+      classPages.set(found.spellClass, {
+        page: page.page,
+        backPage,
+        left: found.box.x,
+        top: found.box.y,
+        width,
+        height: width * (shape.height / shape.width)
+      });
+    }
+  }
+  return classPages;
 }
 
 /**
@@ -348,7 +375,7 @@ function assignClasses(pages, pageWidth) {
  */
 export async function readDeck(doc, { classes = false, onProgress } = {}) {
   const PAGES_AT_ONCE = 6;
-  const found = [];
+  const found = [], backSheets = [];
   let grid = null, read = 0, pageWidth = 0;
 
   for (let start = 1; start <= doc.numPages; start += PAGES_AT_ONCE) {
@@ -359,14 +386,39 @@ export async function readDeck(doc, { classes = false, onProgress } = {}) {
       const page = await doc.getPage(n);
       const view = page.getViewport({ scale: 1 });
       const content = await page.getTextContent();
-      return { page: n, width: view.width / 72, ...readPage(content.items, view.width, view.height) };
+      const read = readPage(content.items, view.width, view.height);
+      // A page with no cards on it is a sheet of backs, and those are what say
+      // what size the cards are. Only measured when the caller wants classes,
+      // since it means rendering the page.
+      /* A page with no card text is a sheet of backs, and those are what show
+       * the card size. Measured with two strips rather than over the whole
+       * page: crop marks are printed at the margins of every sheet, so a
+       * whole-page measurement finds the marks and every layout looks alike. */
+      let box = null;
+      if (classes && !read.cards.length) {
+        const rows = await deckPdf.rowBandsAt(page, view.width / 144 - 0.3, 0.6);
+        if (rows.length) {
+          const middle = rows[0].y + rows[0].h / 2;
+          const cols = await deckPdf.colBandsAt(page, middle - 0.3, 0.6);
+          if (cols.length) {
+            box = { x: cols[0].x, y: rows[0].y,
+                    w: cols[cols.length - 1].x + cols[cols.length - 1].w - cols[0].x,
+                    h: rows[rows.length - 1].y + rows[rows.length - 1].h - rows[0].y,
+                    columns: cols.length, rows: rows.length };
+          }
+        }
+      }
+      return { page: n, width: view.width / 72, box, ...read };
     }));
 
     for (const result of results) {
-      if (!result.cards.length) continue;
-      found.push(result);
-      grid ??= result.grid;
-      pageWidth ||= result.width;
+      if (result.cards.length) {
+        found.push(result);
+        grid ??= result.grid;
+        pageWidth ||= result.width;
+      } else if (result.box) {
+        backSheets.push({ page: result.page, box: result.box });
+      }
     }
     read += batch.length;
     onProgress?.({ done: read, total: doc.numPages,
@@ -375,7 +427,8 @@ export async function readDeck(doc, { classes = false, onProgress } = {}) {
 
   // Printed order is the order the classes run in, so sort before classifying.
   found.sort((a, b) => a.page - b.page);
-  if (classes) assignClasses(found, pageWidth);
+  backSheets.sort((a, b) => a.page - b.page);
+  const classPages = classes ? await assignClasses(found, backSheets) : null;
 
   const best = new Map();
   for (const page of found) {
@@ -388,7 +441,7 @@ export async function readDeck(doc, { classes = false, onProgress } = {}) {
 
   return {
     cards: [...best.values()].sort((a, b) => a.name.localeCompare(b.name)),
-    grid, sheets: found.length
+    grid, sheets: found.length, classPages
   };
 }
 

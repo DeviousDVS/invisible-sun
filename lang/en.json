@@ -533,7 +533,8 @@
     "SpellClassGamma": "Gamma",
     "SpellClassOmega": "Omega",
     "ImportClasses": "Spell classes by card size: {classes}.",
-    "SpellClass": "Class"
+    "SpellClass": "Class",
+    "ImportClassBacks": "Cut {count} card backs, one for each class: {classes}."
   },
   "TYPES": {
     "Actor": {

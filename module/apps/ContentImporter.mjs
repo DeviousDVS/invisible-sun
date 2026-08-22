@@ -231,7 +231,7 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
    * no art of their own to use instead.
    */
   async #importTextDeck(doc, spec, size) {
-    const { cards, grid, sheets } = await spec.read(doc, {
+    const { cards, grid, sheets, classPages } = await spec.read(doc, {
       classes: spec.classes,
       onProgress: ({ done, total, found }) => {
         if (done % 12 === 0 || done >= total) {
@@ -247,7 +247,16 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
         { found: cards.length, expected: spec.expected }));
     }
 
-    const img = spec.sharedBack ? await this.#writeBackArt(doc, spec, grid, size) : null;
+    /* A deck whose cards come in classes has a back per class rather than one
+     * for the whole deck — and those backs say which class they are, in their
+     * artwork. So the picture a spell carries tells you at a glance whether it
+     * is an alpha or an omega, which is the thing a Vance is actually juggling. */
+    const images = classPages?.size
+      ? await this.#writeClassBacks(doc, spec, classPages, size)
+      : new Map();
+
+    const img = (!images.size && spec.sharedBack)
+      ? await this.#writeBackArt(doc, spec, grid, size) : null;
     if (img) this.#say(game.i18n.format("ISUN.ImportBackArt", { count: cards.length }));
 
     if (spec.classes) {
@@ -257,7 +266,52 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
         { classes: Object.entries(byClass).map(([k, n]) => `${k} ${n}`).join(", ") }));
     }
 
-    return this.#writePack(cards, new Map(cards.map(c => [c.name, img])), spec);
+    const byName = new Map(cards.map(c => [c.name, images.get(c.spellClass) ?? img]));
+    return this.#writePack(cards, byName, spec);
+  }
+
+  /**
+   * Cut one card back per class.
+   *
+   * Each class is printed on its own sheets, and a sheet's back is the page
+   * before it — so the back for alpha comes off the page facing an alpha
+   * sheet. The rectangle is the card's own: its left edge from the text grid,
+   * its size from the class, and its top from where the ink starts on the back
+   * page. Nothing here can be found by looking for white gaps; these sheets
+   * print their cards against each other with crop marks across the gutters.
+   */
+  async #writeClassBacks(doc, spec, classPages, size) {
+    const FP = foundry.applications.apps.FilePicker.implementation;
+    const dir = `${ASSET_ROOT}/${spec.folder}`;
+    for (const part of [ASSET_ROOT.split("/")[0], ASSET_ROOT, dir]) {
+      try { await FP.createDirectory("data", part); } catch { /* already there */ }
+    }
+
+    const INSET = 0.16;
+    const images = new Map();
+
+    for (const [spellClass, place] of classPages) {
+      const backPage = place.backPage;
+      if (!backPage) continue;
+
+      const image = await deck.cutRegion(doc, backPage, {
+        x: place.left + INSET,
+        y: place.top + INSET,
+        w: place.width - INSET * 2,
+        h: place.height - INSET * 2
+      }, { size: Math.round(size * Math.min(1, place.width / 3)) });
+
+      const name = `back-${spellClass}.${image.extension}`;
+      await FP.upload("data", dir,
+        new File([image.blob], name, { type: image.blob.type }), {}, { notify: false });
+      images.set(spellClass, `${dir}/${name}`);
+    }
+
+    if (images.size) {
+      this.#say(game.i18n.format("ISUN.ImportClassBacks",
+        { count: images.size, classes: [...images.keys()].join(", ") }));
+    }
+    return images;
   }
 
   /**

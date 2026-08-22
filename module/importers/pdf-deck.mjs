@@ -610,6 +610,35 @@ export async function rowBandsAt(page, x, w) {
 }
 
 /**
+ * The horizontal bands of ink in a shallow strip of a page.
+ *
+ * The transpose of rowBandsAt, and it exists for the same reason: crop marks.
+ * They are printed at the page margins on every sheet, so measuring a whole
+ * page finds the marks rather than the cards, and every layout comes back the
+ * same size. A strip taken through the middle of a card meets card and gutter
+ * only.
+ */
+export async function colBandsAt(page, y, h) {
+  const canvas = await renderPage(page, DETECT_DPI);
+  const { width, height } = canvas;
+  const data = canvas.getContext("2d").getImageData(0, 0, width, height).data;
+
+  const top = Math.max(0, Math.round(y * DETECT_DPI));
+  const bottom = Math.min(height - 1, Math.round((y + h) * DETECT_DPI));
+
+  const inked = [];
+  for (let x = 0; x < width; x++) {
+    for (let py = top; py <= bottom; py++) {
+      if (data[(py * width + x) * 4] < INK) { inked.push(x); break; }
+    }
+  }
+  const floor = Math.round(MIN_CARD_INCHES * DETECT_DPI);
+  return runs(inked, Math.round(GUTTER_INCHES * DETECT_DPI))
+    .filter(([a, b]) => b - a + 1 >= floor)
+    .map(([a, b]) => ({ x: a / DETECT_DPI, w: (b - a + 1) / DETECT_DPI }));
+}
+
+/**
  * Cut one arbitrary rectangle out of a page.
  *
  * Used for a deck's card back. Those decks are read rather than looked at, so
