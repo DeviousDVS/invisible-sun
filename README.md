@@ -249,15 +249,34 @@ npm run data:restore -- --to /tmp/x  restore beside the real data instead
 
 Archives go to `~/invisible-sun-backups` (`ISUN_BACKUP_DIR` to change that),
 carrying `source/data`, `source/forte-trees`, `source/isdata_2026.json`,
-`packs/_source` and the extracted card art. Every file is checksummed
-individually, so a damaged archive names what broke rather than just failing.
-Restoring over data that is already there refuses and lists what it would
-replace; `--force` overrides, `--to` puts it somewhere harmless.
+`packs/_source`, the extracted card art, and **the compendia themselves**.
+Every file is checksummed individually, so a damaged archive names what broke
+rather than just failing. Restoring over data that is already there refuses and
+lists what it would replace; `--force` overrides, `--to` puts it somewhere
+harmless.
+
+**Stop Foundry before backing up.** The compendia are LevelDB, which permits
+one writer, so they cannot be read while a world is open. A backup taken with
+Foundry running captures everything else and says in as many words that it
+skipped them — it does not fail, because the rest is still worth having, but
+the archive is then incomplete in the way that matters most.
+
+They are captured as JSON, a file per document, rather than as the database.
+Partly so a restore stays possible whatever Foundry does to its storage next,
+and partly because LevelDB rewrites its own files as it compacts — checksums
+over the database would report every pack as changed every time, which would
+make `--disk` useless. Restoring compiles them back; `--to` drops the JSON as a
+fixture instead, and touches nothing live.
+
+`packs/_source` is kept alongside them and is not the same thing. It is what
+the build produces out of `source/data`; the compendia are what is actually in
+the world, which since the in-Foundry importer arrived is the larger set — the
+Vance spells and the goods lists never went through `_source` at all, and
+neither does anything you edit in a compendium by hand.
 
 The deck and book PDFs are **not** captured. They are large and you own them
 already. Nor is anything cheaply regenerated from what is here —
-`quirks.local.mjs` comes back from `build_quirks.py`, and the compiled packs
-from `packs/_source`.
+`quirks.local.mjs` comes back from `build_quirks.py`.
 
 **`--disk` is the useful one.** It reports what on disk no longer matches the
 archive, file by file. That makes a backup taken today the reference for

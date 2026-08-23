@@ -21,8 +21,20 @@
  * deck PDFs: they are large, they are yours already, and backing up something
  * you bought is your affair rather than this script's. Not anything derived
  * cheaply and deterministically from what is here either — quirks.mjs comes
- * back from build_quirks.py, and the compiled LevelDB packs come back from
- * packs/_source.
+ * back from build_quirks.py.
+ *
+ * ── The compendia, and why Foundry has to be stopped ──
+ * The compendia are captured too, as JSON rather than as the LevelDB they live
+ * in. They have to be: since the in-Foundry importer arrived they are the only
+ * copy of a great deal — the Vance spells and the goods lists never went
+ * through packs/_source at all, and neither does anything a GM edits in a
+ * compendium by hand.
+ *
+ * LevelDB permits one writer, so this cannot read them while a world is open.
+ * A backup taken with Foundry running captures everything else and says, in
+ * as many words, that it did not capture the compendia. It does not fail: the
+ * rest is still worth having, and a backup that refuses to run is a backup
+ * nobody takes.
  *
  * Usage:
  *   npm run data:backup                  write a new archive
@@ -39,6 +51,8 @@
  *
  * Requires the `tar` binary, as dist.mjs already requires `zip`.
  */
+import { ClassicLevel } from "classic-level";
+import { extractPack, compilePack } from "@foundryvtt/foundryvtt-cli";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
@@ -50,6 +64,7 @@ import os from "node:os";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+const PACKS_DIR = path.join(ROOT, "packs");
 const ASSETS = process.env.ISUN_ASSETS || path.resolve(ROOT, "../../invisible-sun/cards");
 const BACKUP_DIR = process.env.ISUN_BACKUP_DIR
   || path.join(os.homedir(), "invisible-sun-backups");
@@ -70,7 +85,122 @@ const SETS = [
   { name: "isdata",      into: "repo/source/isdata_2026.json", from: path.join(ROOT, "source/isdata_2026.json") },
   { name: "packs",       into: "repo/packs/_source",           from: path.join(ROOT, "packs/_source") },
   { name: "card-art",    into: "assets/cards",                 from: ASSETS },
+  /* The compendia themselves, which are not a directory to be copied — see
+   * extractCompendia. `from` is here only so that restore can name what it
+   * would replace. */
+  { name: "compendia",   into: "compendia",                    from: PACKS_DIR,
+    extract: extractCompendia, install: installCompendia },
 ];
+
+/* ── the compendia ───────────────────────────────────────
+ *
+ * Everything else here is a directory that can be copied. The compendia are
+ * not: they are LevelDB, which cannot be copied while it is open and would be
+ * useless to checksum if it could. LevelDB rewrites and compacts its own files
+ * as it pleases, so byte-identical content produces different files from one
+ * day to the next — and `verify --disk`, whose whole job is to say what moved,
+ * would report every pack as changed every time.
+ *
+ * So they are extracted to JSON, one file per document, in the same shape
+ * packs/_source holds. That is stable, diffable, restorable, and readable by
+ * anything.
+ *
+ * Both are kept, and they are not the same thing. packs/_source is what the
+ * build produces out of source/data — the Python pipeline's output. The
+ * compendia are what is actually in the world, which since the in-Foundry
+ * importer arrived is the larger set: the Vance spells and the goods lists
+ * were never built through _source at all, and neither is anything a GM has
+ * edited in a compendium by hand.
+ */
+
+/** The packs this system declares, by name and directory. */
+function declaredPacks() {
+  const manifest = JSON.parse(readFileSync(path.join(ROOT, "system.json"), "utf8"));
+  return manifest.packs
+    .map(pack => ({ name: pack.name, dir: path.join(ROOT, pack.path) }))
+    .filter(pack => existsSync(pack.dir));
+}
+
+/**
+ * Which packs something else has open.
+ *
+ * The same reasoning as scripts/compile_packs.js, and the same authority:
+ * looking for a Foundry process is guesswork — it can be running under any
+ * name, and an absent process is no proof that nothing holds the files —
+ * whereas LevelDB permits exactly one writer. If a pack opens here, nothing
+ * else has it.
+ */
+async function packsHeldOpen(packs) {
+  const held = [];
+  for (const pack of packs) {
+    const db = new ClassicLevel(pack.dir, { createIfMissing: false });
+    try {
+      await db.open();
+      await db.close();
+    } catch {
+      held.push(pack.name);
+    }
+  }
+  return held;
+}
+
+const LOCKED_NOTE = "Foundry (or whatever else holds them) has to be stopped.";
+
+/** Write every compendium out as JSON under `dest`, a directory per pack. */
+async function extractCompendia(dest) {
+  const packs = declaredPacks();
+  if (!packs.length) return { skipped: "there are no compiled packs yet" };
+
+  const held = await packsHeldOpen(packs);
+  if (held.length) {
+    return { skipped: `${held.length} of ${packs.length} pack(s) are open — ${LOCKED_NOTE}` };
+  }
+
+  for (const pack of packs) {
+    const into = path.join(dest, pack.name);
+    mkdirSync(into, { recursive: true });
+    // Volatile fields are kept. This is a backup: a restore should put back
+    // what was there, not a tidied version of it.
+    await extractPack(pack.dir, into, { yaml: false, log: false });
+  }
+  return { packs: packs.length };
+}
+
+/**
+ * Compile the JSON back into the packs Foundry reads.
+ *
+ * Written into a scratch directory first and moved into place only once every
+ * pack has built, for the reason compile_packs.js gives: moving deletes the
+ * live pack first, so a pack that failed halfway would be replaced by nothing.
+ */
+async function installCompendia(source) {
+  const names = readdirSync(source, { withFileTypes: true })
+    .filter(entry => entry.isDirectory()).map(entry => entry.name);
+
+  const held = await packsHeldOpen(declaredPacks());
+  if (held.length) {
+    die(`Cannot restore the compendia: ${held.join(", ")} are open.\n  ${LOCKED_NOTE}\n`
+      + `  Nothing has been changed.`);
+  }
+
+  const scratch = path.join(ROOT, "packs_restore_temp");
+  rmSync(scratch, { recursive: true, force: true });
+  try {
+    for (const name of names) {
+      const into = path.join(scratch, name);
+      mkdirSync(into, { recursive: true });
+      await compilePack(path.join(source, name), into, { yaml: false, log: false });
+    }
+    for (const name of names) {
+      const dest = path.join(PACKS_DIR, name);
+      rmSync(dest, { recursive: true, force: true });
+      cpSync(path.join(scratch, name), dest, { recursive: true });
+    }
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
+  }
+  return names.length;
+}
 
 const argv = process.argv.slice(2);
 const command = argv.find(a => !a.startsWith("--")) ?? "backup";
@@ -189,7 +319,7 @@ function compare(recorded, root) {
 }
 
 /* ── backup ─────────────────────────────────────────────── */
-function backup() {
+async function backup() {
   const stage = path.join(os.tmpdir(), `isun-backup-${process.pid}`);
   rmSync(stage, { recursive: true, force: true });
   mkdirSync(stage, { recursive: true });
@@ -202,13 +332,25 @@ function backup() {
   };
 
   const absent = [];
+  const skipped = [];
   for (const set of SETS) {
-    const print = fingerprint(set.from);
-    if (!print) { absent.push(set.name); continue; }
     const dest = path.join(stage, set.into);
     mkdirSync(path.dirname(dest), { recursive: true });
-    cpSync(set.from, dest, { recursive: true });
-    manifest.sets.push({ ...set, ...print });
+
+    if (set.extract) {
+      mkdirSync(dest, { recursive: true });
+      const result = await set.extract(dest);
+      if (result.skipped) {
+        rmSync(dest, { recursive: true, force: true });
+        skipped.push({ name: set.name, why: result.skipped });
+        continue;
+      }
+    } else {
+      if (!fingerprint(set.from)) { absent.push(set.name); continue; }
+      cpSync(set.from, dest, { recursive: true });
+    }
+
+    manifest.sets.push({ ...set, ...fingerprint(dest), extract: undefined, install: undefined });
   }
 
   if (!manifest.sets.length) {
@@ -236,7 +378,14 @@ function backup() {
     say(`\n  note: the working tree has uncommitted changes, so this archive`);
     say(`        does not correspond to commit ${manifest.git.commit.slice(0, 8)} exactly.`);
   }
-  say(`\n  This is the only copy that is not in git. Keep one elsewhere.\n`);
+  say(`\n  This is the only copy that is not in git. Keep one elsewhere.`);
+
+  /* Last, so that it is what the reader is left looking at. A backup that
+   * quietly left out the compendia and still said "ok" would be believed. */
+  for (const { name, why } of skipped) {
+    say(`\n  ⚠ NOT CAPTURED: ${name} — ${why}`);
+  }
+  say();
 }
 
 /* ── list ───────────────────────────────────────────────── */
@@ -250,8 +399,15 @@ function list() {
       const header = execFileSync("tar", ["-xzOf", archive, "./manifest.json"], { encoding: "utf8" });
       const manifest = JSON.parse(header);
       const files = manifest.sets.reduce((n, s) => n + s.files, 0);
+      /* Called out, because restore and verify default to the newest archive
+       * and an archive taken while Foundry was running has no compendia in it.
+       * Reaching for the newest and finding it partial is a thing to learn
+       * from a list, not from a restore. */
+      const partial = manifest.sets.some(set => set.name === "compendia")
+        ? "" : ", NO COMPENDIA";
       summary = `${files} files, v${manifest.system}`
-        + (manifest.git ? `, ${manifest.git.commit.slice(0, 8)}${manifest.git.dirty ? "+dirty" : ""}` : "");
+        + (manifest.git ? `, ${manifest.git.commit.slice(0, 8)}${manifest.git.dirty ? "+dirty" : ""}` : "")
+        + partial;
     } catch { /* reported as unreadable */ }
     say(`  ${path.basename(archive).padEnd(34)} ${human(statSync(archive).size).padStart(8)}  ${summary}`);
   }
@@ -259,7 +415,7 @@ function list() {
 }
 
 /* ── verify ─────────────────────────────────────────────── */
-function verify() {
+async function verify() {
   const archive = chooseArchive();
   const { scratch, manifest } = open(archive);
   const againstDisk = has("disk");
@@ -269,7 +425,24 @@ function verify() {
 
   let bad = 0;
   for (const set of manifest.sets) {
-    const root = againstDisk ? destinationFor(set) : path.join(scratch, set.into);
+    const known = SETS.find(s => s.name === set.name);
+
+    /* Compared against a fresh extraction rather than against the pack
+     * directories, which hold LevelDB and not the JSON this recorded. This is
+     * the comparison that matters most: what the compendia hold now against
+     * what they held when the archive was taken. */
+    let root = againstDisk ? destinationFor(set) : path.join(scratch, set.into);
+    if (againstDisk && known?.extract) {
+      root = path.join(scratch, `${set.name}-now`);
+      mkdirSync(root, { recursive: true });
+      const result = await known.extract(root);
+      if (result.skipped) {
+        say(`  ${set.name.padEnd(12)} UNREADABLE  ${result.skipped}`);
+        bad++;
+        continue;
+      }
+    }
+
     const result = compare(set, root);
     if (result.absent) {
       say(`  ${set.name.padEnd(12)} MISSING   ${root}`);
@@ -325,7 +498,7 @@ function destinationFor(set) {
 }
 
 /* ── restore ────────────────────────────────────────────── */
-function restore() {
+async function restore() {
   const archive = chooseArchive();
   const { scratch, manifest } = open(archive);
   const to = valueOf("to");
@@ -348,6 +521,17 @@ function restore() {
   say(`\nRestoring ${path.basename(archive)}  (taken ${manifest.createdAt})\n`);
   for (const set of manifest.sets) {
     const source = path.join(scratch, set.into);
+    const known = SETS.find(s => s.name === set.name);
+
+    /* Into the live packs, this has to be compiled rather than copied. Under
+     * --to it must not be: the point of --to is a fixture that cannot touch
+     * live data, and a compile writes to packs/ wherever it was asked to go. */
+    if (known?.install && !to) {
+      const count = await known.install(source);
+      say(`  ${set.name.padEnd(12)} ok      ${set.files} files -> ${count} packs in ${PACKS_DIR}`);
+      continue;
+    }
+
     const dest = destinationFor(set);
     mkdirSync(path.dirname(dest), { recursive: true });
     rmSync(dest, { recursive: true, force: true });
@@ -366,4 +550,4 @@ function restore() {
 
 const COMMANDS = { backup, list, verify, restore };
 if (!COMMANDS[command]) die(`Unknown command "${command}". One of: ${Object.keys(COMMANDS).join(", ")}`);
-COMMANDS[command]();
+await COMMANDS[command]();
