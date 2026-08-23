@@ -143,11 +143,19 @@ export function toItem(card, img) {
       value: card.value ?? 0,
       rank: (card.rank || "").toLowerCase(),
       enhancedSun: card.enhancedSun || "",
-      diminishedSun: card.diminishedSun || "",
-      // The write-ups live in The Gate, a page to a card, and are a separate
-      // import. Left empty rather than half-filled.
-      effectText: "", meanings: "", divination: "", gameNarrative: "",
-      joy: "", despair: "", description: "", quote: "", familyLine: ""
+      diminishedSun: card.diminishedSun || ""
+
+      /* The write-ups — meanings, divination, narrative, joy, despair,
+       * description, quote, family line and a royalty card's effect — are not
+       * written here at all. They live in The Gate, a page to a card, and are
+       * imported from it separately.
+       *
+       * They used to be written empty, which is not the same thing and is the
+       * difference between leaving a field alone and clearing it: a Foundry
+       * update merges, so a field left out keeps what it has. Re-importing the
+       * deck after importing The Gate wiped every write-up on all sixty cards.
+       * The same mistake, made once for incantation categories and once here,
+       * which is why neither now writes what it cannot read. */
     }
   };
 }
