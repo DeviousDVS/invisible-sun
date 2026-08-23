@@ -68,6 +68,12 @@
       "type": "Item"
     },
     {
+      "name": "gear",
+      "label": "Goods",
+      "path": "packs/gear",
+      "type": "Item"
+    },
+    {
       "name": "hearts",
       "label": "Hearts",
       "path": "packs/hearts",
@@ -252,6 +258,11 @@
         ]
       },
       "MinorMagic": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "Gear": {
         "htmlFields": [
           "description"
         ]

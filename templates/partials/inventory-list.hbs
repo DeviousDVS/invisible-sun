@@ -53,6 +53,40 @@
     </div>
   </div>
 
+  {{!-- Goods: what a vislae bought rather than what they were granted. No cap
+        badge, because there is no limit on owning chairs — the limits are on
+        objects of power and ephemera, which are magic a vislae has to hold. --}}
+  <div class="inventory-section mt-4">
+    <h3>{{localize "ISUN.Goods"}}</h3>
+    <div class="item-list">
+      <div class="list-header">
+        <span class="level">{{localize "ISUN.Quantity"}}</span>
+        <span class="name">{{localize "ISUN.Item"}}</span>
+        <span class="type">{{localize "ISUN.Category"}}</span>
+        <span class="cost">{{localize "ISUN.Cost"}}</span>
+        <span class="actions">
+          <a class="item-create" data-type="Gear" data-action="item-create"><i class="fa-solid fa-plus"></i></a>
+        </span>
+      </div>
+      {{#each gear as |item|}}
+        <div class="item" data-item-id="{{item.id}}">
+          <div class="level">{{item.system.quantity}}</div>
+          <div class="name">
+            {{item.name}}
+            {{#if item.system.kindled}}<i class="fa-solid fa-fire-flame-simple" title="{{localize 'ISUN.Kindled'}}"></i>{{/if}}
+            {{#if item.system.aethyric}}<i class="fa-solid fa-tower-broadcast" title="{{localize 'ISUN.Aethyric'}}"></i>{{/if}}
+          </div>
+          <div class="type">{{localize (lookup @root.config.goodsCategories item.system.category)}}</div>
+          <div class="cost" title="{{item.system.cost}}">{{item.system.cost}}</div>
+          <div class="actions">
+            <a class="item-edit" data-action="item-edit"><i class="fa-solid fa-edit"></i></a>
+            <a class="item-delete" data-action="item-delete"><i class="fa-solid fa-trash"></i></a>
+          </div>
+        </div>
+      {{/each}}
+    </div>
+  </div>
+
   {{!-- Orbs and magecoins are separate economies that do not convert into one
         another, so they are totalled and displayed apart. --}}
   <div class="economy-section mt-4">

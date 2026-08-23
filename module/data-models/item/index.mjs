@@ -14,4 +14,5 @@ export { EphemeraModel } from "./EphemeraModel.mjs";
 export { ObjectOfPowerModel } from "./ObjectOfPowerModel.mjs";
 export { ThreadModel } from "./ThreadModel.mjs";
 export { MinorMagicModel } from "./MinorMagicModel.mjs";
+export { GearModel } from "./GearModel.mjs";
 export { ConnectionModel } from "./ConnectionModel.mjs";

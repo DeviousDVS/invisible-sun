@@ -120,6 +120,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     ObjectOfPower: "objectsOfPower",
     Thread:        "threads",
     MinorMagic:    "minorMagics",
+    Gear:          "gear",
     Connection:    "connections"
   };
 

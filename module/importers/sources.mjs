@@ -15,6 +15,13 @@
  * find out it is one this version cannot read anyway. Anything acted upon is
  * confirmed against its first page.
  *
+ * The book hints are anchored, because these files arrive named
+ * "The-Key-Hyperlinked-and-Bookmarked-2018-08-13". Unanchored, "book m"
+ * matches the word "Bookmarked" in every one of them — The Wellspring was
+ * being announced to the reader as Book M — and "the path" matches the
+ * Enchiridion of the Path. Neither could do real harm, both being files this
+ * cannot read yet, but a wrong name in the report is a wrong name.
+ *
  * ── Why unsupported sources are listed at all ──
  * So the importer can say "that is the Spell Deck, which this version cannot
  * read yet" instead of "unrecognised file". The first tells a user to wait for
@@ -26,6 +33,30 @@ import * as spells from "./spells.mjs";
 import * as objects from "./objects.mjs";
 import * as aggregates from "./aggregates.mjs";
 import * as nightside from "./nightside.mjs";
+import * as keyBook from "./key.mjs";
+import * as threshold from "./threshold.mjs";
+
+/**
+ * A book's title as it comes off its own cover.
+ *
+ * Cover type is letter-spaced, and pdf.js hands those back as real spaces —
+ * Secrets of Silent Streets opens "SECRETS   o f  SILENT STREETS  M ONTE COO
+ * K". Written out as it reads, the signature does not match its own book, and
+ * the importer files it under "not recognised as an Invisible Sun PDF", which
+ * sends the reader looking for a fault in their download.
+ *
+ * So a title is given as it is printed and matched letter by letter, with
+ * whitespace allowed to fall anywhere inside a word and required between them.
+ * It stays anchored to the start of the text, which is what keeps it a cover
+ * and not a mention: several of these books name the others on their credits
+ * page.
+ */
+export function coverTitle(title) {
+  const pattern = title.trim().split(/\s+/)
+    .map(word => word.split("").map(c => c.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("\\s*"))
+    .join("\\s+");
+  return new RegExp(`^\\s*${pattern}`, "i");
+}
 
 /**
  * Sources this can read.
@@ -262,14 +293,59 @@ export const SOURCES = [
   {
     key: "gate",
     label: "ISUN.SourceGate",
-    hint: /the.?gate/i,
-    signature: /^\s*THE GATE/im,
+    hint: /^the.?gate/i,
+    signature: coverTitle("THE GATE"),
     /* A book rather than a deck: it carries no card faces and cuts no
      * pictures. What it holds is the write-up behind a card that has already
      * been imported — so it fills entries in rather than creating them. */
     kind: "book",
     pack: "invisible-sun.sooth",
     read: gate.readEntries
+  },
+  {
+    key: "key",
+    label: "ISUN.SourceKey",
+    hint: /^the.?key/i,
+    signature: coverTitle("THE KEY"),
+    /* A book that makes items rather than filling them in, which is what
+     * separates this from The Gate: the Money and Goods chapter is the only
+     * place several hundred of these things are written down. What it does
+     * fill in is the price of the fifty kindled items, which are cards. */
+    kind: "listing",
+    read: keyBook.readGoods,
+    sort: keyBook.sort,
+    buckets: {
+      goods:   { pack: "invisible-sun.gear", toItem: keyBook.toItem },
+      kindled: { pack: "invisible-sun.objects-of-power", toItem: keyBook.toPrice,
+                 updateOnly: true }
+    }
+  },
+  {
+    key: "threshold",
+    label: "ISUN.SourceThreshold",
+    hint: /threshold/i,
+    signature: coverTitle("THE THRESHOLD"),
+    kind: "listing",
+    read: threshold.readEntries,
+    columns: threshold.COLUMNS.threshold,
+    sort: (entry) => (entry.kind === "ephemera" ? "ephemera" : "objects"),
+    buckets: {
+      objects:  { pack: "invisible-sun.objects-of-power", toItem: threshold.toItem },
+      ephemera: { pack: "invisible-sun.ephemera", toItem: threshold.toEphemeraItem }
+    }
+  },
+  {
+    key: "silent-streets",
+    label: "ISUN.SourceSilentStreets",
+    hint: /silent.?streets/i,
+    signature: coverTitle("SECRETS OF SILENT STREETS"),
+    kind: "listing",
+    read: threshold.readEntries,
+    columns: threshold.COLUMNS["silent-streets"],
+    sort: () => "objects",
+    buckets: {
+      objects: { pack: "invisible-sun.objects-of-power", toItem: threshold.toItem }
+    }
   }
 ];
 
@@ -281,10 +357,9 @@ export const SOURCES = [
  * of files it could not identify.
  */
 export const NOT_YET = [
-  { key: "key", label: "ISUN.SourceKey", hint: /the.?key/i, signature: /^\s*THE KEY/im },
-  { key: "way", label: "ISUN.SourceWay", hint: /the.?way/i, signature: /^\s*THE WAY/im },
-  { key: "path", label: "ISUN.SourcePath", hint: /the.?path/i, signature: /^\s*THE PATH/im },
-  { key: "book-m", label: "ISUN.SourceBookM", hint: /book.?m/i, signature: /^\s*BOOK M/im }
+  { key: "way", label: "ISUN.SourceWay", hint: /^the.?way/i, signature: coverTitle("THE WAY") },
+  { key: "path", label: "ISUN.SourcePath", hint: /^the.?path/i, signature: coverTitle("THE PATH") },
+  { key: "book-m", label: "ISUN.SourceBookM", hint: /^book.?m\b/i, signature: coverTitle("BOOK M") }
 ];
 
 const ALL = [...SOURCES, ...NOT_YET];

@@ -346,6 +346,41 @@ export const ISUN = Object.freeze({
   },
 
   /* ──────────────────────────────────────────────
+   * GOODS
+   * ────────────────────────────────────────────── */
+
+  /**
+   * The sections The Key divides its goods lists into (p183–193).
+   *
+   * Kept as keys with the book's own headings for labels, so that the
+   * compendium browser offers a dropdown rather than asking a player to type
+   * "Home Furnishings and Needs" to find a chair. Kindled and aethyric are not
+   * among them: the book marks those with asterisks against entries scattered
+   * through the other lists, not as lists of their own, and they are flags on
+   * the item rather than a section.
+   *
+   * `other` is what an unrecognised heading falls back to. It should never be
+   * reached from The Key, and it exists so that a heading this does not know
+   * lands somewhere rather than being refused.
+   */
+  goodsCategories: {
+    furnishings: "ISUN.GoodsFurnishings",
+    supplies:    "ISUN.GoodsSupplies",
+    clothing:    "ISUN.GoodsClothing",
+    jewelry:     "ISUN.GoodsJewelry",
+    implements:  "ISUN.GoodsImplements",
+    travel:      "ISUN.GoodsTravel",
+    expenses:    "ISUN.GoodsExpenses",
+    weapons:     "ISUN.GoodsWeapons",
+    poisons:     "ISUN.GoodsPoisons",
+    services:    "ISUN.GoodsServices",
+    property:    "ISUN.GoodsProperty",
+    materials:   "ISUN.GoodsMaterials",
+    emotions:    "ISUN.GoodsEmotions",
+    other:       "ISUN.GoodsOther",
+  },
+
+  /* ──────────────────────────────────────────────
    * OBJECT OF POWER TYPES
    * ────────────────────────────────────────────── */
 

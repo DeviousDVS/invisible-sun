@@ -107,9 +107,12 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
     /* Decks first. A book explains cards a deck imported, so running The Gate
      * before the Sooth Deck in the same folder would refuse for want of
      * anything to fill — and the reader would have to work out that the order
-     * of files in their folder was the problem. */
+     * of files in their folder was the problem. The Key is the same the other
+     * way round: it prices fifty objects the deck has to have brought in
+     * first, and it cannot make them itself, having only their names. */
+    const late = (source) => (source.kind === "book" || source.kind === "listing" ? 1 : 0);
     const doable = plan.filter(p => p.source && isSupported(p.source))
-      .sort((a, b) => (a.source.kind === "book" ? 1 : 0) - (b.source.kind === "book" ? 1 : 0));
+      .sort((a, b) => late(a.source) - late(b.source));
     const later = plan.filter(p => p.source && !isSupported(p.source));
     const unknown = plan.filter(p => !p.source);
 
@@ -195,6 +198,7 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
   async #importOne(file, spec, size) {
     const doc = await deck.openPdf(file);
     if (spec.kind === "book") return this.#importBook(doc, spec);
+    if (spec.kind === "listing") return this.#importListing(doc, spec);
     if (spec.kind === "deck-text") return this.#importTextDeck(doc, spec, size);
     if (spec.kind === "mixed") return this.#importMixedDeck(doc, spec, size);
 
@@ -499,6 +503,58 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
     }
   }
 
+  /**
+   * Import a book that lists things rather than describing cards.
+   *
+   * The Gate's kind of book fills in entries a deck has already made. This
+   * kind makes them: The Key's goods lists and The Threshold's appendix are
+   * the only place several hundred things are written down, and no deck will
+   * ever carry them.
+   *
+   * What is read is sorted into buckets first, because one book can feed
+   * several compendia — The Threshold's appendix holds five ephemera among its
+   * objects, and The Key's lists hold fifty prices that belong on cards in a
+   * pack of their own.
+   */
+  async #importListing(doc, spec) {
+    const entries = await spec.read(doc, {
+      columns: spec.columns,
+      onProgress: ({ done, total, found }) => {
+        if (done % 24 === 0 || done >= total) {
+          this.#say(game.i18n.format("ISUN.ImportReadingEntries", { done, total, found }));
+        }
+      }
+    });
+
+    if (!entries.length) throw new Error(game.i18n.localize("ISUN.ImportNothingRead"));
+
+    const buckets = new Map();
+    for (const entry of entries) {
+      const name = spec.sort(entry);
+      if (!spec.buckets[name]) continue;
+      if (!buckets.has(name)) buckets.set(name, []);
+      buckets.get(name).push(entry);
+    }
+
+    this.#say(game.i18n.format("ISUN.ImportListed", {
+      total: entries.length,
+      kinds: [...buckets].map(([name, list]) => `${name} ${list.length}`).join(", ")
+    }));
+
+    const report = { created: 0, updated: 0, images: 0 };
+    for (const [name, list] of buckets) {
+      const target = spec.buckets[name];
+      const part = await this.#writePack(list, new Map(), target);
+      report.created += part.created;
+      report.updated += part.updated;
+      if (part.missing) {
+        this.#say(game.i18n.format("ISUN.ImportListingMissing",
+          { count: part.missing, pack: game.packs.get(target.pack)?.metadata.label ?? target.pack }), true);
+      }
+    }
+    return report;
+  }
+
   /** Cut every card out and write it into the data folder. */
   async #writeImages(doc, sheets, cards, spec, size) {
     const FP = foundry.applications.apps.FilePicker.implementation;
@@ -583,18 +639,23 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
       }
 
       const create = [], update = [];
+      let missing = 0;
       for (const card of cards) {
         const data = spec.toItem(card, images.get(card.name), spec.spellType);
         const id = byName.get(card.name)
           ?? loose.get(card.name.toUpperCase().replace(/[^A-Z0-9]/g, ""));
         if (id) update.push({ _id: id, ...data });
+        /* Some entries can only ever add to something already imported — a
+         * price for a card, say. There is nothing to make from one on its own,
+         * so where the thing it belongs to is absent it is counted and left. */
+        else if (spec.updateOnly) missing++;
         else create.push(data);
       }
 
       if (create.length) await Item.createDocuments(create, { pack: spec.pack });
       if (update.length) await Item.updateDocuments(update, { pack: spec.pack });
 
-      return { created: create.length, updated: update.length, images: images.size };
+      return { created: create.length, updated: update.length, images: images.size, missing };
     } finally {
       if (wasLocked) await pack.configure({ locked: true });
     }

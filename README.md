@@ -134,6 +134,33 @@ to your own table and do not redistribute it.
 Games](https://www.montecookgames.com/store/product-category/invisible-sun/).
 This system is no substitute for the books and is not much use without them.
 
+### Importing from your PDFs
+
+The compendia fill themselves from the PDFs you bought, inside Foundry. Put
+them in one folder, open **Import Content** from the compendium sidebar, and
+point it at that folder. Every file is identified by what is printed on its
+first page rather than by its name, so renamed and re-dated downloads are
+recognised; anything it cannot read yet is named in the log rather than
+silently skipped. Your files are read where they lie — nothing is uploaded or
+copied into Foundry.
+
+It reads, today:
+
+| From | What it brings in |
+|---|---|
+| Sooth Deck | the 60 cards, each with its face cut out and the sheet masked away |
+| The Gate | the write-up behind every Sooth card — meanings, divination, Joy, Despair |
+| Spell Deck, Vance Spell Deck, Book M spell cards | 390 spells; the Vancian ones with the class their card size records |
+| Objects of Power, Ephemera, Incantations, Weaver Aggregates, and the Book M cards for each | the rest of the decks |
+| The Nightside | its five kinds of card, sorted by the livery on the back |
+| The Key | the goods lists — 401 items of gear, and the price of the 50 kindled objects the deck already holds |
+| The Threshold, Secrets of Silent Streets | the nine objects and ephemera that were never printed on a card |
+
+Order does not matter: decks are imported before the books that annotate them.
+Running it twice is safe — entries are matched by name and updated, not
+duplicated — and a book only ever writes the fields it actually states, so
+anything you have edited by hand survives a re-import.
+
 ### Generating the content
 
 Compendium content is built, not hand-written. Four stages feed one another,
@@ -242,18 +269,15 @@ rather than discovered months later in play.
 
 The pipeline above is a command line: Python, Node, and a shell that can find
 `pdftotext`. That is a reasonable thing to ask of someone editing the system
-and an unreasonable thing to ask of someone who just wants to play.
+and an unreasonable thing to ask of someone who just wants to play — so it is
+being replaced by the importer above, deck by deck and book by book.
 
-So the intended end state is that none of this is needed. You install the
-system, Foundry walks you through pointing at the PDFs you bought, and it
-builds the compendia itself. Everything required is already in Foundry —
-it bundles pdf.js, which reads both the text and the page images, and
-`FilePicker` can write the extracted art into your data folder. Reading the
-books through a file picker also means they never need to be copied anywhere.
-
-That work has not started. What is above is what exists today, and it
-will stay as the development and test harness once the in-Foundry importer
-lands — the same parsers, driven from a terminal instead of a dialog.
+What is left to move is the book content: fortes and their abilities, secrets,
+orders, skills, souls, hearts, foundations and character arcs. Those compendia
+are still built by the Python extractors, which means a fresh install plus your
+PDFs does not yet reproduce them. Until it does, the pipeline above is how they
+are made; afterwards it stays as the development and test harness, the same
+parsers driven from a terminal instead of a dialog.
 
 ---
 
@@ -355,7 +379,8 @@ module/
   data-models/         DataModel schemas — one per actor and item type
   documents/           ISUNActor, ISUNItem: derivation and document methods
   sheets/              ApplicationV2 sheets, plus the shared SheetMixin
-  apps/                dialogs and the challenge card
+  apps/                dialogs, the challenge card, the content importer
+  importers/           one reader per PDF: the decks, and the books
   helpers/             config, dice, Handlebars helpers
 templates/             Handlebars: actor/, item/, apps/, chat/, partials/
 styles/                invisible-sun.css (theme vars), sheets.css, components.css

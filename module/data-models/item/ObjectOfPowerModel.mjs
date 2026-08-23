@@ -23,6 +23,16 @@ export class ObjectOfPowerModel extends foundry.abstract.DataModel {
       effectDepletion: new fields.StringField({ required: false, initial: "" }),
       /** Where the object is written up, as printed on the card. */
       reference:   new fields.StringField({ required: false, initial: "" }),
+      /**
+       * What it sells for, where anything says.
+       *
+       * The cards do not: a card gives the object's level, form and effect and
+       * never a price. The Key's goods lists do, for the fifty kindled items
+       * that appear in both — "Blood boots … 3 gem orbs and 25 bloodsilver" —
+       * and importing those lists fills this in on the cards already held
+       * rather than making a second copy of each.
+       */
+      cost:        new fields.StringField({ required: false, initial: "" }),
     };
   }
 }

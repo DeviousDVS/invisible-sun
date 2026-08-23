@@ -12,7 +12,7 @@ import {
   ForteModel, ForteAbilityModel, SpellModel, IncantationModel,
   SecretModel, SkillModel, CharacterArcModel, SoothCardModel,
   EphemeraModel, ObjectOfPowerModel,
-  ThreadModel, MinorMagicModel, ConnectionModel
+  ThreadModel, MinorMagicModel, ConnectionModel, GearModel
 } from "./module/data-models/index.mjs";
 
 // ── Custom Documents ─────────────────────────────────────
@@ -193,6 +193,7 @@ Hooks.once("init", () => {
     ObjectOfPower: ObjectOfPowerModel,
     Thread: ThreadModel,
     MinorMagic: MinorMagicModel,
+    Gear: GearModel,
     Connection: ConnectionModel
   });
 
