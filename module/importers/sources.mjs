@@ -58,8 +58,13 @@ export const SOURCES = [
   {
     key: "spell",
     label: "ISUN.SourceSpellDeck",
-    hint: /spell deck/i,
-    signature: /to print your spell deck/i,
+    hint: /^spell deck/i,
+    /* The comma matters. This deck opens "To print your Spell Deck, set your
+     * double-sided printer…" and the Book M cards open "To print your Spell
+     * Deck cards, set…", so a signature without it matches both — and matched
+     * the wrong one first, which showed up as the Book M deck being refused
+     * for holding 40 cards where the main deck should have 300. */
+    signature: /to print your spell deck,/i,
     /* A deck that is read rather than looked at. Its cards are a name, a level
      * and a description — no art at all — so nothing here measures a grid in
      * pixels or cuts a picture per card. It could not anyway: these sheets
@@ -78,9 +83,23 @@ export const SOURCES = [
     sharedBack: true
   },
   {
+    key: "spell-m",
+    label: "ISUN.SourceSpellCardsM",
+    hint: /book.?m.*spell/i,
+    signature: /to print your spell deck cards/i,
+    kind: "deck-text",
+    pack: "invisible-sun.spells",
+    folder: "spells",
+    expected: 40,
+    read: spells.readDeck,
+    toItem: spells.toItem,
+    sharedBack: true,
+    backName: "back-book-m"
+  },
+  {
     key: "vance",
     label: "ISUN.SourceVanceDeck",
-    hint: /vance/i,
+    hint: /vance spell deck/i,
     signature: /to print your vance spell deck/i,
     kind: "deck-text",
     pack: "invisible-sun.vance-spells",
@@ -94,6 +113,29 @@ export const SOURCES = [
      * as they are read. Only this deck needs it; nothing else has a class. */
     classes: true,
     sharedBack: true
+  },
+  {
+    key: "vance-tn",
+    label: "ISUN.SourceVanceCardsTN",
+    hint: /tn vance/i,
+    /* The same words as the main Vance deck, to the letter: both open "To
+     * print your Vance Spell deck". These two cannot be told apart by what
+     * they say, only by what they are called — the one exception to reading
+     * the page rather than the filename, and it is recorded here rather than
+     * worked around silently. If this file is renamed it will be read as the
+     * main deck and refused for holding ten cards instead of fifty, which is
+     * the right way to fail. */
+    signature: /to print your vance spell deck,/i,
+    kind: "deck-text",
+    pack: "invisible-sun.vance-spells",
+    folder: "vance-spells",
+    expected: 10,
+    read: spells.readDeck,
+    toItem: spells.toItem,
+    spellType: "vance",
+    classes: true,
+    sharedBack: true,
+    backName: "back-nightside"
   },
   {
     key: "objects",
@@ -119,10 +161,17 @@ export const SOURCES = [
      * name, so the two simply fill in the one pack between them. */
     pack: "invisible-sun.objects-of-power",
     folder: "objects-of-power",
-    expected: 25,
+    /* 26, not the 25 the old pipeline reported. Vital Aspect — a level 7
+     * multifaceted jewel — sits where the column arithmetic used to lose
+     * cards, the same place Winter and Woodflesh were hiding. */
+    expected: 26,
     read: objects.readDeck,
     toItem: objects.toItem,
-    sharedBack: true
+    sharedBack: true,
+    /* Its own name, so it does not overwrite the main deck's back. The two
+     * print the same livery but they are not the same picture, and an item
+     * should carry the back of the deck it was actually printed in. */
+    backName: "back-book-m"
   },
   {
     key: "incantations",
@@ -169,7 +218,8 @@ export const SOURCES = [
     expected: 52,
     read: objects.readDeck,
     toItem: objects.toEphemeraItem,
-    sharedBack: true
+    sharedBack: true,
+    backName: "back-book-m"
   },
   {
     key: "aggregates",
@@ -231,8 +281,6 @@ export const SOURCES = [
  * of files it could not identify.
  */
 export const NOT_YET = [
-  { key: "spell-cards-m", label: "ISUN.SourceSpellCardsM", hint: /book.?m.*spell/i,
-    signature: /to print your spell deck cards/i },
   { key: "key", label: "ISUN.SourceKey", hint: /the.?key/i, signature: /^\s*THE KEY/im },
   { key: "way", label: "ISUN.SourceWay", hint: /the.?way/i, signature: /^\s*THE WAY/im },
   { key: "path", label: "ISUN.SourcePath", hint: /the.?path/i, signature: /^\s*THE PATH/im },
@@ -258,9 +306,28 @@ export function guessFromName(filename) {
   return matches.length === 1 ? matches[0] : null;
 }
 
-/** What the opening pages say it is. This is the answer that counts. */
+/**
+ * What the opening pages say it is. This is the answer that counts.
+ *
+ * More than one match is a fault in this list rather than in the file, and it
+ * is reported instead of being settled by whichever entry happens to come
+ * first. That is how the Book M spell cards came to be read as the main spell
+ * deck: both signatures matched, the main deck was listed earlier, and the
+ * only visible symptom was a count that did not add up.
+ */
 export function identifyFromText(text) {
-  return ALL.find(s => s.signature.test(text)) ?? null;
+  const matches = ALL.filter(s => s.signature.test(text));
+  if (matches.length > 1) {
+    /* Deliberately the first, which is the more general of the two — the main
+     * deck rather than the supplement. A file that still has its own name gets
+     * corrected to the supplement by the caller; one that has been renamed
+     * falls back here and is refused by the count, which is a better failure
+     * than being quietly read as the wrong deck. */
+    console.warn("invisible-sun | more than one source signature matches this PDF: "
+      + matches.map(m => m.key).join(", ") + " — taking the first; the filename "
+      + "decides if it names one of them.");
+  }
+  return matches[0] ?? null;
 }
 
 /** True if this is a source the importer can actually act on. */

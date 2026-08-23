@@ -538,7 +538,8 @@
     "SourceObjectCardsM": "Book M Objects of Power Cards",
     "SourceEphemeraCardsM": "Book M Ephemera Cards",
     "ImportSorted": "Read {total} cards from {sheets} sheets: {kinds}.",
-    "ImportUnplaced": "{count} card(s) could not be sorted by the back printed behind them."
+    "ImportUnplaced": "{count} card(s) could not be sorted by the back printed behind them.",
+    "SourceVanceCardsTN": "Nightside Vance Spell Cards"
   },
   "TYPES": {
     "Actor": {

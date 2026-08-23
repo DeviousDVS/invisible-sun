@@ -169,7 +169,18 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
       let doc = null;
       try {
         doc = await deck.openPdf(file);
-        const source = identifyFromText(await openingText(doc));
+        const text = await openingText(doc);
+        let source = identifyFromText(text);
+
+        /* Where the filename names a source whose signature also fits, that
+         * one wins. Two decks in this set print the same opening words to the
+         * letter — the Vance deck and the Nightside's Vance cards — so the
+         * page cannot separate them and the name is all there is. The page
+         * still decides everything else: a file named nothing in particular
+         * has no guess to prefer, so a renamed book is still recognised. */
+        if (guess && isSupported(guess) && guess !== source && guess.signature.test(text)) {
+          source = guess;
+        }
         plan.push({ file, source, doc });
       } catch (err) {
         this.#say(game.i18n.format("ISUN.ImportUnreadable",
@@ -323,7 +334,7 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
       : new Map();
 
     const img = (!images.size && spec.sharedBack)
-      ? await this.#writeBackArt(doc, spec, grid, size) : null;
+      ? await this.#writeBackArt(doc, spec, grid, size, spec.backName ?? "back") : null;
     if (img) this.#say(game.i18n.format("ISUN.ImportBackArt", { count: cards.length }));
 
     if (spec.classes) {
@@ -390,7 +401,7 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
    * rows from a strip taken down the middle of one column, which meets card
    * and gutter but no crop marks.
    */
-  async #writeBackArt(doc, spec, grid, size) {
+  async #writeBackArt(doc, spec, grid, size, name = "back") {
     if (!grid) return null;
     const FP = foundry.applications.apps.FilePicker.implementation;
     const dir = `${ASSET_ROOT}/${spec.folder}`;
@@ -414,10 +425,10 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
       h: bands[0].h / rows - INSET * 2
     }, { size });
 
-    const name = `back.${image.extension}`;
+    const file = `${name}.${image.extension}`;
     await FP.upload("data", dir,
-      new File([image.blob], name, { type: image.blob.type }), {}, { notify: false });
-    return `${dir}/${name}`;
+      new File([image.blob], file, { type: image.blob.type }), {}, { notify: false });
+    return `${dir}/${file}`;
   }
 
   /**
