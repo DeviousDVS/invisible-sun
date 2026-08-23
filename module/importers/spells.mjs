@@ -497,3 +497,43 @@ export function toItem(spell, img, spellType = "general") {
     }
   };
 }
+
+/**
+ * The item an incantation becomes.
+ *
+ * Incantation cards and spell cards are the same card — the decks print them
+ * identically, which is why a deck that mixes the two cannot be split on the
+ * card face at all. So they are read by the same code and differ only here.
+ *
+ * `categories` is not written at all — which is different from writing it
+ * empty, and the difference costs real work. A Foundry update merges rather
+ * than replaces, so a field left out of the payload keeps whatever is already
+ * there, while a field set to [] wipes it. Writing an empty array cleared the
+ * categories on 208 entries that had them.
+ *
+ * A vislae who has not held a specific
+ * incantation before "can ask for a general type of conation incantation...
+ * rather than a specific one" (The Way, p106) — but the cards print no such
+ * type, and it cannot be had by matching keywords against a description:
+ * "The Decay of Neglect" rots a foe's armour and never says damage, while
+ * "Only Footsteps Come This Way" raises a barrier and never says defend. A
+ * category that is wrong is worse than none, because the player asks for a
+ * type and is handed something unrelated. So nothing is invented here.
+ */
+export function toIncantationItem(spell, img) {
+  return {
+    name: spell.name,
+    type: "Incantation",
+    img: img || "icons/magic/symbols/rune-sigil-horned-blue.webp",
+    system: {
+      level: parseInt(spell.level, 10) || 1,
+      color: spell.color || "",
+      depletion: spell.depletion || "",
+      description: spell.description ? `<p>${spell.description}</p>` : "",
+      dice: spell.dice || "",
+      facets: spell.facets || "",
+      note: spell.note ? `<p>${spell.note}</p>` : ""
+      // categories: deliberately absent — see above.
+    }
+  };
+}

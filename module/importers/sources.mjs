@@ -123,6 +123,22 @@ export const SOURCES = [
     sharedBack: true
   },
   {
+    key: "incantations",
+    label: "ISUN.SourceIncantationDeck",
+    hint: /incantations deck/i,
+    signature: /to print your incantations deck/i,
+    kind: "deck-text",
+    pack: "invisible-sun.incantations",
+    folder: "incantations",
+    expected: 208,
+    /* Read by the spell reader, because an incantation card and a spell card
+     * are the same card. That is not a convenience — it is why a deck mixing
+     * the two cannot be told apart on the card face at all. */
+    read: spells.readDeck,
+    toItem: spells.toIncantationItem,
+    sharedBack: true
+  },
+  {
     key: "ephemera",
     label: "ISUN.SourceEphemeraDeck",
     hint: /ephemera objects deck/i,
@@ -172,8 +188,6 @@ export const SOURCES = [
 export const NOT_YET = [
   { key: "spell-cards-m", label: "ISUN.SourceSpellCardsM", hint: /book.?m.*spell/i,
     signature: /to print your spell deck cards/i },
-  { key: "incantations", label: "ISUN.SourceIncantationDeck", hint: /incantation/i,
-    signature: /to print your incantations deck/i },
   { key: "nightside-cards", label: "ISUN.SourceNightsideCards", hint: /tn base/i,
     signature: /to print your nightside cards/i },
   { key: "aggregates", label: "ISUN.SourceAggregatesDeck", hint: /aggregates/i,

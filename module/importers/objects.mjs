@@ -237,9 +237,13 @@ export function toItem(object, img) {
  * The item an ephemera becomes.
  *
  * Ephemera are typed conflux, charm, cypher or oddity, and the cards do not
- * print which — so every one arrives at the schema default rather than being
- * guessed at from its Form. That is a gap to fill from a book later, not
- * something to invent here.
+ * print which — so the type is not written at all. On a new entry the schema
+ * default stands; on one that already exists, whatever is there is left alone.
+ *
+ * That distinction matters more than it looks. A Foundry update merges rather
+ * than replaces, so a field left out keeps its value while a field set to a
+ * default overwrites one. Re-importing should never undo a reading someone has
+ * made by hand for something the cards do not print.
  */
 export function toEphemeraItem(object, img) {
   return {
@@ -253,8 +257,8 @@ export function toEphemeraItem(object, img) {
       form: object.form || "",
       color: object.color || "",
       dice: object.dice || "",
-      note: object.note ? `<p>${object.note}</p>` : "",
-      ephemeraType: "conflux"
+      note: object.note ? `<p>${object.note}</p>` : ""
+      // ephemeraType: deliberately absent — see above.
     }
   };
 }
