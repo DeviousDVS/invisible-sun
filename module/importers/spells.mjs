@@ -23,8 +23,17 @@ import * as deckPdf from "./pdf-deck.mjs";
 /** Two anchors closer together than this belong to the same card. */
 const MIN_PITCH = 60;
 
-/** Slack added to each side of a measured column. */
-const PAD = 4;
+/**
+ * How far left of its label a column starts.
+ *
+ * Some text on a card begins slightly left of the labels — the aggregates set
+ * their description about six points out from "Default Duration:" — so a
+ * boundary drawn exactly on the label would shave the first character off
+ * those lines. Twenty points clears that comfortably while staying well inside
+ * the gap between one card's text and the next card's label, which runs to
+ * about thirty-five.
+ */
+const LABEL_SLACK = 20;
 
 /** Baselines closer than this are the same line. */
 const LINE_TOLERANCE = 2;
@@ -39,8 +48,15 @@ const LINE_TOLERANCE = 2;
  */
 const SPACE_GAP = 0.05;
 
-/** Every card prints one of these at its left text margin. */
-const ANCHOR_RE = /^(Level|Form|Type|Depletion|Colou?r):$/;
+/**
+ * Every card prints one of these once, at its left text margin.
+ *
+ * The aggregate cards carry none of the others — they have no level and no
+ * colour — but they do print a default duration and range, which serve the
+ * same purpose here: one to a card, at a known place, so the pitch between
+ * them is the grid.
+ */
+const ANCHOR_RE = /^(Level|Form|Type|Depletion|Colou?r|Default Duration|Default Range):$/;
 
 const FIELD_RE = /^(Level|Depletion|Colou?r|Facets?|Cost|Range|Duration|Form)\s*:\s*(.*)$/i;
 
@@ -106,9 +122,24 @@ export function findColumns(items, width, height) {
   // A sheet holding a single column needs no grid: take the whole page.
   if (lefts.length === 1) return { columns: [{ x: 0, w: width }], usable, pitch: width };
 
+  /* Each column begins a little left of the label that marks it, and runs to
+   * where the next one begins; the outermost reach the paper's edge.
+   *
+   * Two wrong answers were tried first, and both are instructive. Tiling a
+   * grid from a computed origin has to assume the columns are centred on the
+   * page, which is only true of a full sheet — the aggregates deck ends with
+   * two cards in the left half, and centring two columns puts them over blank
+   * paper, losing one card entirely. Cutting at the midpoint between labels
+   * assumes the label sits at the middle of its card, and it does not: it is
+   * inset from the card's left edge, so the midpoint falls inside the card
+   * before it and slices the end off every line.
+   *
+   * Anchoring on the labels themselves avoids both. Whatever the inset is, and
+   * however many columns are filled, a card's text lies between its own label
+   * and the next. */
   const pitch = Math.min(...lefts.slice(1).map((x, i) => x - lefts[i]));
-  const origin = (width - lefts.length * pitch) / 2;
-  const columns = lefts.map((_, i) => ({ x: Math.max(0, origin + i * pitch - PAD), w: pitch + 2 * PAD }));
+  const edges = [0, ...lefts.slice(1).map(x => x - LABEL_SLACK), width];
+  const columns = edges.slice(0, -1).map((x, i) => ({ x, w: edges[i + 1] - x }));
   return { columns, usable, pitch };
 }
 

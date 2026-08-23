@@ -24,6 +24,7 @@ import * as sooth from "./sooth.mjs";
 import * as gate from "./gate.mjs";
 import * as spells from "./spells.mjs";
 import * as objects from "./objects.mjs";
+import * as aggregates from "./aggregates.mjs";
 
 /**
  * Sources this can read.
@@ -146,7 +147,12 @@ export const SOURCES = [
     kind: "deck-text",
     pack: "invisible-sun.ephemera",
     folder: "ephemera",
-    expected: 240,
+    /* 241, not the 240 the old pipeline reported. Woodflesh sits on a sheet
+     * that is only part full, and the column arithmetic that assumed a full
+     * sheet lost it — the same fault that hid Winter in the aggregates deck.
+     * The count is the true one; the guard caught the change and refused to
+     * import until it was reconciled, which is what it is for. */
+    expected: 241,
     read: objects.readDeck,
     toItem: objects.toEphemeraItem,
     sharedBack: true
@@ -162,6 +168,19 @@ export const SOURCES = [
     expected: 52,
     read: objects.readDeck,
     toItem: objects.toEphemeraItem,
+    sharedBack: true
+  },
+  {
+    key: "aggregates",
+    label: "ISUN.SourceAggregatesDeck",
+    hint: /weaver aggregates/i,
+    signature: /to print your weaver aggregates/i,
+    kind: "deck-text",
+    pack: "invisible-sun.threads",
+    folder: "aggregates",
+    expected: 18,
+    read: aggregates.readDeck,
+    toItem: aggregates.toItem,
     sharedBack: true
   },
   {
@@ -190,8 +209,6 @@ export const NOT_YET = [
     signature: /to print your spell deck cards/i },
   { key: "nightside-cards", label: "ISUN.SourceNightsideCards", hint: /tn base/i,
     signature: /to print your nightside cards/i },
-  { key: "aggregates", label: "ISUN.SourceAggregatesDeck", hint: /aggregates/i,
-    signature: /to print your weaver aggregates/i },
   { key: "key", label: "ISUN.SourceKey", hint: /the.?key/i, signature: /^\s*THE KEY/im },
   { key: "way", label: "ISUN.SourceWay", hint: /the.?way/i, signature: /^\s*THE WAY/im },
   { key: "path", label: "ISUN.SourcePath", hint: /the.?path/i, signature: /^\s*THE PATH/im },
