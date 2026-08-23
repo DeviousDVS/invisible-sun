@@ -25,6 +25,7 @@ import * as gate from "./gate.mjs";
 import * as spells from "./spells.mjs";
 import * as objects from "./objects.mjs";
 import * as aggregates from "./aggregates.mjs";
+import * as nightside from "./nightside.mjs";
 
 /**
  * Sources this can read.
@@ -184,6 +185,31 @@ export const SOURCES = [
     sharedBack: true
   },
   {
+    key: "nightside",
+    label: "ISUN.SourceNightsideCards",
+    hint: /tn base|nightside cards/i,
+    signature: /to print your nightside cards/i,
+    /* The only deck that holds more than one kind of card — five of them,
+     * shuffled together and sometimes several to a sheet. So it fills five
+     * compendia rather than one, and each kind brings its own reader's output
+     * and its own way of becoming an item. */
+    kind: "mixed",
+    expected: 40,
+    read: nightside.readDeck,
+    kinds: {
+      spell:       { pack: "invisible-sun.spells", folder: "spells",
+                     toItem: (c, img) => spells.toItem(c, img, "general") },
+      incantation: { pack: "invisible-sun.incantations", folder: "incantations",
+                     toItem: spells.toIncantationItem },
+      object:      { pack: "invisible-sun.objects-of-power", folder: "objects-of-power",
+                     toItem: objects.toItem },
+      ephemera:    { pack: "invisible-sun.ephemera", folder: "ephemera",
+                     toItem: objects.toEphemeraItem },
+      aggregate:   { pack: "invisible-sun.threads", folder: "aggregates",
+                     toItem: aggregates.toItem }
+    }
+  },
+  {
     key: "gate",
     label: "ISUN.SourceGate",
     hint: /the.?gate/i,
@@ -207,8 +233,6 @@ export const SOURCES = [
 export const NOT_YET = [
   { key: "spell-cards-m", label: "ISUN.SourceSpellCardsM", hint: /book.?m.*spell/i,
     signature: /to print your spell deck cards/i },
-  { key: "nightside-cards", label: "ISUN.SourceNightsideCards", hint: /tn base/i,
-    signature: /to print your nightside cards/i },
   { key: "key", label: "ISUN.SourceKey", hint: /the.?key/i, signature: /^\s*THE KEY/im },
   { key: "way", label: "ISUN.SourceWay", hint: /the.?way/i, signature: /^\s*THE WAY/im },
   { key: "path", label: "ISUN.SourcePath", hint: /the.?path/i, signature: /^\s*THE PATH/im },

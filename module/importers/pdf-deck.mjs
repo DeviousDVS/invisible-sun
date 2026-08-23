@@ -101,7 +101,7 @@ export async function openPdf(source) {
 }
 
 /** Render a whole page to an offscreen canvas at the given resolution. */
-async function renderPage(page, dpi) {
+export async function renderPage(page, dpi) {
   const viewport = page.getViewport({ scale: dpi / 72 });
   const canvas = document.createElement("canvas");
   canvas.width = Math.ceil(viewport.width);

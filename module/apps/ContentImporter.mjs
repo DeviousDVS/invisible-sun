@@ -185,6 +185,7 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
     const doc = await deck.openPdf(file);
     if (spec.kind === "book") return this.#importBook(doc, spec);
     if (spec.kind === "deck-text") return this.#importTextDeck(doc, spec, size);
+    if (spec.kind === "mixed") return this.#importMixedDeck(doc, spec, size);
 
     const sheets = await deck.readSheets(doc, {
       onProgress: ({ stage, done, total }) => {
@@ -220,6 +221,72 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
       ? await this.#writeImages(doc, sheets, cards, spec, size)
       : new Map();
     return this.#writePack(cards, images, spec);
+  }
+
+  /**
+   * Import a deck holding more than one kind of card.
+   *
+   * Each kind goes to its own compendium with its own back, so this is the
+   * single-kind import run once per kind — the counting, the locking and the
+   * matching are all the same, only sorted first.
+   */
+  async #importMixedDeck(doc, spec, size) {
+    const { groups, sheets, unplaced, backs } = await spec.read(doc, {
+      onProgress: ({ done, total }) => {
+        if (done % 4 === 0 || done >= total) {
+          this.#say(game.i18n.format("ISUN.ImportReadingCards", { done, total, found: "" }));
+        }
+      }
+    });
+
+    const total = Object.values(groups).reduce((n, list) => n + list.length, 0);
+    this.#say(game.i18n.format("ISUN.ImportSorted", {
+      total, sheets,
+      kinds: Object.entries(groups).filter(([, l]) => l.length)
+        .map(([k, l]) => `${k} ${l.length}`).join(", ")
+    }));
+
+    if (spec.expected && total !== spec.expected) {
+      throw new Error(game.i18n.format("ISUN.ImportWrongCount",
+        { found: total, expected: spec.expected }));
+    }
+    if (unplaced) this.#say(game.i18n.format("ISUN.ImportUnplaced", { count: unplaced }), true);
+
+    const report = { created: 0, updated: 0, images: 0 };
+    for (const [kind, cards] of Object.entries(groups)) {
+      if (!cards.length) continue;
+      const target = spec.kinds[kind];
+      if (!target) continue;
+
+      const img = backs.has(kind)
+        ? await this.#writeOneBack(doc, target.folder, backs.get(kind), size, "nightside")
+        : null;
+
+      const part = await this.#writePack(cards,
+        new Map(cards.map(c => [c.name, img])), { ...target, toItem: target.toItem });
+      report.created += part.created;
+      report.updated += part.updated;
+      report.images += img ? cards.length : 0;
+    }
+    return report;
+  }
+
+  /** Cut one named back and save it beside the deck's own. */
+  async #writeOneBack(doc, folder, where, size, name) {
+    const FP = foundry.applications.apps.FilePicker.implementation;
+    const dir = `${ASSET_ROOT}/${folder}`;
+    for (const part of [ASSET_ROOT.split("/")[0], ASSET_ROOT, dir]) {
+      try { await FP.createDirectory("data", part); } catch { /* already there */ }
+    }
+    const INSET = 0.06;
+    const image = await deck.cutRegion(doc, where.page, {
+      x: where.box.x + INSET, y: where.box.y + INSET,
+      w: where.box.w - INSET * 2, h: where.box.h - INSET * 2
+    }, { size });
+    const file = `back-${name}.${image.extension}`;
+    await FP.upload("data", dir,
+      new File([image.blob], file, { type: image.blob.type }), {}, { notify: false });
+    return `${dir}/${file}`;
   }
 
   /**

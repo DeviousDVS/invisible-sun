@@ -536,7 +536,9 @@
     "SpellClass": "Class",
     "ImportClassBacks": "Cut {count} card backs, one for each class: {classes}.",
     "SourceObjectCardsM": "Book M Objects of Power Cards",
-    "SourceEphemeraCardsM": "Book M Ephemera Cards"
+    "SourceEphemeraCardsM": "Book M Ephemera Cards",
+    "ImportSorted": "Read {total} cards from {sheets} sheets: {kinds}.",
+    "ImportUnplaced": "{count} card(s) could not be sorted by the back printed behind them."
   },
   "TYPES": {
     "Actor": {

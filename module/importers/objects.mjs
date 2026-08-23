@@ -136,7 +136,7 @@ function parseCard(nameParts, lines, lefts) {
  * opens the *next* card's name run, taking the page line with it. Both belong
  * to the card that ended, so the slice is extended over them.
  */
-function splitCards(lines, lefts) {
+function splitCards(lines, lefts, tops) {
   const isName = (l) => NAME_RE.test(l.trim()) && !NOISE_RE.test(l.trim());
   const runs = [];
   for (let i = 0; i < lines.length;) {
@@ -158,7 +158,9 @@ function splitCards(lines, lefts) {
       if (k && end < lines.length && PAGE_RE.test(lines[end].trim())) end++;
     }
     const card = parseCard(run.parts, lines.slice(run.bodyAt, end), lefts.slice(run.bodyAt, end));
-    if (card) cards.push(card);
+    // Where the card starts, so a deck that mixes types can look up which one
+    // this is from the back printed behind it.
+    if (card) cards.push({ ...card, left: lefts[run.start], top: tops[run.start] });
   }
   return cards;
 }
@@ -168,8 +170,8 @@ export function readPage(items, width, height) {
   const grid = findColumns(items, width, height);
   if (!grid) return { cards: [], grid: null };
   const cards = grid.columns.flatMap((column) => {
-    const { text, lefts } = columnLines(items, height, column, grid.usable);
-    return splitCards(text, lefts);
+    const { text, lefts, tops } = columnLines(items, height, column, grid.usable);
+    return splitCards(text, lefts, tops);
   });
   return { cards, grid };
 }
