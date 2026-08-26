@@ -519,6 +519,7 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
   async #importListing(doc, spec) {
     const entries = await spec.read(doc, {
       columns: spec.columns,
+      book: spec.book,
       onProgress: ({ done, total, found }) => {
         if (done % 24 === 0 || done >= total) {
           this.#say(game.i18n.format("ISUN.ImportReadingEntries", { done, total, found }));

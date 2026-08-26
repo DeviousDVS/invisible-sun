@@ -1,5 +1,10 @@
 /**
- * Invisible Sun — the goods lists, out of The Key.
+ * Invisible Sun — The Key: the goods lists, and where a character comes from.
+ *
+ * This reads the priced tables. The heart, soul and foundation write-ups in
+ * the same book are read by creation.mjs, and the two are driven together from
+ * readEntries at the foot of this file, because extracting the text of two
+ * hundred pages is the expensive part of reading either.
  *
  * Everything imported so far has come off a card. These have not: the Money
  * and Goods chapter sets out what a vislae can buy — furniture, clothes,
@@ -34,9 +39,12 @@
  * paragraph, and nothing in the book blurs it.
  */
 
-/** Baselines closer together than this are one line. Rows are 13 points
- *  apart, and a row's own words vary by under a point. */
-const LINE_TOLERANCE = 2.5;
+import { LINE_TOLERANCE, joinWords, pageWords } from "./book-page.mjs";
+import * as creation from "./creation.mjs";
+import * as fortes from "./fortes.mjs";
+import * as arcs from "./arcs.mjs";
+import * as skills from "./skills.mjs";
+import * as orders from "./orders.mjs";
 
 /**
  * How far a line may sit from a column's anchor and still belong to it.
@@ -47,21 +55,6 @@ const LINE_TOLERANCE = 2.5;
  * x=369 against rows at 76 and 373). Three points does both.
  */
 const COLUMN_SLACK = 3;
-
-/** A space between words measures about 2.5 points at this size; a word split
- *  across two text items has no gap at all. */
-const SPACE_GAP = 1;
-
-/**
- * A gap too wide to be a space, and so too wide to be one cell.
- *
- * Page numbers are set in the outer margin, on the same baseline as whatever
- * body text happens to reach that far down. On page 191 the number sits 41
- * points clear of the last word of a price, which read straight through comes
- * out as "Match price to other power source of the same level 193". Words in a
- * cell are two and a half points apart; twenty is nowhere near either.
- */
-const CELL_BREAK = 20;
 
 /** How far above its table a sub-heading may sit. The gap is one line — 13 to
  *  15 points across the chapter — and the next thing further up is a table. */
@@ -134,19 +127,6 @@ const CATEGORIES = {
  *  as 'kindled'"; p185 marks the aethyric ones "with two asterisks (**)". */
 const MARKS = /^(\*{1,2})\s*/;
 
-/** Pull a page's text items into the shape the rest of this works in. */
-export function pageWords(items, height) {
-  return items
-    .filter(item => item.str.trim() !== "")
-    .map(item => ({
-      x: item.transform[4],
-      y: height - item.transform[5],
-      w: item.width,
-      h: item.height || 0,
-      text: item.str.trim()
-    }));
-}
-
 /** Gather words into lines by baseline, each line's words left to right. */
 export function toLines(words) {
   const lines = [];
@@ -163,22 +143,6 @@ export function toLines(words) {
   return lines.sort((a, b) => a.y - b.y);
 }
 
-/** Join words back into text, spacing them by the gaps they were set with,
- *  and stopping at any gap too wide to be part of the same cell. */
-export function joinWords(words) {
-  let out = "";
-  let previous = null;
-  for (const word of words) {
-    if (previous) {
-      const gap = word.x - (previous.x + previous.w);
-      if (gap > CELL_BREAK) break;
-      if (gap > SPACE_GAP) out += " ";
-    }
-    out += word.text;
-    previous = word;
-  }
-  return out;
-}
 
 /**
  * Every table on a page, located by its own header row.
@@ -418,6 +382,7 @@ export function parseRow(row) {
     aethyric,
     level: level ? Number(level) : 0,
     damage: damage ? Number(damage[2]) : 0,
+    kind: kindled ? "kindled" : "goods",
     cost: row.cost.replace(/\s+/g, " ").trim(),
     section: row.section,
     category: CATEGORIES[row.section] ?? "other",
@@ -448,30 +413,52 @@ export function toItem(entry) {
   };
 }
 
-/** Every priced entry in the book, in the order it is printed. */
-export async function readGoods(doc, { onProgress } = {}) {
+/**
+ * Everything this can read out of The Key, in the order it is printed.
+ *
+ * One walk of the book rather than one per chapter. The goods lists, the
+ * character-creation entries, the fortes, the character arcs and the skill
+ * list are nothing like each other — priced tables, labelled write-ups, a
+ * chapter of trees, a run of beats, three bulleted lists — but they are in the
+ * same PDF, and extracting the text of two hundred pages is the expensive part
+ * of reading any of them.
+ */
+export async function readEntries(doc, { onProgress } = {}) {
   const state = { section: "", subsection: "", page: 0 };
-  const found = [];
+  const characters = creation.reader();
+  const forteReader = fortes.reader();
+  const arcReader = arcs.reader();
+  const skillReader = skills.reader();
+  const orderReader = orders.reader();
+  const goods = [];
 
   for (let n = 1; n <= doc.numPages; n++) {
     const page = await doc.getPage(n);
     const { height } = page.getViewport({ scale: 1 });
-    const content = await page.getTextContent();
-    const words = pageWords(content.items, height);
+    const words = pageWords((await page.getTextContent()).items, height);
+
     const tables = findTables(toLines(words));
     if (tables.length) {
       state.page = n;
-      for (const row of readPage(words, tables, state)) found.push(parseRow(row));
+      for (const row of readPage(words, tables, state)) goods.push(parseRow(row));
     }
-    onProgress?.({ done: n, total: doc.numPages, found: found.length });
+    characters.page(words, n);
+    forteReader.page(words, n);
+    arcReader.page(words, n);
+    skillReader.page(words, n);
+    orderReader.page(words, n);
+
+    onProgress?.({ done: n, total: doc.numPages, found: goods.length });
   }
-  return found;
+  return [...goods, ...characters.done(),
+          ...forteReader.done().flatMap(forte => fortes.entries(forte, "The Key")),
+          ...arcReader.done(), ...skillReader.done(), ...orderReader.done()];
 }
 
 /**
  * Which pack an entry belongs in.
  *
- * The fifty kindled items in these lists are already in the game: they are
+ * The fifty kindled items in the goods lists are already in the game: they are
  * printed on cards in the Objects of Power Deck, and the deck importer has
  * brought them in with their level, form and effect. All the goods lists add
  * is what they sell for, which no card states. So they are not imported again
@@ -482,7 +469,7 @@ export async function readGoods(doc, { onProgress } = {}) {
  * appear among the fifty cards the deck marks kindled, and nothing else in the
  * chapter shares a name with any object or ephemera card.
  */
-export const sort = (entry) => (entry.kindled ? "kindled" : "goods");
+export const sort = (entry) => entry.kind;
 
 /**
  * A price, and nothing else.

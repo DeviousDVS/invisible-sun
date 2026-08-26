@@ -144,7 +144,7 @@ recognised; anything it cannot read yet is named in the log rather than
 silently skipped. Your files are read where they lie — nothing is uploaded or
 copied into Foundry.
 
-It reads, today:
+It reads every compendium this system ships:
 
 | From | What it brings in |
 |---|---|
@@ -153,8 +153,18 @@ It reads, today:
 | Spell Deck, Vance Spell Deck, Book M spell cards | 390 spells; the Vancian ones with the class their card size records |
 | Objects of Power, Ephemera, Incantations, Weaver Aggregates, and the Book M cards for each | the rest of the decks |
 | The Nightside | its five kinds of card, sorted by the livery on the back |
-| The Key | the goods lists — 401 items of gear, and the price of the 50 kindled objects the deck already holds |
+| The Key | the goods lists — 401 items of gear, and the price of the 50 kindled objects the deck already holds; the four hearts, thirteen souls and eight foundations; 31 fortes and their 297 abilities; 37 character arcs, the 60-skill starting library, and the five orders with their degrees |
+| Book M, The Nightside, The Threshold | 20 more fortes and their 194 abilities |
 | The Threshold, Secrets of Silent Streets | the nine objects and ephemera that were never printed on a card |
+| The Van Hauten Collection | 279 secrets — character, house and changery |
+
+A forte's **ability tree** is the one thing no PDF can give up. The books draw
+it as a diagram facing the ability text and its arrows are vector art — there
+is no text on the page saying which ability leads to which, and the levels do
+not imply it, since the paths cross. So the importer writes every field an
+ability has *except* `unlocks`, and leaves that exactly as it finds it. The
+tree in the compendium was built by hand and cannot be rebuilt; a re-import
+will not touch it.
 
 Order does not matter: decks are imported before the books that annotate them.
 Running it twice is safe — entries are matched by name and updated, not
@@ -291,12 +301,16 @@ The pipeline above is a command line: Python, Node, and a shell that can find
 and an unreasonable thing to ask of someone who just wants to play — so it is
 being replaced by the importer above, deck by deck and book by book.
 
-What is left to move is the book content: fortes and their abilities, secrets,
-orders, skills, souls, hearts, foundations and character arcs. Those compendia
-are still built by the Python extractors, which means a fresh install plus your
-PDFs does not yet reproduce them. Until it does, the pipeline above is how they
-are made; afterwards it stays as the development and test harness, the same
-parsers driven from a terminal instead of a dialog.
+**Every compendium this system ships now fills itself from your PDFs.** The
+Python pipeline in the next section is no longer the only way to build any of
+them; it stays as the development and test harness — the same parsers, driven
+from a terminal instead of a dialog — and as the thing to check a new reader
+against.
+
+Three things it still does that the importer does not, all of them noted where
+they arise: a forte's ability tree, which no PDF contains; the eleven boxed
+sidebars beside the order entries; and the provenance stamped on each secret,
+which the compilation they are read from does not record.
 
 ---
 

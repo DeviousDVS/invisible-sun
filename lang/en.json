@@ -541,6 +541,8 @@
     "SourcePath": "The Path",
     "SourceBookM": "Book M",
     "SourceThreshold": "The Threshold",
+    "SourceNightsideBook": "The Nightside",
+    "SourceVanHauten": "The Van Hauten Collection",
     "SourceSilentStreets": "Secrets of Silent Streets",
     "ImportDeckFirst": "That compendium is empty, so there is nothing for this book to fill in. Import the matching deck first — put both in the folder and it will do them in the right order.",
     "ImportReadingEntries": "Reading entries… page {done} of {total}, {found} found",

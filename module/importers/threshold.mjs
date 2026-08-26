@@ -1,3 +1,8 @@
+import {
+  PARAGRAPH_SLACK, columnLines, isHeading, pageWords, title
+} from "./book-page.mjs";
+import * as fortes from "./fortes.mjs";
+
 /**
  * Invisible Sun — the objects written up in The Threshold's appendix.
  *
@@ -24,9 +29,6 @@
  * starts wherever the shape of it puts it, 240 points along.
  */
 
-/** Baselines closer together than this are one line. */
-const LINE_TOLERANCE = 2.5;
-
 /**
  * Where a book's columns begin, book by book.
  *
@@ -34,36 +36,11 @@ const LINE_TOLERANCE = 2.5;
  * lines start at 443, 16 at 428, and none at all between 92 and 310. Secrets
  * of Silent Streets writes its one object into a box in the outer column, at
  * 442, against body text at 72.
- *
- * These are per book rather than derived per page because what has to be
- * derived is not the columns but the gutters: an aside set down the middle at
- * x=311 begins a long way into the left column's band and nowhere near the
- * right's, and only knowing where the next column starts says which.
  */
 export const COLUMNS = {
   threshold: [72, 428],
   "silent-streets": [72, 442]
 };
-
-/**
- * How far in from its column a line of body text may start.
- *
- * A paragraph opens flush at the column and its later lines are indented one
- * step — 72 and 86 on the left, 428 and 443 on the right. Nothing else in the
- * text block is flush to anything: the asides down the middle start at 311,
- * 317, 326, 336, 337, 343 and 363, ragged by design.
- */
-const INDENT_MAX = 20;
-
-/** Anything indented at all is a continuation; a paragraph starts flush. */
-const PARAGRAPH_SLACK = 3;
-
-/** A gap this wide is not a space between two words but the space between two
- *  things — an aside beginning where a line of text left off. */
-const CELL_BREAK = 20;
-
-/** Headings are set at 12 points against the body's 10. */
-const HEADING_HEIGHT = 11.5;
 
 /** The labelled fields these entries carry, exactly as the cards do. */
 const LABELS = ["Level", "Form", "Depletion", "Color"];
@@ -84,74 +61,10 @@ export const TYPES = {
   "EPHEMERA OBJECT": "ephemera"
 };
 
-/** Pull a page's text items into the shape the rest of this works in. */
-export function pageWords(items, height) {
-  return items
-    .filter(item => item.str.trim() !== "")
-    .map(item => ({
-      x: item.transform[4],
-      y: height - item.transform[5],
-      w: item.width,
-      h: item.height || 0,
-      text: item.str.trim()
-    }));
-}
 
-/** Join words into text, stopping at a gap too wide to be one run of type. */
-export function joinWords(words) {
-  let out = "";
-  let previous = null;
-  for (const word of words) {
-    if (previous) {
-      const gap = word.x - (previous.x + previous.w);
-      if (gap > CELL_BREAK) break;
-      if (gap > 1) out += " ";
-    }
-    out += word.text;
-    previous = word;
-  }
-  return out;
-}
 
-/**
- * One column's lines, top to bottom.
- *
- * Words are taken by the band the column occupies and only then gathered into
- * lines, so that the two columns never share one. What is left of the asides —
- * the ones set on a body line's own baseline — is cut by joinWords, which
- * stops at the gap between the end of the sentence and the start of the aside.
- */
-export function columnLines(words, columns, index) {
-  const from = columns[index];
-  const to = columns[index + 1] ?? Infinity;
-  const lines = [];
-
-  for (const word of words.filter(w => w.x >= from - PARAGRAPH_SLACK && w.x < to - PARAGRAPH_SLACK)
-    .sort((a, b) => a.y - b.y || a.x - b.x)) {
-    const line = lines.find(l => Math.abs(l.y - word.y) < LINE_TOLERANCE);
-    if (line) line.words.push(word);
-    else lines.push({ y: word.y, words: [word] });
-  }
-
-  return lines
-    .map(line => {
-      line.words.sort((a, b) => a.x - b.x);
-      return {
-        y: line.y,
-        x: line.words[0].x,
-        h: Math.max(...line.words.map(w => w.h)),
-        text: joinWords(line.words)
-      };
-    })
-    // Flush to the column or one indent in; anything else is an aside.
-    .filter(line => line.x < from + INDENT_MAX)
-    .sort((a, b) => a.y - b.y);
-}
 
 /** A heading is set large and in capitals. */
-const isHeading = (line) =>
-  line.h >= HEADING_HEIGHT && line.text === line.text.toUpperCase() && /[A-Z]/.test(line.text);
-
 /**
  * Split a heading into the thing's name and what the book calls it.
  *
@@ -167,14 +80,6 @@ export function parseHeading(text) {
   return { name: title(match[1].trim()), type: match[2].trim().toUpperCase() };
 }
 
-/** SAFE STEP BOOTS → Safe Step Boots. */
-function title(text) {
-  const small = new Set(["and", "or", "of", "the", "a", "an", "in", "to", "upon"]);
-  return text.toLowerCase().split(/\s+/)
-    .map((word, i) => (i > 0 && small.has(word))
-      ? word : word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
 
 /**
  * Read one entry's body: its labelled fields, and the prose between them.
@@ -236,8 +141,11 @@ export function parseBody(lines, column) {
  * wrong: Indigo Sphere breaks exactly at a paragraph, so its second half opens
  * flush at the column, looking for all the world like a fresh start.
  */
-export async function readEntries(doc, { columns = COLUMNS.threshold, onProgress } = {}) {
+export async function readEntries(doc, { columns = COLUMNS.threshold, book, onProgress } = {}) {
   const found = [];
+  /* The Threshold carries a forte as well as its objects, written up in the
+   * idiom the other books use. One walk of the PDF serves both. */
+  const forteReader = fortes.reader();
   let heading = [];
   let open = null;
 
@@ -283,11 +191,19 @@ export async function readEntries(doc, { columns = COLUMNS.threshold, onProgress
         if (open) open.lines.push({ ...line, x: line.x - columns[column] + open.column });
       }
     }
+    forteReader.page(words, n);
     onProgress?.({ done: n, total: doc.numPages, found: found.length });
   }
   close();
-  return found;
+  return [...found,
+          ...forteReader.done().flatMap(forte => fortes.entries(forte, book))];
 }
+
+/** Which pack an entry belongs in. */
+export const sort = (entry) => {
+  if (entry.kind === "forte" || entry.kind === "forteAbility") return entry.kind;
+  return entry.kind === "ephemera" ? "ephemera" : "objects";
+};
 
 /**
  * True once an entry has reached the last of its labelled fields.

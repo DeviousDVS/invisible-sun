@@ -34,6 +34,12 @@ import * as objects from "./objects.mjs";
 import * as aggregates from "./aggregates.mjs";
 import * as nightside from "./nightside.mjs";
 import * as keyBook from "./key.mjs";
+import * as creation from "./creation.mjs";
+import * as fortes from "./fortes.mjs";
+import * as arcs from "./arcs.mjs";
+import * as skills from "./skills.mjs";
+import * as orders from "./orders.mjs";
+import * as secrets from "./secrets.mjs";
 import * as threshold from "./threshold.mjs";
 
 /**
@@ -309,15 +315,77 @@ export const SOURCES = [
     signature: coverTitle("THE KEY"),
     /* A book that makes items rather than filling them in, which is what
      * separates this from The Gate: the Money and Goods chapter is the only
-     * place several hundred of these things are written down. What it does
-     * fill in is the price of the fifty kindled items, which are cards. */
+     * place several hundred of these things are written down, and so are three
+     * of the five steps of character creation. What it does fill in is the
+     * price of the fifty kindled items, which are cards. */
     kind: "listing",
-    read: keyBook.readGoods,
+    read: keyBook.readEntries,
     sort: keyBook.sort,
     buckets: {
-      goods:   { pack: "invisible-sun.gear", toItem: keyBook.toItem },
-      kindled: { pack: "invisible-sun.objects-of-power", toItem: keyBook.toPrice,
-                 updateOnly: true }
+      /* Two entries are printed twice under different headings, at different
+       * prices: binoculars are 10 crystal orbs among the supplies and 15 among
+       * the travelling equipment, and a first aid kit is 10 in both. Matched on
+       * the name alone the pair collapses, and a re-import gives one of them
+       * the other's price. */
+      goods:      { pack: "invisible-sun.gear", toItem: keyBook.toItem,
+                    uniqueBy: ["system.category"] },
+      kindled:    { pack: "invisible-sun.objects-of-power", toItem: keyBook.toPrice,
+                    updateOnly: true },
+      heart:      { pack: "invisible-sun.hearts", toItem: creation.toHeartItem },
+      soul:       { pack: "invisible-sun.souls", toItem: creation.toSoulItem },
+      foundation: { pack: "invisible-sun.foundations", toItem: creation.toFoundationItem },
+      forte:        { pack: "invisible-sun.fortes", toItem: fortes.toForteItem },
+      forteAbility: { pack: "invisible-sun.forte-abilities", toItem: fortes.toAbilityItem,
+                      uniqueBy: ["system.parentForte"] },
+      arc:          { pack: "invisible-sun.character-arcs", toItem: arcs.toItem },
+      skill:        { pack: "invisible-sun.skills", toItem: skills.toItem },
+      order:        { pack: "invisible-sun.orders", toItem: orders.toItem }
+    }
+  },
+  {
+    key: "book-m",
+    label: "ISUN.SourceBookM",
+    hint: /^book.?m\b/i,
+    signature: coverTitle("BOOK M"),
+    kind: "listing",
+    book: "Book M",
+    read: fortes.readEntries,
+    sort: (entry) => entry.kind,
+    buckets: {
+      forte:        { pack: "invisible-sun.fortes", toItem: fortes.toForteItem },
+      forteAbility: { pack: "invisible-sun.forte-abilities", toItem: fortes.toAbilityItem,
+                      uniqueBy: ["system.parentForte"] }
+    }
+  },
+  {
+    key: "nightside-book",
+    label: "ISUN.SourceNightsideBook",
+    hint: /^the.?nightside/i,
+    signature: coverTitle("THE NIGHTSIDE"),
+    kind: "listing",
+    book: "The Nightside",
+    read: fortes.readEntries,
+    sort: (entry) => entry.kind,
+    buckets: {
+      forte:        { pack: "invisible-sun.fortes", toItem: fortes.toForteItem },
+      forteAbility: { pack: "invisible-sun.forte-abilities", toItem: fortes.toAbilityItem,
+                      uniqueBy: ["system.parentForte"] }
+    }
+  },
+  {
+    key: "van-hauten",
+    label: "ISUN.SourceVanHauten",
+    hint: /^the.?van.?hauten/i,
+    signature: coverTitle("VAN HAUTEN COLLECTION"),
+    /* A compilation rather than a source: it reprints every secret the other
+     * books print, on pages that carry no marginal notes and no sidebars. So
+     * the secrets are read from here rather than from the five books they are
+     * scattered across — see secrets.mjs. */
+    kind: "listing",
+    read: secrets.readEntries,
+    sort: (entry) => entry.kind,
+    buckets: {
+      secret: { pack: "invisible-sun.secrets", toItem: secrets.toItem }
     }
   },
   {
@@ -328,10 +396,14 @@ export const SOURCES = [
     kind: "listing",
     read: threshold.readEntries,
     columns: threshold.COLUMNS.threshold,
-    sort: (entry) => (entry.kind === "ephemera" ? "ephemera" : "objects"),
+    book: "The Threshold",
+    sort: threshold.sort,
     buckets: {
       objects:  { pack: "invisible-sun.objects-of-power", toItem: threshold.toItem },
-      ephemera: { pack: "invisible-sun.ephemera", toItem: threshold.toEphemeraItem }
+      ephemera: { pack: "invisible-sun.ephemera", toItem: threshold.toEphemeraItem },
+      forte:        { pack: "invisible-sun.fortes", toItem: fortes.toForteItem },
+      forteAbility: { pack: "invisible-sun.forte-abilities", toItem: fortes.toAbilityItem,
+                      uniqueBy: ["system.parentForte"] }
     }
   },
   {
@@ -342,7 +414,7 @@ export const SOURCES = [
     kind: "listing",
     read: threshold.readEntries,
     columns: threshold.COLUMNS["silent-streets"],
-    sort: () => "objects",
+    sort: threshold.sort,
     buckets: {
       objects: { pack: "invisible-sun.objects-of-power", toItem: threshold.toItem }
     }
@@ -358,8 +430,7 @@ export const SOURCES = [
  */
 export const NOT_YET = [
   { key: "way", label: "ISUN.SourceWay", hint: /^the.?way/i, signature: coverTitle("THE WAY") },
-  { key: "path", label: "ISUN.SourcePath", hint: /^the.?path/i, signature: coverTitle("THE PATH") },
-  { key: "book-m", label: "ISUN.SourceBookM", hint: /^book.?m\b/i, signature: coverTitle("BOOK M") }
+  { key: "path", label: "ISUN.SourcePath", hint: /^the.?path/i, signature: coverTitle("THE PATH") }
 ];
 
 const ALL = [...SOURCES, ...NOT_YET];
