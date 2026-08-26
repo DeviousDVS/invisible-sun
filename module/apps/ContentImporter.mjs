@@ -620,8 +620,26 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
     if (wasLocked) await pack.configure({ locked: false });
 
     try {
-      const index = await pack.getIndex();
-      const byName = new Map(index.map(e => [e.name, e._id]));
+      /* What makes an entry the same entry as one already here.
+       *
+       * Nearly always its name, but not for the forte abilities: two fortes
+       * name an ability the same. Eats Knowledge and Cages Adversaries both
+       * have a Feed Upon Mind, and Foments Dissension and Weaves Stealth With
+       * Sorcery both have a Mass Hallucination. Matched on the name alone,
+       * each pair collapses onto one item — the second write lands on the
+       * first's document and the other ability never gets one at all. Two of
+       * the 491 were missing from the compendium because of it.
+       *
+       * So a bucket may name the fields that tell such entries apart, and they
+       * are matched on the name together with those. */
+      const apart = spec.uniqueBy ?? [];
+      const value = (from, path) =>
+        path.split(".").reduce((at, key) => at?.[key], from) ?? "";
+      const keyOf = (name, from) =>
+        [name, ...apart.map(path => value(from, path))].join("\u0000");
+
+      const index = await pack.getIndex({ fields: apart });
+      const byName = new Map(index.map(e => [keyOf(e.name, e), e._id]));
 
       /* A second index that ignores case and punctuation, tried only when the
        * name does not match outright.
@@ -632,9 +650,10 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
        * left sitting beside them. Matching exactly is right, but failing to
        * match should mean "this is a new card", not "this card is spelled
        * slightly differently than last time". */
+      const squash = (key) => key.toUpperCase().replace(/[^A-Z0-9\u0000]/g, "");
       const loose = new Map();
       for (const entry of index) {
-        const key = entry.name.toUpperCase().replace(/[^A-Z0-9]/g, "");
+        const key = squash(keyOf(entry.name, entry));
         // Ambiguous keys are no help: leave those to the exact match.
         loose.set(key, loose.has(key) ? null : entry._id);
       }
@@ -643,8 +662,8 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
       let missing = 0;
       for (const card of cards) {
         const data = spec.toItem(card, images.get(card.name), spec.spellType);
-        const id = byName.get(card.name)
-          ?? loose.get(card.name.toUpperCase().replace(/[^A-Z0-9]/g, ""));
+        const key = keyOf(data.name ?? card.name, data);
+        const id = byName.get(key) ?? loose.get(squash(key));
         if (id) update.push({ _id: id, ...data });
         /* Some entries can only ever add to something already imported — a
          * price for a card, say. There is nothing to make from one on its own,
