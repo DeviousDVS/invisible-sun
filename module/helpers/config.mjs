@@ -446,6 +446,34 @@ export const ISUN = Object.freeze({
   },
 
   /**
+   * What each royalty card does, as numbers rather than as prose.
+   *
+   * "Sovereign: +1 to all actions, +2 if heart is linked to family. Nemesis: −1
+   * to all actions, −2 if heart is linked to family. Defender: +2 to all
+   * actions if heart is linked to family. Apprentice: −1 to all actions if
+   * heart is linked to family. Companion: Duplicates the effects of the
+   * previously played card (if played first in a session on the Silver Sun,
+   * immediately play another card on the next sun). Adept: Play another card on
+   * the next sun" (The Gate, p74).
+   *
+   * `all` applies to everyone, `family` to a character whose heart is linked to
+   * the card's family — Defender and Apprentice have no `all`, so they touch
+   * nobody else. `duplicates` and `chain` are not modifiers at all: they change
+   * what happens next on the board, and helpers/sooth.mjs reads them there.
+   *
+   * The printed text stays on the card in `effectText`, and it is what the
+   * board shows a reader. This is for the arithmetic.
+   */
+  soothRankEffects: {
+    sovereign:  { all: 1, family: 2 },
+    nemesis:    { all: -1, family: -2 },
+    defender:   { family: 2 },
+    apprentice: { family: -1 },
+    companion:  { duplicates: true },
+    adept:      { chain: 1 },
+  },
+
+  /**
    * What a forte ability costs in Crux, by its level: "An ability of level 1 to
    * 4 requires 1 Crux, level 5 to 6 requires 2 Crux, and level 7 and above
    * require 3 Crux" (The Key, p6432).

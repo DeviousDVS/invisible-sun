@@ -40,6 +40,8 @@ import { ExperimentalDie } from "./module/dice/ExperimentalDie.mjs";
 import { registerDiceSoNice } from "./module/helpers/dice-so-nice.mjs";
 import { CompendiumBrowser } from "./module/apps/CompendiumBrowser.mjs";
 import { ContentImporter } from "./module/apps/ContentImporter.mjs";
+import { PathOfSuns } from "./module/apps/PathOfSuns.mjs";
+import { DEFAULT_STATE as PATH_OF_SUNS } from "./module/helpers/sooth.mjs";
 
 // ── Migrations ───────────────────────────────────────────
 import { registerMigrationSetting, runMigrations } from "./module/migrations/index.mjs";
@@ -101,7 +103,8 @@ Hooks.once("init", () => {
     CompendiumBrowser,
     ContentImporter,
     ChallengeCard,
-    ChallengeDeclaration
+    ChallengeDeclaration,
+    PathOfSuns
   };
 
   // The stylesheet draws the flux mark too — on the chat card and on Foundry's
@@ -151,12 +154,27 @@ Hooks.once("init", () => {
    * message and the declaration is the first thing the table sees of it.
    * GM only: only the GM declares, and only players roll. */
   Hooks.on("renderChatLog", (app, element) => {
-    if (!game.user.isGM) return;
     const root = element instanceof HTMLElement ? element : element?.[0];
     // v14 has no #chat-controls. The chat form is where core puts its own
     // control (the jump-to-bottom button), so the declaration sits beside it.
     const form = root?.querySelector(".chat-form");
-    if (!form || form.querySelector(".isun-challenge-btn")) return;
+    if (!form) return;
+
+    /* The Path of Suns is the whole table's, not the GM's: "the Path of Suns
+     * board needs to have a prominent place at your game table" (The Gate,
+     * p71), and a player who cannot see which card is up cannot use it. Only a
+     * GM gets the controls; everyone gets the board. */
+    if (!form.querySelector(".isun-path-btn")) {
+      const path = document.createElement("button");
+      path.type = "button";
+      path.className = "ui-control icon fa-solid fa-sun isun-path-btn";
+      path.dataset.tooltip = game.i18n.localize("ISUN.PathButton");
+      path.setAttribute("aria-label", game.i18n.localize("ISUN.PathButton"));
+      path.addEventListener("click", () => PathOfSuns.open());
+      form.prepend(path);
+    }
+
+    if (!game.user.isGM || form.querySelector(".isun-challenge-btn")) return;
 
     const button = document.createElement("button");
     button.type = "button";
@@ -256,6 +274,17 @@ Hooks.once("init", () => {
     })
   });
 
+  /* The board is state, not a preference, so it is not in the settings menu.
+   * A world setting is the right home for it: one board for the table, written
+   * by the GM and read by everyone, arriving on the other clients as a document
+   * update without a socket of its own. */
+  game.settings.register("invisible-sun", "pathOfSuns", {
+    scope: "world",
+    config: false,
+    type: Object,
+    default: foundry.utils.deepClone(PATH_OF_SUNS)
+  });
+
   // ── Migrations ───────────────────────────────────────
   // Registered in init because the ready hook reads it.
   registerMigrationSetting();
@@ -277,6 +306,10 @@ Hooks.once("ready", async () => {
    * declares no update permission — so a response to a challenge is relayed to
    * a GM client, which applies it. Every client listens; only a GM acts. */
   ChallengeCard.listen();
+
+  /* A GM turning a card writes the world setting; this is what makes every
+   * other open board redraw when they do. */
+  PathOfSuns.listen();
 
   /* The card is drawn per client, not stored: it says different things to a
    * player and to the GM, so one saved rendering would show the GM's view to

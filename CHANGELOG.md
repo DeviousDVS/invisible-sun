@@ -60,6 +60,14 @@ be. See [Content](#content) below.
   same way. Magic dice flux on a 0, with intensity following how many were cast,
   and the Experimental Die, which never succeeds and only ever fluxes.
 
+- **The Path of Suns.** The Sooth Deck's board as a window the whole table can
+  see: turn a card and it lands on the next sun, with Adept and Companion
+  turning the next one themselves, and the Testament of Suns keeping the card
+  played on the Invisible Sun in effect across the session. It reads out what is
+  in play — the enhanced and diminished suns, doubled where a card sits on its
+  own sun, and each character's venture bonus where their heart's family is
+  showing — and applies none of it, which is what the books ask for.
+
 #### Progress
 
 - **Advancement.** Joy, Despair, Acumen and Hidden Knowledge, each labelled with

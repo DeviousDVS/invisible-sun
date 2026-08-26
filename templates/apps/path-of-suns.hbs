@@ -1,0 +1,153 @@
+<div class="path-board flexcol">
+
+  {{!-- The controls are the GM's. A player's board is the same board without
+        them: they watch it, they do not turn it. --}}
+  {{#if isGM}}
+    <div class="path-controls flexrow">
+      <button type="button" data-action="turnCard" {{#if empty}}disabled{{/if}}>
+        <i class="fa-solid fa-sun"></i> {{localize "ISUN.PathTurn"}}
+      </button>
+      <button type="button" data-action="undoTurn" {{#unless played}}disabled{{/unless}}>
+        <i class="fa-solid fa-rotate-left"></i> {{localize "ISUN.PathUndo"}}
+      </button>
+      <button type="button" data-action="newSession">
+        <i class="fa-solid fa-hourglass-start"></i> {{localize "ISUN.PathNewSession"}}
+      </button>
+      <button type="button" data-action="reshuffle">
+        <i class="fa-solid fa-shuffle"></i> {{localize "ISUN.PathReshuffle"}}
+      </button>
+      <button type="button" data-action="toggleNightside" class="{{#if nightside}}on{{/if}}">
+        <i class="fa-solid fa-moon"></i>
+        {{#if nightside}}{{localize "ISUN.PathDayside"}}{{else}}{{localize "ISUN.PathNightside"}}{{/if}}
+      </button>
+    </div>
+  {{/if}}
+
+  {{#if empty}}
+    <p class="notes path-empty">{{localize "ISUN.PathEmpty"}}</p>
+  {{/if}}
+
+  {{!-- The eight suns of the Path, and the Invisible Sun set apart at the end
+        of it, where the Testament of Suns keeps its card. --}}
+  <div class="path-suns">
+    {{#each positions as |position|}}
+      <div class="sun-position{{#if position.offPath}} off-path{{/if}}
+                  {{~#if position.active}} is-active{{/if}}
+                  {{~#if position.next}} is-next{{/if}}"
+           style="--sun-colour: {{position.colour}}">
+
+        {{#if position.card}}
+          <div class="sun-slot filled" data-action="openCard" data-uuid="{{position.card.uuid}}"
+               data-tooltip="{{position.card.name}}">
+            <img src="{{position.card.img}}" alt="{{position.card.name}}" />
+            {{#if position.card.doubled}}
+              <i class="fa-solid fa-circle-plus doubled"
+                 data-tooltip="{{localize 'ISUN.PathDoubled'}}"></i>
+            {{/if}}
+          </div>
+        {{else}}
+          <div class="sun-slot empty"><i class="fa-regular fa-circle"></i></div>
+        {{/if}}
+
+        <div class="sun-label">{{position.label}}</div>
+
+        {{#if position.card}}
+          <div class="card-name">{{position.card.name}}</div>
+          <div class="card-line">
+            {{#if position.card.rank}}{{position.card.rank}} · {{/if}}{{position.card.family}}
+          </div>
+        {{else if position.missing}}
+          <div class="card-line missing">{{localize "ISUN.PathMissingCard"}}</div>
+        {{/if}}
+
+        {{#if position.testament}}
+          <div class="sun-flag">{{localize "ISUN.PathTestament"}}</div>
+        {{else if position.active}}
+          <div class="sun-flag">{{localize "ISUN.PathActive"}}</div>
+        {{else if position.next}}
+          <div class="sun-flag next">{{localize "ISUN.PathNext"}}</div>
+        {{/if}}
+
+        {{#if @root.isGM}}
+          <button type="button" class="place-here" data-action="placeCard"
+                  data-sun="{{position.sun}}"
+                  data-tooltip="{{localize 'ISUN.PathPlaceHere'}}">
+            <i class="fa-solid fa-hand-pointer"></i>
+          </button>
+        {{/if}}
+      </div>
+    {{/each}}
+  </div>
+
+  {{!-- What is in play. Read off the board and applied by hand, which is what
+        the modifiers are for. --}}
+  <div class="path-effects">
+    <h3>{{localize "ISUN.PathEffectsTitle"}}</h3>
+
+    {{#if suns}}
+      <ul class="sun-effects">
+        {{#each suns as |line|}}
+          <li style="--sun-colour: {{line.colour}}">
+            <span class="swatch"></span>
+            {{line.text}}
+            {{#if line.doubled}}<em class="doubled-note">{{localize "ISUN.PathDoubled"}}</em>{{/if}}
+            <span class="from">{{line.source}}</span>
+          </li>
+        {{/each}}
+      </ul>
+    {{/if}}
+
+    {{#if actions}}
+      <ul class="action-effects">
+        {{#each actions as |line|}}
+          <li>
+            {{#if line.all}}
+              <strong>{{line.all}}</strong> {{localize "ISUN.PathAllActions"}}{{#if line.matched}};{{/if}}
+            {{/if}}
+            {{#if line.matched}}
+              <strong>{{line.matched}}</strong>
+              {{localize "ISUN.PathFamilyActions"}} {{line.family}}
+            {{/if}}
+            <span class="from">{{#if line.rank}}{{line.rank}} — {{/if}}{{line.source}}</span>
+          </li>
+        {{/each}}
+      </ul>
+    {{/if}}
+
+    {{#unless suns}}{{#unless actions}}
+      <p class="notes">{{localize "ISUN.PathNoEffects"}}</p>
+    {{/unless}}{{/unless}}
+
+    {{#if table}}
+      <table class="path-table">
+        <thead>
+          <tr>
+            <th>{{localize "ISUN.PathTableTitle"}}</th>
+            <th>{{localize "ISUN.PathHeartFamily"}}</th>
+            <th>{{localize "ISUN.PathVenture"}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each table as |row|}}
+            <tr>
+              <td>{{row.name}}</td>
+              <td>{{row.heart}}</td>
+              <td class="venture">
+                {{#if row.venture}}<strong>{{row.venture}}</strong>
+                  <span class="from">{{row.sources}}</span>
+                {{else}}—{{/if}}
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    {{/if}}
+
+    <p class="hint path-advisory">{{localize "ISUN.PathAdvisory"}}</p>
+  </div>
+
+  <footer class="path-footer flexrow">
+    <span>{{localize "ISUN.PathPlayed"}}: {{played}}</span>
+    <span>{{localize "ISUN.PathRemaining"}}: {{remaining}}</span>
+  </footer>
+</div>

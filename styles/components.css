@@ -1949,3 +1949,233 @@ a.sentence-part:hover {
 .content-importer .import-log li.failed { color: var(--isun-danger, #e74c3c); font-weight: 600; }
 
 .isun-import-btn { margin-top: 0.25rem; }
+
+/* ── The Path of Suns ──────────────────────────────────────────────
+ * Nine positions in a row, each a round card on a coloured ring, because the
+ * Sooth cards are round and the board is read at a glance rather than studied.
+ * The sun's own colour is passed in as --sun-colour by the template, so nothing
+ * here has to know which sun it is drawing.
+ */
+.path-of-suns .path-board {
+  gap: var(--isun-space-md, 12px);
+  padding: var(--isun-space-sm, 8px);
+}
+
+.path-of-suns .path-controls {
+  gap: var(--isun-space-xs, 4px);
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+}
+
+.path-of-suns .path-controls button {
+  flex: 0 1 auto;
+  white-space: nowrap;
+}
+
+.path-of-suns .path-controls button.on {
+  border-color: var(--isun-border-accent);
+  color: var(--isun-text-accent);
+}
+
+.path-of-suns .path-suns {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--isun-space-xs, 4px);
+  flex-wrap: wrap;
+}
+
+.path-of-suns .sun-position {
+  position: relative;
+  flex: 1 1 84px;
+  max-width: 108px;
+  min-width: 72px;
+  text-align: center;
+  padding: 4px 2px 6px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+}
+
+/* The Invisible Sun sits "off to the side" of the Path, so it is set apart
+ * rather than being the ninth of a row of nine. */
+.path-of-suns .sun-position.off-path {
+  margin-left: var(--isun-space-md, 12px);
+  border-left: 1px dashed var(--isun-border);
+  padding-left: var(--isun-space-sm, 8px);
+}
+
+.path-of-suns .sun-position.is-active {
+  border-color: var(--isun-border-accent);
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.path-of-suns .sun-position.is-next .sun-slot {
+  border-style: dashed;
+}
+
+.path-of-suns .sun-slot {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border-radius: 50%;
+  border: 2px solid var(--sun-colour, #888);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--isun-bg-secondary);
+}
+
+.path-of-suns .sun-slot.filled { cursor: pointer; }
+
+.path-of-suns .sun-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: none;
+}
+
+.path-of-suns .sun-slot.empty i {
+  color: var(--sun-colour, #888);
+  opacity: 0.35;
+  font-size: 1.4rem;
+}
+
+.path-of-suns .sun-slot .doubled {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  color: var(--isun-text-accent);
+  background: var(--isun-bg-primary);
+  border-radius: 50%;
+  font-size: 0.85rem;
+}
+
+.path-of-suns .sun-label {
+  font-family: var(--isun-font-smallcaps);
+  color: var(--sun-colour, var(--isun-text-secondary));
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+.path-of-suns .card-name {
+  font-size: 0.72rem;
+  color: var(--isun-text-primary);
+  line-height: 1.15;
+}
+
+.path-of-suns .card-line {
+  font-size: 0.65rem;
+  color: var(--isun-text-secondary);
+}
+
+.path-of-suns .card-line.missing { color: var(--isun-wound); }
+
+.path-of-suns .sun-flag {
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--isun-text-accent);
+}
+
+.path-of-suns .sun-flag.next { color: var(--isun-text-secondary); }
+
+.path-of-suns .place-here {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  line-height: 1;
+  font-size: 0.7rem;
+  opacity: 0;
+  border-radius: 50%;
+}
+
+/* Shown on hover, and on focus so it can be reached from the keyboard. */
+.path-of-suns .sun-position:hover .place-here,
+.path-of-suns .place-here:focus-visible { opacity: 1; }
+
+.path-of-suns .path-effects {
+  border-top: 1px solid var(--isun-border);
+  padding-top: var(--isun-space-sm, 8px);
+}
+
+.path-of-suns .path-effects h3 {
+  font-family: var(--isun-font-smallcaps);
+  color: var(--isun-text-accent);
+  margin: 0 0 4px;
+}
+
+.path-of-suns .path-effects ul {
+  list-style: none;
+  margin: 0 0 6px;
+  padding: 0;
+}
+
+.path-of-suns .path-effects li {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.path-of-suns .path-effects .swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sun-colour, #888);
+  flex: 0 0 auto;
+}
+
+.path-of-suns .path-effects .from {
+  color: var(--isun-text-secondary);
+  font-size: 0.75rem;
+  margin-left: auto;
+  text-align: right;
+}
+
+.path-of-suns .doubled-note {
+  color: var(--isun-text-accent);
+  font-size: 0.75rem;
+}
+
+.path-of-suns .path-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: var(--isun-space-xs, 4px);
+}
+
+.path-of-suns .path-table th {
+  font-family: var(--isun-font-smallcaps);
+  color: var(--isun-text-secondary);
+  font-weight: normal;
+  text-align: left;
+  font-size: 0.75rem;
+  border-bottom: 1px solid var(--isun-border);
+}
+
+.path-of-suns .path-table td {
+  padding: 2px 0;
+  font-size: 0.8rem;
+}
+
+.path-of-suns .path-table .venture .from {
+  margin-left: 6px;
+}
+
+.path-of-suns .path-advisory {
+  font-size: 0.72rem;
+  color: var(--isun-text-secondary);
+  margin: 6px 0 0;
+}
+
+.path-of-suns .path-footer {
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--isun-text-secondary);
+  border-top: 1px solid var(--isun-border);
+  padding-top: 4px;
+}

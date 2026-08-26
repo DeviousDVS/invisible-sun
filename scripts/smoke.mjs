@@ -64,7 +64,7 @@ page.on("console", m => {
   else if (m.type() === "warning") warnings.push(m.text());
 });
 
-let made = null, aborted = null;
+let made = null, aborted = null, savedPath = null;
 try {
   /* ── 1. The world loads ── */
   await page.goto(`${URL_BASE}/join`, { waitUntil: "networkidle" });
@@ -187,7 +187,55 @@ try {
        broken.length ? broken.join(", ") : `${itemTypes.length} types`);
   }
 
-  /* ── 6. A roll reaches chat, and so does its depletion check ── */
+  /* ── 6. The Path of Suns turns, and every control on it works ──
+   *
+   * The board is the one part of the system that is shared table state rather
+   * than a document, so it is the one part where a broken control means the GM
+   * cannot play a card at all. The world's own board is put back afterwards. */
+  {
+    const before = errors.length;
+    savedPath = await page.evaluate(() => game.settings.get("invisible-sun", "pathOfSuns"));
+    await page.evaluate(async () => {
+      await game.settings.set("invisible-sun", "pathOfSuns",
+        { version: 1, history: [], nightside: false });
+      game.invisibleSun.PathOfSuns.open();
+    });
+
+    const board = page.locator("#isun-path-of-suns");
+    const shown = await board.waitFor({ state: "visible", timeout: 15_000 })
+      .then(() => true).catch(() => false);
+
+    // Turned rather than clicked: a card turn is a write to a world setting,
+    // and what is being checked is that the whole round trip lands.
+    await board.locator('[data-action="turnCard"]').click().catch(() => {});
+    await page.waitForTimeout(500);
+    const turned = await page.evaluate(() =>
+      game.settings.get("invisible-sun", "pathOfSuns").history.length);
+    ok("the Path of Suns turns a card", shown && turned > 0 && errors.length === before,
+       !shown ? "the board never opened" : (errors[errors.length - 1] ?? `${turned} played`));
+
+    // Every control except the two that need an answer: placeCard opens a
+    // dialog, and openCard a sheet, both of which the walk above already
+    // exercises the pattern of.
+    const boardSkip = new Set([...SKIP, "placeCard", "openCard", "toggleControls"]);
+    let boardClicks = 0;
+    for (const name of await board.locator("[data-action]")
+      .evaluateAll(els => [...new Set(els.map(e => e.dataset.action))])) {
+      if (boardSkip.has(name)) continue;
+      const el = board.locator(`[data-action="${name}"]`).first();
+      if (!await el.isVisible().catch(() => false)) continue;
+      await el.click({ timeout: 4000 }).catch(() => {});
+      boardClicks++;
+      await page.waitForTimeout(300);
+    }
+    const boardUnknown = warnings.filter(w => /unknown action|not a valid action/i.test(w));
+    ok("every control on the board works", boardUnknown.length === 0 && errors.length === before,
+       boardUnknown[0] ?? errors[errors.length - 1] ?? `${boardClicks} controls`);
+    await page.evaluate(() =>
+      foundry.applications.instances.get("isun-path-of-suns")?.close());
+  }
+
+  /* ── 7. A roll reaches chat, and so does its depletion check ── */
   const rolled = await page.evaluate(async ({ id }) => {
     const before = game.messages.size;
     const actor = game.actors.get(id);
@@ -203,6 +251,11 @@ try {
   aborted = e.message;
   console.error(`\n  ABORTED  ${e.message}`);
 } finally {
+  if (savedPath) {
+    await page.evaluate(saved =>
+      game.settings.set("invisible-sun", "pathOfSuns", saved), savedPath)
+      .catch(e => console.error(`  board not restored: ${e.message}`));
+  }
   if (made) {
     await page.evaluate(async ({ id }) => {
       await game.actors.get(id)?.delete();

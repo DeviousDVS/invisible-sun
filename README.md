@@ -82,6 +82,20 @@ player answers with skills, bene and Sortilege, and rolls. One chat card carries
 the whole exchange and stays as the record of it. A defence is the same card with
 another label, so combat needs no second mechanism.
 
+**The Path of Suns.** The Sooth Deck's board, where the GM turns a card and
+everyone can see which one is up: the nine positions with the card sitting on
+each, the Testament of Suns holding whatever last landed on the Invisible Sun,
+and a readout of what is currently in play — which colour of spell is enhanced
+or diminished, whether the card's own sun doubles it, and which characters'
+hearts are linked to the family showing. The Nightside Path is the same board in
+reverse.
+
+It reports; it does not apply. Nobody's roll changes because of what the board
+says, which is deliberate: the enhanced-sun effect is the player's choice
+between a level and a cost, and the book is plain that "the Sooth Deck is a
+tool, not an obligation". Reading a modifier off the board and using it is how
+the game is played at a table, and forgetting one has to stay possible.
+
 **Scourge and vex actually apply.** Naming the pool an action draws on is what
 makes that possible: a scourge subtracts from every action drawing on its pool,
 and a vex is the lesser of the GM's ceiling and what the pool holds.
