@@ -66,7 +66,9 @@ be. See [Content](#content) below.
   played on the Invisible Sun in effect across the session. It reads out what is
   in play — the enhanced and diminished suns, doubled where a card sits on its
   own sun, and each character's venture bonus where their heart's family is
-  showing — and applies none of it, which is what the books ask for.
+  showing — and applies none of it, which is what the books ask for. Each turn
+  is announced in chat with the card, its write-up and the running total, so
+  the table follows it without the board open.
 
 #### Progress
 

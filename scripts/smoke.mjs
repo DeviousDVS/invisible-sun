@@ -64,7 +64,7 @@ page.on("console", m => {
   else if (m.type() === "warning") warnings.push(m.text());
 });
 
-let made = null, aborted = null, savedPath = null;
+let made = null, aborted = null, savedPath = null, boardMessages = [];
 try {
   /* ── 1. The world loads ── */
   await page.goto(`${URL_BASE}/join`, { waitUntil: "networkidle" });
@@ -195,6 +195,9 @@ try {
   {
     const before = errors.length;
     savedPath = await page.evaluate(() => game.settings.get("invisible-sun", "pathOfSuns"));
+    // A card turn is announced in chat, so the log grows: note where it was, to
+    // take back out exactly what this test put in.
+    const messagesBefore = await page.evaluate(() => game.messages.size);
     await page.evaluate(async () => {
       await game.settings.set("invisible-sun", "pathOfSuns",
         { version: 1, history: [], nightside: false });
@@ -231,6 +234,8 @@ try {
     const boardUnknown = warnings.filter(w => /unknown action|not a valid action/i.test(w));
     ok("every control on the board works", boardUnknown.length === 0 && errors.length === before,
        boardUnknown[0] ?? errors[errors.length - 1] ?? `${boardClicks} controls`);
+    boardMessages = await page.evaluate(from =>
+      game.messages.contents.slice(from).map(m => m.id), messagesBefore);
     await page.evaluate(() =>
       foundry.applications.instances.get("isun-path-of-suns")?.close());
   }
@@ -252,8 +257,10 @@ try {
   console.error(`\n  ABORTED  ${e.message}`);
 } finally {
   if (savedPath) {
-    await page.evaluate(saved =>
-      game.settings.set("invisible-sun", "pathOfSuns", saved), savedPath)
+    await page.evaluate(async ({ saved, messages }) => {
+      if (messages.length) await ChatMessage.deleteDocuments(messages);
+      await game.settings.set("invisible-sun", "pathOfSuns", saved);
+    }, { saved: savedPath, messages: boardMessages })
       .catch(e => console.error(`  board not restored: ${e.message}`));
   }
   if (made) {

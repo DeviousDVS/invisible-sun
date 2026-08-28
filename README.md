@@ -90,6 +90,11 @@ or diminished, whether the card's own sun doubles it, and which characters'
 hearts are linked to the family showing. The Nightside Path is the same board in
 reverse.
 
+Every card turn is announced in chat as well, so the table sees it without
+having the board open: the sun it was played on, the card and its write-up, and
+the total of everything in play underneath — including whatever is still
+sitting in the Testament.
+
 It reports; it does not apply. Nobody's roll changes because of what the board
 says, which is deliberate: the enhanced-sun effect is the player's choice
 between a level and a cost, and the book is plain that "the Sooth Deck is a

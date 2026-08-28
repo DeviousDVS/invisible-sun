@@ -1,0 +1,84 @@
+{{!-- A card turn, in the log. The board says what is in play now; this says
+      what happened, and stays where it can be scrolled back to. --}}
+<div class="sooth-turn">
+
+  {{#each turns as |turn|}}
+    <div class="turned-card{{#if turn.superseded}} superseded{{/if}}"
+         style="--sun-colour: {{turn.colour}}">
+
+      <div class="turn-sun">{{localize "ISUN.PathPlayedOn" sun=turn.sunLabel}}</div>
+
+      <div class="turn-face">
+        <img src="{{turn.img}}" alt="{{turn.name}}" />
+        <div class="turn-name">
+          <h4>{{turn.name}}</h4>
+          <div class="turn-line">
+            {{#if turn.rank}}{{turn.rank}} · {{/if}}{{turn.family}} · {{turn.value}}
+          </div>
+          {{#if turn.doubled}}
+            <div class="turn-doubled">{{localize "ISUN.PathOnItsOwnSun"}}</div>
+          {{/if}}
+        </div>
+      </div>
+
+      {{#if turn.meanings}}
+        <div class="turn-meanings">{{turn.meanings}}</div>
+      {{/if}}
+
+      {{#if turn.effectText}}
+        <div class="turn-effect">{{{turn.effectText}}}</div>
+      {{/if}}
+
+      {{#if turn.description}}
+        <div class="turn-description">{{{turn.description}}}</div>
+      {{/if}}
+
+      {{#if turn.superseded}}
+        <div class="turn-chained">{{localize "ISUN.PathThenAnother"}}</div>
+      {{/if}}
+    </div>
+  {{/each}}
+
+  {{!-- Everything the board is doing now, which is more than the card just
+        turned: whatever sits in the Testament of Suns is still in play under
+        it. --}}
+  <div class="turn-effects">
+    <h4>{{localize "ISUN.PathEffectsTitle"}}</h4>
+
+    {{#if suns}}
+      <ul class="sun-effects">
+        {{#each suns as |line|}}
+          <li style="--sun-colour: {{line.colour}}">
+            <span class="swatch"></span>
+            {{line.text}}
+            {{#if line.doubled}}<em class="doubled-note">{{localize "ISUN.PathDoubled"}}</em>{{/if}}
+            {{#if line.source}}<span class="from">{{line.source}}</span>{{/if}}
+          </li>
+        {{/each}}
+      </ul>
+    {{/if}}
+
+    {{#if actions}}
+      <ul class="action-effects">
+        {{#each actions as |line|}}
+          <li>
+            {{#if line.all}}
+              <strong>{{line.all}}</strong> {{localize "ISUN.PathAllActions"}}{{#if line.matched}};{{/if}}
+            {{/if}}
+            {{#if line.matched}}
+              <strong>{{line.matched}}</strong>
+              {{localize "ISUN.PathFamilyActions"}} {{line.family}}
+            {{/if}}
+            {{#if line.source}}
+              <span class="from">{{#if line.rank}}{{line.rank}} — {{/if}}{{line.source}}</span>
+            {{/if}}
+          </li>
+        {{/each}}
+      </ul>
+    {{/if}}
+
+    {{#unless suns}}{{#unless actions}}
+      <p class="notes">{{localize "ISUN.PathNoEffects"}}</p>
+    {{/unless}}{{/unless}}
+  </div>
+</div>

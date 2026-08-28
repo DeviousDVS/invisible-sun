@@ -114,6 +114,10 @@ const RANK_EFFECTS = {
 };
 
 const squash = (s) => (s ?? "").replace(/\s+/g, "").toLowerCase();
+
+/** How many lines a quick-meanings list can run to. Two in the layout; a third
+ *  is slack. Past that, something has been read as the list that is not it. */
+const MAX_MEANING_LINES = 3;
 const clean = (s) => (s ?? "").replace(/\s+/g, " ").trim();
 
 /**
@@ -298,9 +302,22 @@ export function parseEntry(text) {
   if (fields.Meanings) {
     const lines = fields.Meanings.split("\n");
     const taken = [lines[0].trim()];
-    while (taken.length < lines.length && taken[taken.length - 1].endsWith(",")) {
-      taken.push(lines[taken.length].trim());
+
+    while (taken.length < lines.length && taken.length < MAX_MEANING_LINES) {
+      const next = lines[taken.length].trim();
+      // The list plainly continues: the line before it ended on a comma.
+      const hanging = taken[taken.length - 1].endsWith(",");
+      /* Or the column broke an item in half — "insanity, inner / turmoil".
+       * Ten of the sixty cards do this, and hanging on a comma does not catch
+       * them: the break lands inside an item rather than between two. A line
+       * opening in lower case cannot be the start of the prose, since that
+       * always begins a sentence, and a keyword list never contains a full
+       * stop — so a line with one is prose whatever case it opens in. */
+      const broken = /^[a-z]/.test(next) && !next.includes(".");
+      if (!hanging && !broken) break;
+      taken.push(next);
     }
+
     fields.Meanings = taken.join(" ");
     prose = lines.slice(taken.length).join(" ");
   }

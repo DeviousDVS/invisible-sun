@@ -99,8 +99,8 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
       remaining: sooth.remaining(state, deck).length,
       played: state.history.filter(e => !e.kept).length,
       positions: sooth.board(state).map(sun => this.#position(sun, slots, cards, active, next)),
-      suns: this.#sunLines(effects),
-      actions: this.#actionLines(effects),
+      suns: PathOfSuns.#sunLines(effects),
+      actions: PathOfSuns.#actionLines(effects),
       table: this.#table(state, cards)
     });
   }
@@ -138,28 +138,76 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
     };
   }
 
-  /** "Blue spells: level +2 or Sorcery −2 (doubled)". */
-  #sunLines(effects) {
-    return effects.suns.map(s => ({
-      sun: s.sun,
-      colour: ISUN.suns[s.sun]?.color ?? "#888",
-      doubled: s.doubled,
-      source: s.source,
-      text: game.i18n.format(s.amount > 0 ? "ISUN.PathSunEnhanced" : "ISUN.PathSunDiminished", {
-        sun: game.i18n.localize(ISUN.suns[s.sun]?.label ?? s.sun),
-        amount: Math.abs(s.amount)
-      })
-    }));
+  /**
+   * "Blue spells: level +2, or 2 less Sorcery", one line per sun.
+   *
+   * Totalled rather than listed, because two cards can name the same sun and
+   * what a player needs is the number to use. The active card can enhance what
+   * the Testament diminishes, in which case they cancel and the sun is not in
+   * play at all; and a Companion turned onto a card still sitting in the
+   * Testament duplicates something already counted, which is a doubling and
+   * reads as one — `Empty Gallows ×2` — rather than as the same line twice.
+   *
+   * `doubled` stays a fact about a card, not about the total: it marks the rule
+   * that a card played on its own sun works twice as hard, which is not the
+   * same thing as two cards happening to agree.
+   */
+  static #sunLines(effects) {
+    const bySun = new Map();
+
+    for (const s of effects.suns) {
+      const at = bySun.get(s.sun)
+        ?? { sun: s.sun, amount: 0, doubled: false, sources: new Map() };
+      at.amount += s.amount;
+      at.doubled ||= s.doubled;
+      at.sources.set(s.source, (at.sources.get(s.source) ?? 0) + 1);
+      bySun.set(s.sun, at);
+    }
+
+    return [...bySun.values()]
+      .filter(s => s.amount !== 0)
+      .sort((a, b) => (ISUN.suns[a.sun]?.order ?? 9) - (ISUN.suns[b.sun]?.order ?? 9))
+      .map(s => ({
+        sun: s.sun,
+        colour: ISUN.suns[s.sun]?.color ?? "#888",
+        doubled: s.doubled,
+        names: [...s.sources.keys()],
+        source: [...s.sources].map(([name, times]) => times > 1 ? `${name} ×${times}` : name)
+          .join(", "),
+        text: game.i18n.format(s.amount > 0 ? "ISUN.PathSunEnhanced" : "ISUN.PathSunDiminished", {
+          sun: game.i18n.localize(ISUN.suns[s.sun]?.label ?? s.sun),
+          amount: Math.abs(s.amount)
+        })
+      }));
   }
 
-  /** The venture modifiers, each kept beside the card it came from. */
-  #actionLines(effects) {
-    return effects.actions.map(a => ({
+  /**
+   * The venture modifiers, each kept beside the card it came from.
+   *
+   * Not totalled the way the suns are: these have two scopes at once — a number
+   * for everybody and a larger one for a linked heart — so a single figure
+   * would have to pick a character to be about. The party table below does that
+   * per character. What is totalled here is the one line arriving twice, from a
+   * Companion duplicating a card that is still in play on its own account.
+   */
+  static #actionLines(effects) {
+    const merged = new Map();
+
+    for (const a of effects.actions) {
+      const key = `${a.source}\u0000${a.rank}\u0000${a.family}`;
+      const at = merged.get(key) ?? { ...a, value: 0, familyValue: 0 };
+      at.value += a.value;
+      at.familyValue += a.familyValue;
+      merged.set(key, at);
+    }
+
+    return [...merged.values()].map(a => ({
       source: a.source,
+      names: [a.source],
       rank: a.rank ? game.i18n.localize(ISUN.soothRanks[a.rank]) : "",
       family: a.family ? game.i18n.localize(ISUN.soothFamilies[a.family]) : "",
-      all: a.value ? this.constructor.signed(a.value) : "",
-      matched: a.familyValue ? this.constructor.signed(a.familyValue) : ""
+      all: a.value ? PathOfSuns.signed(a.value) : "",
+      matched: a.familyValue ? PathOfSuns.signed(a.familyValue) : ""
     }));
   }
 
@@ -204,6 +252,83 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /* ──────────────────────────────────────────────
+   * Saying so
+   * ────────────────────────────────────────────── */
+
+  /**
+   * Announce a card turn in chat.
+   *
+   * The board is a window, and a window is only seen by whoever has it open.
+   * The turn itself is an event at the table — "a new card is played at the
+   * GM's discretion, but the following things should probably always trigger a
+   * card turn: characters move to a new location, a significant event occurs…"
+   * (The Gate, p73) — so it belongs in the log beside the rolls it is about to
+   * modify, where it can be scrolled back to.
+   *
+   * The card's own write-up is fetched here rather than carried on the board.
+   * The board reads the pack's index, which holds the picture and the rules and
+   * not the prose; the prose is wanted once, at the moment the card is turned.
+   *
+   * The effects are the whole board's, not this card's: the Testament is still
+   * in play under it, and what a player needs is the total.
+   */
+  static async #announce(state, placed, cards) {
+    if (!placed.length) return;
+
+    const { renderTemplate } = foundry.applications.handlebars;
+    const { TextEditor } = foundry.applications.ux;
+    const effects = sooth.effects(state, cards);
+    const turns = [];
+
+    for (const [i, { card, sun }] of placed.entries()) {
+      const doc = await fromUuid(card.uuid).catch(() => null);
+      const description = doc?.system?.description
+        ? await TextEditor.implementation.enrichHTML(doc.system.description, { relativeTo: doc })
+        : "";
+
+      turns.push({
+        sun,
+        sunLabel: game.i18n.localize(ISUN.suns[sun].label),
+        colour: ISUN.suns[sun].color,
+        uuid: card.uuid,
+        name: card.name,
+        img: card.img,
+        value: card.value,
+        family: card.family ? game.i18n.localize(ISUN.soothFamilies[card.family]) : "",
+        rank: card.rank ? game.i18n.localize(ISUN.soothRanks[card.rank]) : "",
+        // A royalty card's whole effect is its printed text, and it shifts no
+        // sun, so without this the card would arrive saying nothing.
+        effectText: card.effectText,
+        meanings: doc?.system?.meanings ?? "",
+        description,
+        doubled: [card.enhancedSun, card.diminishedSun]
+          .some(s => String(s ?? "").toLowerCase() === sun),
+        // An Adept or a Companion turns the next card itself, so a turn can
+        // arrive as two. Only the last of them is the active card.
+        superseded: i < placed.length - 1
+      });
+    }
+
+    /* The card just turned is named at the top of the message, so naming it
+     * again beside each of its own effects is three repetitions of one word.
+     * What is worth attributing is an effect from somewhere else — the card in
+     * the Testament, still in play under this one. */
+    const named = new Set(placed.map(p => p.card.name));
+    const attribute = (line) => ({
+      ...line, source: line.names.every(n => named.has(n)) ? "" : line.source
+    });
+
+    await ChatMessage.create({
+      speaker: { alias: game.i18n.localize("ISUN.PathTitle") },
+      content: await renderTemplate("systems/invisible-sun/templates/chat/sooth-turn.hbs", {
+        turns,
+        suns: PathOfSuns.#sunLines(effects).map(attribute),
+        actions: PathOfSuns.#actionLines(effects).map(attribute)
+      })
+    });
+  }
+
+  /* ──────────────────────────────────────────────
    * Playing
    * ────────────────────────────────────────────── */
 
@@ -222,6 +347,7 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
       return;
     }
     await sooth.write(turned);
+    await PathOfSuns.#announce(turned, placed, sooth.lookup(deck, turned));
     this.render();
   }
 
@@ -256,8 +382,13 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
     });
     if (!chosen) return;
 
+    /* A card played by hand is still a card turn — this is how a table using
+     * the physical deck gets what it dealt onto the board — so it is announced
+     * like one. */
     const card = left.find(c => c.uuid === chosen);
-    await sooth.write(sooth.place(state, card, sun));
+    const played = sooth.place(state, card, sun);
+    await sooth.write(played);
+    await PathOfSuns.#announce(played, [{ card, sun }], sooth.lookup(deck, played));
     this.render();
   }
 

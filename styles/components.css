@@ -2179,3 +2179,130 @@ a.sentence-part:hover {
   border-top: 1px solid var(--isun-border);
   padding-top: 4px;
 }
+
+/* ── A card turn in chat ───────────────────────────────────────────
+ * Narrow: this is read in the sidebar, not in a window, so the card sits
+ * beside its name rather than above it and the prose stays small.
+ */
+.sooth-turn .turned-card {
+  border-left: 3px solid var(--sun-colour, #888);
+  padding-left: var(--isun-space-sm, 8px);
+  margin-bottom: var(--isun-space-sm, 8px);
+}
+
+.sooth-turn .turned-card.superseded { opacity: 0.65; }
+
+.sooth-turn .turn-sun {
+  font-family: var(--isun-font-smallcaps);
+  color: var(--sun-colour, var(--isun-text-secondary));
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+}
+
+.sooth-turn .turn-face {
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-sm, 8px);
+  margin: 4px 0;
+}
+
+.sooth-turn .turn-face img {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+  border-radius: 50%;
+  border: 2px solid var(--sun-colour, #888);
+  object-fit: cover;
+}
+
+.sooth-turn .turn-name h4 {
+  margin: 0;
+  font-family: var(--isun-font-heading);
+  color: var(--isun-text-accent);
+}
+
+.sooth-turn .turn-line {
+  font-size: 0.72rem;
+  color: var(--isun-text-secondary);
+}
+
+.sooth-turn .turn-doubled {
+  font-size: 0.72rem;
+  color: var(--isun-text-accent);
+}
+
+.sooth-turn .turn-meanings {
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--isun-text-secondary);
+  margin-bottom: 4px;
+}
+
+.sooth-turn .turn-effect {
+  font-size: 0.82rem;
+  color: var(--isun-text-accent);
+}
+
+.sooth-turn .turn-description {
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.sooth-turn .turn-description p { margin: 0 0 4px; }
+
+.sooth-turn .turn-chained {
+  font-size: 0.75rem;
+  color: var(--isun-text-secondary);
+  text-align: right;
+}
+
+.sooth-turn .turn-effects {
+  border-top: 1px solid var(--isun-border);
+  padding-top: 4px;
+}
+
+.sooth-turn .turn-effects h4 {
+  margin: 0 0 2px;
+  font-family: var(--isun-font-smallcaps);
+  color: var(--isun-text-accent);
+}
+
+.sooth-turn .turn-effects ul {
+  list-style: none;
+  margin: 0 0 4px;
+  padding: 0;
+}
+
+/* Laid out as lines rather than as a row: the sidebar is about 260px wide, and
+ * a three-column flex row there had "doubled" breaking across two lines in the
+ * middle of the word. The card each modifier came from goes underneath it. */
+.sooth-turn .turn-effects li {
+  display: block;
+  font-size: 0.8rem;
+  padding: 1px 0;
+}
+
+.sooth-turn .turn-effects .swatch {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--sun-colour, #888);
+  margin-right: 4px;
+}
+
+.sooth-turn .turn-effects .from {
+  display: block;
+  margin-left: 13px;
+  color: var(--isun-text-secondary);
+  font-size: 0.72rem;
+}
+
+/* A modifier is never worth breaking in half. */
+.sooth-turn .turn-effects strong,
+.sooth-turn .doubled-note { white-space: nowrap; }
+
+.sooth-turn .doubled-note {
+  color: var(--isun-text-accent);
+  font-size: 0.72rem;
+}
