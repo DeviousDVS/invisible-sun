@@ -32,10 +32,10 @@ cites them; where the books leave a call to the table, the system leaves it too.
   it — magic dice are tinted by the sun being drawn on — but it is entirely
   optional.
 
-Filling the compendia currently also needs Python 3, Node, and `pdftotext` and
-`pdftoppm` from poppler. That is a fair thing to ask of someone editing the
-system and not of someone who wants to play, which is why it is being moved
-into Foundry itself.
+Filling the compendia needs nothing else either: the importer is in Foundry and
+reads your PDFs where they lie. The command-line pipeline under `scripts/` does
+still want Python 3, Node, and `pdftotext` and `pdftoppm` from poppler — but
+that is for working on the system, not for playing it.
 
 ## Installation
 
@@ -61,10 +61,10 @@ To install from source in the meantime:
 **Three actor types.** Vislae for player characters, plus NPCs and Creatures,
 which use level and an effective level shifted by scourge rather than pools.
 
-**Seventeen item types**, covering a vislae completely: Heart, Foundation, Soul,
+**Eighteen item types**, covering a vislae completely: Heart, Foundation, Soul,
 Order, Forte and Forte Abilities; Spells, Incantations, Minor Magic and Secrets;
-Skills, Character Arcs, Connections, Ephemera, Objects of Power, Aggregates and
-Sooth cards.
+Skills, Character Arcs, Connections, Ephemera, Objects of Power, Aggregates,
+Gear and Sooth cards.
 
 **Health as the books describe it.** Injuries fill one ordered track, and the
 last of each set decides whether it becomes a Wound or an Anguish — so two

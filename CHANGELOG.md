@@ -28,9 +28,10 @@ be. See [Content](#content) below.
 - **Vislae, NPC and Creature actors**, with the Certes and Qualia pools, Hidden
   Knowledge and the shared Injury track. A stat's score is derived from what its
   pools hold rather than stored, so the two can never disagree.
-- **Seventeen item types**: Heart, Foundation, Soul, Order, Forte and Forte
+- **Eighteen item types**: Heart, Foundation, Soul, Order, Forte and Forte
   Abilities; Spells, Incantations, Minor Magic and Secrets; Skills, Character
-  Arcs, Connections, Ephemera, Objects of Power, Aggregates and Sooth cards.
+  Arcs, Connections, Ephemera, Objects of Power, Aggregates, Gear and Sooth
+  cards.
 - **Character building.** A dropped Foundation or Heart applies what it grants;
   a heart's two starting skills are offered as the choice the book describes
   rather than assigned; stat points are placed into pools rather than typed,
@@ -87,6 +88,9 @@ be. See [Content](#content) below.
 
 #### Elsewhere
 
+- **An importer**, in Foundry: point it at the folder holding your PDFs and it
+  identifies each book and deck, reads it, and fills the compendia — see
+  *Content* below.
 - **A compendium browser** for searching across the system's packs.
 - **Dice So Nice! support**, optional: magic dice are tinted by the sun being
   drawn on.
@@ -100,12 +104,29 @@ none of it is in the repository — not in the working tree and not in the
 history, which was rewritten to remove it — and the release build refuses to
 assemble an archive if any appears.
 
-You fill them from your own copy of the books with the tooling under
-`scripts/`, documented in the README under *Content and the books*. It reads
-the book and deck PDFs, cuts the card faces out of the decks, and builds the
-compendia. It is a command line for now: Python, Node and `pdftotext`. Moving
-it into Foundry, so that installing the system and pointing it at your PDFs is
-all that is needed, is the next piece of work and has not started.
+You fill them from your own copy of the books, in Foundry. The importer sits at
+the foot of the compendium tab: point it at the folder your PDFs are in and it
+works out what each file is, reads it, and fills the packs, cutting the card
+faces out of the decks as it goes. The files are read where they lie — nothing
+is uploaded, and nothing but the card art is written anywhere. Running it twice
+is safe, and the order the files come in does not matter.
+
+**Every compendium this system ships fills itself this way**: the decks, the
+cards printed only in Book M, and the book chapters behind everything that was
+never printed on a card — the goods lists, the hearts, souls and foundations,
+the fortes and their abilities, the character arcs, skills, orders and secrets.
+The README lists what comes from where under *Content and the books*. The two
+books it does not recognise yet are The Way and The Path.
+
+Three things it leaves alone, each noted in the code where it arises: a forte's
+ability tree, which the books draw as vector art with no text to recover it
+from; the eleven boxed sidebars beside the order entries; and the provenance of
+a secret, which the compilation they are read from does not record. They are not
+written rather than written empty, so a tree built by hand survives a re-import.
+
+The command-line pipeline under `scripts/` remains as the development and test
+harness — the same parsers driven from a terminal instead of a dialog, and the
+thing to check a new reader against. It is no longer how anything is built.
 
 Every item type also has a working sheet, so anything you would rather enter by
 hand, you can.
