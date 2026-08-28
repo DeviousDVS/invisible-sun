@@ -66,4 +66,14 @@
       <input type="number" name="modifier" value="0" />
     </label>
   </div>
+
+  {{!-- The board's, not the player's, so it is shown rather than offered. It is
+        already in the running venture above. --}}
+  {{#if sooth}}
+    <div class="vd-sooth" data-tooltip="{{soothSources}}">
+      {{localize "ISUN.PathTitle"}}
+      <strong class="{{#if (gt sooth 0)}}vd-bonus{{else}}vd-penalty{{/if}}">{{soothText}}</strong>
+      <span class="from">{{soothSources}}</span>
+    </div>
+  {{/if}}
 </div>

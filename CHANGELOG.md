@@ -67,9 +67,17 @@ be. See [Content](#content) below.
   played on the Invisible Sun in effect across the session. It reads out what is
   in play — the enhanced and diminished suns, doubled where a card sits on its
   own sun, and each character's venture bonus where their heart's family is
-  showing — and applies none of it, which is what the books ask for. Each turn
-  is announced in chat with the card, its write-up and the running total, so
-  the table follows it without the board open.
+  showing. Each turn is announced in chat with the card, its write-up and the
+  running total, so the table follows it without the board open.
+- **The board reaches the dice.** The venture a card is worth to a character —
+  their heart's family, and whatever a royalty card does to everyone — is shown
+  in the answer dialog before they decide what to spend, added to the roll, and
+  recorded on the challenge card beside the card it came from. Read when they
+  answer rather than when the dice land, so a card turned mid-decision cannot
+  change the arithmetic they agreed to, and switched off wholesale by a setting
+  for a table that would rather apply it themselves. What a card does to magic
+  is shown against each spell of that colour and applied by nobody: choosing
+  between the level and the Sorcery cost is the caster's.
 
 #### Progress
 

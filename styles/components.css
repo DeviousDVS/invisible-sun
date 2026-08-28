@@ -1809,6 +1809,7 @@ a.sentence-part:hover {
   cursor: help;
 }
 .challenge-response .cr-penalty { color: var(--isun-wound); font-variant-numeric: tabular-nums; }
+.challenge-response .cr-bonus { color: var(--isun-acumen); font-variant-numeric: tabular-nums; }
 
 .challenge-response fieldset {
   border: 1px solid var(--isun-border);
@@ -2583,3 +2584,40 @@ a.sentence-part:hover {
 .sooth-card .shifts .shift { margin-bottom: 8px; }
 .sooth-card .shifts .joy h3 { color: var(--isun-joy); }
 .sooth-card .shifts .despair h3 { color: var(--isun-despair); }
+
+/* The Path of Suns line in the venture dialog. Shown, never offered: the board
+ * is the table's, the way the challenge rating is the GM's. */
+.venture-dialog .vd-sooth {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--isun-border);
+  font-size: 0.8rem;
+}
+
+.venture-dialog .vd-sooth .from {
+  margin-left: auto;
+  color: var(--isun-text-secondary);
+  font-size: 0.72rem;
+}
+
+.venture-dialog .vd-bonus { color: var(--isun-acumen); }
+.venture-dialog .vd-penalty { color: var(--isun-wound); }
+
+/* What the Path of Suns is doing to a practice, beside its level. Not applied
+ * to anything: the player chooses at the moment of casting whether to take the
+ * shift as a level or as a Sorcery cost, so this reports and waits. */
+.practices .sooth-shift {
+  display: inline-block;
+  margin-left: 3px;
+  padding: 0 3px;
+  border-radius: 3px;
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid currentColor;
+}
+
+.practices .sooth-shift.up { color: var(--isun-acumen); }
+.practices .sooth-shift.down { color: var(--isun-wound); }

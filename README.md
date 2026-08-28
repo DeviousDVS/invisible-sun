@@ -95,11 +95,20 @@ having the board open: the sun it was played on, the card and its write-up, and
 the total of everything in play underneath — including whatever is still
 sitting in the Testament.
 
-It reports; it does not apply. Nobody's roll changes because of what the board
-says, which is deliberate: the enhanced-sun effect is the player's choice
-between a level and a cost, and the book is plain that "the Sooth Deck is a
-tool, not an obligation". Reading a modifier off the board and using it is how
-the game is played at a table, and forgetting one has to stay possible.
+**What the board is worth reaches the dice.** A card of your heart's family is
++1 to every action, and a royalty card moves everyone's — so the answer dialog
+shows what the Path of Suns is giving you before you decide what to spend, and
+the challenge card records it with the card it came from, because that is the
+part of a venture nobody chose. It is read when you answer rather than when the
+dice land: the GM may turn a card while you are deciding, and the number you
+decided against is the number you get. A world setting turns all of it off for a
+table that would rather do the arithmetic themselves.
+
+What a card does to *magic* is shown and not applied. Your spells carry a badge
+saying what the board is doing to their colour — `+2` on a Blue spell while Blue
+is enhanced and doubled — because the effect is a choice between a level and a
+Sorcery cost that only the caster can make, and the book is plain that "the
+Sooth Deck is a tool, not an obligation". Forgetting one has to stay possible.
 
 **Scourge and vex actually apply.** Naming the pool an action draws on is what
 makes that possible: a scourge subtracts from every action drawing on its pool,

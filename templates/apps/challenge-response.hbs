@@ -25,6 +25,15 @@
     </div>
   {{/if}}
 
+  {{!-- What the Path of Suns is worth to this character right now. Shown and
+        not editable: it is the board's, like the challenge is the GM's. --}}
+  {{#if sooth}}
+    <div class="cr-cost cr-sooth" data-tooltip="{{soothSources}}">
+      <span>{{localize "ISUN.PathTitle"}}</span>
+      <span class="{{#if (gt sooth 0)}}cr-bonus{{else}}cr-penalty{{/if}}">{{soothText}}</span>
+    </div>
+  {{/if}}
+
   {{#if skills.length}}
     <fieldset class="cr-skills">
       <legend>{{localize "ISUN.Skills"}}</legend>

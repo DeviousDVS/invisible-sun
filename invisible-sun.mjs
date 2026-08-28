@@ -282,6 +282,18 @@ Hooks.once("init", () => {
     })
   });
 
+  /* Whether the Path of Suns reaches the dice, or is only ever read off the
+   * board. The books call the deck "a tool, not an obligation", so a table gets
+   * to decide; every window shows the same thing either way. */
+  game.settings.register("invisible-sun", "applySoothModifiers", {
+    name: "ISUN.SettingSoothModifiers",
+    hint: "ISUN.SettingSoothModifiersHint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true
+  });
+
   /* The board is state, not a preference, so it is not in the settings menu.
    * A world setting is the right home for it: one board for the table, written
    * by the GM and read by everyone, arriving on the other clients as a document

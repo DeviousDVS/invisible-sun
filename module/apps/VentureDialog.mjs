@@ -1,4 +1,5 @@
 import { rollVenture } from "../helpers/dice.mjs";
+import * as sooth from "../helpers/sooth.mjs";
 
 /**
  * Invisible Sun — Venture Dialog
@@ -41,11 +42,17 @@ export class VentureDialog {
       }));
 
     const pools = this.#poolsOf(actor);
+    // Read once, and carried to the roll: see ChallengeResponse on why the
+    // board is not read again as the dice land.
+    const board = await sooth.ventureFor(actor);
 
     const { renderTemplate } = foundry.applications.handlebars;
     const content = await renderTemplate(
       "systems/invisible-sun/templates/apps/venture-dialog.hbs",
-      { skills, pools, challenge, magicDice, label: label || skill?.name || "Action" });
+      { skills, pools, challenge, magicDice, label: label || skill?.name || "Action",
+        sooth: board.value,
+        soothText: board.value ? sooth.signed(board.value) : "",
+        soothSources: board.sources.join(", ") });
 
     const result = await DialogV2.wait({
       window: { title: `Venture — ${label || skill?.name || actor.name}` },
@@ -55,12 +62,12 @@ export class VentureDialog {
           callback: (event, button) => new foundry.applications.ux.FormDataExtended(button.form).object },
         { action: "cancel", label: "Cancel", icon: "fa-solid fa-xmark" }
       ],
-      render: (event, dialog) => this.#live(dialog.element),
+      render: (event, dialog) => this.#live(dialog.element, board.value),
       rejectClose: false
     });
 
     if (!result || result === "cancel") return null;
-    return this.#roll(actor, skills, pools, result);
+    return this.#roll(actor, skills, pools, result, board);
   }
 
   /** Every pool a bene or enhancement could come from. */
@@ -83,7 +90,7 @@ export class VentureDialog {
   }
 
   /** Keep the running venture and target honest as the form is filled in. */
-  static #live(root) {
+  static #live(root, sooth = 0) {
     // A browser does not enforce `max` on a typed value, so a spend is clamped
     // here as well as when it is applied. Without this the preview promises a
     // venture the roll will not honour, because the pool has not got the bene.
@@ -96,7 +103,7 @@ export class VentureDialog {
     };
 
     const recalc = () => {
-      let venture = 0;
+      let venture = sooth;
       for (const el of root.querySelectorAll("input.skill-pick:checked")) {
         venture += Number(el.dataset.level) || 0;
       }
@@ -129,9 +136,9 @@ export class VentureDialog {
   }
 
   /** Deduct what was spent, then roll. */
-  static async #roll(actor, skills, pools, form) {
-    let venture = Number(form.modifier) || 0;
-    const used = [];
+  static async #roll(actor, skills, pools, form, board = { value: 0, sources: [] }) {
+    let venture = (Number(form.modifier) || 0) + board.value;
+    const used = [...board.sources];
 
     for (const s of skills) {
       if (form[`skill.${s.id}`]) {

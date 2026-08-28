@@ -16,6 +16,14 @@
  * enhancements rather than bene and they "can be used with any action", so it
  * is offered whatever was declared. It buys dice, not venture.
  *
+ * ── The Path of Suns ──
+ * Whatever the board is worth to this character is read once, here, and carried
+ * to the roll rather than read again as the dice land. Scourge and vex are
+ * re-read at the last moment because a rest or a fresh Wound may have moved
+ * them — but those are the character's own, and this is the table's: the GM can
+ * turn a card while this dialog sits open, and the number a player decided
+ * against should be the number they get.
+ *
  * ── This only collects ──
  * The dialog decides nothing. It hands back what the player chose and
  * ChallengeCard does the spending, the rolling and the recording in one step,
@@ -23,6 +31,7 @@
  * yet say why.
  */
 import { ChallengeCard } from "./ChallengeCard.mjs";
+import * as sooth from "../helpers/sooth.mjs";
 
 const { DialogV2 } = foundry.applications.api;
 
@@ -44,6 +53,7 @@ export class ChallengeResponse {
 
     const cost = ChallengeCard.poolCost(actor, data.pool, data.maxVex);
     const sortilege = actor.system?.stats?.qualia?.pools?.sortilege?.value ?? 0;
+    const board = await sooth.ventureFor(actor);
 
     const skills = actor.items.filter(i => i.type === "Skill")
       .sort((a, b) => a.name.localeCompare(b.name))
@@ -62,7 +72,10 @@ export class ChallengeResponse {
         vex: cost.vex,
         bene: cost.bene,
         sortilege,
-        skills
+        skills,
+        sooth: board.value,
+        soothText: board.value ? sooth.signed(board.value) : "",
+        soothSources: board.sources.join(", ")
       });
 
     const result = await DialogV2.wait({
@@ -76,7 +89,8 @@ export class ChallengeResponse {
             new foundry.applications.ux.FormDataExtended(button.form).object },
         { action: "cancel", label: game.i18n.localize("ISUN.Cancel") }
       ],
-      render: (_e, dialog) => this.#live(dialog.element ?? dialog, { ...data, ...cost, sortilege }),
+      render: (_e, dialog) =>
+        this.#live(dialog.element ?? dialog, { ...data, ...cost, sortilege, sooth: board.value }),
       rejectClose: false
     });
 
@@ -89,7 +103,10 @@ export class ChallengeResponse {
       skills: skills.filter(s => result[`skill.${s.id}`])
         .map(s => ({ id: s.id, name: s.name, level: s.level })),
       bene: this.#clamp(result.bene, cost.bene),
-      sortilege: this.#clamp(result.sortilege, sortilege)
+      sortilege: this.#clamp(result.sortilege, sortilege),
+      // The board as it stood when the player answered, and what it was.
+      sooth: board.value,
+      soothSources: board.sources
     };
   }
 
@@ -104,7 +121,7 @@ export class ChallengeResponse {
    * here as well as when it is recorded — otherwise the preview promises a
    * venture the pool cannot pay for.
    */
-  static #live(root, { challenge, scourge, vex, bene: beneMax, sortilege: sortMax }) {
+  static #live(root, { challenge, scourge, vex, bene: beneMax, sortilege: sortMax, sooth = 0 }) {
     if (!root?.querySelector) return;
 
     const clampInput = (el, max) => {
@@ -115,7 +132,7 @@ export class ChallengeResponse {
     };
 
     const recalc = () => {
-      let venture = -(scourge + vex);
+      let venture = sooth - (scourge + vex);
       for (const el of root.querySelectorAll("input.cr-skill:checked")) {
         venture += Number(el.dataset.level) || 0;
       }

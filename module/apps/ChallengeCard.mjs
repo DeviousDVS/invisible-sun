@@ -225,6 +225,10 @@ export class ChallengeCard {
     const poolLabel = game.i18n.localize(CONFIG.ISUN.poolLabels[data.pool] ?? data.pool);
     return [
       ...(response.skills ?? []).map(s => `${s.name} +${s.level}`),
+      /* Named by the card it came from rather than as a bare number. A player
+       * asking why their venture was what it was is usually asking about this
+       * one, because it is the only part they did not choose. */
+      ...(response.soothSources ?? []),
       response.bene ? `${response.bene} ${poolLabel} ${game.i18n.localize("ISUN.Bene")}` : null,
       response.sortilege ? `${response.sortilege} ${game.i18n.localize("ISUN.PoolSortilege")} +${response.sortilege} ${game.i18n.localize("ISUN.Die")}` : null,
       response.scourge ? `${game.i18n.localize("ISUN.Scourge")} −${response.scourge}` : null,
@@ -297,7 +301,16 @@ export class ChallengeCard {
     const bene = Math.min(choice.bene ?? 0, pool.value ?? 0);
     const sortilege = Math.min(choice.sortilege ?? 0, sortPool?.value ?? 0);
     const skills = choice.skills ?? [];
-    const venture = skills.reduce((n, s) => n + (s.level ?? 0), 0) + bene - scourge - vex;
+
+    /* Taken from the answer rather than read again here. The pools are re-read
+     * because they are the character's own and may have moved; the board is the
+     * table's, and the GM turning a card while the dialog sat open should not
+     * change the arithmetic the player agreed to. */
+    const sooth = Math.round(Number(choice.sooth) || 0);
+    const soothSources = choice.soothSources ?? [];
+
+    const venture = skills.reduce((n, s) => n + (s.level ?? 0), 0)
+      + bene + sooth - scourge - vex;
 
     // Sortilege is spent from its own pool, never from the declared one.
     const updates = {};
@@ -306,7 +319,7 @@ export class ChallengeCard {
     if (sortilege) updates["system.stats.qualia.pools.sortilege.value"] = sortPool.value - sortilege;
     if (Object.keys(updates).length) await actor.update(updates);
 
-    const record = { skills, bene, vex, sortilege, scourge, venture };
+    const record = { skills, bene, vex, sortilege, scourge, sooth, soothSources, venture };
     const { rollVenture } = game.invisibleSun;
     const outcome = await rollVenture({
       challenge: data.challenge,

@@ -8,6 +8,7 @@ import { HeartSkills } from "../apps/HeartSkills.mjs";
 import { ForteAbilityPicker } from "../apps/ForteAbilityPicker.mjs";
 import { CompendiumPicker } from "../apps/CompendiumPicker.mjs";
 import { IncantationGrant } from "../apps/IncantationGrant.mjs";
+import * as sooth from "../helpers/sooth.mjs";
 
 /**
  * Invisible Sun — Vislae Actor Sheet
@@ -165,6 +166,10 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
 
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
+    /* What the Path of Suns is doing to each colour of magic. Read here because
+     * it needs the Sooth pack's index, which is asynchronous, and the practices
+     * table below is not. */
+    context.soothShifts = await sooth.spellShifts();
     this._prepareSheetData(context);
     return context;
   }
@@ -263,6 +268,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
    * Spells, incantations, forte abilities and minor magics as one sortable list.
    */
   #preparePractices(context) {
+    const shifts = context.soothShifts ?? {};
     // Spells, incantations, forte abilities and minor magics share a shape —
     // level, colour, cost, dice, depletion — because the rules treat them the
     // same way: a forte ability "unless stated otherwise, costs Sorcery to use,
@@ -285,7 +291,15 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
           ? `+${sys.bonusDice} ${game.i18n.localize(sys.bonusDice === 1 ? "ISUN.DieUnit" : "ISUN.DiceUnit")}`
           : ""),
         depletion: sys.depletion || "",
-        condition: sys.condition || ""
+        condition: sys.condition || "",
+        /* What the board is doing to this one right now. "Spells and effects
+         * linked to the stronger sun have their effective level increased by 1
+         * … or the Sorcery cost of their effect reduced by 1" (The Gate, p73) —
+         * effects, so an incantation or a forte ability of that colour is
+         * shifted as much as a spell is. Shown beside it and applied by nobody:
+         * which of the two the player takes is their choice, made as they
+         * cast. */
+        shift: shifts[String(sys.color ?? "").toLowerCase()] ?? null
       };
     };
 

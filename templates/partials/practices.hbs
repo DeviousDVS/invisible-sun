@@ -33,7 +33,19 @@
 
     {{#each practices as |p|}}
       <div class="item practice" data-item-id="{{p.item.id}}" data-kind="{{p.kind}}">
-        <div class="level"><span class="level-badge">{{p.level}}</span></div>
+        {{!-- The level as printed, and beside it what the Path of Suns is
+              doing to a spell of this colour. The shift is not applied: the
+              player chooses at the moment of casting whether to take it as a
+              level or as a Sorcery cost. --}}
+        <div class="level">
+          <span class="level-badge">{{p.level}}</span>
+          {{#if p.shift}}
+            <span class="sooth-shift {{#if (gt p.shift.amount 0)}}up{{else}}down{{/if}}"
+                  data-tooltip="{{localize 'ISUN.PathShiftHint' amount=p.shift.text sources=p.shift.sources}}">
+              {{p.shift.text}}
+            </span>
+          {{/if}}
+        </div>
         <div class="name rollable" data-action="{{p.action}}">
           <span class="color-badge {{colorClass p.color}}" title="{{p.color}}"></span>
           <span>{{p.item.name}}</span>

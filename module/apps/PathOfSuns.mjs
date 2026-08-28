@@ -99,7 +99,7 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
       remaining: sooth.remaining(state, deck).length,
       played: state.history.filter(e => !e.kept).length,
       positions: sooth.board(state).map(sun => this.#position(sun, slots, cards, active, next)),
-      suns: PathOfSuns.#sunLines(effects),
+      suns: PathOfSuns.#sunLines(state, cards),
       actions: PathOfSuns.#actionLines(effects),
       table: this.#table(state, cards)
     });
@@ -141,39 +141,18 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
   /**
    * "Blue spells: level +2, or 2 less Sorcery", one line per sun.
    *
-   * Totalled rather than listed, because two cards can name the same sun and
-   * what a player needs is the number to use. The active card can enhance what
-   * the Testament diminishes, in which case they cancel and the sun is not in
-   * play at all; and a Companion turned onto a card still sitting in the
-   * Testament duplicates something already counted, which is a doubling and
-   * reads as one — `Empty Gallows ×2` — rather than as the same line twice.
-   *
-   * `doubled` stays a fact about a card, not about the total: it marks the rule
-   * that a card played on its own sun works twice as hard, which is not the
-   * same thing as two cards happening to agree.
+   * Totalled in helpers/sooth.mjs rather than here, because the same totals are
+   * read by the vislae sheet beside each spell. This puts words to them.
    */
-  static #sunLines(effects) {
-    const bySun = new Map();
-
-    for (const s of effects.suns) {
-      const at = bySun.get(s.sun)
-        ?? { sun: s.sun, amount: 0, doubled: false, sources: new Map() };
-      at.amount += s.amount;
-      at.doubled ||= s.doubled;
-      at.sources.set(s.source, (at.sources.get(s.source) ?? 0) + 1);
-      bySun.set(s.sun, at);
-    }
-
-    return [...bySun.values()]
-      .filter(s => s.amount !== 0)
+  static #sunLines(state, cards) {
+    return [...sooth.sunTotals(state, cards).values()]
       .sort((a, b) => (ISUN.suns[a.sun]?.order ?? 9) - (ISUN.suns[b.sun]?.order ?? 9))
       .map(s => ({
         sun: s.sun,
         colour: ISUN.suns[s.sun]?.color ?? "#888",
         doubled: s.doubled,
         names: [...s.sources.keys()],
-        source: [...s.sources].map(([name, times]) => times > 1 ? `${name} ×${times}` : name)
-          .join(", "),
+        source: sooth.sourceList(s.sources),
         text: game.i18n.format(s.amount > 0 ? "ISUN.PathSunEnhanced" : "ISUN.PathSunDiminished", {
           sun: game.i18n.localize(ISUN.suns[s.sun]?.label ?? s.sun),
           amount: Math.abs(s.amount)
@@ -206,8 +185,8 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
       names: [a.source],
       rank: a.rank ? game.i18n.localize(ISUN.soothRanks[a.rank]) : "",
       family: a.family ? game.i18n.localize(ISUN.soothFamilies[a.family]) : "",
-      all: a.value ? PathOfSuns.signed(a.value) : "",
-      matched: a.familyValue ? PathOfSuns.signed(a.familyValue) : ""
+      all: a.value ? sooth.signed(a.value) : "",
+      matched: a.familyValue ? sooth.signed(a.familyValue) : ""
     }));
   }
 
@@ -239,16 +218,11 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
         name: actor.name,
         heart: heart.name,
         family,
-        venture: venture ? this.constructor.signed(venture) : "",
-        sources: sources.map(s => `${s.text} ${this.constructor.signed(s.value)}`).join(", ")
+        venture: venture ? sooth.signed(venture) : "",
+        sources: sources.map(s => `${s.text} ${sooth.signed(s.value)}`).join(", ")
       });
     }
     return rows.sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  /** +1 rather than 1, and −1 with the character the books print. */
-  static signed(value) {
-    return value > 0 ? `+${value}` : `−${Math.abs(value)}`;
   }
 
   /* ──────────────────────────────────────────────
@@ -322,7 +296,7 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
       speaker: { alias: game.i18n.localize("ISUN.PathTitle") },
       content: await renderTemplate("systems/invisible-sun/templates/chat/sooth-turn.hbs", {
         turns,
-        suns: PathOfSuns.#sunLines(effects).map(attribute),
+        suns: PathOfSuns.#sunLines(state, cards).map(attribute),
         actions: PathOfSuns.#actionLines(effects).map(attribute)
       })
     });

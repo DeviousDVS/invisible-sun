@@ -307,6 +307,47 @@ export function effects(state, cards) {
 }
 
 /**
+ * The board's effect on each sun, totalled.
+ *
+ * Two cards can name the same sun — the active one and whatever is still in
+ * the Testament under it — so what a reader needs is the number, not the list.
+ * An enhancement cancelling a diminishment leaves the sun out of the total
+ * altogether, which is the truth: nothing is happening to it.
+ *
+ * `doubled` stays a fact about a card rather than about the total. It marks the
+ * rule that a card played on its own sun works twice as hard, which is not the
+ * same thing as two cards happening to agree.
+ *
+ * @returns {Map<string, {sun, amount, doubled, sources: Map<string, number>}>}
+ */
+export function sunTotals(state, cards) {
+  const bySun = new Map();
+
+  for (const s of effects(state, cards).suns) {
+    const at = bySun.get(s.sun)
+      ?? { sun: s.sun, amount: 0, doubled: false, sources: new Map() };
+    at.amount += s.amount;
+    at.doubled ||= s.doubled;
+    at.sources.set(s.source, (at.sources.get(s.source) ?? 0) + 1);
+    bySun.set(s.sun, at);
+  }
+
+  for (const [sun, total] of bySun) if (!total.amount) bySun.delete(sun);
+  return bySun;
+}
+
+/** How a source list reads: "Endless Maze", or "Empty Gallows ×2". */
+export function sourceList(sources) {
+  return [...sources].map(([name, times]) => times > 1 ? `${name} ×${times}` : name)
+    .join(", ");
+}
+
+/** +1 rather than 1, and −1 with the character the books print. */
+export function signed(value) {
+  return value > 0 ? `+${value}` : `−${Math.abs(value)}`;
+}
+
+/**
  * What a character with this heart's family is carrying, and where from.
  *
  * The two sources are read as separate: a Stoic under a Mysteries Sovereign has
@@ -344,19 +385,96 @@ export function modifiersFor(family, state, cards) {
  */
 export function spellEffect(colour, state, cards) {
   const sun = String(colour ?? "").toLowerCase();
-  if (!sun || !ISUN.suns[sun]) return { amount: 0, doubled: false, sources: [] };
+  const none = { amount: 0, doubled: false, sources: "" };
+  if (!sun || !ISUN.suns[sun]) return none;
 
-  const mine = effects(state, cards).suns.filter(s => s.sun === sun);
-  return {
-    amount: mine.reduce((total, s) => total + s.amount, 0),
-    doubled: mine.some(s => s.doubled),
-    sources: mine
-  };
+  const total = sunTotals(state, cards).get(sun);
+  if (!total) return none;
+  return { amount: total.amount, doubled: total.doubled, sources: sourceList(total.sources) };
 }
 
 /* ──────────────────────────────────────────────
  * Reading and writing the world's board
  * ────────────────────────────────────────────── */
+
+/* ──────────────────────────────────────────────
+ * What the board is worth at the table
+ * ────────────────────────────────────────────── */
+
+/** The setting that decides whether the board touches a roll at all. */
+export const AUTOMATION = "applySoothModifiers";
+
+/**
+ * Whether modifiers reach the dice, or are only ever read off the board.
+ *
+ * "The Sooth Deck is a tool, not an obligation. You'll likely forget to turn a
+ * new card when you should, or forget to apply a modifier from time to time.
+ * Don't worry about it" (The Gate, p73). A table that wants the board for its
+ * cards and its readings, and would rather do the arithmetic themselves — or
+ * not at all — turns this off, and every window still shows everything.
+ */
+export function automated() {
+  return game.settings.get(SCOPE, AUTOMATION) !== false;
+}
+
+/**
+ * What the board is currently worth to this character's ventures.
+ *
+ * "If a card is played from the card family associated with a character's
+ * heart… all of that character's actions get a +1 bonus to their venture" (The
+ * Gate, p74) — all of them, so this is asked by every roll and not only by the
+ * magical ones. A character with no heart yet still collects whatever a royalty
+ * card is doing to everybody.
+ *
+ * Read once when a roll is answered and carried to the dice, rather than read
+ * again as they land: the number a player decided against is the number they
+ * should get, and the GM may turn a card while the dialog sits open.
+ *
+ * @returns {Promise<{value: number, sources: string[]}>}
+ */
+export async function ventureFor(actor) {
+  const none = { value: 0, sources: [] };
+  if (!automated()) return none;
+
+  const state = read();
+  if (!state.history.length) return none;
+
+  const heart = actor?.items?.find(i => i.type === "Heart");
+  const { venture, sources } = modifiersFor(heart?.system?.cardFamily ?? "", state,
+    lookup(await deck(), state));
+
+  return {
+    value: venture,
+    sources: sources.map(s => `${s.text} ${signed(s.value)}`)
+  };
+}
+
+/**
+ * What the board is doing to each colour of magic, keyed by sun.
+ *
+ * For the lists that show a vislae their spells: the shift belongs beside the
+ * spell it applies to, where it is read at the moment it matters. Not gated on
+ * `automated()` — that setting is about what reaches the dice, and a board
+ * nobody automates is still a board everybody reads.
+ *
+ * @returns {Promise<Object<string, {amount, doubled, sources, text}>>}
+ */
+export async function spellShifts() {
+  const state = read();
+  if (!state.history.length) return {};
+
+  const cards = lookup(await deck(), state);
+  const out = {};
+  for (const [sun, total] of sunTotals(state, cards)) {
+    out[sun] = {
+      amount: total.amount,
+      doubled: total.doubled,
+      sources: sourceList(total.sources),
+      text: signed(total.amount)
+    };
+  }
+  return out;
+}
 
 /** The board as stored, with anything a newer version added filled in. */
 export function read() {
