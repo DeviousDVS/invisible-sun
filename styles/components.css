@@ -2166,12 +2166,6 @@ a.sentence-part:hover {
   margin-left: 6px;
 }
 
-.path-of-suns .path-advisory {
-  font-size: 0.72rem;
-  color: var(--isun-text-secondary);
-  margin: 6px 0 0;
-}
-
 .path-of-suns .path-footer {
   justify-content: space-between;
   font-size: 0.75rem;
