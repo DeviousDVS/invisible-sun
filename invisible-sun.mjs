@@ -27,6 +27,7 @@ import { ISUNItemSheet } from "./module/sheets/items/ISUNItemSheet.mjs";
 import { ISUNSpellSheet } from "./module/sheets/items/ISUNSpellSheet.mjs";
 import { ISUNCharacterArcSheet } from "./module/sheets/items/ISUNCharacterArcSheet.mjs";
 import { ISUNForteSheet } from "./module/sheets/items/ISUNForteSheet.mjs";
+import { ISUNSoothCardSheet } from "./module/sheets/items/ISUNSoothCardSheet.mjs";
 
 // ── Challenges ───────────────────────────────────────────
 import { ChallengeCard } from "./module/apps/ChallengeCard.mjs";
@@ -259,6 +260,13 @@ Hooks.once("init", () => {
     types: ["Forte"],
     makeDefault: true,
     label: "ISUN.SheetForte",
+  });
+  /* A Sooth card is looked at more than it is edited: the face on the left and
+   * The Gate's write-up beside it, rather than the schema in field order. */
+  foundry.applications.apps.DocumentSheetConfig.registerSheet(Item, "invisible-sun", ISUNSoothCardSheet, {
+    types: ["SoothCard"],
+    makeDefault: true,
+    label: "ISUN.SheetSoothCard",
   });
 
   // ── Settings ─────────────────────────────────────────

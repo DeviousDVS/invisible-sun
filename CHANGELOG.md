@@ -91,6 +91,10 @@ be. See [Content](#content) below.
 - **An importer**, in Foundry: point it at the folder holding your PDFs and it
   identifies each book and deck, reads it, and fills the compendia — see
   *Content* below.
+- **A Sooth card is a card**, not a form: the round face, its family, value and
+  the two suns it shifts on the left, and The Gate's write-up beside it in tabs
+  — divinatory meaning, game narrative, and the Joy and Despair a shift might
+  follow. Every control is the real field, so it is edited where it is read.
 - **A compendium browser** for searching across the system's packs.
 - **Dice So Nice! support**, optional: magic dice are tinted by the sun being
   drawn on.

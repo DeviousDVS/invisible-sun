@@ -2300,3 +2300,286 @@ a.sentence-part:hover {
   color: var(--isun-text-accent);
   font-size: 0.72rem;
 }
+
+/* ── A Sooth card ──────────────────────────────────────────────────
+ * The face on the left, the write-up on the right. Every control is the real
+ * field, drawn as the card reads until it is hovered or focused — a select that
+ * looks like a select all the way down turns a card into a form.
+ */
+/* `.invisible-sun.sheet .window-content > *` makes every sheet root a flex
+ * column, so that .sheet-body can take the height that is left and scroll
+ * inside it. This root is a grid instead, and reaches the same end by its own
+ * means: the two columns each take the full height and scroll separately. The
+ * flex:1 and min-height:0 the global rule contributes are kept, since it is the
+ * window's only child either way. */
+.invisible-sun.sheet .window-content > .sooth-layout {
+  display: grid;
+  grid-template-columns: 232px 1fr;
+  gap: var(--isun-space-md, 12px);
+  flex: 1;
+  min-height: 0;
+}
+
+.sooth-card .card-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: var(--isun-space-sm, 8px);
+  border-right: 1px solid var(--isun-border);
+  text-align: center;
+  overflow-y: auto;
+}
+
+/* The cards are round. A square thumbnail of one is a picture of a card; this
+ * is the card. */
+.sooth-card .face-art {
+  width: 168px;
+  height: 168px;
+  border-radius: 50%;
+  border: 2px solid var(--isun-border-accent);
+  overflow: hidden;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.sooth-card .face-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: none;
+  border-radius: 50%;
+}
+
+.sooth-card .card-name {
+  margin: 0;
+  border: none;
+  width: 100%;
+}
+
+.sooth-card .card-name input {
+  font-family: var(--isun-font-heading);
+  font-size: 1.35rem;
+  color: var(--isun-text-accent);
+  text-align: center;
+  line-height: 1.15;
+  height: auto;
+  padding: 2px;
+}
+
+.sooth-card .face-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.sooth-card .face-family {
+  flex: 0 1 auto;
+  width: auto;
+  font-family: var(--isun-font-smallcaps);
+  letter-spacing: 0.04em;
+  text-align: right;
+}
+
+.sooth-card .face-value {
+  flex: 0 0 2.4rem;
+  width: 2.4rem;
+  font-family: var(--isun-font-heading);
+  font-size: 1.5rem;
+  color: var(--isun-text-accent);
+  text-align: center;
+  padding: 0;
+}
+
+/* Number spinners are for quantities. A card's value is a fact about it. */
+.sooth-card .face-value::-webkit-outer-spin-button,
+.sooth-card .face-value::-webkit-inner-spin-button { appearance: none; margin: 0; }
+.sooth-card .face-value { appearance: textfield; }
+
+.sooth-card .face-suns {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.sooth-card .sun {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  grid-template-areas: "disc name" ".    note";
+  align-items: center;
+  gap: 2px 6px;
+  text-align: left;
+}
+
+.sooth-card .sun .disc {
+  grid-area: disc;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--sun-colour, transparent);
+  border: 1px solid var(--isun-border);
+}
+
+/* Bold for the sun that is enhanced, faint for the one diminished — the way the
+ * card itself prints them. */
+.sooth-card .sun.enhanced .disc { box-shadow: 0 0 6px var(--sun-colour, transparent); }
+.sooth-card .sun.diminished .disc { opacity: 0.55; }
+
+.sooth-card .sun select {
+  grid-area: name;
+  width: 100%;
+  font-family: var(--isun-font-smallcaps);
+  color: var(--sun-colour, var(--isun-text-primary));
+}
+
+.sooth-card .sun.enhanced select { font-weight: 700; }
+.sooth-card .sun.diminished select { opacity: 0.8; }
+
+.sooth-card .sun-note {
+  grid-area: note;
+  font-size: 0.65rem;
+  color: var(--isun-text-secondary);
+}
+
+.sooth-card .face-effect {
+  width: 100%;
+  text-align: left;
+}
+
+.sooth-card .effect-rank {
+  font-family: var(--isun-font-smallcaps);
+  color: var(--isun-text-accent);
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+/* Sized to the effect, which is a sentence or two. The 8rem default belongs to
+ * a description, and here it left an inch of empty box under the text. */
+.sooth-card .face-effect prose-mirror {
+  --min-height: 3rem;
+  font-size: 0.8rem;
+}
+
+.sooth-card .face-rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  font-size: 0.7rem;
+}
+
+.sooth-card .face-rank span {
+  font-family: var(--isun-font-smallcaps);
+  color: var(--isun-text-secondary);
+  letter-spacing: 0.05em;
+}
+
+.sooth-card .face-rank select { flex: 1 1 auto; font-size: 0.8rem; }
+
+.sooth-card .face-family-line {
+  width: 100%;
+  margin-top: auto;
+  font-size: 0.7rem;
+  color: var(--isun-text-secondary);
+  text-align: center;
+}
+
+/* Controls that read as the card until they are reached for. */
+.sooth-card .card-face input,
+.sooth-card .card-face select,
+.sooth-card .card-codex textarea {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  transition: background-color 120ms, border-color 120ms;
+}
+
+.sooth-card .card-face input:hover,
+.sooth-card .card-face select:hover,
+.sooth-card .card-codex textarea:hover,
+.sooth-card .card-face input:focus,
+.sooth-card .card-face select:focus,
+.sooth-card .card-codex textarea:focus {
+  background: var(--isun-bg-surface);
+  border-color: var(--isun-border);
+}
+
+/* Four labels in a column of this width wrapped onto a second row, which put a
+ * kink in the top of every card. */
+.sooth-card .card-codex .sheet-tabs {
+  flex-wrap: nowrap;
+  gap: 2px;
+}
+
+.sooth-card .card-codex .sheet-tabs .item {
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+
+/* The prose reads as prose until it is reached for, like everything else on
+ * this sheet. Core's own edit button, which appears on hover, is what says it
+ * can be changed. */
+.invisible-sun.sheet.sooth-card prose-mirror {
+  background: transparent;
+  border-color: transparent;
+  transition: background-color 120ms, border-color 120ms;
+}
+
+.invisible-sun.sheet.sooth-card prose-mirror:hover,
+.invisible-sun.sheet.sooth-card prose-mirror:focus-within {
+  background: var(--isun-bg-secondary);
+  border-color: var(--isun-border);
+}
+
+.sooth-card .card-codex {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding-right: var(--isun-space-sm, 8px);
+}
+
+.sooth-card .card-codex .tab {
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+}
+
+.sooth-card .card-codex h3 {
+  font-family: var(--isun-font-smallcaps);
+  color: var(--isun-text-accent);
+  letter-spacing: 0.05em;
+  margin: 8px 0 2px;
+  border-bottom: 1px solid var(--isun-border);
+}
+
+.sooth-card .card-codex .hint {
+  font-size: 0.72rem;
+  color: var(--isun-text-secondary);
+  margin: 2px 0 6px;
+}
+
+.sooth-card .card-meanings {
+  font-style: italic;
+  color: var(--isun-text-secondary);
+  width: 100%;
+  resize: vertical;
+}
+
+.sooth-card .card-quote {
+  font-style: italic;
+  width: 100%;
+  resize: vertical;
+}
+
+/* Two editors stacked, so each takes rather less than the 8rem a description
+ * gets to itself. */
+.sooth-card .shifts prose-mirror { --min-height: 5rem; }
+.sooth-card .shifts .shift { margin-bottom: 8px; }
+.sooth-card .shifts .joy h3 { color: var(--isun-joy); }
+.sooth-card .shifts .despair h3 { color: var(--isun-despair); }

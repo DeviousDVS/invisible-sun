@@ -1,0 +1,115 @@
+<div class="{{cssClass}} sooth-layout" autocomplete="off">
+
+  {{!-- The face. Everything here is the real field, styled to read as the card
+        until it is hovered or focused. --}}
+  <aside class="card-face">
+
+    {{!-- data-edit belongs on the <img>, not on a wrapper. FormDataExtended
+          reads a [data-edit] element's value, and for anything that is not an
+          image that value is its innerHTML — so a wrapping div submitted the
+          markup of the picture as the item's img and every edit on the sheet
+          failed validation. --}}
+    <div class="face-art">
+      <img src="{{item.img}}" alt="{{item.name}}" data-edit="img"
+           data-action="editImage" data-tooltip="{{localize 'ISUN.SoothChangeArt'}}" />
+    </div>
+
+    <h1 class="card-name">
+      <input name="name" type="text" value="{{item.name}}" placeholder="{{localize 'ISUN.SoothName'}}" />
+    </h1>
+
+    <div class="face-line">
+      <select name="system.family" class="face-family">
+        {{selectOptions config.soothFamilies selected=system.family localize=true blank="—"}}
+      </select>
+      <input class="face-value" type="number" name="system.value" value="{{system.value}}"
+             min="0" max="9" step="1" data-tooltip="{{localize 'ISUN.SoothValue'}}" />
+    </div>
+
+    {{!-- A card shifts two suns or carries a royalty effect, never both, so the
+          two share this space and the rank below decides which shows. --}}
+    {{#if royalty}}
+      <div class="face-effect">
+        <div class="effect-rank">{{rankLabel}}</div>
+        {{isunEditor "system.effectText" class="effect-text"}}
+      </div>
+    {{else}}
+      <div class="face-suns">
+        <label class="sun enhanced" style="--sun-colour: {{enhancedColour}}">
+          <span class="disc" aria-hidden="true"></span>
+          <select name="system.enhancedSun">
+            {{selectOptions sunChoices selected=system.enhancedSun}}
+          </select>
+          <span class="sun-note">{{localize "ISUN.SoothEnhancedHint"}}</span>
+        </label>
+
+        <label class="sun diminished" style="--sun-colour: {{diminishedColour}}">
+          <span class="disc" aria-hidden="true"></span>
+          <select name="system.diminishedSun">
+            {{selectOptions sunChoices selected=system.diminishedSun}}
+          </select>
+          <span class="sun-note">{{localize "ISUN.SoothDiminishedHint"}}</span>
+        </label>
+      </div>
+    {{/if}}
+
+    <label class="face-rank">
+      <span>{{localize "ISUN.SoothRank"}}</span>
+      <select name="system.rank">
+        {{selectOptions config.soothRanks selected=system.rank localize=true blank="—"}}
+      </select>
+    </label>
+
+    {{!-- As printed under the card: "Secrets • Ravens • Books • Flame". --}}
+    <input class="face-family-line" type="text" name="system.familyLine"
+           value="{{system.familyLine}}" placeholder="{{localize 'ISUN.SoothFamilyLine'}}" />
+  </aside>
+
+  {{!-- The write-up. Four tabs so that none of it is more than a click away,
+        and so the face never scrolls off. --}}
+  <section class="card-codex">
+    <nav class="sheet-tabs tabs" data-group="primary">
+      {{#each tabs as |tab|}}
+        <a class="item {{tab.cssClass}}" data-action="tab"
+           data-group="{{tab.group}}" data-tab="{{tab.id}}">{{localize tab.label}}</a>
+      {{/each}}
+    </nav>
+
+    <div class="tab card {{tabs.card.cssClass}}" data-group="primary" data-tab="card">
+      <h3>{{localize "ISUN.SoothMeanings"}}</h3>
+      <textarea class="card-meanings" name="system.meanings" rows="2"
+                placeholder="{{localize 'ISUN.SoothMeaningsHint'}}">{{system.meanings}}</textarea>
+
+      <h3>{{localize "ISUN.SoothDescription"}}</h3>
+      {{isunEditor "system.description"}}
+
+      <h3>{{localize "ISUN.SoothQuote"}}</h3>
+      <textarea class="card-quote" name="system.quote" rows="2"
+                placeholder="{{localize 'ISUN.SoothQuoteHint'}}">{{system.quote}}</textarea>
+    </div>
+
+    <div class="tab {{tabs.divination.cssClass}}" data-group="primary" data-tab="divination">
+      <h3>{{localize "ISUN.SoothDivination"}}</h3>
+      <p class="hint">{{localize "ISUN.SoothDivinationHint"}}</p>
+      {{isunEditor "system.divination"}}
+    </div>
+
+    <div class="tab {{tabs.narrative.cssClass}}" data-group="primary" data-tab="narrative">
+      <h3>{{localize "ISUN.SoothNarrative"}}</h3>
+      <p class="hint">{{localize "ISUN.SoothNarrativeHint"}}</p>
+      {{isunEditor "system.gameNarrative"}}
+    </div>
+
+    <div class="tab shifts {{tabs.shifts.cssClass}}" data-group="primary" data-tab="shifts">
+      <p class="hint">{{localize "ISUN.SoothShiftsHint"}}</p>
+      <div class="shift joy">
+        <h3>{{localize "ISUN.Joy"}}</h3>
+        {{isunEditor "system.joy"}}
+      </div>
+      <div class="shift despair">
+        <h3>{{localize "ISUN.Despair"}}</h3>
+        {{isunEditor "system.despair"}}
+      </div>
+    </div>
+  </section>
+</div>
