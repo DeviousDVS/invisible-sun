@@ -5,7 +5,8 @@
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "npm run lint && node scripts/check.mjs",
+    "unit": "node --test \"scripts/test/*.test.mjs\"",
+    "test": "npm run lint && node scripts/check.mjs && npm run unit",
     "smoke": "node scripts/smoke.mjs",
     "data:backup": "node scripts/data.mjs backup",
     "data:list": "node scripts/data.mjs list",

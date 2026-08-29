@@ -362,17 +362,30 @@ requests alike. A few things worth knowing before you start.
 
 ```bash
 npm install       # dependencies (all dev-only; nothing ships)
-npm test          # lint, then check the tree against itself
+npm test          # lint, check the tree against itself, run the unit tests
+npm run unit      # just the unit tests
 npm run smoke     # drive a running world and click everything
 ```
 
-**`npm test`** never launches anything. It lints, then checks that the tree
-agrees with itself: every module parses, the manifest declares no file that is
-missing, its version matches the release tag it points at, no `data-action` in a
-template lacks a handler, every registered item type is either collected by the
-vislae sheet or explicitly excluded, no localisation key is used without being
-defined, and the quirks list that ships is still empty. It is fast and
-safe to run at any time. Run it before you push.
+**`npm test`** never launches anything. It lints, checks that the tree agrees
+with itself, and runs the unit tests. The tree checks: every module parses, the
+manifest declares no file that is missing, its version matches the release tag
+it points at, no `data-action` in a template lacks a handler, every registered
+item type is either collected by the vislae sheet or explicitly excluded, no
+localisation key is used without being defined, and the quirks list that ships
+is still empty. It is fast and safe to run at any time. Run it before you push.
+
+**`npm run unit`** is the rules, checked without a browser. `node --test` over
+`scripts/test/` — no test framework to install, since the runner is built into
+Node. The Path of Suns is covered: 44 cases over the sun shifts and their
+doubling, the six royalty cards, the Testament across a session, and the card
+turns an Adept or a Companion drags after it. They take about a tenth of a
+second.
+
+The fixtures are invented rather than read from `packs/`, which is gitignored
+and would make the suite pass only on the machine that built it — and each case
+says which rule it is asserting and where in the books it comes from, so a
+failure reads as *"this ruling changed"* rather than *"the code broke"*.
 
 **`npm run smoke`** needs a world running, and a GM password in the
 environment. It logs in, builds a throwaway vislae holding one of every item
@@ -384,17 +397,19 @@ export FOUNDRY_PASSWORD='...'          # never committed; read from the environm
 npm run smoke
 ```
 
-The two catch different things, and both are needed. A handler that references
-a name which does not exist is caught by the lint; one that reads a property of
-the wrong object is not, and only shows up when something clicks it. Four
-separate bugs in this project have been a control that rendered, clicked and did
-nothing — every one found weeks later by a human noticing.
+The three catch different things, and all three are needed. A handler that
+references a name which does not exist is caught by the lint; one that reads a
+property of the wrong object is not, and only shows up when something clicks it.
+Four separate bugs in this project have been a control that rendered, clicked
+and did nothing — every one found weeks later by a human noticing. And neither
+of those would notice a rules helper quietly returning the wrong number, which
+is what the unit tests are for.
 
 ### Cutting a release
 
 ```bash
 npm run packs      # compile and verify the compendia — Foundry must be stopped
-npm test           # lint and check the tree
+npm test           # lint, check the tree, run the unit tests
 npm run dist       # build dist/invisible-sun.zip and dist/system.json
 ```
 
@@ -447,6 +462,7 @@ templates/             Handlebars: actor/, item/, apps/, chat/, partials/
 styles/                invisible-sun.css (theme vars), sheets.css, components.css
 lang/                  localisation
 scripts/               developer tooling — extraction, pack building, checks
+  test/                unit tests, run by node --test
 source/                design notes and schemas (the extracted data is gitignored)
 ```
 

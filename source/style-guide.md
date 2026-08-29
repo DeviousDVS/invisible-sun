@@ -416,14 +416,53 @@ no-op, which is why `no-async-promise-executor` is an error.
 
 Three tiers, all real:
 
-- **`npm test`** — no Foundry needed. Sources parse; the manifest agrees with
-  the tree; every `data-action` has a handler; every registered item type is on
-  the vislae sheet or explicitly excluded; every referenced i18n key exists.
+- **`npm test`** — no Foundry needed. Three things in sequence: eslint, the tree
+  checks in `scripts/check.mjs` (sources parse; the manifest agrees with the
+  tree; every `data-action` has a handler; every registered item type is on the
+  vislae sheet or explicitly excluded; every referenced i18n key exists), then
+  the unit tests.
+- **`npm run unit`** — `node --test` over `scripts/test/*.test.mjs`. The rules
+  helpers, exercised in Node in about a tenth of a second. No dependency: the
+  runner is built into Node.
 - **`npm run smoke`** — drives a live world with Playwright. Builds a throwaway
   vislae, walks every tab clicking every control, opens every sheet, rolls,
   turns a card. Fails on **any** console error. 16 checks.
 - **Probe scripts** — throwaway Playwright scripts in the scratchpad for one
   investigation. Never committed.
+
+### Unit tests
+
+Anything that is a function of its arguments belongs here, and the rules
+helpers are the natural subjects: `sooth.mjs` is 44 cases, and the whole file
+runs faster than a browser takes to open.
+
+**The stub supplies the plumbing, never the rules.** `scripts/test/foundry-stub.mjs`
+fakes `game.settings` and `game.packs`, and imports the *real*
+`helpers/config.mjs` for `CONFIG.ISUN` — a test that faked the royalty table
+would be testing the fake. The config file touches no global of its own, which
+is what makes that possible; keep it that way.
+
+**Fixtures are invented, never read from `packs/`.** The compendia are
+gitignored, so a test that read one would pass on the machine that built it and
+fail on every clean checkout. It would also be worse where it ran: a case needs
+a card with *particular* properties, and the real deck has to be searched for
+one. `card({ family: "secrets", enhanced: "Blue" })` says what the case is about.
+
+**Say which rule, and which page.** These tests encode readings of the books,
+several of them deductions rather than quotations — the royalty override is the
+clearest. A failing case should read as *"this ruling changed"*, not *"the code
+broke"*, and it can only do that if the ruling is written beside the assertion.
+
+**Watch for fixtures that are accidentally random.** `turn()` draws from the
+deck at random, deliberately, so no test may assume a draw order. Three cases
+here were flaky on the first run for exactly that reason; the fix was decks
+where every card is the kind under test, so what is drawn cannot matter.
+
+A suite is only worth what it catches. This one was checked by breaking the
+helper six ways on purpose — undoing the royalty ruling, stopping the doubling,
+dropping the Testament, inverting the Path, ignoring the automation setting, and
+removing the name fallback in `lookup` — and confirming each was caught. Do that
+once for any suite you add; a green run against unbroken code proves nothing.
 
 Rules for anything touching a live world:
 
@@ -462,18 +501,25 @@ cut as well as what was built. See `challenge-flow.md`.
 
 ## 10. The open questions
 
-Six of the seven this document first recorded have been settled: Title Case file
+All seven this document first recorded have been settled: Title Case file
 headers, five citations that did not name their book, hardcoded English in two
 templates, one misaligned schema block, the split between `CONFIG.ISUN` and a
-direct import, and the shape of `apps/` — which turned out to be defensible
-under a rule nobody had written down, now written down above. One gap is left.
+direct import, the shape of `apps/` — defensible under a rule nobody had written
+down, now written down above — and the missing unit tests, which `sooth.mjs` now
+has.
 
-1. **No unit tests for the pure helpers.** `helpers/sooth.mjs` is entirely
-   functions of `(state, cards)` and was verified with a throwaway Node script
-   of 26 assertions that was then deleted. That script should have been
-   committed. There is no test runner in the project yet; adding one for the
-   pure-logic helpers is the single highest-value testing gap, and `sooth.mjs`
-   is the natural first subject.
+What is worth adding next, in the same shape:
+
+1. **`helpers/dice.mjs`** — flux intensity by dice cast, and the auto-success
+   and impossible boundaries. It posts chat messages, so the stub needs a
+   `ChatMessage.create` that records rather than sends.
+2. **`ForteTree.layout`** — tiers, what a prerequisite opens, and the free
+   opening pick. Pure, and the arithmetic is fiddly enough to be worth pinning.
+3. **The importers' parsers** — `parseArc`, `parseOrder`, `parseForte` and their
+   siblings all take text and return an entry. They are the most-tested-by-hand
+   and least-tested-by-machine code in the project, and the fixtures would have
+   to be invented rather than quoted, which is a real constraint but not a
+   blocking one.
 
 ---
 
