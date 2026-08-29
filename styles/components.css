@@ -1612,7 +1612,6 @@ a.sentence-part:hover {
   text-align: left;
   border: none;
   margin: 0;
-  /* margin-top: 10px; */
   padding: 0;
 }
 
@@ -1665,10 +1664,11 @@ a.sentence-part:hover {
   border: 1px solid var(--isun-border);
   border-radius: 4px;
   padding: 4px 6px 6px;
-  margin: 0;
+  /* A fieldset carries browser margins of its own; 10px above it and none
+     elsewhere is the same step the row above the checkbox takes. */
+  margin: 10px 0 0;
   max-height: 11rem;
   overflow-y: auto;
-  margin-top: 10px;
 }
 
 .challenge-declaration .cd-targets legend {
