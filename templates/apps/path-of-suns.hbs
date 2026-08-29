@@ -118,31 +118,6 @@
       <p class="notes">{{localize "ISUN.PathNoEffects"}}</p>
     {{/unless}}{{/unless}}
 
-    {{#if table}}
-      <table class="path-table">
-        <thead>
-          <tr>
-            <th>{{localize "ISUN.PathTableTitle"}}</th>
-            <th>{{localize "ISUN.PathHeartFamily"}}</th>
-            <th>{{localize "ISUN.PathVenture"}}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{#each table as |row|}}
-            <tr>
-              <td>{{row.name}}</td>
-              <td>{{row.heart}}</td>
-              <td class="venture">
-                {{#if row.venture}}<strong>{{row.venture}}</strong>
-                  <span class="from">{{row.sources}}</span>
-                {{else}}—{{/if}}
-              </td>
-            </tr>
-          {{/each}}
-        </tbody>
-      </table>
-    {{/if}}
-
   </div>
 
   <footer class="path-footer flexrow">

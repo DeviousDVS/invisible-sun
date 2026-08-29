@@ -151,41 +151,69 @@ Hooks.once("init", () => {
     footer.appendChild(importer);
   });
 
-  /* Declaring a challenge belongs with chat, because the card is a chat
-   * message and the declaration is the first thing the table sees of it.
-   * GM only: only the GM declares, and only players roll. */
-  Hooks.on("renderChatLog", (app, element) => {
-    const root = element instanceof HTMLElement ? element : element?.[0];
-    // v14 has no #chat-controls. The chat form is where core puts its own
-    // control (the jump-to-bottom button), so the declaration sits beside it.
-    const form = root?.querySelector(".chat-form");
-    if (!form) return;
+  /* The Path of Suns goes on the scene controls rather than in chat.
+   *
+   * It is a board, not an action: "the Path of Suns board needs to have a
+   * prominent place at your game table" (The Gate, p71), and what a player
+   * wants is to glance at it, from wherever they are. The token group is where
+   * it sits because that group is the one every user has and the one selected
+   * when a world loads — a tool anywhere else is behind a click that changes
+   * which canvas layer is active.
+   *
+   * `button: true` means it does its thing and stays unselected, rather than
+   * becoming the active tool.
+   */
+  Hooks.on("getSceneControlButtons", (controls) => {
+    const tokens = controls.tokens;
+    if (!tokens) return;
+    tokens.tools ??= {};
+    tokens.tools.pathOfSuns = {
+      name: "pathOfSuns",
+      // Past core's own tools, which run to 8.
+      order: 90,
+      title: "ISUN.PathButton",
+      icon: "fa-solid fa-sun",
+      button: true,
+      onChange: () => PathOfSuns.open()
+    };
+  });
 
-    /* The Path of Suns is the whole table's, not the GM's: "the Path of Suns
-     * board needs to have a prominent place at your game table" (The Gate,
-     * p71), and a player who cannot see which card is up cannot use it. Only a
-     * GM gets the controls; everyone gets the board. */
-    if (!form.querySelector(".isun-path-btn")) {
-      const path = document.createElement("button");
-      path.type = "button";
-      path.className = "ui-control icon fa-solid fa-sun isun-path-btn";
-      path.dataset.tooltip = game.i18n.localize("ISUN.PathButton");
-      path.setAttribute("aria-label", game.i18n.localize("ISUN.PathButton"));
-      path.addEventListener("click", () => PathOfSuns.open());
-      form.prepend(path);
-    }
-
-    if (!game.user.isGM || form.querySelector(".isun-challenge-btn")) return;
+  /* Declaring a challenge belongs with chat, because the card is a chat message
+   * and the declaration is the first thing the table sees of it. GM only: only
+   * the GM declares, and only players roll.
+   *
+   * It goes in #chat-controls, beside the roll modes, and not in .chat-form
+   * where it used to be. The two are not the same place: core moves the input
+   * and its controls out to the notifications pane when the sidebar is
+   * collapsed, and .chat-form stays behind in the closed sidebar — so a GM
+   * playing with the sidebar shut had no button at all.
+   *
+   * renderChatInput fires on every one of those moves and hands back the
+   * elements by selector, which is why the hook is this one and not
+   * renderChatLog.
+   *
+   * The group deliberately does not carry core's own `.control-buttons` class.
+   * Core reaches for `chatControls.querySelector(".control-buttons")` to hide
+   * the export and clear buttons whenever the notifications pane is showing,
+   * and querySelector takes the first match — a second element wearing that
+   * class ahead of theirs would be hidden in its place. */
+  Hooks.on("renderChatInput", (chat, elements) => {
+    if (!game.user.isGM) return;
+    const controls = elements["#chat-controls"];
+    if (!controls || controls.querySelector(".isun-chat-buttons")) return;
 
     const button = document.createElement("button");
     button.type = "button";
-    // Core styles a chat control by putting the icon classes on the button
-    // itself rather than nesting an <i>, so this matches rather than fights it.
     button.className = "ui-control icon fa-solid fa-dice-d20 isun-challenge-btn";
     button.dataset.tooltip = game.i18n.localize("ISUN.DeclareChallenge");
     button.setAttribute("aria-label", game.i18n.localize("ISUN.DeclareChallenge"));
     button.addEventListener("click", () => ChallengeDeclaration.open());
-    form.prepend(button);
+
+    const group = document.createElement("div");
+    group.className = "isun-chat-buttons";
+    group.append(button);
+    // Before core's own group, which is the one that gets hidden.
+    controls.insertBefore(group, controls.querySelector(".control-buttons"));
   });
 
   // ── Register Data Models ─────────────────────────────

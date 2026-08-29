@@ -2682,3 +2682,14 @@ a.sentence-part:hover {
 
 .practices .sooth-shift.up { color: var(--isun-acumen); }
 .practices .sooth-shift.down { color: var(--isun-wound); }
+
+/* ── The system's own chat control ─────────────────────────────────
+ * Sits in #chat-controls between the roll modes and core's export and clear,
+ * and has to read the same in both places core puts that bar: a row along the
+ * bottom of the sidebar, and a vertical strip beside the notifications pane.
+ * Following the flex direction of the bar it is in does both. */
+.isun-chat-buttons {
+  display: flex;
+  flex-direction: inherit;
+  gap: 4px;
+}
