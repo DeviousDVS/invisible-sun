@@ -2302,6 +2302,33 @@ a.sentence-part:hover {
   font-size: 0.72rem;
 }
 
+/* ── The same card, in the notifications pane ──────────────────────
+ * Foundry shows an incoming message twice when the player is not looking at
+ * the chat tab: once as a notification floating over the canvas, and once in
+ * the log behind it. That is core, and it does it for every message — a roll
+ * lands twice the same way. It is only conspicuous here because a card turn is
+ * a big thing to see twice.
+ *
+ * (`ChatLog#_shouldShowNotifications`: the pane is skipped when the sidebar is
+ * expanded on the chat tab, when the chat popout is open, when the viewport is
+ * too narrow, or when the player has set chat notifications to "pip".)
+ *
+ * So the notification is cut to what a glance needs — which sun, which card,
+ * and what is now in play — and the write-up is left to the copy in the log,
+ * where it can be read and scrolled back to. The one on the canvas is a
+ * announcement; the one in the log is the record. */
+#chat-notifications .sooth-turn .turn-description { display: none; }
+
+#chat-notifications .sooth-turn .turn-face img {
+  width: 48px;
+  height: 48px;
+  flex-basis: 48px;
+}
+
+/* A chained turn shows the card that was superseded only in the log: on the
+ * canvas what matters is the card that ended up active. */
+#chat-notifications .sooth-turn .turned-card.superseded { display: none; }
+
 /* ── A Sooth card ──────────────────────────────────────────────────
  * The face on the left, the write-up on the right. Every control is the real
  * field, drawn as the card reads until it is hovered or focused — a select that
