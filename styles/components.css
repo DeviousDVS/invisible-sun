@@ -1598,6 +1598,7 @@ a.sentence-part:hover {
   display: flex;
   gap: 6px;
   align-items: flex-end;
+  margin-top: 10px;
 }
 
 .challenge-declaration .cd-field { display: flex; flex-direction: column; gap: 2px; flex: 1; }
@@ -1611,6 +1612,7 @@ a.sentence-part:hover {
   text-align: left;
   border: none;
   margin: 0;
+  /* margin-top: 10px; */
   padding: 0;
 }
 
@@ -1666,6 +1668,7 @@ a.sentence-part:hover {
   margin: 0;
   max-height: 11rem;
   overflow-y: auto;
+  margin-top: 10px;
 }
 
 .challenge-declaration .cd-targets legend {
