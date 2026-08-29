@@ -1,5 +1,5 @@
 /**
- * Invisible Sun — Dice Resolution Engine
+ * Invisible Sun — throwing the dice
  */
 
 import { colorsetForSun } from "./dice-so-nice.mjs";

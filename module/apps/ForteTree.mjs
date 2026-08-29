@@ -126,9 +126,9 @@ export class ForteTree {
    * Take an ability: charge the Crux, add it, and grant the stat points.
    *
    * "Every time you gain a new forte ability, you permanently increase one of
-   * your stats by 2 points (or two of your stats by 1 point each)" (p6438).
-   * Which stat is the player's, so the points go to the shared pot that either
-   * may draw on, and the sheet's own controls place them.
+   * your stats by 2 points (or two of your stats by 1 point each)" (The Key,
+   * p6438). Which stat is the player's, so the points go to the shared pot that
+   * either may draw on, and the sheet's own controls place them.
    */
   static async take(actor, ability, cost) {
     /* Charged through spendCrux, which takes the Joy and the Despair that back

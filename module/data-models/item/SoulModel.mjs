@@ -1,5 +1,5 @@
 /**
- * Invisible Sun — Soul Item Data Model
+ * Invisible Sun — a soul, and the gift its guardian grants
  */
 export class SoulModel extends foundry.abstract.DataModel {
   static defineSchema() {

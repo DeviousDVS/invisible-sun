@@ -1,5 +1,5 @@
 /**
- * Invisible Sun — Heart Item Data Model
+ * Invisible Sun — a heart: what a character is made of, and what they start with
  */
 export class HeartModel extends foundry.abstract.DataModel {
   static defineSchema() {

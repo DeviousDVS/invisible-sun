@@ -1,7 +1,7 @@
 import { ISUN } from "../../helpers/config.mjs";
 
 /**
- * Invisible Sun — Sooth Card Item Data Model
+ * Invisible Sun — a Sooth card
  *
  * A card carries only a name, a value and its suns on the card face; the rest
  * is written up in The Gate, a page to a card. The two are separate concerns:

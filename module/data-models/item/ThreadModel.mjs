@@ -1,7 +1,7 @@
 import { ISUN } from "../../helpers/config.mjs";
 
 /**
- * Invisible Sun — Thread (Weaver Aggregate) Item Data Model
+ * Invisible Sun — an aggregate: the raw material of Weaver magic
  *
  * An aggregate is the raw material of Weaver magic. Qualities define the
  * effects a thread can be woven into; absences are their opposite and define

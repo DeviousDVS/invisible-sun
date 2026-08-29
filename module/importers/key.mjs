@@ -1,5 +1,5 @@
 /**
- * Invisible Sun — The Key: the goods lists, and where a character comes from.
+ * Invisible Sun — The Key: the goods lists, and where a character comes from
  *
  * This reads the priced tables. The heart, soul and foundation write-ups in
  * the same book are read by creation.mjs, and the two are driven together from

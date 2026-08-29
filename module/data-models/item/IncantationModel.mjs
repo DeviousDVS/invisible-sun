@@ -1,7 +1,7 @@
 import { ISUN } from "../../helpers/config.mjs";
 
 /**
- * Invisible Sun — Incantation Item Data Model
+ * Invisible Sun — an incantation — magic sought rather than known
  */
 export class IncantationModel extends foundry.abstract.DataModel {
   static defineSchema() {

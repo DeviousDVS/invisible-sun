@@ -1,7 +1,7 @@
 import { ISUN } from "../../helpers/config.mjs";
 
 /**
- * Invisible Sun — Connection Item Data Model
+ * Invisible Sun — the people a vislae knows
  *
  * People a vislae knows. Connections come from a character's Foundation and
  * can be bought with advancement; bonds with other player characters and with

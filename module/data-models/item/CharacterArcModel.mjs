@@ -1,7 +1,7 @@
 import { ISUN } from "../../helpers/config.mjs";
 
 /**
- * Invisible Sun — Character Arc Item Data Model
+ * Invisible Sun — a character arc: cost, opening, steps, climax, resolution
  */
 export class CharacterArcModel extends foundry.abstract.DataModel {
   static defineSchema() {

@@ -435,7 +435,7 @@ export class ISUNActor extends Actor {
    * use Intellect bene to negate Wounds at any time" (The Gate, p2508) — so the
    * pool is fixed by the kind, not chosen. This is only available as the damage
    * arrives: "once damage is sustained, a character cannot use Physicality to
-   * negate a Wound" (p2540). Enforcing that window is the caller's job.
+   * negate a Wound" (The Gate, p2540). Enforcing that window is the caller's job.
    */
   async negateWithBene(kind = "wounds") {
     const [group, poolKey] = kind === "anguish"

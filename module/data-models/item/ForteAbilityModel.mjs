@@ -3,7 +3,7 @@ import { ISUN } from "../../helpers/config.mjs";
 import { grantsSchema } from "../_fields.mjs";
 
 /**
- * Invisible Sun — Forte Ability Item Data Model
+ * Invisible Sun — one ability of a forte
  *
  * The books state an ability's level as a compound string — "4", "4 (+1 die)",
  * "7 (no cost)", "3 (+1 die if used as an attack)" — packing three separate

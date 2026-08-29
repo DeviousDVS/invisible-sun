@@ -1,5 +1,5 @@
 /**
- * Invisible Sun — Foundation Item Data Model
+ * Invisible Sun — a foundation: where a character stands in the world
  */
 export class FoundationModel extends foundry.abstract.DataModel {
   static defineSchema() {

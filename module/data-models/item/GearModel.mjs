@@ -1,7 +1,7 @@
 import { ISUN } from "../../helpers/config.mjs";
 
 /**
- * Invisible Sun — Gear Item Data Model
+ * Invisible Sun — the goods a vislae buys
  *
  * The goods a vislae buys: furniture, clothes, tools, weapons, poisons,
  * passage on a skyship. The Key sets them out in fourteen sections of priced

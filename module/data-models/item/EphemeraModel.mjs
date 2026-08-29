@@ -1,7 +1,7 @@
 import { ISUN } from "../../helpers/config.mjs";
 
 /**
- * Invisible Sun — Ephemera Item Data Model
+ * Invisible Sun — an ephemera object — magic that is carried and used up
  */
 export class EphemeraModel extends foundry.abstract.DataModel {
   static defineSchema() {

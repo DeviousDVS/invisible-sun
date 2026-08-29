@@ -1,7 +1,7 @@
 import { ISUN } from "../../helpers/config.mjs";
 
 /**
- * Invisible Sun — Spell Item Data Model
+ * Invisible Sun — a spell — level, colour, cost and what it depletes
  */
 export class SpellModel extends foundry.abstract.DataModel {
   static defineSchema() {

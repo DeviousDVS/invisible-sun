@@ -11,7 +11,7 @@ import { IncantationGrant } from "../apps/IncantationGrant.mjs";
 import * as sooth from "../helpers/sooth.mjs";
 
 /**
- * Invisible Sun — Vislae Actor Sheet
+ * Invisible Sun — the vislae sheet
  */
 export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(ActorSheetV2)) {
   static DEFAULT_OPTIONS = {

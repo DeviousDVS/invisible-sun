@@ -1,5 +1,5 @@
 /**
- * Invisible Sun — Handlebars Helpers & Template Preloading
+ * Invisible Sun — Handlebars helpers, and what to preload
  */
 
 /**

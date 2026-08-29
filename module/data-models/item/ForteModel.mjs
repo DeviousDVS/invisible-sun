@@ -1,5 +1,5 @@
 /**
- * Invisible Sun — Forte Item Data Model
+ * Invisible Sun — a forte, and the ordered path through its abilities
  *
  * A forte owns an ordered list of abilities: the books instruct a vislae to
  * "start with the first one and then select more, following the path

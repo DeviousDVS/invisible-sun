@@ -1,7 +1,7 @@
 import { ISUN } from "../../helpers/config.mjs";
 
 /**
- * Invisible Sun — Skill Item Data Model
+ * Invisible Sun — a skill, and what its next level costs
  *
  * "Skills have levels, but only ever rise to 4 ... Each level adds +1 to your
  * venture when you attempt that action" (The Key, p2558). A skill's category

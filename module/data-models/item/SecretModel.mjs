@@ -3,7 +3,7 @@ import { ISUN } from "../../helpers/config.mjs";
 import { grantsSchema } from "../_fields.mjs";
 
 /**
- * Invisible Sun — Secret Item Data Model
+ * Invisible Sun — a secret: what Acumen buys outside the spell lists
  */
 export class SecretModel extends foundry.abstract.DataModel {
   static defineSchema() {

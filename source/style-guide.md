@@ -58,14 +58,14 @@ Where code implements a ruling, the comment names the book and the page:
 /* "Skills have levels, but only ever rise to 4" (The Key, p2558). */
 ```
 
-There are 59 such citations. They are how a reader tells a deliberate reading
-of the rules from an accident of implementation. **Format: `(The Key, p2558)`**
-— book name, comma, `p`, no space, no full stop inside the parenthesis.
+There are 64 such citations, and every one names its book. They are how a
+reader tells a deliberate reading of the rules from an accident of
+implementation. **Format: `(The Key, p2558)`** — book name, comma, `p`, no
+space, no full stop inside the parenthesis.
 
-> **Inconsistency.** Five sites use a bare `(p6110)` where the book is obvious
-> from context, and five use prose `page 166`. The bare form is defensible
-> inside a file that names its book in the header; `page 166` should become the
-> standard form.
+A bare `page 191` in the importers is *not* a citation: it refers to a physical
+page of the PDF being parsed, or quotes one printed in the book's own
+cross-references. Leave those alone.
 
 ---
 
@@ -158,8 +158,14 @@ color:       new fields.StringField({ required: false, initial: "" }),
 description: new fields.HTMLField({ required: false, initial: "" }),
 ```
 
-217 declarations do this, 54 do not. It reads as a table, which is what a
-schema is. **Align within a block; do not reflow a whole file to chase it.**
+Every block does this. The column is set by the longest name in the run and
+resets at each blank line or comment, so a block is self-contained: adding a
+long field means re-spacing its neighbours and nothing else. It reads as a
+table, which is what a schema is.
+
+**Align within a block. Do not reflow a whole file to chase it**, and do not
+count a single-space line as unaligned — if it holds the longest name, it *is*
+the column.
 
 ---
 
@@ -416,27 +422,31 @@ cut as well as what was built. See `challenge-flow.md`.
 
 ## 10. The open questions
 
-Collected from above, roughly in order of how much they matter.
+The four mechanical inconsistencies this document first recorded — Title Case
+file headers, five citations that did not name their book, hardcoded English in
+two templates, and one misaligned schema block — have been cleared. Two
+judgements are left, and one gap.
 
-1. **`CONFIG.ISUN` vs `import { ISUN }`** — 19 files against 11. The direct
-   import blocks the normal extension path for other packages. *Converge on
-   `CONFIG.ISUN` post-init; keep the import for init-time and Node.*
-2. **File header titles** — 24 files use Title Case noun phrases where the rest
-   use a descriptive phrase. *Mechanical.*
-3. **`apps/` holds three different kinds of thing** — windows, dialogs, and
-   pure logic. *Consider `module/rules/` for `ForteTree` and `ApplyIdentity`,
-   or accept it and say so here.*
-4. **Hardcoded English in templates** — a handful of headings, all with keys
-   that already exist. *Mechanical.*
-5. **Citation format** — `(The Key, p2558)` against a few bare `(p6110)` and
-   prose `page 166`. *Mechanical.*
-6. **Field alignment** — 217 aligned against 54 not. *Align on touch; do not
-   reflow.*
-7. **No unit tests for helpers.** `helpers/sooth.mjs` is pure functions and was
-   verified with a throwaway Node script that was then deleted. That script
-   should have been a committed test. There is no test runner in the project
-   yet; adding one for the pure-logic helpers is the single highest-value
-   testing gap.
+1. **`CONFIG.ISUN` against `import { ISUN }`** — 19 files to 11, no file using
+   both, and the split tracks when each file was written rather than what it
+   needs. They are the same object today, but they stop being the same the
+   moment a module wants to *extend* config, which is the normal way a Foundry
+   system lets other packages add to it. *Converge on `CONFIG.ISUN` at every
+   call site that runs after `init`; keep the direct import for init-time code
+   and for the importers, which Node reads where no `CONFIG` exists.*
+
+2. **`apps/` holds three different kinds of thing** — windows, dialogs, and
+   pure logic with no UI at all. `ForteTree` is layout arithmetic and
+   `ApplyIdentity` is a rules routine; neither has a window. *Either move them
+   to a `module/rules/` alongside `helpers/`, or decide that proximity to the
+   feature beats purity and record that here.*
+
+3. **No unit tests for the pure helpers.** `helpers/sooth.mjs` is entirely
+   functions of `(state, cards)` and was verified with a throwaway Node script
+   of 26 assertions that was then deleted. That script should have been
+   committed. There is no test runner in the project yet; adding one for the
+   pure-logic helpers is the single highest-value testing gap, and `sooth.mjs`
+   is the natural first subject.
 
 ---
 

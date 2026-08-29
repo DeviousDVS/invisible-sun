@@ -1,7 +1,7 @@
 import { baseNonPlayerSchema } from "../_fields.mjs";
 
 /**
- * Invisible Sun — NPC Data Model
+ * Invisible Sun — an NPC: a level, and the modifications that shift it
  */
 export class NPCModel extends foundry.abstract.DataModel {
   static defineSchema() {

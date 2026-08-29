@@ -1,5 +1,5 @@
 /**
- * Invisible Sun — Vislae (Player Character) Data Model
+ * Invisible Sun — a vislae — everything a player character is
  *
  * The full PC data model encompassing:
  *   - Certes (physical) & Qualia (mental/magical) stat pools
@@ -144,8 +144,8 @@ export class VislaeModel extends foundry.abstract.DataModel {
        *
        * The core scores themselves are not stored: "the points in these scores
        * are always divided into the pools for each stat. Points not put in a
-       * pool serve no purpose" (p1875), so a score is the sum of its pools and
-       * cannot disagree with them.
+       * pool serve no purpose" (The Key, p1875), so a score is the sum of its
+       * pools and cannot disagree with them.
        */
       statPoints: new fields.SchemaField({
         certes: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
@@ -162,12 +162,12 @@ export class VislaeModel extends foundry.abstract.DataModel {
      * a Wound or an Anguish (The Gate, p2547). Two counters cannot express
      * that: 2 mental + 1 physical is a single Wound, not two part-full tracks. */
     const status = new fields.SchemaField({
-      wounds:   pool(0, 3),
-      anguish:  pool(0, 3),
-      injuries: injuryTrack(),
+      wounds:          pool(0, 3),
+      anguish:         pool(0, 3),
+      injuries:        injuryTrack(),
       injuryThreshold: new fields.NumberField({ required: true, initial: 3, integer: true, min: 1 }),
-      armor:    new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
-      ward:     new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+      armor:           new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+      ward:            new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
 
       /**
        * Scourges applied at a wider scope than one pool. The books inflict them

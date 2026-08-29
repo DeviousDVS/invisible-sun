@@ -1,5 +1,5 @@
 /**
- * Invisible Sun — Compendium Browser
+ * Invisible Sun — searching across the packs
  *
  * Searching the packs by name alone is not much use when what a player wants is
  * "a Gold spell of level 4 or less" or "which aggregates carry Fire". The

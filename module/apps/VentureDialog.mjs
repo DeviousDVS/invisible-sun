@@ -2,7 +2,7 @@ import { rollVenture } from "../helpers/dice.mjs";
 import * as sooth from "../helpers/sooth.mjs";
 
 /**
- * Invisible Sun — Venture Dialog
+ * Invisible Sun — rolling against a challenge
  *
  * "Subtract the venture from the challenge and that's the number you need to
  * roll on your die to succeed" (The Way, p254). Venture is the total of

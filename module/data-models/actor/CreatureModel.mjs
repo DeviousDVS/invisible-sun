@@ -1,7 +1,7 @@
 import { baseNonPlayerSchema } from "../_fields.mjs";
 
 /**
- * Invisible Sun — Creature Data Model
+ * Invisible Sun — a creature: level and an effective level, rather than pools
  */
 export class CreatureModel extends foundry.abstract.DataModel {
   static defineSchema() {

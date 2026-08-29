@@ -1,7 +1,7 @@
 import { QUIRKS } from "./quirks.mjs";
 
 /**
- * Invisible Sun — System Configuration Constants
+ * Invisible Sun — the tables the rules are made of
  *
  * All game-mechanical lookup tables, sun colours, pool names, and UI
  * constants live here so they can be referenced throughout the system.
@@ -398,8 +398,8 @@ export const ISUN = Object.freeze({
 
   /**
    * What a vislae can ask for when seeking a conation incantation they have
-   * not held before. The first four are the types The Way names (p106); the
-   * rest are what the deck turned out to contain.
+   * not held before. The first four are the types the books name (The Way,
+   * p106); the rest are what the deck turned out to contain.
    */
   incantationCategories: {
     offensive:      "ISUN.IncCatOffensive",
@@ -483,9 +483,9 @@ export const ISUN = Object.freeze({
   /**
    * Taking a forte ability also raises a stat: "Every time you gain a new forte
    * ability, you permanently increase one of your stats by 2 points (or two of
-   * your stats by 1 point each)... distributed into the refined pools" (p6438).
-   * Which stat is the player's choice, so the points land in the shared pot
-   * that either stat may draw on.
+   * your stats by 1 point each)... distributed into the refined pools" (The Key,
+   * p6438). Which stat is the player's choice, so the points land in the shared
+   * pot that either stat may draw on.
    */
   forteAbilityStatPoints: 2,
 

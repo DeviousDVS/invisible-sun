@@ -1,7 +1,7 @@
 import { grantsSchema } from "../_fields.mjs";
 
 /**
- * Invisible Sun — Order Item Data Model
+ * Invisible Sun — an order, and its ladder of six degrees
  *
  * An order is a ladder of six degrees. Each costs Crux equal to the degree
  * being entered, carries a story requirement that "always requires interacting

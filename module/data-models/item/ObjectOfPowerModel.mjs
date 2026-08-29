@@ -1,7 +1,7 @@
 import { ISUN } from "../../helpers/config.mjs";
 
 /**
- * Invisible Sun — Object of Power Item Data Model
+ * Invisible Sun — an object of power, and the rest of the kindled things
  */
 export class ObjectOfPowerModel extends foundry.abstract.DataModel {
   static defineSchema() {

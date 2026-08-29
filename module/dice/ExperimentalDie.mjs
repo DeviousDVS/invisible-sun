@@ -1,5 +1,5 @@
 /**
- * Invisible Sun — The Experimental Die
+ * Invisible Sun — the Experimental Die
  *
  * "The Experimental Die ... looks just like a normal Invisible Sun die except
  * that it has nine blank faces. The only face with a symbol indicates flux.

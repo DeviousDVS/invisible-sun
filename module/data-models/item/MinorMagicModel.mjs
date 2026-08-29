@@ -1,7 +1,7 @@
 import { ISUN } from "../../helpers/config.mjs";
 
 /**
- * Invisible Sun — Minor Magic Item Data Model
+ * Invisible Sun — cantrips, charms, hexes and signs
  *
  * Cantrips, charms, hexes and signs. A category distinct from ephemera, whose
  * subtypes are conflux/charm/cypher/oddity — the shared "charm" name is a
