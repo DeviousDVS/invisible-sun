@@ -2177,30 +2177,6 @@ a.sentence-part:hover {
   font-size: 0.75rem;
 }
 
-.path-of-suns .path-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: var(--isun-space-xs, 4px);
-}
-
-.path-of-suns .path-table th {
-  font-family: var(--isun-font-smallcaps);
-  color: var(--isun-text-secondary);
-  font-weight: normal;
-  text-align: left;
-  font-size: 0.75rem;
-  border-bottom: 1px solid var(--isun-border);
-}
-
-.path-of-suns .path-table td {
-  padding: 2px 0;
-  font-size: 0.8rem;
-}
-
-.path-of-suns .path-table .venture .from {
-  margin-left: 6px;
-}
-
 .path-of-suns .path-footer {
   justify-content: space-between;
   font-size: 0.75rem;

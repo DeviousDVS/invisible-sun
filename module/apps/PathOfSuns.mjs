@@ -100,8 +100,7 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
       played: state.history.filter(e => !e.kept).length,
       positions: sooth.board(state).map(sun => this.#position(sun, slots, cards, active, next)),
       suns: PathOfSuns.#sunLines(state, cards),
-      actions: PathOfSuns.#actionLines(effects),
-      table: this.#table(state, cards)
+      actions: PathOfSuns.#actionLines(effects)
     });
   }
 
@@ -188,41 +187,6 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
       all: a.value ? sooth.signed(a.value) : "",
       matched: a.familyValue ? sooth.signed(a.familyValue) : ""
     }));
-  }
-
-  /**
-   * The characters at the table and what the board is doing to each.
-   *
-   * The party is every vislae a player owns, rather than the actors assigned to
-   * user accounts: a table where two characters are shared, or where somebody
-   * plays a second, still has them all owned, and an actor nobody owns is the
-   * GM's own and not part of the reading.
-   *
-   * A heart's family is what links a character to a card, and the heart is an
-   * item they carry rather than a field on the sheet, so it is read from their
-   * items. Anyone without a heart yet simply is not listed — there is nothing
-   * to say about them until they have one.
-   */
-  #table(state, cards) {
-    const rows = [];
-
-    for (const actor of game.actors) {
-      if (actor.type !== "Vislae" || !actor.hasPlayerOwner) continue;
-
-      const heart = actor.items.find(i => i.type === "Heart");
-      const family = heart?.system?.cardFamily ?? "";
-      if (!family) continue;
-
-      const { venture, sources } = sooth.modifiersFor(family, state, cards);
-      rows.push({
-        name: actor.name,
-        heart: heart.name,
-        family,
-        venture: venture ? sooth.signed(venture) : "",
-        sources: sources.map(s => `${s.text} ${sooth.signed(s.value)}`).join(", ")
-      });
-    }
-    return rows.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /* ──────────────────────────────────────────────

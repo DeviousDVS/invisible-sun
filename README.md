@@ -86,8 +86,8 @@ another label, so combat needs no second mechanism.
 everyone can see which one is up: the nine positions with the card sitting on
 each, the Testament of Suns holding whatever last landed on the Invisible Sun,
 and a readout of what is currently in play — which colour of spell is enhanced
-or diminished, whether the card's own sun doubles it, and which characters'
-hearts are linked to the family showing. The Nightside Path is the same board in
+or diminished, whether the card's own sun doubles it, and what the card is worth
+to a heart linked to its family. The Nightside Path is the same board in
 reverse.
 
 Every card turn is announced in chat as well, so the table sees it without
