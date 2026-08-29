@@ -230,26 +230,59 @@ module/documents/          Actor and Item subclasses — derived data, business 
 module/data-models/        schemas; the shape of stored data
    ↓
 module/sheets/             what a document looks like
-module/apps/               everything else with a window or a decision
+module/apps/               a feature: its windows, its dialogs, its rules
    ↓
-module/helpers/            pure logic, config, dice
+module/helpers/            a capability many unrelated callers need
 module/importers/          PDF → item data
 ```
 
 **Helpers do not import apps. Data models do not import sheets.** The one
-allowed upward reference is `ISUN` from `helpers/config.mjs`, which everything
-may read.
+allowed upward reference is `CONFIG.ISUN`, which everything may read.
 
-### Rules live in helpers, not in windows
+### apps/ or helpers/: by feature, or by capability
 
-The clearest recent example: `helpers/sooth.mjs` holds the whole Path of Suns —
-board state, the royalty table, what a card is worth to a character — as pure
-functions of `(state, cards)`. `apps/PathOfSuns.mjs` draws it,
-`ChallengeResponse` reads it into a roll, the vislae sheet badges spells with
-it. None of the three repeats the arithmetic.
+This is the question a new file actually asks, and the answer is not "does it
+have a window".
 
-**When a rule is needed in two places, it belongs in a helper.** Two of those
-three call sites had grown their own copy before this was fixed.
+**`apps/` is organised by feature.** Everything belonging to one part of the
+game goes there, whether or not it draws anything. `ForteTree` has no UI at all
+— it lays abilities into tiers and charges the Crux — and it belongs in `apps/`
+because it is *about forte abilities*, and only `ForteAbilityPicker` imports it.
+`ApplyIdentity` is the same shape for character creation: a predicate and a
+write, no window, imported only by the vislae sheet.
+
+**`helpers/` is organised by capability.** `config`, `templates`, `dice` and
+`dice-so-nice` are each needed by callers that have nothing else in common.
+
+Two tempting rules that do **not** work, and are worth ruling out explicitly
+because both look right until you check:
+
+- *"Helpers are pure, apps write."* `helpers/dice.mjs` posts chat messages and
+  `helpers/sooth.mjs` writes a world setting. Meanwhile `ForteTree.layout()` is
+  the purest function in `apps/`.
+- *"Apps have a UI."* `ForteTree` and `ApplyIdentity` have none at all.
+
+> **The known exception.** `helpers/sooth.mjs` is 566 lines about exactly one
+> feature — the Path of Suns board, its royalty table, its card turns — sitting
+> in the capability directory. It went there because three call sites needed the
+> rules and none of them should own them, which was the right instinct and the
+> wrong shelf: `apps/ChallengeCard.mjs` is imported by three files too and
+> nobody mistook it for a helper. Left where it is, because moving it touches
+> five imports and changes no behaviour. **Do not use it as the precedent** —
+> a new feature's rules go in `apps/` beside the feature.
+
+### Rules do not live in windows
+
+A window draws; it does not decide. When a rule is needed in two places it goes
+into a module of its own — in `apps/` beside its feature, or in `helpers/` if
+genuinely unrelated callers need it — and every call site reads it from there.
+
+`sooth.mjs` is the worked example. It holds the whole Path of Suns as functions
+of `(state, cards)`: board state, the royalty table, what a card is worth to a
+character. `apps/PathOfSuns.mjs` draws it, `ChallengeResponse` reads it into a
+roll, the vislae sheet badges spells with it, and none of the three repeats the
+arithmetic. Two of them had grown their own copy before it was factored out,
+and the copies had already drifted.
 
 ### Config, not constants
 
@@ -429,18 +462,13 @@ cut as well as what was built. See `challenge-flow.md`.
 
 ## 10. The open questions
 
-Five of the seven this document first recorded have been cleared: Title Case
-file headers, five citations that did not name their book, hardcoded English in
-two templates, one misaligned schema block, and the split between `CONFIG.ISUN`
-and a direct import. One judgement is left, and one gap.
+Six of the seven this document first recorded have been settled: Title Case file
+headers, five citations that did not name their book, hardcoded English in two
+templates, one misaligned schema block, the split between `CONFIG.ISUN` and a
+direct import, and the shape of `apps/` — which turned out to be defensible
+under a rule nobody had written down, now written down above. One gap is left.
 
-1. **`apps/` holds three different kinds of thing** — windows, dialogs, and
-   pure logic with no UI at all. `ForteTree` is layout arithmetic and
-   `ApplyIdentity` is a rules routine; neither has a window. *Either move them
-   to a `module/rules/` alongside `helpers/`, or decide that proximity to the
-   feature beats purity and record that here.*
-
-2. **No unit tests for the pure helpers.** `helpers/sooth.mjs` is entirely
+1. **No unit tests for the pure helpers.** `helpers/sooth.mjs` is entirely
    functions of `(state, cards)` and was verified with a throwaway Node script
    of 26 assertions that was then deleted. That script should have been
    committed. There is no test runner in the project yet; adding one for the
