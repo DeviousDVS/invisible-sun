@@ -270,8 +270,31 @@ export function effects(state, cards) {
      * from the card family associated with a character's heart… all of that
      * character's actions get a +1 bonus to their venture" (The Gate, p74). A
      * Companion duplicates *effects*, but it is still the card on the table, so
-     * its own family is the one that counts. */
-    if (played.family) {
+     * its own family is the one that counts.
+     *
+     * ── Why a royalty card cancels it ──
+     * A royalty card that names a number for a linked heart states the whole
+     * answer for that heart; the general +1 is not added underneath it. The
+     * books do not say so outright, and the deduction is worth keeping because
+     * it reads like a bug to anyone who finds the family rule on its own:
+     *
+     *   Nemesis is "−1 to all actions, −2 if heart is linked to family". Add
+     *   the +1 and a linked heart is at −1 — exactly where everyone else is,
+     *   so the "−2" clause changes nothing for anybody. Apprentice is "−1 to
+     *   all actions if heart is linked to family": add the +1 and it comes to
+     *   zero, and the card does nothing at all. Two of the six royalty cards,
+     *   both of them the penalties, would be void.
+     *
+     * A clause that can never alter an outcome is a misreading, so the royalty
+     * line wins where it speaks. Where it does not — the Adept and the
+     * Companion name no action modifier, only a card to turn — the general rule
+     * still applies and a linked heart takes its +1.
+     *
+     * This is an interpretation and not something The Gate states. If a table
+     * reads it the other way, restoring the sum is deleting the condition
+     * below. */
+    const own = ISUN.soothRankEffects[played.rank];
+    if (played.family && !(own?.all || own?.family)) {
       actions.push({ value: 0, familyValue: 1, family: played.family,
                      source: played.name, rank: "" });
     }
@@ -350,11 +373,13 @@ export function signed(value) {
 /**
  * What a character with this heart's family is carrying, and where from.
  *
- * The two sources are read as separate: a Stoic under a Mysteries Sovereign has
- * the +1 every Mysteries card gives them and the Sovereign's +2 on top. The
- * books never say whether the royalty number replaces the family one or adds to
- * it, so nothing here decides — each line is listed with the card it came from,
- * and a table that reads it the other way can see exactly what to drop.
+ * Every modifier in play, summed, with each one kept beside the card it came
+ * from — a venture nobody can account for is worse than no venture at all.
+ *
+ * A Stoic under a Mysteries Sovereign has +2 and not +3: a royalty card that
+ * names a number for a linked heart is stating the whole answer, and the
+ * general family +1 is not added underneath it. `effects` is where that is
+ * decided, and where the reasoning is written down.
  *
  * @param {string} family  the heart's card family, in any casing
  * @returns {{venture: number, sources: Array<{text: string, value: number}>}}
