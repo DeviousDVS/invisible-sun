@@ -1614,17 +1614,48 @@ a.sentence-part:hover {
   padding: 0;
 }
 
-.challenge-declaration input,
-.challenge-declaration select { padding: 2px 6px; height: 1.8rem; }
+/* Text boxes and the pool select only.
+ *
+ * This used to say `input, select`, which caught the two checkboxes as well:
+ * a checkbox with 6px of side padding and a 1.8rem height is a pale slab
+ * two-thirds the size of the text beside it, and both of them drew that way.
+ * `height: auto` had been added to the defence one to fix it, which corrected
+ * half the problem and left the padding.
+ *
+ * border-box because the height is the whole point: with content-box, the
+ * padding is added to it, and a select whose padding core sets differently
+ * from an input's comes out taller — which the row shows as two labels sitting
+ * a couple of pixels below the third. */
+.challenge-declaration input:not([type="checkbox"]),
+.challenge-declaration select {
+  padding: 2px 6px;
+  height: 1.8rem;
+  box-sizing: border-box;
+}
+
+/* Left the size core draws them. They are a control to tick, not a field to
+ * fill in, and every other checkbox in Foundry is this size — the dialog has
+ * no reason to be the one place they are not. */
+.challenge-declaration input[type="checkbox"] {
+  flex: 0 0 auto;
+  /* Core paints the square on the ::before, sized to --checkbox-size, and
+   * leaves the input itself at whatever width it lands on — which in core's own
+   * dialogs is a full-width form cell, and in a flex row is 18px against a 20px
+   * square. Sizing the input to the same token makes the box and the square the
+   * same thing, so what is drawn is what can be clicked. */
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  margin: 0;
+}
 
 .challenge-declaration .cd-check {
   display: flex;
   align-items: center;
   gap: 6px;
+  padding: 2px 0;
   color: var(--isun-text-secondary);
   cursor: help;
 }
-.challenge-declaration .cd-check input { height: auto; }
 
 /* The target list is the part that ran away: the avatar had no size at all, so
    one candidate filled the dialog. It is an identifying glance, not a portrait. */
