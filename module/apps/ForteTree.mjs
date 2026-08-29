@@ -1,5 +1,3 @@
-import { ISUN } from "../helpers/config.mjs";
-
 /**
  * Invisible Sun — walking a forte's ability tree
  *
@@ -77,7 +75,7 @@ export class ForteTree {
       const opened = isStart(a) || prereqs.some(p => heldNames.has(norm(p)));
       // The opening pick is free, and only while it is still the opening pick.
       const cost = (isStart(a) && openingPick)
-        ? 0 : ISUN.forteAbilityCrux(a.system.level ?? 1);
+        ? 0 : CONFIG.ISUN.forteAbilityCrux(a.system.level ?? 1);
 
       return {
         id: a.id, uuid: a.uuid, name: a.name, img: a.img,
@@ -143,8 +141,8 @@ export class ForteTree {
     await actor.createEmbeddedDocuments("Item", [data]);
     await actor.update({
       "system.stats.statPoints.shared":
-        (actor.system.stats?.statPoints?.shared ?? 0) + ISUN.forteAbilityStatPoints
+        (actor.system.stats?.statPoints?.shared ?? 0) + CONFIG.ISUN.forteAbilityStatPoints
     });
-    return { taken: ability.name, cost, points: ISUN.forteAbilityStatPoints };
+    return { taken: ability.name, cost, points: CONFIG.ISUN.forteAbilityStatPoints };
   }
 }

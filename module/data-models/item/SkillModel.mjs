@@ -1,5 +1,3 @@
-import { ISUN } from "../../helpers/config.mjs";
-
 /**
  * Invisible Sun — a skill, and what its next level costs
  *
@@ -29,13 +27,13 @@ export class SkillModel extends foundry.abstract.DataModel {
       /** 1 familiar, 2 practiced, 3 trained, 4 specialised. Never higher. */
       level:       new fields.NumberField({ required: true, initial: 1, integer: true, min: 0, max: 4 }),
       description: new fields.HTMLField({ required: false, initial: "" }),
-      category:    new fields.StringField({ required: false, initial: "action", blank: true, choices: ISUN.skillCategoryChoices }),
+      category:    new fields.StringField({ required: false, initial: "action", blank: true, choices: CONFIG.ISUN.skillCategoryChoices }),
 
       /** Set on the six weapon skills so a weapon can find its own skill. */
-      weaponType:  new fields.StringField({ required: false, initial: "", blank: true, choices: ISUN.weaponTypeChoices }),
-      weaponRange: new fields.StringField({ required: false, initial: "", blank: true, choices: ISUN.weaponRangeChoices }),
+      weaponType:  new fields.StringField({ required: false, initial: "", blank: true, choices: CONFIG.ISUN.weaponTypeChoices }),
+      weaponRange: new fields.StringField({ required: false, initial: "", blank: true, choices: CONFIG.ISUN.weaponRangeChoices }),
       /** Set on Resist, Dodge and Withstand, which other rules name. */
-      defenseKey:  new fields.StringField({ required: false, initial: "", blank: true, choices: ISUN.defenseKeyChoices }),
+      defenseKey:  new fields.StringField({ required: false, initial: "", blank: true, choices: CONFIG.ISUN.defenseKeyChoices }),
 
       /** Other wordings the books use for the same skill. */
       aliases:     new fields.ArrayField(new fields.StringField()),
@@ -44,7 +42,7 @@ export class SkillModel extends foundry.abstract.DataModel {
 
   /** What the next level costs, by category (The Key, p2745). */
   get acumenCostPerLevel() {
-    return ISUN.skillAcumenCost[this.category] ?? 0;
+    return CONFIG.ISUN.skillAcumenCost[this.category] ?? 0;
   }
 
   /** A skill contributes its level to a venture. */

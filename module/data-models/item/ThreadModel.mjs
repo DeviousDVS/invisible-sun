@@ -1,5 +1,3 @@
-import { ISUN } from "../../helpers/config.mjs";
-
 /**
  * Invisible Sun — an aggregate: the raw material of Weaver magic
  *
@@ -21,7 +19,7 @@ export class ThreadModel extends foundry.abstract.DataModel {
       defaultRange:    new fields.StringField({ required: false, initial: "" }),
       qualities:       new fields.ArrayField(new fields.StringField()),
       absences:        new fields.ArrayField(new fields.StringField()),
-      color:           new fields.StringField({ required: false, initial: "", blank: true, choices: ISUN.spellColorChoices }),
+      color:           new fields.StringField({ required: false, initial: "", blank: true, choices: CONFIG.ISUN.spellColorChoices }),
     };
   }
 }

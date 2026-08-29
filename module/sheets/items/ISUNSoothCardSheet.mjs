@@ -1,5 +1,4 @@
 import { ISUNItemSheet } from "./ISUNItemSheet.mjs";
-import { ISUN } from "../../helpers/config.mjs";
 
 /**
  * Invisible Sun — a Sooth card
@@ -59,17 +58,17 @@ export class ISUNSoothCardSheet extends ISUNItemSheet {
      * spell and not here: a card names a sun or it names none. */
     context.sunChoices = Object.fromEntries([
       ["", "—"],
-      ...Object.keys(ISUN.suns).map(key => [
+      ...Object.keys(CONFIG.ISUN.suns).map(key => [
         key.charAt(0).toUpperCase() + key.slice(1),
-        game.i18n.localize(ISUN.suns[key].label)
+        game.i18n.localize(CONFIG.ISUN.suns[key].label)
       ])
     ]);
 
-    const colourOf = (name) => ISUN.suns[String(name ?? "").toLowerCase()]?.color ?? "";
+    const colourOf = (name) => CONFIG.ISUN.suns[String(name ?? "").toLowerCase()]?.color ?? "";
     context.enhancedColour = colourOf(system.enhancedSun);
     context.diminishedColour = colourOf(system.diminishedSun);
     context.royalty = Boolean(system.rank);
-    context.rankLabel = system.rank ? game.i18n.localize(ISUN.soothRanks[system.rank]) : "";
+    context.rankLabel = system.rank ? game.i18n.localize(CONFIG.ISUN.soothRanks[system.rank]) : "";
 
     return context;
   }

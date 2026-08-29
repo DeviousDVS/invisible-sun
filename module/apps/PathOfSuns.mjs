@@ -1,4 +1,3 @@
-import { ISUN } from "../helpers/config.mjs";
 import * as sooth from "../helpers/sooth.mjs";
 
 /**
@@ -111,9 +110,9 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       sun,
-      label: game.i18n.localize(ISUN.suns[sun].label),
-      colour: ISUN.suns[sun].color,
-      offPath: Boolean(ISUN.suns[sun].offPath),
+      label: game.i18n.localize(CONFIG.ISUN.suns[sun].label),
+      colour: CONFIG.ISUN.suns[sun].color,
+      offPath: Boolean(CONFIG.ISUN.suns[sun].offPath),
       next: sun === next,
       /* The card held over from a previous session is in play, but it is not
        * the card that was just turned — nothing has been, yet. Calling it
@@ -125,8 +124,8 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
         name: card.name,
         img: card.img,
         value: card.value,
-        family: card.family ? game.i18n.localize(ISUN.soothFamilies[card.family]) : "",
-        rank: card.rank ? game.i18n.localize(ISUN.soothRanks[card.rank]) : "",
+        family: card.family ? game.i18n.localize(CONFIG.ISUN.soothFamilies[card.family]) : "",
+        rank: card.rank ? game.i18n.localize(CONFIG.ISUN.soothRanks[card.rank]) : "",
         effectText: card.effectText,
         // The card whose sun matches the sun it sits on works twice as hard,
         // and that is the thing a reader most needs to spot on the board.
@@ -145,15 +144,15 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   static #sunLines(state, cards) {
     return [...sooth.sunTotals(state, cards).values()]
-      .sort((a, b) => (ISUN.suns[a.sun]?.order ?? 9) - (ISUN.suns[b.sun]?.order ?? 9))
+      .sort((a, b) => (CONFIG.ISUN.suns[a.sun]?.order ?? 9) - (CONFIG.ISUN.suns[b.sun]?.order ?? 9))
       .map(s => ({
         sun: s.sun,
-        colour: ISUN.suns[s.sun]?.color ?? "#888",
+        colour: CONFIG.ISUN.suns[s.sun]?.color ?? "#888",
         doubled: s.doubled,
         names: [...s.sources.keys()],
         source: sooth.sourceList(s.sources),
         text: game.i18n.format(s.amount > 0 ? "ISUN.PathSunEnhanced" : "ISUN.PathSunDiminished", {
-          sun: game.i18n.localize(ISUN.suns[s.sun]?.label ?? s.sun),
+          sun: game.i18n.localize(CONFIG.ISUN.suns[s.sun]?.label ?? s.sun),
           amount: Math.abs(s.amount)
         })
       }));
@@ -182,8 +181,8 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
     return [...merged.values()].map(a => ({
       source: a.source,
       names: [a.source],
-      rank: a.rank ? game.i18n.localize(ISUN.soothRanks[a.rank]) : "",
-      family: a.family ? game.i18n.localize(ISUN.soothFamilies[a.family]) : "",
+      rank: a.rank ? game.i18n.localize(CONFIG.ISUN.soothRanks[a.rank]) : "",
+      family: a.family ? game.i18n.localize(CONFIG.ISUN.soothFamilies[a.family]) : "",
       all: a.value ? sooth.signed(a.value) : "",
       matched: a.familyValue ? sooth.signed(a.familyValue) : ""
     }));
@@ -226,14 +225,14 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
 
       turns.push({
         sun,
-        sunLabel: game.i18n.localize(ISUN.suns[sun].label),
-        colour: ISUN.suns[sun].color,
+        sunLabel: game.i18n.localize(CONFIG.ISUN.suns[sun].label),
+        colour: CONFIG.ISUN.suns[sun].color,
         uuid: card.uuid,
         name: card.name,
         img: card.img,
         value: card.value,
-        family: card.family ? game.i18n.localize(ISUN.soothFamilies[card.family]) : "",
-        rank: card.rank ? game.i18n.localize(ISUN.soothRanks[card.rank]) : "",
+        family: card.family ? game.i18n.localize(CONFIG.ISUN.soothFamilies[card.family]) : "",
+        rank: card.rank ? game.i18n.localize(CONFIG.ISUN.soothRanks[card.rank]) : "",
         // A royalty card's whole effect is its printed text, and it shifts no
         // sun, so without this the card would arrive saying nothing.
         effectText: card.effectText,
@@ -310,7 +309,7 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
     const options = left.map(c => `<option value="${c.uuid}">${c.name}</option>`).join("");
     const chosen = await DialogV2.prompt({
       window: { title: game.i18n.format("ISUN.PathPlaceOn", {
-        sun: game.i18n.localize(ISUN.suns[sun].label) }) },
+        sun: game.i18n.localize(CONFIG.ISUN.suns[sun].label) }) },
       content: `<select name="uuid" style="width:100%">${options}</select>`,
       ok: {
         label: game.i18n.localize("ISUN.PathPlace"),

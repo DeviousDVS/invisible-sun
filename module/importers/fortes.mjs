@@ -49,7 +49,6 @@
 import {
   columnAnchors, columnLines, isHeading, joinWords, pageWords, PARAGRAPH_SLACK
 } from "./book-page.mjs";
-import { ISUN } from "../helpers/config.mjs";
 
 /** The labelled fields a forte's entry carries, before its abilities. */
 const FIELDS = ["Background", "Appearance", "Character Arcs",
@@ -507,7 +506,7 @@ export function toForteItem(entry) {
  */
 function colorOf(text) {
   const bare = String(text ?? "").replace(/\s*\([^)]*\)\s*$/, "").trim();
-  return bare in ISUN.spellColorChoices ? bare : null;
+  return bare in CONFIG.ISUN.spellColorChoices ? bare : null;
 }
 
 /**

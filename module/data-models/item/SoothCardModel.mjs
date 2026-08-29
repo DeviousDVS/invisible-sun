@@ -1,5 +1,3 @@
-import { ISUN } from "../../helpers/config.mjs";
-
 /**
  * Invisible Sun — a Sooth card
  *
@@ -28,12 +26,12 @@ export class SoothCardModel extends foundry.abstract.DataModel {
     const fields = foundry.data.fields;
 
     return {
-      family:          new fields.StringField({ required: false, initial: "", blank: true, choices: { "": "", ...ISUN.soothFamilies } }),
+      family:          new fields.StringField({ required: false, initial: "", blank: true, choices: { "": "", ...CONFIG.ISUN.soothFamilies } }),
       value:           new fields.NumberField({ required: true, initial: 0, integer: true, min: 0, max: 9 }),
 
       /** A royalty card carries a rank and shifts no sun; every other card
        *  shifts one sun up and another down. */
-      rank:            new fields.StringField({ required: false, initial: "", blank: true, choices: { "": "", ...ISUN.soothRanks } }),
+      rank:            new fields.StringField({ required: false, initial: "", blank: true, choices: { "": "", ...CONFIG.ISUN.soothRanks } }),
       enhancedSun:     new fields.StringField({ required: false, initial: "" }),
       diminishedSun:   new fields.StringField({ required: false, initial: "" }),
       /** What a royalty card does. A plain card's effect is its sun shift, so

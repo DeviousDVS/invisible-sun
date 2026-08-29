@@ -1,5 +1,3 @@
-import { ISUN } from "../../helpers/config.mjs";
-
 /**
  * Invisible Sun — the goods a vislae buys
  *
@@ -24,7 +22,7 @@ export class GearModel extends foundry.abstract.DataModel {
     const fields = foundry.data.fields;
 
     return {
-      category:    new fields.StringField({ required: true, initial: "other", choices: ISUN.goodsCategories }),
+      category:    new fields.StringField({ required: true, initial: "other", choices: CONFIG.ISUN.goodsCategories }),
       /** The table an entry sits in, where its section is divided: "Footgear",
        *  "Meals and Drinks", "Ingredients". Free text — it is a heading, and
        *  a heading is whatever the book felt like writing. */

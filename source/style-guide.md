@@ -257,18 +257,25 @@ Every game-mechanical table lives in `helpers/config.mjs` and is published as
 `CONFIG.ISUN`. Caps are derived (`forteAbilityCrux(level)`), not stored, because
 "every cap in the game is modifiable."
 
-> **Inconsistency, and it matters.** 19 modules `import { ISUN }` directly; 11
-> read `CONFIG.ISUN`. **No file uses both**, so the split is clean but
-> unprincipled — it tracks when the file was written, not what it needs.
-> They are the same object today — `CONFIG.ISUN = ISUN` at init — but they stop
-> being the same the moment a module wants to *extend* config, which is the
-> normal way a Foundry system lets other packages add to it.
->
-> **Target: `CONFIG.ISUN` at every call site that runs after `init`.** The
-> direct import should survive only where the code runs *during* `init`, or in
-> Node (the importers are read by `scripts/`, where `CONFIG` does not exist).
-> That is ~19 files, mechanical, and worth doing before the first release makes
-> the import a public API.
+**Read it as `CONFIG.ISUN`, not through an import.** Every call site does, with
+two exceptions that have a reason: `invisible-sun.mjs`, which performs the
+`CONFIG.ISUN = ISUN` assignment, and `config.mjs`, which declares it.
+
+The reason is convention rather than capability, and it is worth being honest
+about which. `CONFIG.ISUN` *is* `ISUN` — the same frozen object — so mutating a
+table on it (`CONFIG.ISUN.spellColorChoices.Chartreuse = "Chartreuse"`, which
+works because the freeze is shallow) is visible either way, and the system
+already relies on that when it pushes the generated quirks into
+`CONFIG.ISUN.quirks`. What the import blocks is a module *replacing* the
+namespace or one of its tables wholesale, and what it costs regardless is a
+reader having to know that two spellings mean the same thing.
+
+`CONFIG` is populated in the first statement of the `init` hook, before
+anything else registers, so any code running after that may read it — including
+`defineSchema()`, which Foundry calls lazily on first access. **Code that runs
+at module scope may not**, because a module body is evaluated when it is
+imported, which is before any hook. `dice-so-nice.mjs` had one such constant and
+now builds it inside its hook.
 
 ### Apps: three shapes, two justified
 
@@ -422,26 +429,18 @@ cut as well as what was built. See `challenge-flow.md`.
 
 ## 10. The open questions
 
-The four mechanical inconsistencies this document first recorded — Title Case
+Five of the seven this document first recorded have been cleared: Title Case
 file headers, five citations that did not name their book, hardcoded English in
-two templates, and one misaligned schema block — have been cleared. Two
-judgements are left, and one gap.
+two templates, one misaligned schema block, and the split between `CONFIG.ISUN`
+and a direct import. One judgement is left, and one gap.
 
-1. **`CONFIG.ISUN` against `import { ISUN }`** — 19 files to 11, no file using
-   both, and the split tracks when each file was written rather than what it
-   needs. They are the same object today, but they stop being the same the
-   moment a module wants to *extend* config, which is the normal way a Foundry
-   system lets other packages add to it. *Converge on `CONFIG.ISUN` at every
-   call site that runs after `init`; keep the direct import for init-time code
-   and for the importers, which Node reads where no `CONFIG` exists.*
-
-2. **`apps/` holds three different kinds of thing** — windows, dialogs, and
+1. **`apps/` holds three different kinds of thing** — windows, dialogs, and
    pure logic with no UI at all. `ForteTree` is layout arithmetic and
    `ApplyIdentity` is a rules routine; neither has a window. *Either move them
    to a `module/rules/` alongside `helpers/`, or decide that proximity to the
    feature beats purity and record that here.*
 
-3. **No unit tests for the pure helpers.** `helpers/sooth.mjs` is entirely
+2. **No unit tests for the pure helpers.** `helpers/sooth.mjs` is entirely
    functions of `(state, cards)` and was verified with a throwaway Node script
    of 26 assertions that was then deleted. That script should have been
    committed. There is no test runner in the project yet; adding one for the

@@ -1,5 +1,3 @@
-import { ISUN } from "./config.mjs";
-
 /**
  * Invisible Sun — Dice So Nice! integration
  *
@@ -17,7 +15,7 @@ import { ISUN } from "./config.mjs";
  *                    colourset and a magic die can be rolled in the colour of
  *                    the sun it belongs to.
  *
- * The marked face uses ISUN.fluxGlyph, the same mark the chat card shows.
+ * The marked face uses CONFIG.ISUN.fluxGlyph, the same mark the chat card shows.
  * Duvall carries the numerals but has no symbol glyph — its character set is
  * Latin and basic punctuation only.
  */
@@ -54,11 +52,13 @@ const FA = '"Font Awesome 7 Pro"';
  */
 const IS_FACES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
-/** Nine blanks, then the marked face. */
-const EXPERIMENTAL_FACES = ["", "", "", "", "", "", "", "", "", ISUN.fluxGlyph];
-
 export function registerDiceSoNice() {
   Hooks.once("diceSoNiceReady", (dice3d) => {
+    /* Nine blanks, then the marked face. Built here rather than at module
+     * scope: CONFIG.ISUN is populated during init, and this module is imported
+     * before that hook runs. */
+    const experimentalFaces = ["", "", "", "", "", "", "", "", "", CONFIG.ISUN.fluxGlyph];
+
     // "preferred", not "default". A system registered as "default" is only
     // added to the list a player can choose from — it is never actually used,
     // so every preset below would be dead weight and no amount of adjusting
@@ -79,7 +79,7 @@ export function registerDiceSoNice() {
     dice3d.addDicePreset({
       type: "de",
       system: "invisible-sun",
-      labels: EXPERIMENTAL_FACES,
+      labels: experimentalFaces,
       font: FA,
       // A direct multiplier on the label size, not a percentage: Dice So
       // Nice's own defaults run from 0.45 to 2 and a d10 is 1. A lone symbol
@@ -88,7 +88,7 @@ export function registerDiceSoNice() {
       colorset: "isun-experimental"
     }, "d10");
 
-    for (const [key, sun] of Object.entries(ISUN.suns)) {
+    for (const [key, sun] of Object.entries(CONFIG.ISUN.suns)) {
       const label = key.charAt(0).toUpperCase() + key.slice(1);
       const fg = labelFor(sun.color);
       dice3d.addColorset({
@@ -164,5 +164,5 @@ function labelFor(background) {
  */
 export function colorsetForSun(colour) {
   const key = String(colour ?? "").toLowerCase();
-  return ISUN.suns[key] ? `isun-${key}` : undefined;
+  return CONFIG.ISUN.suns[key] ? `isun-${key}` : undefined;
 }

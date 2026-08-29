@@ -1,5 +1,3 @@
-import { ISUN } from "../../helpers/config.mjs";
-
 /**
  * Invisible Sun — an object of power, and the rest of the kindled things
  */
@@ -11,10 +9,10 @@ export class ObjectOfPowerModel extends foundry.abstract.DataModel {
       level:       new fields.NumberField({ required: true, initial: 1, integer: true, min: 0 }),
       description: new fields.HTMLField({ required: false, initial: "" }),
       depletion:   new fields.StringField({ required: false, initial: "" }),
-      objectType:  new fields.StringField({ required: true, initial: "object", choices: ISUN.objectTypes }),
+      objectType:  new fields.StringField({ required: true, initial: "object", choices: CONFIG.ISUN.objectTypes }),
       /** The physical thing the magic lives in — every card states one. */
       form:        new fields.StringField({ required: false, initial: "" }),
-      color:       new fields.StringField({ required: false, initial: "", blank: true, choices: ISUN.spellColorChoices }),
+      color:       new fields.StringField({ required: false, initial: "", blank: true, choices: CONFIG.ISUN.spellColorChoices }),
       dice:        new fields.StringField({ required: false, initial: "" }),
       /** The italic aside printed under the card's labels. */
       note:        new fields.HTMLField({ required: false, initial: "" }),

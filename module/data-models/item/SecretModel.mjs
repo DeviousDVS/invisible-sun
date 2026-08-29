@@ -1,5 +1,3 @@
-import { ISUN } from "../../helpers/config.mjs";
-
 import { grantsSchema } from "../_fields.mjs";
 
 /**
@@ -22,7 +20,7 @@ export class SecretModel extends foundry.abstract.DataModel {
       bonusDice:   new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
 
       description: new fields.HTMLField({ required: false, initial: "" }),
-      secretType:  new fields.StringField({ required: true, initial: "character", choices: ISUN.secretTypes }),
+      secretType:  new fields.StringField({ required: true, initial: "character", choices: CONFIG.ISUN.secretTypes }),
 
       // Changery secrets alone name a bodily change that must be made before
       // the secret does anything: "Change required: Bleed serpents (level 10)".

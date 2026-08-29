@@ -1,5 +1,3 @@
-import { ISUN } from "../../helpers/config.mjs";
-
 /**
  * Invisible Sun — the people a vislae knows
  *
@@ -13,7 +11,7 @@ export class ConnectionModel extends foundry.abstract.DataModel {
     const fields = foundry.data.fields;
 
     return {
-      bondType:     new fields.StringField({ required: true, initial: "connection", choices: ISUN.bondTypes }),
+      bondType:     new fields.StringField({ required: true, initial: "connection", choices: CONFIG.ISUN.bondTypes }),
       level:        new fields.NumberField({ required: true, initial: 1, integer: true, min: 0 }),
       relationship: new fields.StringField({ required: false, initial: "" }),
       description:  new fields.HTMLField({ required: false, initial: "" }),

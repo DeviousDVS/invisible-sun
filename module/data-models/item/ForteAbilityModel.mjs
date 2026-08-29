@@ -1,5 +1,3 @@
-import { ISUN } from "../../helpers/config.mjs";
-
 import { grantsSchema } from "../_fields.mjs";
 
 /**
@@ -33,7 +31,7 @@ export class ForteAbilityModel extends foundry.abstract.DataModel {
       levelText:   new fields.StringField({ required: false, initial: "" }),
 
       description: new fields.HTMLField({ required: false, initial: "" }),
-      color:       new fields.StringField({ required: false, initial: "", blank: true, choices: ISUN.spellColorChoices }),
+      color:       new fields.StringField({ required: false, initial: "", blank: true, choices: CONFIG.ISUN.spellColorChoices }),
       depletion:   new fields.StringField({ required: false, initial: "" }),
 
       /** Owning forte, by name — readable, and what the books key on. */

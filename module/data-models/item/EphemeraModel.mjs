@@ -1,5 +1,3 @@
-import { ISUN } from "../../helpers/config.mjs";
-
 /**
  * Invisible Sun — an ephemera object — magic that is carried and used up
  */
@@ -9,9 +7,9 @@ export class EphemeraModel extends foundry.abstract.DataModel {
     
     return {
       level:        new fields.NumberField({ required: true, initial: 1, integer: true, min: 0 }),
-      color:        new fields.StringField({ required: false, initial: "", blank: true, choices: ISUN.spellColorChoices }),
+      color:        new fields.StringField({ required: false, initial: "", blank: true, choices: CONFIG.ISUN.spellColorChoices }),
       description:  new fields.HTMLField({ required: false, initial: "" }),
-      ephemeraType: new fields.StringField({ required: true, initial: "conflux", choices: ISUN.ephemeraTypes }),
+      ephemeraType: new fields.StringField({ required: true, initial: "conflux", choices: CONFIG.ISUN.ephemeraTypes }),
       /** The physical thing the magic lives in — every card states one. */
       form:         new fields.StringField({ required: false, initial: "" }),
       depletion:    new fields.StringField({ required: false, initial: "" }),

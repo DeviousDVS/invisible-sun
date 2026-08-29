@@ -1,5 +1,3 @@
-import { ISUN } from "../../helpers/config.mjs";
-
 /**
  * Invisible Sun — a character arc: cost, opening, steps, climax, resolution
  */
@@ -17,7 +15,7 @@ export class CharacterArcModel extends foundry.abstract.DataModel {
     return {
       description: new fields.StringField({ required: false, initial: "" }),
       cost:        new fields.StringField({ required: false, initial: "2 Acumen" }),
-      status:      new fields.StringField({ required: true, initial: "active", choices: ISUN.arcStatuses }),
+      status:      new fields.StringField({ required: true, initial: "active", choices: CONFIG.ISUN.arcStatuses }),
       
       opening:     arcStep("1 Acumen"),
       steps:       new fields.ArrayField(arcStep("")),

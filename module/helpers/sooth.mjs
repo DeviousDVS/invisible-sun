@@ -1,5 +1,3 @@
-import { ISUN } from "./config.mjs";
-
 /**
  * Invisible Sun — the Path of Suns
  *
@@ -51,7 +49,7 @@ export const DEFAULT_STATE = Object.freeze({ version: 1, history: [], nightside:
  * and still ends there.
  */
 export function board(state) {
-  return [...(state?.nightside ? ISUN.nightsidePath : ISUN.pathOfSuns), "invisible"];
+  return [...(state?.nightside ? CONFIG.ISUN.nightsidePath : CONFIG.ISUN.pathOfSuns), "invisible"];
 }
 
 /** The last card played on each sun, keyed by sun. Earlier ones are spent. */
@@ -161,7 +159,7 @@ export function turn(state, deck, sun = null) {
     next = place(next, card, where);
     placed.push({ card, sun: where });
 
-    const rank = ISUN.soothRankEffects[card.rank];
+    const rank = CONFIG.ISUN.soothRankEffects[card.rank];
     /* A Companion chains only when it is the first card of the session — the
      * card held over in the Testament does not count as one, which is what
      * `kept` marks it as. */
@@ -238,7 +236,7 @@ function resolve(state, entry, cards) {
     if (history[at].kept && history[at] !== entry) return null;
     const card = cards.get(history[at].uuid);
     if (!card) return null;
-    if (!ISUN.soothRankEffects[card.rank]?.duplicates) {
+    if (!CONFIG.ISUN.soothRankEffects[card.rank]?.duplicates) {
       return { card, sun: history[at].sun };
     }
     at -= 1;
@@ -293,7 +291,7 @@ export function effects(state, cards) {
      * This is an interpretation and not something The Gate states. If a table
      * reads it the other way, restoring the sum is deleting the condition
      * below. */
-    const own = ISUN.soothRankEffects[played.rank];
+    const own = CONFIG.ISUN.soothRankEffects[played.rank];
     if (played.family && !(own?.all || own?.family)) {
       actions.push({ value: 0, familyValue: 1, family: played.family,
                      source: played.name, rank: "" });
@@ -314,7 +312,7 @@ export function effects(state, cards) {
                   source: card.name });
     }
 
-    const rank = ISUN.soothRankEffects[card.rank];
+    const rank = CONFIG.ISUN.soothRankEffects[card.rank];
     if (rank && (rank.all || rank.family)) {
       actions.push({
         value: rank.all ?? 0,
@@ -411,7 +409,7 @@ export function modifiersFor(family, state, cards) {
 export function spellEffect(colour, state, cards) {
   const sun = String(colour ?? "").toLowerCase();
   const none = { amount: 0, doubled: false, sources: "" };
-  if (!sun || !ISUN.suns[sun]) return none;
+  if (!sun || !CONFIG.ISUN.suns[sun]) return none;
 
   const total = sunTotals(state, cards).get(sun);
   if (!total) return none;
