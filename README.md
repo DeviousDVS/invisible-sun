@@ -484,6 +484,10 @@ A few habits this codebase keeps, which are worth keeping:
 - **Bigger decisions get a design note** in `source/`, recording what was tried
   and cut as well as what was built. See
   [`challenge-flow.md`](source/challenge-flow.md) for the shape.
+- **The habits above are written out in full** in
+  [`source/style-guide.md`](source/style-guide.md) — naming, comments, the
+  layering, the importer interface, and the places the codebase currently
+  disagrees with itself. Worth a read before a first PR.
 - **Never compile packs while Foundry is running.** LevelDB permits one
   reader-writer; `compile_packs.js` guards against it, but do not fight the
   guard.
