@@ -14,7 +14,7 @@ A full-featured Foundry VTT v14 system faithfully implementing the Invisible Sun
 ## Architecture
 
 > [!IMPORTANT]
-> **Foundry VTT v14.364** (confirmed on server). Uses modern `foundry.abstract.DataModel` schemas (no `template.json`), `ActorSheetV2` with `HandlebarsApplicationMixin`, and ES Module (`.mjs`) entry points. This mirrors the [dangerous-journeys](file:///home/ubuntu/foundrydata/Data/systems/dangerous-journeys/dangerous-journeys.mjs) system already installed, which we'll use as our architectural reference.
+> **Foundry VTT v14.367** (confirmed on server). Uses modern `foundry.abstract.DataModel` schemas (no `template.json`), `ActorSheetV2` with `HandlebarsApplicationMixin`, and ES Module (`.mjs`) entry points. This mirrors the [dangerous-journeys](file:///home/ubuntu/foundrydata/Data/systems/dangerous-journeys/dangerous-journeys.mjs) system already installed, which we'll use as our architectural reference.
 
 ### File Structure
 
@@ -230,7 +230,7 @@ Core system scaffolding. Gets a loadable system into Foundry with data models, b
 ---
 
 #### [NEW] [system.json](file:///home/ubuntu/foundrydata/Data/systems/invisible-sun/system.json)
-System manifest for Foundry VTT v14. Declares all actor types (Vislae, NPC, Creature), item types (Heart, Foundation, Soul, Order, Forte, ForteAbility, Spell, Incantation, Secret, Skill, CharacterArc, SoothCard, Ephemera, ObjectOfPower), compendium packs, stylesheets, ES modules, and language files. Sets `compatibility.minimum: "14.354"`, `verified: "14.364"`.
+System manifest for Foundry VTT v14. Declares all actor types (Vislae, NPC, Creature), item types (Heart, Foundation, Soul, Order, Forte, ForteAbility, Spell, Incantation, Secret, Skill, CharacterArc, SoothCard, Ephemera, ObjectOfPower), compendium packs, stylesheets, ES modules, and language files. Sets `compatibility.minimum: "14.366"`, `verified: "14.367"`.
 
 #### [NEW] [invisible-sun.mjs](file:///home/ubuntu/foundrydata/Data/systems/invisible-sun/invisible-sun.mjs)
 System entry point. In the `init` hook: registers all DataModels on `CONFIG.Actor.dataModels` and `CONFIG.Item.dataModels`, sets custom document classes, registers actor/item sheets via `DocumentSheetConfig`, loads Handlebars helpers and partials.
