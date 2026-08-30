@@ -478,6 +478,14 @@
     "FluxDespairGiven": "1 Despair given to {name}.",
     "FluxDespairHint": "Significantly detrimental flux is sometimes accompanied by 1 Despair for the person affected.",
     "FluxTheVislae": "the vislae",
+    "FluxChooseEffect": "Choose what it did",
+    "FluxPickerTitle": "What the flux did",
+    "FluxPickerForTitle": "What the flux did to {name}",
+    "FluxPickerHint": "The {intensity} chart. The GM determines the effect, so any of the three may be used.",
+    "FluxPickerTake": "This one",
+    "FluxShowAllCharts": "All three charts",
+    "FluxNoCharts": "The flux charts are empty. Import The Way to fill them.",
+    "FluxOffChart": "Taken from another chart; the dice called for {rolled}.",
     "SourceWayFlux": "Flux charts",
     "ExperimentalDie": "Experimental Die — flux only",
     "IdentityApplied": "{name} applied: {values} set.",
@@ -648,7 +656,8 @@
     "SourceEphemeraCardsM": "Book M Ephemera Cards",
     "ImportSorted": "Read {total} cards from {sheets} sheets: {kinds}.",
     "ImportUnplaced": "{count} card(s) could not be sorted by the back printed behind them.",
-    "SourceVanceCardsTN": "Nightside Vance Spell Cards"
+    "SourceVanceCardsTN": "Nightside Vance Spell Cards",
+    "Search": "Search"
   },
   "TYPES": {
     "Actor": {

@@ -1,0 +1,22 @@
+{{!-- What a magical flux did. Posted when the GM chooses it, which is after the
+      roll rather than with it — see helpers/flux.mjs. --}}
+<div class="isun-chat-card flux-effect">
+  <header class="card-header">
+    <i class="fa-solid fa-burst"></i>
+    <span class="flux-effect-title">{{localize "ISUN.MagicalFlux"}}</span>
+    <span class="flux-intensity {{intensity}}">{{intensityLabel}}</span>
+  </header>
+
+  {{#if name}}<div class="flux-effect-who">{{name}}</div>{{/if}}
+
+  {{!-- The text plainly. Not a @UUID link: chat content is not enriched on the
+        way in, and enriching it here would put the entry's name beside the
+        text it already is. --}}
+  <div class="flux-effect-text">{{text}}</div>
+
+  {{!-- Said only when the GM reached past the chart the dice pointed at, which
+        the rules allow: they determine the effect, not the page. --}}
+  {{#if offChart}}
+    <p class="flux-effect-note">{{localize "ISUN.FluxOffChart" rolled=rolled}}</p>
+  {{/if}}
+</div>

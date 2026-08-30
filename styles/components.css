@@ -2700,6 +2700,88 @@ a.sentence-part:hover + .sentence-part.affix {
   color: var(--isun-text-secondary);
 }
 
+/* Choosing what a flux did, and saying so afterwards. The button sits with the
+ * Despair inside the warning, since both are consequences of that flux. */
+.flux-warning .flux-choose {
+  display: block;
+  width: 100%;
+  margin-top: var(--isun-space-xs);
+  padding: 2px 8px;
+  font-size: 0.85em;
+  border: 1px solid var(--isun-border-accent);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--isun-text-accent);
+  cursor: pointer;
+}
+
+.flux-warning .flux-choose:hover {
+  background: var(--isun-text-accent);
+  color: var(--isun-bg-primary);
+}
+
+.flux-warning .flux-effect-chosen {
+  margin: var(--isun-space-xs) 0 0;
+  padding-top: var(--isun-space-xs);
+  border-top: 1px solid var(--isun-border);
+  font-size: 0.9em;
+  color: var(--isun-text-primary);
+}
+
+/* The picker. A hundred entries, so the list scrolls and the row is compact. */
+.flux-picker .flux-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-sm);
+  margin-bottom: var(--isun-space-xs);
+}
+
+.flux-picker .flux-search { flex: 1; }
+.flux-picker .flux-all { white-space: nowrap; font-size: 0.85em; }
+
+.flux-picker .flux-rows {
+  max-height: 26rem;
+  overflow-y: auto;
+  border: 1px solid var(--isun-border);
+  border-radius: 4px;
+}
+
+.flux-picker .flux-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--isun-space-xs);
+  padding: 3px var(--isun-space-sm);
+  border-bottom: 1px solid var(--isun-border);
+  cursor: pointer;
+}
+
+.flux-picker .flux-row:last-child { border-bottom: none; }
+.flux-picker .flux-row:hover { background: var(--isun-bg-elevated); }
+.flux-picker .flux-row.hidden { display: none; }
+.flux-picker .flux-row input { flex: 0 0 auto; margin: 0; }
+.flux-picker .flux-text { flex: 1; }
+
+.flux-picker .flux-chart {
+  flex: 0 0 auto;
+  font-size: 0.72em;
+  font-family: var(--isun-font-smallcaps);
+  color: var(--isun-text-secondary);
+}
+
+.flux-effect .flux-effect-who {
+  font-family: var(--isun-font-smallcaps);
+  color: var(--isun-text-secondary);
+}
+
+.flux-effect .flux-effect-text { margin-top: var(--isun-space-xs); }
+
+.flux-effect .flux-effect-note {
+  margin: var(--isun-space-xs) 0 0;
+  font-size: 0.82em;
+  font-style: italic;
+  color: var(--isun-text-secondary);
+}
+
 /* ── The Vance's mind ──────────────────────────────────────────────
  * A capacity bar above Practices, and a cell in each Vancian row. Only a Vance
  * renders any of this; see the note in practices.hbs.

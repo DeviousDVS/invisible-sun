@@ -33,6 +33,7 @@
  * board's undo covers. Silence was the worse failure.
  */
 import { PathOfSuns } from "../apps/PathOfSuns.mjs";
+import { FluxPicker } from "../apps/FluxPicker.mjs";
 
 export const SCOPE = "invisible-sun";
 export const FLAG = "flux";
@@ -97,6 +98,8 @@ export function render(message, html) {
 
   const actor = flux.actor ? game.actors.get(flux.actor) : null;
 
+  renderEffect(message, warning, flux, actor);
+
   if (flux.despair) {
     const said = document.createElement("p");
     said.className = "flux-despair-given";
@@ -115,6 +118,71 @@ export function render(message, html) {
     + game.i18n.format("ISUN.FluxGiveDespair", { name: actor.name });
   button.addEventListener("click", () => giveDespair(message));
   warning.append(button);
+}
+
+/**
+ * What the flux did, drawn under the warning.
+ *
+ * Shown to everyone once chosen, and offered as a button only to a GM who has
+ * not chosen yet — the same reasoning as the Despair, and the same place.
+ */
+function renderEffect(message, warning, flux, actor) {
+  if (flux.effect) {
+    const said = document.createElement("p");
+    said.className = "flux-effect-chosen";
+    said.textContent = flux.effect.text;
+    warning.append(said);
+    return;
+  }
+  if (!game.user.isGM) return;
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "flux-choose";
+  button.innerHTML = `<i class="fa-solid fa-burst"></i> `
+    + game.i18n.localize("ISUN.FluxChooseEffect");
+  button.addEventListener("click", () => chooseEffect(message, actor));
+  warning.append(button);
+}
+
+/**
+ * Pick an effect off the charts and tell the table.
+ *
+ * Posted as its own message rather than only written back onto this one. The
+ * effect is chosen after the fact — the GM reads the room first — and by then
+ * the roll has scrolled away; the Sooth turn announces itself the same way for
+ * the same reason.
+ */
+export async function chooseEffect(message, actor) {
+  const flux = message.getFlag(SCOPE, FLAG);
+  if (!flux || flux.effect) return;
+
+  const chosen = await FluxPicker.open({ intensity: flux.intensity, actor });
+  if (!chosen) return;
+
+  await message.setFlag(SCOPE, FLAG, {
+    ...flux,
+    effect: { uuid: chosen.uuid, text: chosen.text, intensity: chosen.intensity }
+  });
+
+  const { renderTemplate } = foundry.applications.handlebars;
+  const content = await renderTemplate("systems/invisible-sun/templates/chat/flux-effect.hbs", {
+    text: chosen.text,
+    uuid: chosen.uuid,
+    intensity: chosen.intensity,
+    intensityLabel: game.i18n.localize(CONFIG.ISUN.fluxIntensities[chosen.intensity] ?? ""),
+    /* The chart it came off, which is worth saying when it is not the one the
+     * dice pointed at: the GM may reach across the charts, and a table reading
+     * the card should be able to tell that they did. */
+    offChart: chosen.intensity !== flux.intensity,
+    rolled: game.i18n.localize(CONFIG.ISUN.fluxIntensities[flux.intensity] ?? ""),
+    name: actor?.name ?? ""
+  });
+
+  await ChatMessage.create({
+    speaker: actor ? ChatMessage.getSpeaker({ actor }) : {},
+    content
+  });
 }
 
 /**
