@@ -132,6 +132,17 @@ export function parseOrder(lines, column) {
       }
       if (field || (!degree && !list)) { push(order.description, line.text); continue; }
       if (line.x >= column + BULLET_INDENT && open) { open.push(line.text); continue; }
+      /* A degree states what it requires once, before it names anything. So an
+       * indented paragraph that is not itself an ability belongs to the ability
+       * being read, not back to the requirement.
+       *
+       * Without this the Vance came out with the long passage on preparing
+       * spells — the whole of how Vancian magic works — filed under what the
+       * 1st degree requires, and every degree from the 3rd lost the sentence
+       * granting a free spell off the end of its ability and into the
+       * requirement above it. Nothing was dropped; it was in the wrong field,
+       * which is worse, because the text looked complete on the sheet. */
+      if (degree?.abilities.length && open) { open.push(line.text); continue; }
       push(degree ? degree.requirement : list.note, line.text);
       continue;
     }
