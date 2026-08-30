@@ -14,7 +14,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
-import { parseOrder } from "../../module/importers/orders.mjs";
+import { parseOrder, reader } from "../../module/importers/orders.mjs";
 
 /* The page sets a degree's heading and its requirement flush at the column, and
  * everything inside a degree one indent in — the ability labels, and the
@@ -253,6 +253,67 @@ describe("a box set inside a column", () => {
     assert.equal(join(order.description),
       "We Vances are exemplary casters of spells. Our spells vibrate and seethe.");
     assert.equal(order.sidebars[0].heading, "BEINGS AND THE REALMS");
+  });
+});
+
+describe("remembering where a heading was printed", () => {
+
+  /* `sigils` cuts the mark above an order's name, and the only way it can find
+   * one is to be told where the name was. That comes off the reader, so this
+   * exercises the reader itself rather than parseOrder — which means building a
+   * page of words, since columnAnchors needs several lines sharing a start
+   * before it will call anything a column. */
+  const word = (text, x, y, h = 10) => ({ x, y, w: text.length * 5, h, font: "f1", text });
+
+  const pageOf = (rows) => rows.flatMap(([text, x, y, h]) => [word(text, x, y, h)]);
+
+  test("an order carries its heading's page and position", () => {
+    const read = reader();
+    read.page(pageOf([
+      ["VANCE", 72, 100, 12],
+      ["We Vances are exemplary casters of spells.", 72, 120],
+      ["Philosophy and Outlook: Magic is a living thing.", 81, 133],
+      ["1st-Degree Vance: Postulant", 72, 146],
+      ["A Vance begins here.", 72, 159],
+      ["Vancian Spells: Six of them.", 81, 172],
+      ["More about spells.", 72, 185],
+    ]), 39);
+    const [order] = read.done();
+
+    assert.equal(order.name, "Vance");
+    assert.equal(order.headAt.page, 39, "the heading's own page, not the body's");
+    assert.equal(order.headAt.y, 100);
+    assert.equal(order.headAt.anchor, 72);
+    assert.equal(order.headAt.first, 72);
+  });
+
+  test("a heading at the foot of a page keeps that page, not the next", () => {
+    // The sigil is beside the name. A heading that opens onto the page after it
+    // would send the cut to the wrong sheet.
+    const read = reader();
+    read.page(pageOf([
+      ["Some earlier prose.", 72, 100],
+      ["More earlier prose.", 72, 113],
+      ["Still more of it.", 72, 126],
+      ["And a fourth line.", 72, 139],
+      ["GOETIC", 72, 640, 12],
+    ]), 54);
+    /* Four lines flush at the column, minimum: columnAnchors will not call
+     * anything a column on fewer, and a page it finds no column on is skipped
+     * whole. */
+    read.page(pageOf([
+      ["We Goetics summon.", 72, 100],
+      ["Spirits answer when called.", 72, 113],
+      ["Philosophy and Outlook: Spirits answer.", 81, 126],
+      ["1st-Degree Goetic: Neophyte", 72, 139],
+      ["A Goetic begins here.", 72, 152],
+      ["Summoning: We call a being.", 81, 165],
+    ]), 55);
+    const [order] = read.done();
+
+    assert.equal(order.name, "Goetic");
+    assert.equal(order.headAt.page, 54);
+    assert.equal(order.page, 55, "the body still knows its own page");
   });
 });
 

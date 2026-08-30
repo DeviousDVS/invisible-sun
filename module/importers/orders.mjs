@@ -253,13 +253,18 @@ export function reader() {
             /* Where the heading sits, kept for `sigils` below. The order's mark
              * is printed above its name and nothing in the text layer mentions
              * it, so the only way to find it later is to know where to look. */
-            headAt = { anchor, y: line.y, h: line.h,
+            headAt = { anchor, y: line.y, h: line.h, page: n,
                        next: columns[column + 1], first: columns[0] };
             continue;
           }
           if (heading.length) {
+            /* `headAt` carries the heading's own page, not this line's. They
+             * are the same for all five orders as the book sets them, but a
+             * heading at the foot of a column opens on the page after it, and
+             * the sigil is beside the name rather than beside the first
+             * sentence. */
             open = { heading: heading.join(" "), lines: [], column: anchor, page: n,
-                     headAt: { ...headAt, page: n } };
+                     headAt };
             heading = [];
           }
           if (open) open.lines.push({ ...line, x: line.x - anchor + open.column });
