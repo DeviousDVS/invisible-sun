@@ -82,10 +82,14 @@
                      {{#if p.prepared}}checked{{/if}}
                      {{#unless p.canPrepare}}disabled{{/unless}}
                      data-tooltip="{{#if p.canPrepare}}{{localize 'ISUN.MindPrepareHint'}}{{else}}{{localize p.blockedReason name=p.item.name need=p.footprint free=@root.mind.free}}{{/if}}" />
+              {{!-- The number alone, with the accent marking a reduced spell.
+                    No fraction glyph beside it: at these sizes "2½" reads as
+                    two and a half rather than as a halved 4, and the footprint
+                    having changed from 4 to 2 already says it happened. --}}
               <a class="mind-size-tag{{#if p.halved}} halved{{/if}}"
                  data-action="toggle-halved"
-                 data-tooltip="{{localize 'ISUN.MindHalveHint'}}">
-                {{p.footprint}}{{#if p.halved}}&frac12;{{/if}}
+                 data-tooltip="{{#if p.halved}}{{localize 'ISUN.MindRestoreHint'}}{{else}}{{localize 'ISUN.MindHalveHint'}}{{/if}}">
+                {{p.footprint}}
               </a>
             {{/if}}
           </div>
