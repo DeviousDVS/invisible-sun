@@ -299,7 +299,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
      * been placed on the ladder yet. */
     const mind = context.actor.system.mind ?? null;
     if (mind) {
-      mind.percent = mind.area ? Math.min(100, Math.round((mind.used / mind.area) * 100)) : 0;
+      mind.percent = mind.capacity ? Math.min(100, Math.round((mind.used / mind.capacity) * 100)) : 0;
       mind.label = context.orderDegreeTitle
         ? game.i18n.format("ISUN.MindOf", { title: context.orderDegreeTitle })
         : game.i18n.localize("ISUN.Mind");

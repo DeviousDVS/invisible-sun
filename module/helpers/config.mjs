@@ -81,18 +81,32 @@ export const DYNAMIC_KEY_PREFIXES = Object.freeze([
  * tabletop; nobody is laying cards out on a mat, and "Beta (3 x 3 in)" tells a
  * player nothing they can act on.
  *
- * Written in the book's own orientation, 3 wide before 6 tall. Only the area is
- * ever compared, so a transposed gamma computes the same answers — but written
- * the other way round the ladder stops being visibly nested, each class the one
- * below it with a side doubled, and halving a spell no longer lands on the next
- * class down. That nesting is what "reduce the occupying space of two of the
- * spells we know to half their original size" (Vance 2nd degree) relies on.
+ * Written in the book's own orientation, 3 wide before 6 tall. Nothing computes
+ * with these any more — see `cost` — but written the other way round the ladder
+ * stops being visibly nested, each class the one below it with a side doubled,
+ * and that nesting is what "reduce the occupying space of two of the spells we
+ * know to half their original size" (Vance 2nd degree) relies on.
+ *
+ * ── Why there is a `cost` beside the inches ──
+ * The four classes are already in a 1 : 2 : 4 : 8 ratio by area, and the three
+ * minds a Vance can have in a 1 : 2 : 4, so counting square inches and counting
+ * anything else in the same proportion answer every question identically. The
+ * inches are the physical fact and stay here as provenance; `cost` is what the
+ * sheet adds up, because a virtual tabletop has no mat and "4.5 of 18" asks a
+ * player to do arithmetic about a card they will never hold.
+ *
+ * 2 for an alpha rather than 1, so that halving one stays a whole number — the
+ * inches do not manage that, and put 2.25 on the sheet.
+ *
+ * The two must stay in step. scripts/test/vance.test.mjs holds `cost` to being
+ * exactly proportional to `width * height`, so a class added with one and not
+ * the other fails rather than quietly costing the wrong amount.
  */
 const spellClasses = {
-  alpha: { label: "ISUN.SpellClassAlpha", width: 3, height: 1.5 },
-  beta:  { label: "ISUN.SpellClassBeta",  width: 3, height: 3 },
-  gamma: { label: "ISUN.SpellClassGamma", width: 3, height: 6 },
-  omega: { label: "ISUN.SpellClassOmega", width: 6, height: 6 },
+  alpha: { label: "ISUN.SpellClassAlpha", width: 3, height: 1.5, cost: 2 },
+  beta:  { label: "ISUN.SpellClassBeta",  width: 3, height: 3,   cost: 4 },
+  gamma: { label: "ISUN.SpellClassGamma", width: 3, height: 6,   cost: 8 },
+  omega: { label: "ISUN.SpellClassOmega", width: 6, height: 6,   cost: 16 },
 };
 
 export const ISUN = Object.freeze({
@@ -342,26 +356,30 @@ export const ISUN = Object.freeze({
    * 5th. The even degrees say outright that the space does not increase, so
    * they repeat the odd one below them rather than being absent.
    *
-   * Kept as the rectangle rather than as an area because the sheet says "3 x 6
-   * in" to the player, and because the book's own diagrams are captioned by
-   * degree — "Mind of the Postulant", "Mind of the Magister".
+   * `capacity` is what the sheet counts against, in the same units as a spell
+   * class's `cost`; the rectangle is kept beside it because it is what the book
+   * states and what a table using the printed cards would lay out, and it is
+   * still shown, in the tooltip.
    *
-   * Only the area is ever compared against, and that is sound rather than a
-   * shortcut: every spell class and every one of these three containers is a
-   * whole multiple of 1.5 inches, and over all 245 combinations that fit by
-   * area, every one can also be physically arranged. See scripts/test/
-   * vance.test.mjs, which proves it by exhaustive packing rather than
-   * asserting it.
+   * Comparing one number rather than arranging cards is sound rather than a
+   * shortcut. Every class and every one of these three containers is a whole
+   * multiple of 1.5 inches, so over all the combinations that fit by area,
+   * every one can also be physically arranged — scripts/test/vance.test.mjs
+   * proves that by exhaustive packing rather than asserting it, and holds
+   * `capacity` proportional to the rectangle so the two cannot drift.
+   *
+   * The book's own diagrams are captioned by degree, which is where "Mind of
+   * the Postulant" and "Mind of the Magister" come from.
    *
    * A degree of 0 is an Apostate, who has no Vancian mind at all.
    */
   vancianMind: {
-    1: { width: 3, height: 3 },
-    2: { width: 3, height: 3 },
-    3: { width: 3, height: 6 },
-    4: { width: 3, height: 6 },
-    5: { width: 6, height: 6 },
-    6: { width: 6, height: 6 },
+    1: { width: 3, height: 3, capacity: 4 },
+    2: { width: 3, height: 3, capacity: 4 },
+    3: { width: 3, height: 6, capacity: 8 },
+    4: { width: 3, height: 6, capacity: 8 },
+    5: { width: 6, height: 6, capacity: 16 },
+    6: { width: 6, height: 6, capacity: 16 },
   },
 
   /**

@@ -9,17 +9,23 @@
  * spells we can fit into this space, that is how many spells we can prepare"
  * (The Key, Vance 1st degree).
  *
- * ── Why an area and not a puzzle ──
+ * ── Why one number and not a puzzle ──
  * The book means this literally: a Vance lays cards of four sizes out inside a
  * rectangle, "arranged as the Vance sees fit". That reads like a packing
  * problem, and it is not one. Every spell class and every container is a whole
- * multiple of 1.5 inches — in those units the pieces are 2x1, 2x2, 4x2 and 4x4
+ * multiple of 1.5 inches — in those units the pieces are 2x1, 2x2, 2x4 and 4x4
  * and the containers 2x2, 2x4 and 4x4 — so nothing can fit by area yet fail to
- * be arranged. `scripts/test/vance.test.mjs` proves that by packing all 245
- * area-legal combinations rather than taking it on trust.
+ * be arranged. `scripts/test/vance.test.mjs` proves that by packing every
+ * area-legal combination rather than taking it on trust.
  *
- * So comparing areas is not an approximation of the rule. It is the rule,
- * stated in the one number a player can act on.
+ * Given that, the areas themselves stop earning their keep. The classes run
+ * 1 : 2 : 4 : 8 and the minds 1 : 2 : 4, so any figures in the same proportion
+ * answer every question identically — and 2, 4, 8, 16 against 4, 8, 16 do it
+ * without ever putting a fraction in front of a player. Those are `cost` and
+ * `capacity` in the config; the inches stay beside them as the printed fact.
+ *
+ * So counting cost is not an approximation of the rule. It is the rule, in the
+ * one number somebody at a virtual table can act on.
  *
  * ── What is not decided here ──
  * These functions read state; they never write it. Whether a spell is prepared
@@ -27,24 +33,31 @@
  * it costs Sorcery at the moment of casting — neither belongs to the geometry.
  */
 
-/** A spell's footprint in square inches, halved if it has been reduced. */
+/**
+ * How much of a mind a spell takes up, halved if it has been reduced.
+ *
+ * Always a whole number, including when halved: an alpha costs 2 so that its
+ * half is 1 rather than the 2.25 square inches would give.
+ */
 export function footprint(spell) {
-  const spec = CONFIG.ISUN.spellClasses[spell?.system?.spellClass];
-  if (!spec) return 0;
-  const area = spec.width * spec.height;
-  return spell.system.halved ? area / 2 : area;
+  const cost = CONFIG.ISUN.spellClasses[spell?.system?.spellClass]?.cost;
+  if (!cost) return 0;
+  return spell.system.halved ? cost / 2 : cost;
 }
 
 /**
- * The rectangle a Vance of this degree has to fill, or null for none.
+ * How much room a Vance of this degree has, or null for none.
  *
- * Null rather than a zero-sized box: an Apostate is not a Vance with no room,
+ * Carries the printed rectangle alongside the `capacity` that is counted
+ * against, so a caller can say what a table would lay out without doing
+ * arithmetic in inches.
+ *
+ * Null rather than a zero capacity: an Apostate is not a Vance with no room,
  * they are somebody the rule does not apply to, and a caller has to tell those
  * apart to know whether to draw anything at all.
  */
 export function mindFor(degree) {
-  const box = CONFIG.ISUN.vancianMind[degree];
-  return box ? { ...box, area: box.width * box.height } : null;
+  return CONFIG.ISUN.vancianMind[degree] ? { ...CONFIG.ISUN.vancianMind[degree] } : null;
 }
 
 /** How many spells this degree may carry at half footprint. */
@@ -86,11 +99,11 @@ export function mindState(degree, spells) {
   return {
     ...box,
     used,
-    free: box.area - used,
+    free: box.capacity - used,
     /* Reported, never enforced. A cap the system computes too low must not stop
      * a player recording what the rules allow — the same footing the ephemera
      * and object limits are on. */
-    over: used > box.area,
+    over: used > box.capacity,
     prepared: prepared.length,
     known: vancian.length,
     reductions,
@@ -114,7 +127,7 @@ export function canPrepare(spell, mind) {
 
   const need = footprint(spell);
   if (!need) return { allowed: false, reason: "ISUN.MindNoClass" };
-  if (need > mind.area) return { allowed: false, reason: "ISUN.MindTooLarge" };
+  if (need > mind.capacity) return { allowed: false, reason: "ISUN.MindTooLarge" };
   if (need > mind.free) return { allowed: false, reason: "ISUN.MindNoRoom" };
   return { allowed: true, reason: "" };
 }

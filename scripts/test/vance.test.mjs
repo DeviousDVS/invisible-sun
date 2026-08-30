@@ -25,20 +25,32 @@ const spell = ({ spellClass = "alpha", prepared = false, halved = false,
 
 describe("how much room a spell takes", () => {
 
-  test("each class is the rectangle printed on its card", () => {
+  test("each class doubles the one below it", () => {
     // "alpha class (3 inches by 1.5 inches), beta class (3 by 3), gamma class
-    // (3 by 6), or omega class (6 by 6)" (The Key, Vance 1st degree).
-    assert.equal(vance.footprint(spell({ spellClass: "alpha" })), 4.5);
-    assert.equal(vance.footprint(spell({ spellClass: "beta" })), 9);
-    assert.equal(vance.footprint(spell({ spellClass: "gamma" })), 18);
-    assert.equal(vance.footprint(spell({ spellClass: "omega" })), 36);
+    // (3 by 6), or omega class (6 by 6)" (The Key, Vance 1st degree) — a ratio
+    // of 1 : 2 : 4 : 8, which is what these numbers keep.
+    assert.equal(vance.footprint(spell({ spellClass: "alpha" })), 2);
+    assert.equal(vance.footprint(spell({ spellClass: "beta" })), 4);
+    assert.equal(vance.footprint(spell({ spellClass: "gamma" })), 8);
+    assert.equal(vance.footprint(spell({ spellClass: "omega" })), 16);
   });
 
   test("a reduced spell takes half", () => {
     // "we can reduce the occupying space of two of the spells we know to half
     // their original size" (The Key, Vance 2nd degree).
-    assert.equal(vance.footprint(spell({ spellClass: "gamma", halved: true })), 9);
-    assert.equal(vance.footprint(spell({ spellClass: "omega", halved: true })), 18);
+    assert.equal(vance.footprint(spell({ spellClass: "gamma", halved: true })), 4);
+    assert.equal(vance.footprint(spell({ spellClass: "omega", halved: true })), 8);
+  });
+
+  test("nothing a mind can hold is ever a fraction", () => {
+    // The reason an alpha costs 2 and not 1. In square inches a halved alpha is
+    // 2.25, and the sheet would be showing quarters of a card nobody can see.
+    for (const cls of Object.keys(CONFIG.ISUN.spellClasses)) {
+      for (const halved of [false, true]) {
+        const n = vance.footprint(spell({ spellClass: cls, halved }));
+        assert.equal(n, Math.round(n), `${cls}${halved ? " halved" : ""} is ${n}`);
+      }
+    }
   });
 
   test("halving moves a spell exactly one class down", () => {
@@ -63,10 +75,12 @@ describe("how much room a spell takes", () => {
 
 describe("the mind grows with the degree", () => {
 
-  test("3 x 3 at the 1st degree", () => {
+  test("3 x 3 at the 1st degree — two alphas, or one beta", () => {
     // "The total space we have is represented by a square that is 3 inches by
     // 3 inches" (The Key, Vance 1st degree).
-    assert.deepEqual(vance.mindFor(1), { width: 3, height: 3, area: 9 });
+    assert.deepEqual(vance.mindFor(1), { width: 3, height: 3, capacity: 4 });
+    assert.equal(vance.mindFor(1).capacity,
+      2 * CONFIG.ISUN.spellClasses.alpha.cost, "a 3 x 3 mind is two alphas");
   });
 
   test("the even degrees do not grow", () => {
@@ -78,8 +92,8 @@ describe("the mind grows with the degree", () => {
   });
 
   test("3 x 6 at the 3rd, 6 x 6 at the 5th", () => {
-    assert.deepEqual(vance.mindFor(3), { width: 3, height: 6, area: 18 });
-    assert.deepEqual(vance.mindFor(5), { width: 6, height: 6, area: 36 });
+    assert.deepEqual(vance.mindFor(3), { width: 3, height: 6, capacity: 8 });
+    assert.deepEqual(vance.mindFor(5), { width: 6, height: 6, capacity: 16 });
   });
 
   test("no degree is no mind at all, not an empty one", () => {
@@ -109,8 +123,8 @@ describe("what the mind is holding", () => {
   test("only prepared spells take up room", () => {
     const held = [spell({ spellClass: "beta", prepared: true }), spell({ spellClass: "beta" })];
     const mind = vance.mindState(3, held);
-    assert.equal(mind.used, 9);
-    assert.equal(mind.free, 9);
+    assert.equal(mind.used, 4);
+    assert.equal(mind.free, 4);
     assert.equal(mind.prepared, 1);
     assert.equal(mind.known, 2);
   });
@@ -123,7 +137,7 @@ describe("what the mind is holding", () => {
       spell({ spellClass: "alpha", prepared: true })
     ];
     const mind = vance.mindState(3, held);
-    assert.equal(mind.used, 4.5);
+    assert.equal(mind.used, 2);
     assert.equal(mind.known, 1);
   });
 
@@ -133,8 +147,8 @@ describe("what the mind is holding", () => {
     const held = [spell({ spellClass: "omega", prepared: true })];
     const mind = vance.mindState(3, held);
     assert.equal(mind.over, true);
-    assert.equal(mind.used, 36);
-    assert.equal(mind.free, -18);
+    assert.equal(mind.used, 16);
+    assert.equal(mind.free, -8);
   });
 
   test("unpreparing is always allowed, even when over", () => {
@@ -185,8 +199,8 @@ describe("reductions", () => {
   });
 
   test("a reduced spell buys room", () => {
-    // A gamma is 18 and will not fit beside anything in a 3 x 6 mind; halved,
-    // it is a beta and leaves room for another.
+    // A gamma costs 8 and fills a 3 x 6 mind on its own; halved, it is a beta
+    // at 4 and leaves room for another.
     const whole = [spell({ spellClass: "gamma", prepared: true }),
                    spell({ spellClass: "beta", prepared: true })];
     assert.equal(vance.mindState(3, whole).over, true);
@@ -195,14 +209,44 @@ describe("reductions", () => {
                      spell({ spellClass: "beta", prepared: true })];
     const mind = vance.mindState(3, reduced);
     assert.equal(mind.over, false);
-    assert.equal(mind.used, 18);
+    assert.equal(mind.used, 8);
     assert.equal(mind.free, 0);
   });
 });
 
 /* ──────────────────────────────────────────────────────────────────
- * Why there is no puzzle mat
+ * Why one number is allowed to stand in for the cards
  * ────────────────────────────────────────────────────────────────── */
+
+describe("cost is the printed size in different units", () => {
+
+  /* The sheet counts `cost` and `capacity`, which are not inches. That is only
+   * legitimate while they stay in exact proportion to what the book prints, so
+   * this pins them together: a class or a mind added with a rectangle and no
+   * cost, or a cost that does not match its rectangle, fails here rather than
+   * silently charging a Vance the wrong amount. */
+
+  const ratios = (entries) => entries.map(([, spec]) =>
+    (spec.cost ?? spec.capacity) / (spec.width * spec.height));
+
+  test("every spell class costs the same per square inch", () => {
+    const r = ratios(Object.entries(CONFIG.ISUN.spellClasses));
+    assert.equal(new Set(r).size, 1, `ratios differ: ${r.join(", ")}`);
+  });
+
+  test("every mind holds the same per square inch", () => {
+    const r = ratios(Object.entries(CONFIG.ISUN.vancianMind));
+    assert.equal(new Set(r).size, 1, `ratios differ: ${r.join(", ")}`);
+  });
+
+  test("and spells and minds use the one scale between them", () => {
+    // The whole point: a spell measured on one scale and a mind on another
+    // would give answers no table could reproduce with the cards.
+    const [spells] = new Set(ratios(Object.entries(CONFIG.ISUN.spellClasses)));
+    const [minds] = new Set(ratios(Object.entries(CONFIG.ISUN.vancianMind)));
+    assert.equal(spells, minds);
+  });
+});
 
 describe("area is the same test as arrangement", () => {
 

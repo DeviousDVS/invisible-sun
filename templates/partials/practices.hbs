@@ -31,12 +31,12 @@
       <span class="mind-name">
         {{mind.label}}
       </span>
-      <span class="mind-size">{{mind.width}} &times; {{mind.height}} in</span>
       <span class="mind-bar" data-tooltip="{{localize 'ISUN.MindBarHint'
-              used=mind.used total=mind.area prepared=mind.prepared}}">
+              used=mind.used total=mind.capacity prepared=mind.prepared
+              width=mind.width height=mind.height}}">
         <span class="mind-fill" style="width: {{mind.percent}}%"></span>
       </span>
-      <span class="mind-count">{{mind.used}} / {{mind.area}}</span>
+      <span class="mind-count">{{mind.used}} / {{mind.capacity}}</span>
       {{#if mind.reductions.value}}
         <span class="mind-reductions"
               data-tooltip="{{localize 'ISUN.MindReductionsHint'}}">
