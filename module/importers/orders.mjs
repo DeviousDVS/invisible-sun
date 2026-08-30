@@ -112,8 +112,12 @@ export function parseOrder(lines, column) {
      * it and closes properly. */
     const flush = line.x <= column + PARAGRAPH_SLACK;
     if (isHeading(line) && !flush) {
-      sidebar = { heading: line.text, lines: [] };
-      order.sidebars.push(sidebar);
+      /* A long heading wraps, and both halves are set the same way: the
+       * Goetic's "FAVORING THE / RIGHT OR LEFT HAND" came back as two boxes,
+       * one of them a fragment with nothing in it. A heading arriving before
+       * the box it opened has any text is the rest of that heading. */
+      if (sidebar && !sidebar.lines.length) sidebar.heading += ` ${line.text}`;
+      else order.sidebars.push(sidebar = { heading: line.text, lines: [] });
       continue;
     }
     if (sidebar) {

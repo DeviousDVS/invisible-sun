@@ -166,6 +166,35 @@ describe("a box set inside a column", () => {
       "1. The Vance chooses a spell they have stored in their mind.");
   });
 
+  test("a heading that wraps is one box, not two", () => {
+    // The Goetic's "FAVORING THE / RIGHT OR LEFT HAND" came back as two, the
+    // first of them a fragment with no text under it.
+    const order = parseOrder([
+      body("We Goetics summon."),
+      box("FAVORING THE"),
+      box("RIGHT OR LEFT HAND"),
+      boxLine("Some Goetics refer to themselves as favoring a hand."),
+      body("And so we do."),
+    ], COLUMN);
+
+    assert.equal(order.sidebars.length, 1);
+    assert.equal(order.sidebars[0].heading, "FAVORING THE RIGHT OR LEFT HAND");
+    assert.equal(join(order.sidebars[0].lines),
+      "Some Goetics refer to themselves as favoring a hand.");
+  });
+
+  test("two boxes in a row stay two boxes", () => {
+    const order = parseOrder([
+      box("ONE"),
+      boxLine("The first."),
+      box("TWO"),
+      boxLine("The second."),
+      body("Prose again."),
+    ], COLUMN);
+
+    assert.deepEqual(order.sidebars.map(b => b.heading), ["ONE", "TWO"]);
+  });
+
   test("an order's own heading is flush and is not a box", () => {
     // Both are set large and in capitals. Only where they sit tells them apart,
     // and the reader above hands parseOrder the body of one order at a time.
