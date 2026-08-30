@@ -555,10 +555,21 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
      * declared with the rest of them in CONFIG.ISUN.orders rather than decided
      * here. The Apostate is one of those declarations now instead of a branch:
      * they are not of an order, which is a different sentence rather than a
-     * special case of this one. */
+     * special case of this one.
+     *
+     * The joining letter is marked up so it reads as part of the word it joins
+     * — bold and the order's colour, like the name — while staying outside the
+     * anchor, so it is not part of what a click opens. Only when there is a
+     * name for it to join: appended to the "[Order]" placeholder it would be a
+     * bold letter on the end of a grey italic stand-in. */
+    const order = context.orders[0];
+    const affix = context.orderInfo?.affix ?? CONFIG.ISUN.orderAffix;
     const orderPhrase = game.i18n.format(
       context.orderInfo?.sentence ?? "ISUN.SentenceOfTheOrder",
-      { order: part("order", context.orders[0], "[Order]") });
+      {
+        order: part("order", order, "[Order]"),
+        affix: (order && affix) ? `<span class="sentence-part order affix">${esc(affix)}</span>` : ""
+      });
 
     context.characterSentenceHTML = game.i18n.format("ISUN.CharacterSentence", {
       article,

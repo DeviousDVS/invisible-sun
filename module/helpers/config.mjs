@@ -288,27 +288,40 @@ export const ISUN = Object.freeze({
    * ────────────────────────────────────────────── */
 
   /**
-   * `sentence` is how the order names itself in the character sentence, where
-   * the orders do not agree with one another: a Weaver and a Maker are one of
-   * many — "of the order of Weavers" — but a Vance is "of the order of the
-   * Vance", and a Goetic is "of the order of Goetica". An Apostate is not of an
-   * order at all and says so.
+   * How each order names itself in the character sentence, where they do not
+   * agree with one another. A Weaver and a Maker are one of many — "of the
+   * order of Weavers" — but a Vance is "of the order of the Vance", and a
+   * Goetic is "of the order of Goetica". An Apostate is not of an order at all
+   * and says so.
    *
-   * Only the ones that differ carry a key; the rest fall back to the plural.
-   * The affix sits outside the link the sheet wraps around the order's name,
-   * for the same reason the plural's "s" does — "Vance" is the item's name and
-   * the grammar is not part of it.
+   * Two things differ, and they are separate because they differ separately.
+   * `sentence` is the shape of the phrase, and only the Vance and the Apostate
+   * need their own. `affix` is the letter that joins onto the order's name, and
+   * only the Goetic's differs from the plural — which is why the Goetic needs
+   * no sentence of its own, and why the affix is not simply written into the
+   * phrase.
+   *
+   * It is kept out of the phrase because the sheet has to mark it up: it joins
+   * the name to make one word, so it has to be styled as part of that word,
+   * while sitting outside the link, since "Weaver" is the item's name and the
+   * "s" is not.
+   *
+   * An empty affix opts out. The fallback is the plural, so an order added
+   * without one is spoken of like the Weavers and the Makers.
    */
   orders: {
     vance: { label: "ISUN.OrderVance", abbr: "V", magicStyle: "Prepared Spells",
-             sentence: "ISUN.SentenceOfTheVance" },
+             sentence: "ISUN.SentenceOfTheVance", affix: "" },
     weaver: { label: "ISUN.OrderWeaver", abbr: "W", magicStyle: "Thread Weaving" },
     goetic: { label: "ISUN.OrderGoetic", abbr: "G", magicStyle: "Summoning",
-              sentence: "ISUN.SentenceOfTheGoetic" },
+              affix: "a" },
     maker: { label: "ISUN.OrderMaker", abbr: "M", magicStyle: "Crafting" },
     apostate: { label: "ISUN.OrderApostate", abbr: "A", magicStyle: "Unaligned",
-                sentence: "ISUN.SentenceApostate" },
+                sentence: "ISUN.SentenceApostate", affix: "" },
   },
+
+  /** What joins onto an order's name when it does not say otherwise. */
+  orderAffix: "s",
 
   /* ──────────────────────────────────────────────
    * STAT POOLS

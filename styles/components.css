@@ -222,7 +222,10 @@ a.sentence-part {
   transition: text-shadow 0.2s ease;
 }
 
-a.sentence-part:hover {
+a.sentence-part:hover,
+/* The letter joining the order's name is a sibling of the link rather than part
+ * of it, so it has to be lit with it — one word should not half glow. */
+a.sentence-part:hover + .sentence-part.affix {
   text-shadow: 0 0 8px currentColor;
 }
 
