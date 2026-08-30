@@ -2057,7 +2057,6 @@ a.sentence-part:hover {
   border: 2px solid var(--sun-colour, #888);
   display: grid;
   place-items: center;
-  overflow: hidden;
   background: var(--isun-bg-secondary);
 }
 
@@ -2077,10 +2076,30 @@ a.sentence-part:hover {
   font-size: 1.4rem;
 }
 
+/* The badge rides the rim of the slot, at the lower right.
+ *
+ * It is deliberately not clipped by the slot: the slot's `border-radius: 50%`
+ * makes any `overflow: hidden` there a *circular* clip, and a badge sitting on
+ * the rim is by definition half outside that circle, so it came out sliced in
+ * two. The image rounds itself, so the slot needs no clip of its own.
+ *
+ * The offsets are percentages rather than pixels because the slot's size is
+ * fluid — the positions flex between 72px and 108px, and the Invisible Sun's
+ * is smaller again. 14.64% of the diameter is the distance from an edge to the
+ * point on the rim at 45 degrees ((1 - cos 45) / 2), and the translate then
+ * centres the badge on that point at any size.
+ *
+ * `width`/`height` of 1em square up a box Font Awesome renders 1.25em wide, so
+ * the background reads as a disc rather than a lozenge. */
 .path-of-suns .sun-slot .doubled {
   position: absolute;
-  right: 2px;
-  bottom: 2px;
+  right: 14.64%;
+  bottom: 14.64%;
+  transform: translate(50%, 50%);
+  width: 1em;
+  height: 1em;
+  line-height: 1;
+  text-align: center;
   color: var(--isun-text-accent);
   background: var(--isun-bg-primary);
   border-radius: 50%;
