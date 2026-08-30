@@ -6,9 +6,11 @@
  * replaced the user dropdown with a text input and an autocomplete, which broke
  * `selectOption("select[name=userid]")` in both scripts at once.
  *
- * So this asks the page what it is rather than assuming. It handles the select
- * and the text input, and a version that offered neither would fail here with a
- * sentence saying so instead of a Playwright timeout thirty seconds later.
+ * So this asks the page what it is rather than assuming. The control changed in
+ * two ways at once, which is worth knowing about: not only did the `<select>`
+ * become an `<input>`, the field was renamed from `userid` to `username`. A
+ * version offering neither fails here with a sentence saying so, rather than a
+ * Playwright timeout thirty seconds later.
  */
 
 /**
@@ -41,13 +43,17 @@ export async function join(page, { user, password = "", base = "http://localhost
 /**
  * Put the user's name into whatever control the join page is offering.
  *
- * Up to 14.365 that is a `<select>` of every user in the world. From 14.366 it
- * is a text input with autocompletion — the name is typed, and typing it in
- * full is enough, so the suggestion list does not have to be driven.
+ * Up to 14.365 that is `<select name="userid">`, listing every user in the
+ * world. From 14.366 it is `<input name="username">` with autocompletion — the
+ * name is typed, and typing it in full is enough, so the suggestion list does
+ * not have to be driven.
  */
 async function nameTheUser(page, user) {
-  const field = page.locator("[name=userid]").first();
-  await field.waitFor({ state: "attached", timeout: 20_000 });
+  const field = page.locator('[name=username], [name=userid]').first();
+  await field.waitFor({ state: "attached", timeout: 20_000 }).catch(() => {
+    throw new Error("The join page has no user field under either name this "
+      + "script knows (username, userid). Foundry has changed the login form.");
+  });
   const tag = await field.evaluate(el => el.tagName.toLowerCase());
 
   if (tag === "select") {
