@@ -160,15 +160,23 @@ export async function chooseEffect(message, actor) {
   const chosen = await FluxPicker.open({ intensity: flux.intensity, actor });
   if (!chosen) return;
 
+  /* Choosing the effect is choosing to have it happen, so what the sheet can
+   * do about it is done — no second confirmation. The charts state their
+   * effects flatly ("You gain 1 vex to Sorcery") and only the ten the importer
+   * could read without ambiguity carry anything to apply; the rest say nothing
+   * the sheet could act on and nothing happens. See importers/way.mjs. */
+  const applied = actor ? await applyEffects(actor, chosen.effects) : [];
+
   await message.setFlag(SCOPE, FLAG, {
     ...flux,
-    effect: { uuid: chosen.uuid, text: chosen.text, intensity: chosen.intensity }
+    effect: { uuid: chosen.uuid, text: chosen.text, intensity: chosen.intensity, applied }
   });
 
   const { renderTemplate } = foundry.applications.handlebars;
   const content = await renderTemplate("systems/invisible-sun/templates/chat/flux-effect.hbs", {
     text: chosen.text,
     uuid: chosen.uuid,
+    applied,
     intensity: chosen.intensity,
     /* The chart it was taken off is not mentioned. Reaching across the charts
      * is the GM's to do and the table has no use for knowing they did — what
@@ -203,6 +211,58 @@ export async function giveDespair(message) {
     "system.advancement.despair": (actor.system.advancement?.despair ?? 0) + 1
   });
   await message.setFlag(SCOPE, FLAG, { ...flux, despair: true });
+}
+
+/**
+ * Do what the chosen effect says, where the sheet can.
+ *
+ * Only what the importer read without ambiguity — an entry that happens to
+ * someone else, or that sets a standing condition, carries nothing here and is
+ * left for the GM to adjudicate.
+ *
+ * Returns a line per thing done, so the card can say what changed rather than
+ * leaving a player to notice their Sorcery pool is different.
+ */
+export async function applyEffects(actor, effects) {
+  const done = [];
+  const poolLabel = (key) =>
+    game.i18n.localize(CONFIG.ISUN.poolLabels[key] ?? key);
+
+  for (const effect of effects ?? []) {
+    const { kind, pool, amount } = effect;
+    switch (kind) {
+      case "vex": {
+        if (await actor.addVex(pool, amount) === null) break;
+        done.push(game.i18n.format("ISUN.FluxAppliedVex",
+          { amount, pool: poolLabel(pool) }));
+        break;
+      }
+      case "pool": {
+        if (await actor.adjustPool(pool, amount) === null) break;
+        done.push(game.i18n.format("ISUN.FluxAppliedPool",
+          { amount: Math.abs(amount), pool: poolLabel(pool) }));
+        break;
+      }
+      case "anguish":
+      case "wound": {
+        await actor.applyDamage({
+          amount, type: kind === "anguish" ? "mental" : "physical", direct: true });
+        done.push(game.i18n.format(
+          kind === "anguish" ? "ISUN.FluxAppliedAnguish" : "ISUN.FluxAppliedWound", { amount }));
+        break;
+      }
+      case "hiddenKnowledge": {
+        const hk = actor.system.stats?.hiddenKnowledge;
+        if (!hk) break;
+        await actor.update({
+          "system.stats.hiddenKnowledge.value": Math.max(0, (hk.value ?? 0) + amount)
+        });
+        done.push(game.i18n.format("ISUN.FluxAppliedKnowledge", { amount: Math.abs(amount) }));
+        break;
+      }
+    }
+  }
+  return done;
 }
 
 /** Listen once, at ready. */

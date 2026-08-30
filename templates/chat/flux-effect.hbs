@@ -13,4 +13,12 @@
         way in, and enriching it here would put the entry's name beside the
         text it already is. --}}
   <div class="flux-effect-text">{{text}}</div>
+
+  {{!-- What the sheet did about it. Said out loud so a player is not left to
+        notice their own pool has changed. --}}
+  {{#if applied}}
+    <ul class="flux-applied">
+      {{#each applied}}<li>{{this}}</li>{{/each}}
+    </ul>
+  {{/if}}
 </div>

@@ -748,17 +748,49 @@ export class ISUNActor extends Actor {
    * @returns {Promise<number|null>} the pool's vex after, or null if no such pool
    */
   async addVex(poolKey, amount = 1) {
+    const found = this.#findPool(poolKey);
+    if (!found) return null;
+
+    const vex = Math.max(0, (found.pool.vex ?? 0) + amount);
+    await this.update({ [`${found.path}.vex`]: vex });
+    return vex;
+  }
+
+  /**
+   * Move the bene held in a pool.
+   *
+   * Not the allocation — that is what a pool refreshes to and belongs to
+   * advancement. This is what is in it now, which is what a flux takes when it
+   * says "You lose 1 Sortilege out of your pool" (The Way).
+   *
+   * @param {string} poolKey
+   * @param {number} delta  negative to spend
+   * @returns {Promise<number|null>} what the pool holds after
+   */
+  async adjustPool(poolKey, delta) {
+    const found = this.#findPool(poolKey);
+    if (!found) return null;
+
+    const value = Math.min(found.pool.max ?? 0, Math.max(0, (found.pool.value ?? 0) + delta));
+    await this.update({ [`${found.path}.value`]: value });
+    return value;
+  }
+
+  /**
+   * A pool by name alone, with the stat that holds it.
+   *
+   * The books name pools without their stat — Sorcery, never "the Qualia pool
+   * Sorcery" — so anything taking a pool from a rule has to work this out, and
+   * it should not be worked out twice.
+   */
+  #findPool(poolKey) {
     const key = String(poolKey ?? "").toLowerCase();
     const group = CONFIG.ISUN.certesPoolNames.includes(key) ? "certes"
       : CONFIG.ISUN.qualiaPoolNames.includes(key) ? "qualia" : null;
     if (!group) return null;
 
     const pool = this.system.stats?.[group]?.pools?.[key];
-    if (!pool) return null;
-
-    const vex = Math.max(0, (pool.vex ?? 0) + amount);
-    await this.update({ [`system.stats.${group}.pools.${key}.vex`]: vex });
-    return vex;
+    return pool ? { group, key, pool, path: `system.stats.${group}.pools.${key}` } : null;
   }
 
   /**

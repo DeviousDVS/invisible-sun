@@ -32,13 +32,17 @@ export class FluxPicker {
       return null;
     }
 
-    const index = await pack.getIndex({ fields: ["system.intensity", "system.description"] });
+    const index = await pack.getIndex({
+      fields: ["system.intensity", "system.description", "system.effects"] });
     const strip = (html) => String(html ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 
     const entries = [...index].map(e => ({
       uuid: e.uuid ?? `Compendium.${PACK}.Item.${e._id}`,
       intensity: e.system?.intensity ?? "",
-      text: strip(e.system?.description) || e.name
+      text: strip(e.system?.description) || e.name,
+      /* Carried through so choosing an effect can apply it. Empty for the
+       * ninety entries the importer found nothing unambiguous in. */
+      effects: e.system?.effects ?? []
     })).sort((a, b) => a.text.localeCompare(b.text));
 
     if (!entries.length) {
