@@ -128,6 +128,69 @@ describe("a degree's requirement and its abilities", () => {
   });
 });
 
+describe("a box set inside a column", () => {
+
+  /* Measured on The Key's page 43, where the Vance's 2nd degree is cut in two.
+   * The column edge is 72; the box heading sits at 81 and is set at 12 points
+   * against the body's 10; the box body sits at 81 and 90; and the sentence
+   * the box interrupted picks up below it, back at 72.
+   *
+   * The heading has to clear HEADING_HEIGHT (11.5) and be in capitals for
+   * isHeading to see it, so `box` sets a real height where the other helpers
+   * leave it at the body's. */
+  const body = (text) => ({ text, x: COLUMN, h: 10 });
+  const para = (text) => ({ text, x: COLUMN + 9, h: 10 });
+  const box = (text) => ({ text, x: COLUMN + 9, h: 12 });
+  const boxLine = (text) => ({ text, x: COLUMN + 18, h: 10 });
+
+  test("the box is lifted out and the sentence closes over it", () => {
+    const order = parseOrder([
+      body("2nd-Degree Vance: Velator"),
+      body("A Vance can attain the 2nd degree only with sponsorship."),
+      para("Vancian Spells: The storage space does not increase; we can reduce the"),
+      box("VANCIAN MAGIC"),
+      boxLine("1. The Vance chooses a spell they have stored"),
+      para("in their mind."),
+      body("occupying space of two of the spells we know to half their original size."),
+    ], COLUMN);
+
+    const ability = order.degrees[0].abilities[0];
+    assert.equal(join(ability.description),
+      "The storage space does not increase; we can reduce the "
+      + "occupying space of two of the spells we know to half their original size.",
+      "the box was spliced into the middle of the sentence");
+
+    assert.equal(order.sidebars.length, 1);
+    assert.equal(order.sidebars[0].heading, "VANCIAN MAGIC");
+    assert.equal(join(order.sidebars[0].lines),
+      "1. The Vance chooses a spell they have stored in their mind.");
+  });
+
+  test("an order's own heading is flush and is not a box", () => {
+    // Both are set large and in capitals. Only where they sit tells them apart,
+    // and the reader above hands parseOrder the body of one order at a time.
+    const order = parseOrder([
+      { text: "VANCE", x: COLUMN, h: 13 },
+      body("We Vances are exemplary casters of spells."),
+    ], COLUMN);
+
+    assert.equal(order.sidebars.length, 0);
+  });
+
+  test("a box before any degree does not disturb the description", () => {
+    const order = parseOrder([
+      body("We Vances are exemplary casters of spells."),
+      box("BEINGS AND THE REALMS"),
+      boxLine("Each sun shines down upon a different realm."),
+      body("Our spells vibrate and seethe."),
+    ], COLUMN);
+
+    assert.equal(join(order.description),
+      "We Vances are exemplary casters of spells. Our spells vibrate and seethe.");
+    assert.equal(order.sidebars[0].heading, "BEINGS AND THE REALMS");
+  });
+});
+
 describe("the order's own fields", () => {
 
   test("the five labelled fields are read before any degree", () => {

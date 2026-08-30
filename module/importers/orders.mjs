@@ -15,11 +15,24 @@
  * list is kept with it — the note is a rule about the list rather than an
  * ability in it.
  *
- * ── What is not written ──
- * The sidebars. The book sets eleven boxed rules beside these pages — that a
- * Goetic may have only one summoned entity at a time, what the Vancian magic
- * cycle is — and they are boxes, which this reads past. The field is left
- * alone rather than blanked, so what is already there survives.
+ * ── The two kinds of aside ──
+ * A page is two columns of prose with a thin column of notes down the middle,
+ * and boxed rules set inside the columns themselves. They are not the same
+ * thing and are not treated the same way.
+ *
+ * The middle notes are somebody talking past the text — a cross-reference, a
+ * remark about the printed components — and book-page.mjs already drops them:
+ * they start about 240 points along, where body text is flush to its column or
+ * a step or two in.
+ *
+ * A box is content. "VANCIAN MAGIC", the cycle a Vance casts by, is a rule the
+ * order's entry would be poorer without. So boxes are read, into `sidebars`.
+ *
+ * What they must not do is land in the middle of a sentence. A box interrupts
+ * the column it sits in, and the prose picks up below it — the Vance's 2nd
+ * degree reads "we can reduce the", then the whole of the Vancian Magic box,
+ * then "occupying space of two of the spells". Read straight through, the box
+ * is spliced into the ability and the sentence is cut in half.
  */
 import { columnAnchors, columnLines, isHeading, PARAGRAPH_SLACK, pageWords } from "./book-page.mjs";
 
@@ -72,7 +85,7 @@ const grantsOf = (text) => ({
 
 /** Split one order's lines into its fields, its degrees and its lists. */
 export function parseOrder(lines, column) {
-  const order = { description: [], fields: {}, degrees: [], lists: {} };
+  const order = { description: [], fields: {}, degrees: [], lists: {}, sidebars: [] };
   /* A label is set one indent in. Two indents is a list inside an ability —
    * the properties a Maker may give a signature object are set that way, and
    * read as abilities in their own right they gave the Maker sixty-six of them
@@ -85,7 +98,29 @@ export function parseOrder(lines, column) {
 
   const push = (into, text) => { into.push(text); open = into; };
 
+  let sidebar = null;     // the box being read, if any
+
   for (const line of lines) {
+    /* A box inside a column, told from an order's own heading by where it sits:
+     * both are set large and in capitals, but an order's is flush to the column
+     * and a box's is indented — measured at 81 against a column edge of 72 on
+     * The Key's page 43.
+     *
+     * The body of a box is indented too, so the box ends at the first line that
+     * returns to the column edge. Nothing else changes: whatever was being read
+     * before the box is still open, so the interrupted sentence continues into
+     * it and closes properly. */
+    const flush = line.x <= column + PARAGRAPH_SLACK;
+    if (isHeading(line) && !flush) {
+      sidebar = { heading: line.text, lines: [] };
+      order.sidebars.push(sidebar);
+      continue;
+    }
+    if (sidebar) {
+      if (!flush) { sidebar.lines.push(line.text); continue; }
+      sidebar = null;   // and fall through: this line is prose again
+    }
+
     const step = DEGREE_RE.exec(line.text);
     if (step && !labelled(line)) {
       degree = { degree: Number(step[1]), title: step[2].trim(), requirement: [], abilities: [] };
@@ -219,9 +254,8 @@ const named = (list) => (list ?? []).map(ability => {
 /**
  * One order.
  *
- * `sidebars` is not written — see the module comment — and neither is
- * `abbreviation`, `magicStyle` or `uniqueMechanics`, none of which the book
- * states as a field of its own.
+ * `abbreviation`, `magicStyle` and `uniqueMechanics` are not written, none of
+ * them being something the book states as a field of its own.
  */
 export function toItem(entry) {
   const starting = entry.lists.starting;
@@ -240,6 +274,11 @@ export function toItem(entry) {
     img: "icons/magic/symbols/ring-circle-smoke-blue.webp",
     system: {
       description: html(join(entry.description)),
+      /* Each box as its heading and then its text. Written now, where it used
+       * to be left alone: a box is content, and reading it is what stops it
+       * being spliced into the ability beside it. */
+      sidebars: (entry.sidebars ?? []).map(box =>
+        html([box.heading, join(box.lines)].filter(Boolean).join(" — "))),
       otherNames: join(entry.fields["Other Names"]),
       philosophy: html(join(entry.fields["Philosophy and Outlook"])),
       relationships: html(join(entry.fields["Relationships"])),
