@@ -408,6 +408,7 @@
     "Practices": "Practices",
     "KindAll": "All",
     "KindSpell": "Spell",
+    "KindSpellOf": "{tradition} Spell",
     "KindIncantation": "Incantation",
     "KindForte": "Forte",
     "KindMinor": "Minor",

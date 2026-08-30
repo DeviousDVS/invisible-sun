@@ -274,11 +274,36 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     // same way: a forte ability "unless stated otherwise, costs Sorcery to use,
     // equal to the level of the effect", exactly as a spell does. One list lets
     // a player sort across all of them, which four separate lists cannot.
+    /* What the Kind column says. Localised here rather than in the template
+     * because a spell's is composed rather than looked up, and `cost` already
+     * localises here for the same reason.
+     *
+     * A spell names its tradition, because the four are not interchangeable and
+     * one list mixes them: a Vance may hold general spells alongside the ones in
+     * their grimoire, and only the Vancian ones are prepared, bought by class,
+     * and drawn from the order's own list. Reading "Spell" against both hid the
+     * distinction the player has to act on. The other kinds have one flavour
+     * each and stay as they were.
+     *
+     * "General" is not printed. It is the absence of a tradition rather than a
+     * fifth one, and "General Spell" reads as a category the books do not have.
+     */
+    const kindLabel = (item, kind) => {
+      const type = kind === "spell" ? (item.system.spellType ?? "general") : "";
+      if (type && type !== "general") {
+        return game.i18n.format("ISUN.KindSpellOf", {
+          tradition: game.i18n.localize(CONFIG.ISUN.spellTypes[type] ?? type)
+        });
+      }
+      return game.i18n.localize(
+        `ISUN.Kind${kind.charAt(0).toUpperCase()}${kind.slice(1)}`);
+    };
+
     const practice = (item, kind, action) => {
       const sys = item.system;
       return {
         item, kind, action,
-        kindLabel: `ISUN.Kind${kind.charAt(0).toUpperCase()}${kind.slice(1)}`,
+        kindLabel: kindLabel(item, kind),
         level: sys.level ?? 0,
         color: sys.color ?? "",
         // A forte ability marked "(no cost)" costs no Sorcery; otherwise the
