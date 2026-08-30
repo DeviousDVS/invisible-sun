@@ -177,6 +177,20 @@ Hooks.once("init", () => {
       button: true,
       onChange: () => PathOfSuns.open()
     };
+
+    /* A flux the GM brings about rather than one the dice found. GM only,
+     * unlike the board: the Path of Suns is something the table watches, and
+     * this is something only a GM may do. */
+    if (game.user.isGM) {
+      tokens.tools.magicalFlux = {
+        name: "magicalFlux",
+        order: 91,
+        title: "ISUN.FluxButton",
+        icon: "fa-solid fa-burst",
+        button: true,
+        onChange: () => flux.promptShift()
+      };
+    }
   });
 
   /* Declaring a challenge belongs with chat, because the card is a chat message

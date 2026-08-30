@@ -1,57 +1,73 @@
-<div class="dice-result {{#if success}}success{{else}}failure{{/if}}">
+{{!-- The warning, written once and used twice: a flux that came off the dice
+      and one the GM introduced show the same block, because they are the same
+      thing happening and the table should not have to learn two cards.
+      helpers/flux.mjs finds it by class and hangs the same controls on it
+      either way. An inline partial rather than a registered one — it is used
+      only here, and registering it would mean loadTemplates machinery this
+      system does not otherwise need. --}}
+{{#*inline "fluxWarning"}}
+  <div class="flux-warning">
+    <i class="fa-solid fa-burst"></i> {{localize "ISUN.MagicalFlux"}}
+    {{!-- The intensity is localised before it gets here: the raw value is a key
+          fragment ("minor"), not something to show a player. --}}
+    {{#if fluxIntensityLabel}}
+      <span class="flux-intensity {{fluxIntensity}}">{{fluxIntensityLabel}}</span>
+    {{/if}}
+    <p>{{#if fluxReason}}{{localize fluxReason}}{{else}}{{localize "ISUN.FluxWarning"}}{{/if}}</p>
+  </div>
+{{/inline}}
+
+<div class="dice-result {{#if shift}}flux-shift{{else if success}}success{{else}}failure{{/if}}">
   <div class="roll-title">{{label}}</div>
 
-  <div class="roll-stats">
-    <div class="stat"><label>{{localize "ISUN.Challenge"}}</label> <span>{{challenge}}</span></div>
-    <div class="stat"><label>{{localize "ISUN.Venture"}}</label> <span>{{venture}}</span></div>
-    <div class="stat"><label>{{localize "ISUN.Target"}}</label> <span>{{target}}</span></div>
-  </div>
-
-  {{#if impossible}}
-    <div class="failure-banner" data-tooltip="{{localize 'ISUN.ImpossibleReason'}}">
-      {{localize "ISUN.Impossible"}}
-    </div>
-  {{else if autoSuccess}}
-    <div class="success-banner" data-tooltip="{{localize 'ISUN.AutoSuccessReason'}}">
-      {{localize "ISUN.AutoSuccess"}}
-    </div>
+  {{#if shift}}
+    {{!-- A flux the GM brought about rather than one the dice found. There was
+          no roll, so there is nothing to report but the flux itself. --}}
+    {{> fluxWarning}}
   {{else}}
 
-    <div class="dice-display">
-      <div class="die mundane-die" title="{{localize 'ISUN.MundaneDie'}}">{{mundaneResult}}</div>
-
-      {{#each magicResults as |res|}}
-        <div class="die magic-die {{#if (eq res 0)}}flux-die{{/if}}"
-             title="{{localize 'ISUN.MagicDie'}}">{{res}}</div>
-      {{/each}}
-
-      {{!-- An Experimental Die never adds a success; only its marked face
-            means anything, so the blank ones are shown blank. --}}
-      {{#each experimentalResults as |res|}}
-        <div class="die experimental-die {{#if (eq res 0)}}flux-die{{/if}}"
-             title="{{localize 'ISUN.ExperimentalDie'}}"></div>
-      {{/each}}
+    <div class="roll-stats">
+      <div class="stat"><label>{{localize "ISUN.Challenge"}}</label> <span>{{challenge}}</span></div>
+      <div class="stat"><label>{{localize "ISUN.Venture"}}</label> <span>{{venture}}</span></div>
+      <div class="stat"><label>{{localize "ISUN.Target"}}</label> <span>{{target}}</span></div>
     </div>
 
-    {{#if sources}}
-      <div class="venture-sources">{{#each sources}}<span>{{this}}</span>{{/each}}</div>
-    {{/if}}
-
-    {{#if hasFlux}}
-      <div class="flux-warning">
-        <i class="fa-solid fa-burst"></i> {{localize "ISUN.MagicalFlux"}}
-        {{!-- The intensity is localised in dice.mjs: the raw value is a key
-              fragment ("minor"), not something to show a player. --}}
-        {{#if fluxIntensityLabel}}
-          <span class="flux-intensity {{fluxIntensity}}">{{fluxIntensityLabel}}</span>
-        {{/if}}
-        <p>{{localize "ISUN.FluxWarning"}}</p>
+    {{#if impossible}}
+      <div class="failure-banner" data-tooltip="{{localize 'ISUN.ImpossibleReason'}}">
+        {{localize "ISUN.Impossible"}}
       </div>
+    {{else if autoSuccess}}
+      <div class="success-banner" data-tooltip="{{localize 'ISUN.AutoSuccessReason'}}">
+        {{localize "ISUN.AutoSuccess"}}
+      </div>
+    {{else}}
+
+      <div class="dice-display">
+        <div class="die mundane-die" title="{{localize 'ISUN.MundaneDie'}}">{{mundaneResult}}</div>
+
+        {{#each magicResults as |res|}}
+          <div class="die magic-die {{#if (eq res 0)}}flux-die{{/if}}"
+               title="{{localize 'ISUN.MagicDie'}}">{{res}}</div>
+        {{/each}}
+
+        {{!-- An Experimental Die never adds a success; only its marked face
+              means anything, so the blank ones are shown blank. --}}
+        {{#each experimentalResults as |res|}}
+          <div class="die experimental-die {{#if (eq res 0)}}flux-die{{/if}}"
+               title="{{localize 'ISUN.ExperimentalDie'}}"></div>
+        {{/each}}
+      </div>
+
+      {{#if sources}}
+        <div class="venture-sources">{{#each sources}}<span>{{this}}</span>{{/each}}</div>
+      {{/if}}
+
+      {{#if hasFlux}}{{> fluxWarning}}{{/if}}
+
+      <div class="{{#if success}}success-banner{{else}}failure-banner{{/if}}">
+        {{#if success}}{{localize "ISUN.Success"}}{{else}}{{localize "ISUN.Failure"}}{{/if}}
+      </div>
+
     {{/if}}
-
-    <div class="{{#if success}}success-banner{{else}}failure-banner{{/if}}">
-      {{#if success}}{{localize "ISUN.Success"}}{{else}}{{localize "ISUN.Failure"}}{{/if}}
-    </div>
-
   {{/if}}
 </div>

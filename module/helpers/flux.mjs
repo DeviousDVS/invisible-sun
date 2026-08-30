@@ -265,6 +265,102 @@ export async function applyEffects(actor, effects) {
   return done;
 }
 
+/**
+ * A flux the GM brings about, with no roll behind it.
+ *
+ * "The GM can also introduce a flux effect (as a GM shift) any time a vislae
+ * uses a magical practice, whether dice are rolled or not. In this case, 1
+ * Despair is always given to the vislae. The GM should associate the flux
+ * intensity (minor, major, or grand) with the approximate number of dice that
+ * are (or would be) rolled" (The Way, p13).
+ *
+ * Always, where a rolled flux is only sometimes — so the Despair is given here
+ * rather than offered, and the card says it has been. That difference is the
+ * only one: the same message, the same warning, the same card turn, the same
+ * picker. A table should not have to learn two of anything.
+ *
+ * The intensity is the GM's because there are no dice to read it off.
+ */
+export async function raise({ actor, intensity = "minor", label = "" }) {
+  if (!game.user.isGM || !actor) return null;
+
+  /* Given before the message, so the card is drawn already saying so and there
+   * is no moment where it offers a Despair that is on its way. */
+  await actor.update({
+    "system.advancement.despair": (actor.system.advancement?.despair ?? 0) + 1
+  });
+
+  const { renderTemplate } = foundry.applications.handlebars;
+  const content = await renderTemplate("systems/invisible-sun/templates/chat/dice-result.hbs", {
+    shift: true,
+    label: label || game.i18n.localize("ISUN.FluxShiftLabel"),
+    fluxIntensity: intensity,
+    fluxIntensityLabel: game.i18n.localize(CONFIG.ISUN.fluxIntensities[intensity] ?? ""),
+    fluxReason: "ISUN.FluxShiftWarning"
+  });
+
+  return ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content,
+    flags: { [SCOPE]: { [FLAG]: {
+      count: 0, intensity, actor: actor.id, done: false, despair: true, shift: true
+    } } }
+  });
+}
+
+/**
+ * Ask which vislae, and how hard.
+ *
+ * Every vislae in the world rather than only the ones with a token: a flux can
+ * follow a practice used anywhere, and the book's own example is a spell cast
+ * on oneself with no roll and no scene.
+ */
+export async function promptShift() {
+  const { DialogV2 } = foundry.applications.api;
+  const vislae = game.actors.filter(a => a.type === "Vislae")
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  if (!vislae.length) {
+    ui.notifications?.warn(game.i18n.localize("ISUN.FluxShiftNoVislae"));
+    return null;
+  }
+
+  const esc = foundry.utils.escapeHTML;
+  const who = vislae.map(a => `<option value="${esc(a.id)}">${esc(a.name)}</option>`).join("");
+  const how = Object.entries(CONFIG.ISUN.fluxIntensities)
+    .map(([key, label]) =>
+      `<option value="${esc(key)}">${esc(game.i18n.localize(label))}</option>`).join("");
+
+  const chosen = await DialogV2.wait({
+    window: { title: game.i18n.localize("ISUN.FluxShiftTitle"), icon: "fa-solid fa-burst" },
+    classes: ["invisible-sun", "flux-shift-dialog"],
+    content: `<div class="flux-shift-form">
+        <p class="hint">${game.i18n.localize("ISUN.FluxShiftHint")}</p>
+        <div class="form-group">
+          <label>${game.i18n.localize("ISUN.FluxShiftWho")}</label>
+          <select name="actor">${who}</select>
+        </div>
+        <div class="form-group">
+          <label>${game.i18n.localize("ISUN.FluxShiftIntensity")}</label>
+          <select name="intensity">${how}</select>
+        </div>
+      </div>`,
+    buttons: [
+      { action: "raise", label: game.i18n.localize("ISUN.FluxShiftRaise"), default: true,
+        icon: "fa-solid fa-burst",
+        callback: (event, button) => ({
+          actor: button.form.elements.actor.value,
+          intensity: button.form.elements.intensity.value
+        }) },
+      { action: "cancel", label: game.i18n.localize("ISUN.Cancel"), icon: "fa-solid fa-xmark" }
+    ],
+    rejectClose: false
+  });
+  if (!chosen?.actor) return null;
+
+  return raise({ actor: game.actors.get(chosen.actor), intensity: chosen.intensity });
+}
+
 /** Listen once, at ready. */
 export function listen() {
   Hooks.on("renderChatMessageHTML", (message, html) => render(message, html));
