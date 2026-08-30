@@ -339,7 +339,10 @@ export const SOURCES = [
                       uniqueBy: ["system.parentForte"] },
       arc:          { pack: "invisible-sun.character-arcs", toItem: arcs.toItem },
       skill:        { pack: "invisible-sun.skills", toItem: skills.toItem },
-      order:        { pack: "invisible-sun.orders", toItem: orders.toItem }
+      /* The only listing bucket that carries pictures. Each order is printed
+       * under a mark of its own, and `cutouts` says how to find them. */
+      order:        { pack: "invisible-sun.orders", toItem: orders.toItem,
+                      cutouts: orders.sigils, folder: "orders" }
     }
   },
   {

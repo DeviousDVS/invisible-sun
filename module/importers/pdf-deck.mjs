@@ -658,6 +658,85 @@ export async function colBandsAt(page, y, h) {
 }
 
 /**
+ * The lowest block of ink inside a region of a page, bounded tightly.
+ *
+ * Written for the sigil each order carries above its name in The Key: it sits
+ * in the column, between the paragraph above it and the heading below, and
+ * nothing in the text layer describes it, so it has to be found by looking.
+ *
+ * Two passes, and the second is the one that matters. The first sweeps the
+ * whole width of the region to find the rows the block occupies, which is
+ * enough where the region holds nothing else — but the rule the books print
+ * between their columns is ink too, and it runs the length of the page, so in
+ * a region wide enough to include it every row is inked and the block never
+ * ends. So the width is settled first, by the widest run of inked columns
+ * rather than by the leftmost and rightmost, and the rows are then measured
+ * again inside that width alone.
+ *
+ * @param {object} page          a pdf.js page
+ * @param {object} region        {left, right, top, bottom} in points
+ * @param {number} [gap]         blank points that separate one block from the next
+ * @returns {Promise<object|null>} {x, y, w, h} in inches, or null for no ink
+ */
+export async function lastInkBlock(page, { left, right, top, bottom }, { gap = 5 } = {}) {
+  const canvas = await renderPage(page, DETECT_DPI);
+  const { width, height } = canvas;
+  const data = canvas.getContext("2d").getImageData(0, 0, width, height).data;
+
+  const px = (points) => Math.round(points * DETECT_DPI / 72);
+  const x0 = Math.max(0, px(left)), x1 = Math.min(width - 1, px(right));
+  const y0 = Math.max(0, px(top)), y1 = Math.min(height - 1, px(bottom));
+  const dark = (x, y) => data[((y * width) + x) * 4] < INK;
+
+  /** The last run in `values`, where a break is more than `by` apart. */
+  const lastRun = (values, by) => {
+    if (!values.length) return null;
+    let start = values[0], previous = values[0];
+    for (const v of values.slice(1)) {
+      if (v - previous > by) start = v;
+      previous = v;
+    }
+    return [start, previous];
+  };
+  /** The widest such run. */
+  const widestRun = (values, by) => {
+    if (!values.length) return null;
+    const runs = [];
+    let start = values[0], previous = values[0];
+    for (const v of values.slice(1)) {
+      if (v - previous > by) { runs.push([start, previous]); start = v; }
+      previous = v;
+    }
+    runs.push([start, previous]);
+    return runs.reduce((a, b) => (b[1] - b[0] > a[1] - a[0] ? b : a));
+  };
+
+  const rows = [];
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) if (dark(x, y)) { rows.push(y); break; }
+  }
+  const rough = lastRun(rows, px(gap));
+  if (!rough) return null;
+
+  const columns = [];
+  for (let x = x0; x <= x1; x++) {
+    for (let y = rough[0]; y <= rough[1]; y++) if (dark(x, y)) { columns.push(x); break; }
+  }
+  const [cx0, cx1] = widestRun(columns, px(gap * 1.6));
+
+  const tight = [];
+  for (let y = y0; y <= y1; y++) {
+    for (let x = cx0; x <= cx1; x++) if (dark(x, y)) { tight.push(y); break; }
+  }
+  const [cy0, cy1] = lastRun(tight, px(gap));
+
+  return {
+    x: cx0 / DETECT_DPI, y: cy0 / DETECT_DPI,
+    w: (cx1 - cx0 + 1) / DETECT_DPI, h: (cy1 - cy0 + 1) / DETECT_DPI
+  };
+}
+
+/**
  * Cut one arbitrary rectangle out of a page.
  *
  * Used for a deck's card back. Those decks are read rather than looked at, so

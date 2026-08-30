@@ -545,15 +545,56 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
     const report = { created: 0, updated: 0, images: 0 };
     for (const [name, list] of buckets) {
       const target = spec.buckets[name];
-      const part = await this.#writePack(list, new Map(), target);
+      /* Most listings are text alone. A bucket that has pictures on the page
+       * says how to cut them, and gets the same name-to-path map the decks
+       * hand to #writePack — so nothing below here has to know the difference. */
+      const images = target.cutouts
+        ? await this.#writeCutouts(await target.cutouts(doc, list, {
+            onProgress: ({ done, total }) =>
+              this.#say(game.i18n.format("ISUN.ImportImages", { done, total }))
+          }), target.folder)
+        : new Map();
+      const part = await this.#writePack(list, images, target);
       report.created += part.created;
       report.updated += part.updated;
+      report.images += images.size;
       if (part.missing) {
         this.#say(game.i18n.format("ISUN.ImportListingMissing",
           { count: part.missing, pack: game.packs.get(target.pack)?.metadata.label ?? target.pack }), true);
       }
     }
     return report;
+  }
+
+  /**
+   * Save a set of already-cut pictures and give back where they landed.
+   *
+   * The deck path cuts and writes in one go because it is cutting hundreds and
+   * the cutting is the slow part. A listing's pictures are a handful, and the
+   * cutting belongs to whatever knows how to find them on the page, so this
+   * only does the writing.
+   *
+   * @param {Map<string, {blob: Blob, extension: string}>} cuts  keyed by entry name
+   * @returns {Promise<Map<string, string>>} the same names, mapped to paths
+   */
+  async #writeCutouts(cuts, folder) {
+    const paths = new Map();
+    if (!cuts?.size) return paths;
+
+    const FP = foundry.applications.apps.FilePicker.implementation;
+    const dir = `${ASSET_ROOT}/${folder}`;
+    for (const part of [ASSET_ROOT.split("/")[0], ASSET_ROOT, dir]) {
+      try { await FP.createDirectory("data", part); } catch { /* already there */ }
+    }
+
+    for (const [name, image] of cuts) {
+      const stem = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const file = `${stem}.${image.extension}`;
+      await FP.upload("data", dir,
+        new File([image.blob], file, { type: image.blob.type }), {}, { notify: false });
+      paths.set(name, `${dir}/${file}`);
+    }
+    return paths;
   }
 
   /** Cut every card out and write it into the data folder. */

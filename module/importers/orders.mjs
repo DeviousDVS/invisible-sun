@@ -35,6 +35,7 @@
  * is spliced into the ability and the sentence is cut in half.
  */
 import { columnAnchors, columnLines, isHeading, PARAGRAPH_SLACK, pageWords } from "./book-page.mjs";
+import * as deck from "./pdf-deck.mjs";
 
 /** The labelled fields an order carries before its degrees. */
 const FIELDS = ["Other Names", "Philosophy and Outlook", "Relationships",
@@ -221,6 +222,7 @@ export function reader() {
   const found = [];
   let heading = [];
   let open = null;
+  let headAt = null;      // where the heading being read was printed
 
   const close = () => {
     if (!open) return;
@@ -230,7 +232,8 @@ export function reader() {
      * describe what an order is, under the same labels, and are told apart by
      * having neither. */
     if (parsed.degrees.length || parsed.lists.bought) {
-      found.push({ kind: "order", name: title(open.heading), ...parsed, page: open.page });
+      found.push({ kind: "order", name: title(open.heading), ...parsed,
+                   page: open.page, headAt: open.headAt });
     }
     open = null;
   };
@@ -247,10 +250,16 @@ export function reader() {
           if (isHeading(line) && flush) {
             close();
             heading.push(line.text);
+            /* Where the heading sits, kept for `sigils` below. The order's mark
+             * is printed above its name and nothing in the text layer mentions
+             * it, so the only way to find it later is to know where to look. */
+            headAt = { anchor, y: line.y, h: line.h,
+                       next: columns[column + 1], first: columns[0] };
             continue;
           }
           if (heading.length) {
-            open = { heading: heading.join(" "), lines: [], column: anchor, page: n };
+            open = { heading: heading.join(" "), lines: [], column: anchor, page: n,
+                     headAt: { ...headAt, page: n } };
             heading = [];
           }
           if (open) open.lines.push({ ...line, x: line.x - anchor + open.column });
@@ -277,7 +286,7 @@ const named = (list) => (list ?? []).map(ability => {
  * `abbreviation`, `magicStyle` and `uniqueMechanics` are not written, none of
  * them being something the book states as a field of its own.
  */
-export function toItem(entry) {
+export function toItem(entry, img) {
   const starting = entry.lists.starting;
   const bought = entry.lists.bought;
 
@@ -291,7 +300,10 @@ export function toItem(entry) {
   return {
     name: entry.name,
     type: "Order",
-    img: "icons/magic/symbols/ring-circle-smoke-blue.webp",
+    /* The order's own mark, cut out of the page it heads — see `sigils`. The
+     * fallback is only for a run that could not find one; nothing overwrites a
+     * sigil with it, because the field is simply not set when there is none. */
+    img: img || "icons/magic/symbols/ring-circle-smoke-blue.webp",
     system: {
       description: html(join(entry.description)),
       /* Each box as its heading and then its text. Written now, where it used
@@ -320,6 +332,57 @@ export function toItem(entry) {
     }
   };
 }
+
+/**
+ * The mark each order is printed under, cut out of the page.
+ *
+ * Every order's name is set beneath a sigil — the Vance's two interlocked
+ * figures, the Goetic's spider, the Apostate's spiral — and nothing in the text
+ * layer mentions them, so they are found by looking at the page: the lowest
+ * block of ink in the heading's own column, above the heading and below
+ * whatever ended the paragraph before it.
+ *
+ * Bounded by the column so the facing page cannot contribute, and stopped short
+ * of the heading so the word itself is never swept in.
+ *
+ * Returns a map of order name to the cut image. A name with no sigil found is
+ * simply absent, and the order keeps whatever art it already has.
+ *
+ * @param {object} doc      the pdf.js document
+ * @param {Array}  entries  what readEntries returned
+ */
+export async function sigils(doc, entries, { size = 256, onProgress } = {}) {
+  const out = new Map();
+  let done = 0;
+  for (const entry of entries) {
+    const at = entry.headAt;
+    done += 1;
+    onProgress?.({ done, total: entries.length, name: entry.name });
+    if (!at) continue;
+
+    const page = await doc.getPage(at.page);
+    /* The column's own band, so the facing column and the notes down the middle
+     * cannot contribute ink. The last column has no next one to stop at, so it
+     * runs to the mirror of the first column's own margin. */
+    const box = await deck.lastInkBlock(page, {
+      left: at.anchor,
+      right: at.next ?? (page.view[2] - at.first),
+      /* Not from the very top of the sheet: the running head is ink too, and
+       * it is the last thing above a heading set high on the page. */
+      top: RUNNING_HEAD,
+      bottom: at.y - at.h - HEADING_CLEARANCE
+    });
+    if (!box) continue;
+    out.set(entry.name, await deck.cutRegion(doc, at.page, box, { size }));
+  }
+  return out;
+}
+
+/** Below the running head, which is ink and is not a sigil. */
+const RUNNING_HEAD = 60;
+
+/** Points of clear space left above the heading, so its capitals are not cut in. */
+const HEADING_CLEARANCE = 2;
 
 /** Every order in the book. */
 export async function readEntries(doc, { onProgress } = {}) {
