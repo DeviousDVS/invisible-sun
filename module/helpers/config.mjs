@@ -599,6 +599,25 @@ export const ISUN = Object.freeze({
    * ────────────────────────────────────────────── */
 
   /**
+   * Which chart a flux is read off, by how many magic dice were cast.
+   *
+   * "The GM should associate the flux intensity (minor, major, or grand) with
+   * the approximate number of dice that are (or would be) rolled" (The Way,
+   * p13). Four or more dice stay grand; there is no fourth chart.
+   *
+   * Here rather than in dice.mjs because it is a rules table, and because the
+   * Flux item's `intensity` has to agree with what the dice produce.
+   */
+  fluxByDice: { 1: "minor", 2: "major", 3: "grand" },
+
+  /** The three charts, in order of severity. */
+  fluxIntensities: {
+    minor: "ISUN.FluxMinor",
+    major: "ISUN.FluxMajor",
+    grand: "ISUN.FluxGrand",
+  },
+
+  /**
    * The mark for magical flux: Font Awesome 7 `fa-burst`.
    *
    * Defined once here and read by everything that draws it — the Experimental

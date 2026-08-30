@@ -4,9 +4,6 @@
 
 import { colorsetForSun } from "./dice-so-nice.mjs";
 
-/** Flux intensity by how many magic dice were cast (The Way, p806). */
-const FLUX_INTENSITY = { 1: "minor", 2: "major", 3: "grand" };
-
 /**
  * Roll a Venture/Challenge action.
  * 
@@ -88,7 +85,8 @@ export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, so
   // grand. Flux happens even when the action succeeds. Using an Experimental
   // Die "increases the chance for greater flux", so it counts towards this.
   const diceCast = totalMagicDice + experimentalDice;
-  const fluxIntensity = !hasFlux ? "" : FLUX_INTENSITY[Math.min(diceCast, 3)] ?? "grand";
+  const fluxIntensity = !hasFlux ? ""
+    : CONFIG.ISUN.fluxByDice[Math.min(diceCast, 3)] ?? "grand";
   /* The bare value is a key fragment and a CSS class, not something to show a
    * player — the card was printing "minor" where it meant "Minor flux". */
   const fluxIntensityLabel = fluxIntensity

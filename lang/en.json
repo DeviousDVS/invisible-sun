@@ -474,6 +474,7 @@
     "FluxMinor": "Minor flux",
     "FluxMajor": "Major flux",
     "FluxGrand": "Grand flux",
+    "SourceWayFlux": "Flux charts",
     "ExperimentalDie": "Experimental Die — flux only",
     "IdentityApplied": "{name} applied: {values} set.",
     "PointsToPlace": "Points to place",
@@ -669,7 +670,8 @@
       "Thread": "Thread",
       "MinorMagic": "Minor Magic",
       "Gear": "Goods",
-      "Connection": "Connection"
+      "Connection": "Connection",
+      "Flux": "Flux Effect"
     }
   }
 }

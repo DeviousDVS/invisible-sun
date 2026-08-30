@@ -137,7 +137,11 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
    */
   static UNBUCKETED_ITEM_TYPES = [
     // A Sooth card is drawn and read, not carried; nothing on the sheet shows one.
-    "SoothCard"
+    "SoothCard",
+    /* A flux effect happens to a character rather than being held by one. The
+     * GM picks it off a chart and it lands in chat; what it leaves behind — a
+     * vex, a Wound — is written onto the sheet as that, not as an item. */
+    "Flux"
   ];
 
 

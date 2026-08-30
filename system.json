@@ -138,6 +138,12 @@
       "label": "Aggregates & Threads",
       "path": "packs/threads",
       "type": "Item"
+    },
+    {
+      "name": "flux",
+      "label": "Flux Effects",
+      "path": "packs/flux",
+      "type": "Item"
     }
   ],
   "socket": true,
@@ -240,6 +246,11 @@
       "SoothCard": {
         "htmlFields": [
           "effectText"
+        ]
+      },
+      "Flux": {
+        "htmlFields": [
+          "description"
         ]
       },
       "Ephemera": {

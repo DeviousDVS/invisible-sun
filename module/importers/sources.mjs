@@ -39,6 +39,7 @@ import * as fortes from "./fortes.mjs";
 import * as arcs from "./arcs.mjs";
 import * as skills from "./skills.mjs";
 import * as orders from "./orders.mjs";
+import * as way from "./way.mjs";
 import * as secrets from "./secrets.mjs";
 import * as threshold from "./threshold.mjs";
 
@@ -346,6 +347,23 @@ export const SOURCES = [
     }
   },
   {
+    /* Only the flux charts so far. The Way is most of the rules and almost none
+     * of it is a listing — what it mostly holds is prose, which nothing here
+     * reads yet. The charts are the exception: a hundred short entries under
+     * three headings, which is exactly the shape a bucket wants. */
+    key: "way",
+    label: "ISUN.SourceWay",
+    hint: /^the.?way/i,
+    signature: coverTitle("THE WAY"),
+    kind: "listing",
+    book: "The Way",
+    read: way.readEntries,
+    sort: way.sort,
+    buckets: {
+      flux: { pack: "invisible-sun.flux", toItem: way.toItem, uniqueBy: ["system.intensity"] }
+    }
+  },
+  {
     key: "book-m",
     label: "ISUN.SourceBookM",
     hint: /^book.?m\b/i,
@@ -432,7 +450,6 @@ export const SOURCES = [
  * of files it could not identify.
  */
 export const NOT_YET = [
-  { key: "way", label: "ISUN.SourceWay", hint: /^the.?way/i, signature: coverTitle("THE WAY") },
   { key: "path", label: "ISUN.SourcePath", hint: /^the.?path/i, signature: coverTitle("THE PATH") }
 ];
 

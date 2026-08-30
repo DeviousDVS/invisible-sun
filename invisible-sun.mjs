@@ -10,7 +10,7 @@ import {
   VislaeModel, NPCModel, CreatureModel,
   HeartModel, FoundationModel, SoulModel, OrderModel,
   ForteModel, ForteAbilityModel, SpellModel, IncantationModel,
-  SecretModel, SkillModel, CharacterArcModel, SoothCardModel,
+  SecretModel, SkillModel, CharacterArcModel, SoothCardModel, FluxModel,
   EphemeraModel, ObjectOfPowerModel,
   ThreadModel, MinorMagicModel, ConnectionModel, GearModel
 } from "./module/data-models/index.mjs";
@@ -236,6 +236,7 @@ Hooks.once("init", () => {
     Skill: SkillModel,
     CharacterArc: CharacterArcModel,
     SoothCard: SoothCardModel,
+    Flux: FluxModel,
     Ephemera: EphemeraModel,
     ObjectOfPower: ObjectOfPowerModel,
     Thread: ThreadModel,

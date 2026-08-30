@@ -10,6 +10,7 @@ export { SecretModel } from "./SecretModel.mjs";
 export { SkillModel } from "./SkillModel.mjs";
 export { CharacterArcModel } from "./CharacterArcModel.mjs";
 export { SoothCardModel } from "./SoothCardModel.mjs";
+export { FluxModel } from "./FluxModel.mjs";
 export { EphemeraModel } from "./EphemeraModel.mjs";
 export { ObjectOfPowerModel } from "./ObjectOfPowerModel.mjs";
 export { ThreadModel } from "./ThreadModel.mjs";
