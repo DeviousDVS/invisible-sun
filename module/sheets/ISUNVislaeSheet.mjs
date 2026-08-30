@@ -931,7 +931,46 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
 
     if (result?.refused === "noRests") {
       ui.notifications?.warn(game.i18n.localize("ISUN.NoRestsLeft"));
+      return;
     }
+    if (result?.refreshed) await ISUNVislaeSheet.#announceRefresh(this.document, result);
+  }
+
+  /**
+   * Say that a pool was refreshed, and what it cost.
+   *
+   * Rests are a shared reckoning — three a day between everyone's turns — so a
+   * player spending one is not private bookkeeping. Announced from the sheet
+   * rather than from the actor for the same reason the challenge card is: the
+   * document changes state, and telling the table is a different job.
+   */
+  static async #announceRefresh(actor, result) {
+    const { renderTemplate } = foundry.applications.handlebars;
+    const restLabel = (key) =>
+      game.i18n.localize(`ISUN.Rest${key.charAt(0).toUpperCase()}${key.slice(1)}`);
+
+    /* What is left, in the terms the sheet uses — "Action x2, 1 hour" rather
+     * than a count, because the three are not interchangeable and knowing two
+     * remain says nothing about which. */
+    const left = Object.entries(result.restsLeft ?? {})
+      .filter(([, n]) => n > 0)
+      .map(([key, n]) => n > 1 ? `${restLabel(key)} ×${n}` : restLabel(key));
+
+    const content = await renderTemplate(
+      "systems/invisible-sun/templates/chat/rest-refresh.hbs", {
+        poolLabel: game.i18n.localize(CONFIG.ISUN.poolLabels[result.refreshed] ?? result.refreshed),
+        from: result.from,
+        to: result.to,
+        vexCleared: result.vexCleared,
+        free: result.free,
+        restLabel: result.restType ? restLabel(result.restType) : "",
+        restsLeftText: left.length ? left.join(", ") : game.i18n.localize("ISUN.RestNoneLeft")
+      });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content
+    });
   }
 
   /**

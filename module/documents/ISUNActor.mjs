@@ -237,15 +237,27 @@ export class ISUNActor extends Actor {
       [`system.stats.${group}.pools.${poolKey}.vex`]: 0
     };
 
+    let used = null;
     if (!free) {
-      const type = restType ?? this.cheapestRest;
-      if (!type) return { refused: "noRests" };
-      const rest = ISUNActor.REST_TYPES[type];
+      used = restType ?? this.cheapestRest;
+      if (!used) return { refused: "noRests" };
+      const rest = ISUNActor.REST_TYPES[used];
       updates[`system.rests.${rest.field}`] = (this.system.rests[rest.field] ?? 0) + 1;
     }
 
+    /* Read before the update, because after it they are what they became. What
+     * the pool held, what it holds now, and what the refresh cleared are the
+     * three things a table wants to hear; the caller announces them. */
+    const before = { value: p.value ?? 0, vex: p.vex ?? 0 };
+
     await this.update(updates);
-    return { refreshed: poolKey };
+    return {
+      refreshed: poolKey, group, restType: used, free,
+      from: before.value, to: p.max ?? 0,
+      gained: Math.max(0, (p.max ?? 0) - before.value),
+      vexCleared: before.vex,
+      restsLeft: this.restsRemaining
+    };
   }
 
   /**

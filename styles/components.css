@@ -2783,6 +2783,30 @@ a.sentence-part:hover + .sentence-part.affix {
   color: var(--isun-wound);
 }
 
+/* A pool refreshed. Quiet: it is a normal thing to do, and the card is there so
+ * the table can keep count of the day's rests, not to announce a triumph. */
+.rest-refresh .rest-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--isun-space-sm);
+  margin-top: var(--isun-space-xs);
+}
+
+.rest-refresh .rest-values {
+  font-variant-numeric: tabular-nums;
+  color: var(--isun-text-primary);
+}
+
+.rest-refresh .rest-vex { font-size: 0.85em; color: var(--isun-wound); }
+
+.rest-refresh .rest-cost {
+  margin-top: var(--isun-space-xs);
+  font-size: 0.85em;
+  color: var(--isun-text-secondary);
+}
+
+.rest-refresh .rest-left { margin-left: var(--isun-space-xs); opacity: 0.8; }
+
 /* ── The Vance's mind ──────────────────────────────────────────────
  * A capacity bar above Practices, and a cell in each Vancian row. Only a Vance
  * renders any of this; see the note in practices.hbs.

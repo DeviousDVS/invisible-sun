@@ -1,0 +1,29 @@
+{{!-- A pool refreshed, and what it cost. Posted because a rest is a resource
+      the whole table is spending against the day, not a private bookkeeping
+      note on one sheet. --}}
+<div class="isun-chat-card rest-refresh">
+  <header class="card-header">
+    <i class="fa-solid fa-arrows-rotate"></i>
+    <span class="rest-title">{{localize "ISUN.RestRefreshed" pool=poolLabel}}</span>
+  </header>
+
+  {{!-- The pool is named in the heading; repeating it here said "Sorcery"
+        twice in eight words. --}}
+  <div class="rest-line">
+    <span class="rest-values">{{from}} &rarr; {{to}}</span>
+    {{#if vexCleared}}
+      <span class="rest-vex">{{localize "ISUN.RestVexCleared" count=vexCleared}}</span>
+    {{/if}}
+  </div>
+
+  {{!-- What it cost. A refresh taken without spending one says so rather than
+        going quiet, since the difference matters to everyone counting. --}}
+  <div class="rest-cost">
+    {{#if free}}
+      {{localize "ISUN.RestNoneSpent"}}
+    {{else}}
+      {{localize "ISUN.RestSpent" rest=restLabel}}
+      <span class="rest-left">{{localize "ISUN.RestLeft" left=restsLeftText}}</span>
+    {{/if}}
+  </div>
+</div>
