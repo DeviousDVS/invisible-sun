@@ -166,6 +166,42 @@ describe("a box set inside a column", () => {
       "1. The Vance chooses a spell they have stored in their mind.");
   });
 
+  test("a label right after a box ends it, indented or not", () => {
+    /* The Goetic. "Path to Despair:" follows the BEINGS AND THE REALMS box and
+     * is set at the same indent the box's own lines use, so a box that ended
+     * only at the column edge swallowed it — and the despair text ran on into
+     * Path to Joy, which then had no reason to close. */
+    const order = parseOrder([
+      para("Path to Joy: The following actions give us Joy."),
+      body("Complete a successful colloquy."),
+      box("BEINGS AND THE REALMS"),
+      boxLine("Each sun shines down upon a different realm."),
+      para("Path to Despair: The following actions give us"),
+      body("Despair."),
+      body("A summoned being gets out of our control."),
+    ], COLUMN);
+
+    assert.equal(join(order.fields["Path to Joy"]),
+      "The following actions give us Joy. Complete a successful colloquy.");
+    assert.equal(join(order.fields["Path to Despair"]),
+      "The following actions give us Despair. A summoned being gets out of our control.");
+    assert.equal(order.sidebars.length, 1);
+  });
+
+  test("an ability label right after a box ends it too", () => {
+    const order = parseOrder([
+      body("1st-Degree Goetic: Neophyte"),
+      para("Summoning: We can call a being."),
+      box("GOETIC MAGIC"),
+      boxLine("1. The Goetic decides what sort of entity they wish."),
+      para("Identify Spirit: We can name what we see."),
+    ], COLUMN);
+
+    assert.deepEqual(order.degrees[0].abilities.map(a => a.name),
+      ["Summoning", "Identify Spirit"]);
+    assert.equal(join(order.degrees[0].abilities[1].description), "We can name what we see.");
+  });
+
   test("a heading that wraps is one box, not two", () => {
     // The Goetic's "FAVORING THE / RIGHT OR LEFT HAND" came back as two, the
     // first of them a fragment with no text under it.

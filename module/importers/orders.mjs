@@ -121,8 +121,24 @@ export function parseOrder(lines, column) {
       continue;
     }
     if (sidebar) {
-      if (!flush) { sidebar.lines.push(line.text); continue; }
-      sidebar = null;   // and fall through: this line is prose again
+      /* Where the box stops. Prose returning to the column edge is the usual
+       * sign, but not the only one: a box can be followed straight away by a
+       * label, which is indented exactly as the box's own lines are.
+       *
+       * The Goetic is where this showed. "Path to Despair:" follows the
+       * BEINGS AND THE REALMS box, and being indented it was read as more of
+       * the box — so the field was never opened and its text ran on into Path
+       * to Joy, which had no reason to close. Ending only on a flush line was
+       * too greedy by exactly one line.
+       *
+       * A label is safe to end on because none of the text inside these boxes
+       * looks like one: checked against the kept lines of The Key's page 43,
+       * where the closest is "venture of the action, which includes:", and an
+       * ability needs something after the colon. */
+      const resumes = flush || FIELD_RE.test(line.text) || DEGREE_RE.test(line.text)
+        || (degree && ABILITY_RE.test(line.text));
+      if (!resumes) { sidebar.lines.push(line.text); continue; }
+      sidebar = null;   // and fall through: this line is the text again
     }
 
     const step = DEGREE_RE.exec(line.text);
