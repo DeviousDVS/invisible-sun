@@ -196,6 +196,7 @@
     "PathDeckSpent": "Every card has been played. Shuffle to put them back.",
     "PathMissingCard": "card not in the deck",
     "PathShiftHint": "The Path of Suns: {amount} to this colour — level or Sorcery cost, your choice. From {sources}.",
+    "PathShiftColumn": "Suns",
     "PathPlayedOn": "Played on the {sun} Sun",
     "PathOnItsOwnSun": "On its own sun — its effect is doubled",
     "PathThenAnother": "…and turns another card.",

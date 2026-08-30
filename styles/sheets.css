@@ -323,6 +323,14 @@
   font-size: 0.9em;
 }
 
+/* Only Practices has this one, but it is sized here with its siblings because
+ * the header and the row are siblings too: a width declared anywhere else
+ * risks the two disagreeing, which is the bug the note above records. */
+.item-list .shift {
+  flex: 0 0 60px;
+  text-align: center;
+}
+
 .item-list .depletion {
   flex: 0 0 110px;
   text-align: center;

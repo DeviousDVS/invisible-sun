@@ -27,24 +27,15 @@
       <span class="type">{{localize "ISUN.Kind"}}</span>
       <span class="cost">{{localize "ISUN.Cost"}}</span>
       <span class="dice">{{localize "ISUN.Dice"}}</span>
+      <span class="shift">{{localize "ISUN.PathShiftColumn"}}</span>
       <span class="depletion">{{localize "ISUN.Depletion"}}</span>
       <span class="actions"></span>
     </div>
 
     {{#each practices as |p|}}
       <div class="item practice" data-item-id="{{p.item.id}}" data-kind="{{p.kind}}">
-        {{!-- The level as printed, and beside it what the Path of Suns is
-              doing to a spell of this colour. The shift is not applied: the
-              player chooses at the moment of casting whether to take it as a
-              level or as a Sorcery cost. --}}
         <div class="level">
           <span class="level-badge">{{p.level}}</span>
-          {{#if p.shift}}
-            <span class="sooth-shift {{#if (gt p.shift.amount 0)}}up{{else}}down{{/if}}"
-                  data-tooltip="{{localize 'ISUN.PathShiftHint' amount=p.shift.text sources=p.shift.sources}}">
-              {{p.shift.text}}
-            </span>
-          {{/if}}
         </div>
         <div class="name rollable" data-action="{{p.action}}">
           <span class="color-badge {{colorClass p.color}}" title="{{p.color}}"></span>
@@ -53,6 +44,19 @@
         <div class="type">{{localize p.kindLabel}}</div>
         <div class="cost" title="{{p.cost}}">{{p.cost}}</div>
         <div class="dice" title="{{#if p.condition}}{{p.dice}} {{p.condition}}{{else}}{{p.dice}}{{/if}}">{{p.dice}}</div>
+        {{!-- What the Path of Suns is doing to a practice of this colour. Its
+              own column rather than a badge tucked under the level, because it
+              is not a level: the player chooses at the moment of casting
+              whether to take the shift as a level or as a Sorcery cost, and
+              printing it on the level said one of those two for them. --}}
+        <div class="shift">
+          {{#if p.shift}}
+            <span class="sooth-shift {{#if (gt p.shift.amount 0)}}up{{else}}down{{/if}}"
+                  data-tooltip="{{localize 'ISUN.PathShiftHint' amount=p.shift.text sources=p.shift.sources}}">
+              {{p.shift.text}}
+            </span>
+          {{/if}}
+        </div>
         <div class="depletion" title="{{p.depletion}}">{{p.depletion}}</div>
         <div class="actions">
           <a class="btn-cast" data-action="{{p.action}}" title="{{localize 'ISUN.Use'}}">

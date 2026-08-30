@@ -2662,13 +2662,12 @@ a.sentence-part:hover {
 .venture-dialog .vd-bonus { color: var(--isun-acumen); }
 .venture-dialog .vd-penalty { color: var(--isun-wound); }
 
-/* What the Path of Suns is doing to a practice, beside its level. Not applied
- * to anything: the player chooses at the moment of casting whether to take the
- * shift as a level or as a Sorcery cost, so this reports and waits. */
+/* What the Path of Suns is doing to a practice, in the Suns column. Not
+ * applied to anything: the player chooses at the moment of casting whether to
+ * take the shift as a level or as a Sorcery cost, so this reports and waits. */
 .practices .sooth-shift {
   display: inline-block;
-  margin-left: 3px;
-  padding: 0 3px;
+  padding: 0 4px;
   border-radius: 3px;
   font-size: 0.66rem;
   font-variant-numeric: tabular-nums;
