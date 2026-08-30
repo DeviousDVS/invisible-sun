@@ -485,7 +485,6 @@
     "FluxPickerTake": "This one",
     "FluxShowAllCharts": "All three charts",
     "FluxNoCharts": "The flux charts are empty. Import The Way to fill them.",
-    "FluxOffChart": "Taken from another chart; the dice called for {rolled}.",
     "SourceWayFlux": "Flux charts",
     "ExperimentalDie": "Experimental Die — flux only",
     "IdentityApplied": "{name} applied: {values} set.",

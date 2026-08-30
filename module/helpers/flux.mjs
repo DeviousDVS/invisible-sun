@@ -170,12 +170,10 @@ export async function chooseEffect(message, actor) {
     text: chosen.text,
     uuid: chosen.uuid,
     intensity: chosen.intensity,
+    /* The chart it was taken off is not mentioned. Reaching across the charts
+     * is the GM's to do and the table has no use for knowing they did — what
+     * happened is the fiction, and where it was looked up is not. */
     intensityLabel: game.i18n.localize(CONFIG.ISUN.fluxIntensities[chosen.intensity] ?? ""),
-    /* The chart it came off, which is worth saying when it is not the one the
-     * dice pointed at: the GM may reach across the charts, and a table reading
-     * the card should be able to tell that they did. */
-    offChart: chosen.intensity !== flux.intensity,
-    rolled: game.i18n.localize(CONFIG.ISUN.fluxIntensities[flux.intensity] ?? ""),
     name: actor?.name ?? ""
   });
 

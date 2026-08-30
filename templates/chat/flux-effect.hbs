@@ -13,10 +13,4 @@
         way in, and enriching it here would put the entry's name beside the
         text it already is. --}}
   <div class="flux-effect-text">{{text}}</div>
-
-  {{!-- Said only when the GM reached past the chart the dice pointed at, which
-        the rules allow: they determine the effect, not the page. --}}
-  {{#if offChart}}
-    <p class="flux-effect-note">{{localize "ISUN.FluxOffChart" rolled=rolled}}</p>
-  {{/if}}
 </div>

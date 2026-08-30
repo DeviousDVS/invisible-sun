@@ -10,10 +10,16 @@
  * wrong. They are the reason the leading is used instead, and they are the
  * first thing to break if anyone decides a full stop looks simpler.
  */
-import { test, describe } from "node:test";
+import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 
-import { splitEntries, wrapLeading, toItem } from "../../module/importers/way.mjs";
+import { stubFoundry, unstubFoundry } from "./foundry-stub.mjs";
+import { splitEntries, wrapLeading, toItem, effectsIn } from "../../module/importers/way.mjs";
+
+/* effectsIn checks a named pool against CONFIG.ISUN, so the real config has to
+ * be in place — a fake list of pools would be testing the fake. */
+before(() => stubFoundry());
+after(() => unstubFoundry());
 
 /* Lines as columnLines hands them over, at the real spacings. */
 const at = (y, text) => ({ y, text });
@@ -144,5 +150,75 @@ describe("what an entry becomes", () => {
     assert.ok(item.name.endsWith("…"));
     assert.ok(!/\s…$/.test(item.name), "cut left a space before the ellipsis");
     assert.ok(item.system.description.includes("great distance"), "the full text is kept");
+  });
+});
+
+/* ──────────────────────────────────────────────────────────────────
+ * What an entry does that the sheet could do for you
+ * ────────────────────────────────────────────────────────────────── */
+
+describe("reading an effect out of an entry", () => {
+
+  /* The strings below are the entries as The Way prints them. If a future
+   * printing rewords one, the case that covers it fails here — which is the
+   * point of reading them at import rather than at use. */
+
+  test("both phrasings the charts use for vex", () => {
+    // The book says "gain" in six places and "adds" in one. A parser that knew
+    // only the first missed Sudden Pain without saying so.
+    assert.deepEqual(effectsIn("You gain 1 vex to Sorcery."),
+      [{ kind: "vex", pool: "sorcery", amount: 1 }]);
+    assert.deepEqual(effectsIn("You gain 3 vex to your Intellect pool."),
+      [{ kind: "vex", pool: "intellect", amount: 3 }]);
+    assert.deepEqual(effectsIn("Sudden pain adds 3 vex to your Movement pool."),
+      [{ kind: "vex", pool: "movement", amount: 3 }]);
+  });
+
+  test("a pool spent, and Hidden Knowledge lost, come back negative", () => {
+    assert.deepEqual(effectsIn("You lose 1 Sortilege out of your pool."),
+      [{ kind: "pool", pool: "sortilege", amount: -1 }]);
+    assert.deepEqual(effectsIn("Memory lapse. You lose 2 points of Hidden Knowledge."),
+      [{ kind: "hiddenKnowledge", pool: "", amount: -2 }]);
+  });
+
+  test("an Anguish suffered", () => {
+    assert.deepEqual(effectsIn("You suffer 1 Anguish."),
+      [{ kind: "anguish", pool: "", amount: 1 }]);
+  });
+
+  test("nothing for an entry that happens to somebody else", () => {
+    // A Wound on the wrong character is worse than no Wound at all.
+    assert.deepEqual(effectsIn("Someone close to you suffers 1 Wound."), []);
+    assert.deepEqual(effectsIn("Someone close to you suffers 2 damage."), []);
+  });
+
+  test("nothing for a standing curse or an ongoing modifier", () => {
+    assert.deepEqual(effectsIn("A curse means you become violently ill and gain 1 "
+      + "Wound whenever a Sooth card is played on a specific sun."), []);
+    assert.deepEqual(effectsIn("All of your spells cost 1 additional Sorcery for a "
+      + "short amount of time."), []);
+  });
+
+  test("nothing when a gain comes with a condition the sheet cannot hold", () => {
+    // The Sortilege is modellable; "you can never refresh that pool again" is
+    // not, and taking half of an entry is not taking it.
+    assert.deepEqual(effectsIn("You feel a power surge and gain 4 in your Sortilege "
+      + "pool. However, you can never refresh that pool again."), []);
+  });
+
+  test("nothing for the ninety that say nothing mechanical", () => {
+    assert.deepEqual(effectsIn("A nearby plant withers."), []);
+    assert.deepEqual(effectsIn("You are driven insane."), []);
+    assert.deepEqual(effectsIn("Your teeth fall out."), []);
+  });
+
+  test("a phrase that fits the shape but names no pool is refused", () => {
+    // Better nothing than a vex written to a key nothing reads.
+    assert.deepEqual(effectsIn("You gain 2 vex to Nonsense."), []);
+  });
+
+  test("the effect rides along on the item", () => {
+    const item = toItem({ intensity: "minor", text: "You gain 1 vex to Sorcery.", page: 16 });
+    assert.deepEqual(item.system.effects, [{ kind: "vex", pool: "sorcery", amount: 1 }]);
   });
 });

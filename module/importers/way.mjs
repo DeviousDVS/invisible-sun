@@ -197,6 +197,75 @@ export async function readEntries(doc, { onProgress } = {}) {
   return read.done();
 }
 
+/**
+ * What an entry does that the sheet can do for you.
+ *
+ * Read here, once, against the English these charts were written in — the same
+ * place and for the same reason orders.mjs reads a degree's entitlements. Doing
+ * it when the effect is used would mean running a regex over prose every time,
+ * and this system already has the scar from that: caps derived at runtime
+ * dropped silently to the base the first time a sentence was reworded.
+ *
+ * Deliberately incomplete, and refuses more than it takes. Of the fifteen
+ * entries that mention a number and a game term, five are none of the sheet's
+ * business:
+ *
+ *   "Someone close to you suffers 1 Wound"   — not the vislae who fluxed
+ *   "Someone close to you suffers 2 damage"  — likewise
+ *   "…gain 1 Wound whenever a Sooth card is played on a specific sun"
+ *                                            — a standing curse, not a change
+ *   "…gain 4 in your Sortilege pool. However, you can never refresh that pool
+ *    again."                                 — a gain the system can model and
+ *                                              a permanent condition it cannot
+ *   "All of your spells cost 1 additional Sorcery for a short amount of time."
+ *                                            — an ongoing modifier
+ *
+ * Applying any of those would be worse than applying none: a Wound on the
+ * wrong character is a mistake somebody has to notice before they can undo it.
+ * So a sentence carrying a qualifier is left alone and stays prose for the GM.
+ */
+const NOT_OURS = /someone close to you|whenever|however|for a short amount of time/i;
+
+/**
+ * The phrasings the charts actually use. Two for vex, because the book says
+ * both "You gain 3 vex to your Sorcery pool" and "Sudden pain adds 3 vex to
+ * your Movement pool", and a parser that knew only the first missed one entry
+ * without saying so.
+ */
+const EFFECTS = [
+  { re: /\bgain (\d+) vex to (?:your )?([A-Za-z]+)\b/i,
+    make: (m) => ({ kind: "vex", pool: m[2].toLowerCase(), amount: Number(m[1]) }) },
+  { re: /\badds (\d+) vex to (?:your )?([A-Za-z]+)\b/i,
+    make: (m) => ({ kind: "vex", pool: m[2].toLowerCase(), amount: Number(m[1]) }) },
+  { re: /\byou lose (\d+) ([A-Za-z]+) out of your pool\b/i,
+    make: (m) => ({ kind: "pool", pool: m[2].toLowerCase(), amount: -Number(m[1]) }) },
+  { re: /\byou lose (\d+) points? of Hidden Knowledge\b/i,
+    make: (m) => ({ kind: "hiddenKnowledge", pool: "", amount: -Number(m[1]) }) },
+  { re: /\byou suffer (\d+) (Anguish|Wound)\b/i,
+    make: (m) => ({ kind: m[2].toLowerCase(), pool: "", amount: Number(m[1]) }) },
+];
+
+/** The pools a vex or a loss may name; anything else is not one. */
+const POOLS = () => new Set([...CONFIG.ISUN.certesPoolNames, ...CONFIG.ISUN.qualiaPoolNames]);
+
+/**
+ * @param {string} text  the entry as printed
+ * @returns {Array} zero or one effect; the charts never state two
+ */
+export function effectsIn(text) {
+  if (NOT_OURS.test(text)) return [];
+  for (const { re, make } of EFFECTS) {
+    const match = re.exec(text);
+    if (!match) continue;
+    const effect = make(match);
+    /* A pool the system does not have is a phrase that happened to fit the
+     * shape — better nothing than a vex written to a key nothing reads. */
+    if (effect.pool && !POOLS().has(effect.pool)) return [];
+    return [effect];
+  }
+  return [];
+}
+
 /** Which chart an entry sorts into, for the importer's buckets. */
 export const sort = () => "flux";
 
@@ -215,6 +284,7 @@ export function toItem(entry) {
     system: {
       intensity: entry.intensity,
       description: `<p>${entry.text}</p>`,
+      effects: effectsIn(entry.text),
       source: "The Way",
       page: entry.page
     }

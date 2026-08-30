@@ -731,6 +731,37 @@ export class ISUNActor extends Actor {
   }
 
   /**
+   * Put vex into a pool.
+   *
+   * The inverse of what ChallengeCard does, and until now the system had only
+   * that half: a vex could be spent down and cleared by a rest, but nothing
+   * could give one. A flux can — "You gain 1 vex to Sorcery", "Sudden pain adds
+   * 3 vex to your Movement pool" (The Way) — and so, in time, can a scourge or
+   * a curse.
+   *
+   * Takes the pool's name alone rather than its stat, because that is how the
+   * books name it: they say Sorcery, never "the Qualia pool Sorcery". Which
+   * stat holds it is looked up here so no caller has to know.
+   *
+   * @param {string} poolKey  accuracy, movement, sorcery…
+   * @param {number} [amount] vex to add; negative removes, never below zero
+   * @returns {Promise<number|null>} the pool's vex after, or null if no such pool
+   */
+  async addVex(poolKey, amount = 1) {
+    const key = String(poolKey ?? "").toLowerCase();
+    const group = CONFIG.ISUN.certesPoolNames.includes(key) ? "certes"
+      : CONFIG.ISUN.qualiaPoolNames.includes(key) ? "qualia" : null;
+    if (!group) return null;
+
+    const pool = this.system.stats?.[group]?.pools?.[key];
+    if (!pool) return null;
+
+    const vex = Math.max(0, (pool.vex ?? 0) + amount);
+    await this.update({ [`system.stats.${group}.pools.${key}.vex`]: vex });
+    return vex;
+  }
+
+  /**
    * Which of the five orders this character belongs to, as a config key.
    *
    * Read from the Order item the character holds, falling back to the free-text

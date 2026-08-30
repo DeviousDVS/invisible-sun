@@ -2775,13 +2775,6 @@ a.sentence-part:hover + .sentence-part.affix {
 
 .flux-effect .flux-effect-text { margin-top: var(--isun-space-xs); }
 
-.flux-effect .flux-effect-note {
-  margin: var(--isun-space-xs) 0 0;
-  font-size: 0.82em;
-  font-style: italic;
-  color: var(--isun-text-secondary);
-}
-
 /* ── The Vance's mind ──────────────────────────────────────────────
  * A capacity bar above Practices, and a cell in each Vancian row. Only a Vance
  * renders any of this; see the note in practices.hbs.
