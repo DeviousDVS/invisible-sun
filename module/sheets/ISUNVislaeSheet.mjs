@@ -5,6 +5,7 @@ import { ActorSheetMixin } from "./SheetMixin.mjs";
 import { VentureDialog } from "../apps/VentureDialog.mjs";
 import { ApplyIdentity } from "../apps/ApplyIdentity.mjs";
 import { HeartSkills } from "../apps/HeartSkills.mjs";
+import * as vance from "../helpers/vance.mjs";
 import { ForteAbilityPicker } from "../apps/ForteAbilityPicker.mjs";
 import { CompendiumPicker } from "../apps/CompendiumPicker.mjs";
 import { IncantationGrant } from "../apps/IncantationGrant.mjs";
@@ -67,6 +68,8 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       "entry-delete":       this.prototype._onEntryDelete,
       /* The practices list emits one of these three from {{p.action}}. They all
        * mean "use this", and all reach the same handler. */
+      "toggle-prepared":    this.prototype._onTogglePrepared,
+      "toggle-halved":      this.prototype._onToggleHalved,
       "roll-spell":         this.prototype._onItemRoll,
       "roll-incantation":   this.prototype._onItemRoll,
       "use-ability":        this.prototype._onItemRoll
@@ -223,12 +226,9 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
    * The order panel: which order, which degree, and the ladder either side of it.
    */
   #prepareOrder(context) {
-    // Which order's subsystem to show. Prefer the Order item the character
-    // holds; fall back to the free-text meta field for characters set up by
-    // hand before drag-and-drop population exists.
-    const orderNames = Object.keys(CONFIG.ISUN?.orders ?? {});
-    const orderSource = (context.orders[0]?.name || context.actor.system?.meta?.orderType || "").toLowerCase();
-    context.orderKey = orderNames.find(k => orderSource.includes(k)) ?? "";
+    // Which order's subsystem to show. Worked out by the actor, so that what
+    // the sheet draws and what prepareDerivedData computed cannot disagree.
+    context.orderKey = this.document.orderKey;
     context.order = context.orders[0] ?? null;
     context.orderInfo = context.orderKey ? CONFIG.ISUN.orders[context.orderKey] : null;
 
@@ -267,8 +267,44 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   /**
    * Spells, incantations, forte abilities and minor magics as one sortable list.
    */
+  /**
+   * What the Mind column shows for one practice.
+   *
+   * Separated from `practice()` because it is the only part of a row that
+   * depends on the character rather than on the item, and because it answers
+   * three different things — whether the column applies at all, whether the
+   * box is ticked, and why it cannot be — that read better named than inline.
+   */
+  #preparation(item, mind) {
+    if (!mind || !vance.isVancian(item)) return { vancian: false };
+    const { allowed, reason } = vance.canPrepare(item, mind);
+    return {
+      vancian: true,
+      prepared: !!item.system.prepared,
+      halved: !!item.system.halved,
+      footprint: vance.footprint(item),
+      canPrepare: allowed,
+      /* Why not, for the tooltip. A disabled control that will not say what is
+       * wrong with it is the thing players ask the GM about. */
+      blockedReason: reason
+    };
+  }
+
   #preparePractices(context) {
     const shifts = context.soothShifts ?? {};
+    /* The mind, with the two things only the view needs: how full the bar is,
+     * and what to call it. The book captions its diagrams by degree — "Mind of
+     * the Postulant", "Mind of the Magister" — so the heading follows the
+     * degree title, and falls back to a bare "Mind" for a Vance who has not
+     * been placed on the ladder yet. */
+    const mind = context.actor.system.mind ?? null;
+    if (mind) {
+      mind.percent = mind.area ? Math.min(100, Math.round((mind.used / mind.area) * 100)) : 0;
+      mind.label = context.orderDegreeTitle
+        ? game.i18n.format("ISUN.MindOf", { title: context.orderDegreeTitle })
+        : game.i18n.localize("ISUN.Mind");
+    }
+    context.mind = mind;
     // Spells, incantations, forte abilities and minor magics share a shape —
     // level, colour, cost, dice, depletion — because the rules treat them the
     // same way: a forte ability "unless stated otherwise, costs Sorcery to use,
@@ -324,7 +360,13 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
          * shifted as much as a spell is. Shown beside it and applied by nobody:
          * which of the two the player takes is their choice, made as they
          * cast. */
-        shift: shifts[String(sys.color ?? "").toLowerCase()] ?? null
+        shift: shifts[String(sys.color ?? "").toLowerCase()] ?? null,
+
+        /* Vancian preparation. `mind` is null for every other order and for
+         * every other kind of practice, which the row reads as "this column is
+         * not about you" and leaves blank — a Weaver's spells and a Vance's
+         * forte abilities are not prepared and must not offer a checkbox. */
+        ...this.#preparation(item, mind)
       };
     };
 
@@ -962,6 +1004,54 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     if (newVal !== currentVal) {
       await doc.update({ [`system.status.${type}.value`]: newVal });
     }
+  }
+
+  /**
+   * Put a spell into the Vance's mind, or let it go.
+   *
+   * Preparation "takes about an hour, regardless of how many spells are
+   * involved" (The Key, Vance 1st degree), which is a cost the table tracks in
+   * the fiction rather than one this can charge: a player ticking boxes is
+   * recording the hour they already spent, not spending it now.
+   *
+   * Room is checked here as well as in the row, because the row's answer was
+   * computed at render and a second window on the same actor may have filled
+   * the mind since. Refused rather than allowed-and-flagged, unlike the
+   * ephemera limits: those report a state the rules permit a GM to grant,
+   * whereas a spell that does not fit simply has nowhere to go.
+   */
+  async _onTogglePrepared(event, target) {
+    event.preventDefault();
+    const item = this.document.items.get(target.closest(".item")?.dataset.itemId);
+    if (!item) return;
+
+    const mind = this.document.system.mind;
+    const { allowed, reason } = vance.canPrepare(item, mind);
+    if (!allowed) {
+      ui.notifications?.warn(game.i18n.format(reason || "ISUN.MindNoRoom",
+        { name: item.name, need: vance.footprint(item), free: mind?.free ?? 0 }));
+      return this.render();
+    }
+    await item.update({ "system.prepared": !item.system.prepared });
+  }
+
+  /**
+   * Reduce a spell to half its footprint, or restore it.
+   *
+   * The allowance is a count, not a claim on particular spells, so taking one
+   * back frees it for another. Refused once they are all spoken for.
+   */
+  async _onToggleHalved(event, target) {
+    event.preventDefault();
+    const item = this.document.items.get(target.closest(".item")?.dataset.itemId);
+    if (!item || !vance.isVancian(item)) return;
+
+    const r = this.document.system.mind?.reductions;
+    if (!item.system.halved && r && r.used >= r.value) {
+      ui.notifications?.warn(game.i18n.format("ISUN.MindNoReductions", { count: r.value }));
+      return;
+    }
+    await item.update({ "system.halved": !item.system.halved });
   }
 
   async _onItemRoll(event, target) {

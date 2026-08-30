@@ -1,6 +1,8 @@
 /**
  * Extend the base Actor document to support custom derivation logic.
  */
+import * as vance from "../helpers/vance.mjs";
+
 export class ISUNActor extends Actor {
   
   /** @override */
@@ -728,10 +730,47 @@ export class ISUNActor extends Actor {
     return { spent: cost };
   }
 
+  /**
+   * Which of the five orders this character belongs to, as a config key.
+   *
+   * Read from the Order item the character holds, falling back to the free-text
+   * `meta.orderType` for a sheet filled in by hand before the item was dropped
+   * on. Matched by containment because the item is named "Vance" while the key
+   * is "vance", and because a world may rename it.
+   *
+   * Lives here rather than in the sheet so that derivation and display cannot
+   * disagree about what order somebody is in — the sheet used to work this out
+   * for itself, which was fine until something other than the sheet needed to
+   * know.
+   */
+  get orderKey() {
+    const names = Object.keys(CONFIG.ISUN?.orders ?? {});
+    const source = (this.items.find(i => i.type === "Order")?.name
+      || this.system?.meta?.orderType || "").toLowerCase();
+    return names.find(k => source.includes(k)) ?? "";
+  }
+
+  /**
+   * What the Vance is carrying in mind, and what room is left.
+   *
+   * Only a Vance has one. `system.mind` is null for everybody else, which the
+   * sheet reads as "draw nothing" rather than as an empty mind — a Weaver with
+   * a 0/0 capacity bar would be stating a limit that does not apply to them.
+   *
+   * The arithmetic is in helpers/vance.mjs, which is pure and tested; this
+   * only decides who it applies to and hands it the spells.
+   */
+  _prepareVancianMind(system) {
+    system.mind = this.orderKey === "vance"
+      ? vance.mindState(system.meta?.orderDegree ?? 0, this.items)
+      : null;
+  }
+
   _prepareVislaeData(system) {
     this._prepareStatAllocation(system);
     this._prepareLimits(system);
     this._prepareEconomy(system);
     this._prepareAdvancement(system);
+    this._prepareVancianMind(system);
   }
 }

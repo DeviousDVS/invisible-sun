@@ -20,12 +20,39 @@
     </div>
   </div>
 
+  {{!-- The Vance's mind. Only a Vance has one, so `mind` is null for every
+        other order and this whole block is absent rather than empty: a Weaver
+        shown "0 / 0 sq in" would be told a limit that is not theirs.
+
+        The book captions its own diagrams by degree — "Mind of the Postulant",
+        "Mind of the Magister" — so the heading follows the degree title. --}}
+  {{#if mind}}
+    <div class="mind{{#if mind.over}} over{{/if}}">
+      <span class="mind-name">
+        {{mind.label}}
+      </span>
+      <span class="mind-size">{{mind.width}} &times; {{mind.height}} in</span>
+      <span class="mind-bar" data-tooltip="{{localize 'ISUN.MindBarHint'
+              used=mind.used total=mind.area prepared=mind.prepared}}">
+        <span class="mind-fill" style="width: {{mind.percent}}%"></span>
+      </span>
+      <span class="mind-count">{{mind.used}} / {{mind.area}}</span>
+      {{#if mind.reductions.value}}
+        <span class="mind-reductions"
+              data-tooltip="{{localize 'ISUN.MindReductionsHint'}}">
+          &frac12; {{mind.reductions.used}} / {{mind.reductions.value}}
+        </span>
+      {{/if}}
+    </div>
+  {{/if}}
+
   <div class="item-list">
     <div class="list-header">
       <span class="level">{{localize "ISUN.Lvl"}}</span>
       <span class="name">{{localize "ISUN.Name"}}</span>
       <span class="type">{{localize "ISUN.Kind"}}</span>
       <span class="cost">{{localize "ISUN.Cost"}}</span>
+      {{#if mind}}<span class="mind-cell">{{localize "ISUN.Mind"}}</span>{{/if}}
       <span class="dice">{{localize "ISUN.Dice"}}</span>
       <span class="shift">{{localize "ISUN.PathShiftColumn"}}</span>
       <span class="depletion">{{localize "ISUN.Depletion"}}</span>
@@ -43,6 +70,26 @@
         </div>
         <div class="type" title="{{p.kindLabel}}">{{p.kindLabel}}</div>
         <div class="cost" title="{{p.cost}}">{{p.cost}}</div>
+        {{!-- Preparation. Blank for anything the Vancian rules do not reach:
+              a general spell, an incantation, a forte ability. The footprint
+              doubles as the halving control, because reducing a spell is a
+              statement about how much room it takes and that is the number
+              being changed. --}}
+        {{#if @root.mind}}
+          <div class="mind-cell">
+            {{#if p.vancian}}
+              <input type="checkbox" data-action="toggle-prepared"
+                     {{#if p.prepared}}checked{{/if}}
+                     {{#unless p.canPrepare}}disabled{{/unless}}
+                     data-tooltip="{{#if p.canPrepare}}{{localize 'ISUN.MindPrepareHint'}}{{else}}{{localize p.blockedReason name=p.item.name need=p.footprint free=@root.mind.free}}{{/if}}" />
+              <a class="mind-size-tag{{#if p.halved}} halved{{/if}}"
+                 data-action="toggle-halved"
+                 data-tooltip="{{localize 'ISUN.MindHalveHint'}}">
+                {{p.footprint}}{{#if p.halved}}&frac12;{{/if}}
+              </a>
+            {{/if}}
+          </div>
+        {{/if}}
         <div class="dice" title="{{#if p.condition}}{{p.dice}} {{p.condition}}{{else}}{{p.dice}}{{/if}}">{{p.dice}}</div>
         {{!-- What the Path of Suns is doing to a practice of this colour. Its
               own column rather than a badge tucked under the level, because it

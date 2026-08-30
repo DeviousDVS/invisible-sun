@@ -2662,6 +2662,108 @@ a.sentence-part:hover {
 .venture-dialog .vd-bonus { color: var(--isun-acumen); }
 .venture-dialog .vd-penalty { color: var(--isun-wound); }
 
+/* ── The Vance's mind ──────────────────────────────────────────────
+ * A capacity bar above Practices, and a cell in each Vancian row. Only a Vance
+ * renders any of this; see the note in practices.hbs.
+ *
+ * The bar is a measurement rather than a resource — nothing is spent to fill
+ * it — so it is drawn flat and quiet, and only takes the wound colour when it
+ * is genuinely over, which the rules permit a GM to allow. */
+.mind {
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-sm);
+  margin: var(--isun-space-xs) 0;
+  padding: 3px var(--isun-space-sm);
+  border: 1px solid var(--isun-border);
+  border-radius: 4px;
+  background: var(--isun-bg-surface);
+  font-size: 0.82em;
+}
+
+.mind-name {
+  font-family: var(--isun-font-smallcaps);
+  color: var(--isun-text-accent);
+  white-space: nowrap;
+}
+
+.mind-size { color: var(--isun-text-secondary); white-space: nowrap; }
+
+.mind-bar {
+  flex: 1;
+  min-width: 40px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--isun-bg-elevated);
+  border: 1px solid var(--isun-border);
+  overflow: hidden;
+}
+
+.mind-fill {
+  display: block;
+  height: 100%;
+  background: var(--isun-text-accent);
+  transition: width 0.2s ease;
+}
+
+.mind-count {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--isun-text-primary);
+}
+
+.mind-reductions {
+  color: var(--isun-text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mind.over { border-color: var(--isun-wound); }
+.mind.over .mind-fill { background: var(--isun-wound); }
+.mind.over .mind-count { color: var(--isun-wound); }
+
+/* The footprint doubles as the halving control, so it has to read as something
+ * you can press without shouting: a bordered number, brightening on hover, and
+ * wearing the accent once the spell has actually been reduced. */
+.practices .mind-cell input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  margin: 0;
+}
+
+/* A spell with nowhere to go. Dimmed rather than hidden, because what a player
+ * wants to know is which spell they would have to drop to make room, and a row
+ * that vanished could not be hovered for the reason.
+ *
+ * The footprint beside it stays live. Halving a spell is the one thing that can
+ * make an oversized one fit — a beta reduced is an alpha — so dimming it out
+ * alongside the checkbox would remove the only way forward from the row that
+ * needs it most. */
+.practices .mind-cell input[type="checkbox"]:disabled { opacity: 0.3; }
+
+.practices .mind-size-tag {
+  cursor: pointer;
+  min-width: 22px;
+  padding: 0 3px;
+  border: 1px solid var(--isun-border);
+  border-radius: 3px;
+  font-size: 0.78em;
+  font-variant-numeric: tabular-nums;
+  color: var(--isun-text-secondary);
+  text-align: center;
+}
+
+.practices .mind-size-tag:hover {
+  color: var(--isun-text-primary);
+  border-color: var(--isun-border-accent);
+}
+
+.practices .mind-size-tag.halved {
+  color: var(--isun-text-accent);
+  border-color: var(--isun-border-accent);
+}
+
 /* What the Path of Suns is doing to a practice, in the Suns column. Not
  * applied to anything: the player chooses at the moment of casting whether to
  * take the shift as a level or as a Sorcery cost, so this reports and waits. */

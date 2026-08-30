@@ -80,11 +80,18 @@ export const DYNAMIC_KEY_PREFIXES = Object.freeze([
  * a Vance can prepare needs them — but they are not shown. This is a virtual
  * tabletop; nobody is laying cards out on a mat, and "Beta (3 x 3 in)" tells a
  * player nothing they can act on.
+ *
+ * Written in the book's own orientation, 3 wide before 6 tall. Only the area is
+ * ever compared, so a transposed gamma computes the same answers — but written
+ * the other way round the ladder stops being visibly nested, each class the one
+ * below it with a side doubled, and halving a spell no longer lands on the next
+ * class down. That nesting is what "reduce the occupying space of two of the
+ * spells we know to half their original size" (Vance 2nd degree) relies on.
  */
 const spellClasses = {
   alpha: { label: "ISUN.SpellClassAlpha", width: 3, height: 1.5 },
   beta:  { label: "ISUN.SpellClassBeta",  width: 3, height: 3 },
-  gamma: { label: "ISUN.SpellClassGamma", width: 6, height: 3 },
+  gamma: { label: "ISUN.SpellClassGamma", width: 3, height: 6 },
   omega: { label: "ISUN.SpellClassOmega", width: 6, height: 6 },
 };
 
@@ -325,6 +332,51 @@ export const ISUN = Object.freeze({
     ["", ""],
     ...Object.entries(spellClasses).map(([key, spec]) => [key, spec.label])
   ]),
+
+  /**
+   * How much room a Vance has for prepared spells, by degree.
+   *
+   * "The total space we have is represented by a square that is 3 inches by 3
+   * inches… If we advance in degree, this space increases" (The Key, 1st
+   * degree). The ladder then restates it: 3 x 6 at the 3rd degree, 6 x 6 at the
+   * 5th. The even degrees say outright that the space does not increase, so
+   * they repeat the odd one below them rather than being absent.
+   *
+   * Kept as the rectangle rather than as an area because the sheet says "3 x 6
+   * in" to the player, and because the book's own diagrams are captioned by
+   * degree — "Mind of the Postulant", "Mind of the Magister".
+   *
+   * Only the area is ever compared against, and that is sound rather than a
+   * shortcut: every spell class and every one of these three containers is a
+   * whole multiple of 1.5 inches, and over all 245 combinations that fit by
+   * area, every one can also be physically arranged. See scripts/test/
+   * vance.test.mjs, which proves it by exhaustive packing rather than
+   * asserting it.
+   *
+   * A degree of 0 is an Apostate, who has no Vancian mind at all.
+   */
+  vancianMind: {
+    1: { width: 3, height: 3 },
+    2: { width: 3, height: 3 },
+    3: { width: 3, height: 6 },
+    4: { width: 3, height: 6 },
+    5: { width: 6, height: 6 },
+    6: { width: 6, height: 6 },
+  },
+
+  /**
+   * How many prepared spells a Vance may carry at half their usual footprint.
+   *
+   * Granted at the 2nd, 4th and 6th degrees, two at a time. Read as cumulative:
+   * unlike the ephemera entitlements, which restate a total each time ("we can
+   * safely possess three ephemera"), this one describes an act — "we can reduce
+   * the occupying space of two of the spells we know" — and a 6th-degree Vance
+   * has been granted it three times over.
+   *
+   * That reading is not beyond argument, which is why it is a table a GM can
+   * edit rather than a number in a function.
+   */
+  vancianReductions: { 1: 0, 2: 2, 3: 2, 4: 4, 5: 4, 6: 6 },
 
   spellTypes: {
     general: "ISUN.SpellGeneral",
