@@ -51,7 +51,6 @@
       <span class="level">{{localize "ISUN.Lvl"}}</span>
       <span class="name">{{localize "ISUN.Name"}}</span>
       <span class="type">{{localize "ISUN.Kind"}}</span>
-      <span class="cost">{{localize "ISUN.Cost"}}</span>
       {{#if mind}}<span class="mind-cell">{{localize "ISUN.Mind"}}</span>{{/if}}
       <span class="dice">{{localize "ISUN.Dice"}}</span>
       <span class="shift">{{localize "ISUN.PathShiftColumn"}}</span>
@@ -61,15 +60,20 @@
 
     {{#each practices as |p|}}
       <div class="item practice" data-item-id="{{p.item.id}}" data-kind="{{p.kind}}">
+        {{!-- The level, which is also what the practice costs in Sorcery to
+              use — the two were separate columns saying the same number. The
+              exception is a forte ability that states no cost, and the badge
+              marks those rather than a column carrying one word for the other
+              fourteen in fifteen rows. --}}
         <div class="level">
-          <span class="level-badge">{{p.level}}</span>
+          <span class="level-badge{{#if p.free}} free{{/if}}"
+                {{#if p.free}}data-tooltip="{{localize 'ISUN.NoSorceryCost'}}"{{/if}}>{{p.level}}</span>
         </div>
         <div class="name rollable" data-action="{{p.action}}">
           <span class="color-badge {{colorClass p.color}}" title="{{p.color}}"></span>
           <span>{{p.item.name}}</span>
         </div>
         <div class="type" title="{{p.kindLabel}}">{{p.kindLabel}}</div>
-        <div class="cost" title="{{p.cost}}">{{p.cost}}</div>
         {{!-- Preparation. Blank for anything the Vancian rules do not reach:
               a general spell, an incantation, a forte ability. The footprint
               doubles as the halving control, because reducing a spell is a

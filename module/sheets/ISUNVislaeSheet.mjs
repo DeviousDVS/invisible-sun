@@ -342,9 +342,15 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
         kindLabel: kindLabel(item, kind),
         level: sys.level ?? 0,
         color: sys.color ?? "",
-        // A forte ability marked "(no cost)" costs no Sorcery; otherwise the
-        // cost is the spell's own, falling back to its level.
-        cost: sys.noCost ? game.i18n.localize("ISUN.Free") : (sys.cost || sys.level || ""),
+        /* What a practice costs in Sorcery is its level, so the two are not
+         * shown side by side. `system.cost` exists on the models and is empty
+         * on all 1,117 entries across the four packs, so nothing is being
+         * hidden by not consulting it; if a world ever fills one in, this is
+         * where it would have to be read again.
+         *
+         * A forte ability marked "(no cost)" is the one real exception — 74 of
+         * the 491 — and the level badge says so rather than a column. */
+        free: !!sys.noCost,
         // A spell carries its bonus as printed ("+1 die"); a forte ability's is
         // parsed out of its level line as a number. Both mean the same thing, so
         // the column says it the same way.

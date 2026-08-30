@@ -2662,6 +2662,14 @@ a.sentence-part:hover {
 .venture-dialog .vd-bonus { color: var(--isun-acumen); }
 .venture-dialog .vd-penalty { color: var(--isun-wound); }
 
+/* A practice that costs no Sorcery. The level still matters — it is the level
+ * of the effect, and the venture is reckoned from it — so the badge keeps the
+ * number and changes its colour rather than emptying itself. */
+.practices .level-badge.free {
+  border-color: var(--isun-acumen);
+  color: var(--isun-acumen);
+}
+
 /* ── The Vance's mind ──────────────────────────────────────────────
  * A capacity bar above Practices, and a cell in each Vancian row. Only a Vance
  * renders any of this; see the note in practices.hbs.

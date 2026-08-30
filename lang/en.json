@@ -422,6 +422,7 @@
     "MindNoClass": "{name} records no class, so how much room it takes is unknown.",
     "MindNoReductions": "All {count} reductions this degree allows are already in use.",
     "Kind": "Kind",
+    "NoSorceryCost": "Costs no Sorcery to use.",
     "Cost": "Cost",
     "Dice": "Dice",
     "DieUnit": "die",
