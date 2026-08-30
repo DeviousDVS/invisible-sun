@@ -17,9 +17,20 @@
  *
  * ── Why the roller does not do it ──
  * A player rolls, and the board is a world setting no player may write. So the
- * roll flags its message and one GM client acts on it. `game.users.activeGM` is
- * core's own answer to "exactly one of you" — every GM sees the message, and
- * without it every GM would turn a card.
+ * roll flags its message, and a GM client acts on the flag.
+ *
+ * Which GM: the first one to draw the card, claiming it as it goes. Not an
+ * elected one. Electing the lowest-id active GM is the rule this system uses
+ * for migrations, and it is right there because a migration that the elected
+ * client misses simply runs on the next load. A flux has no next load. Elected,
+ * it went to a GM whose session was still marked active but was no longer
+ * there, and the flux did nothing at all — no card, no button, no error, and a
+ * flag left saying it had not happened yet.
+ *
+ * Acting as the card is drawn cannot be missed that way: a GM who is not there
+ * draws nothing, and the next GM who does picks it up. The cost is that two
+ * GMs looking at once could both start, which the claim below narrows and the
+ * board's undo covers. Silence was the worse failure.
  */
 import { PathOfSuns } from "../apps/PathOfSuns.mjs";
 
@@ -39,18 +50,22 @@ export function flagFor({ fluxCount, fluxIntensity, actor }) {
 /**
  * Turn a Sooth card because magic fluxed.
  *
- * Called on every client; returns without doing anything on all but one.
+ * Called on every client that draws the card; does nothing on all but the first
+ * GM to reach it.
  *
- * Marks the message done before turning rather than after. A turn can chain —
- * an Adept plays another card — so it is not instant, and two GMs arriving
- * together would otherwise both start. Marking first makes the second a no-op.
+ * The claim is written before the turn rather than after. A turn can chain — an
+ * Adept plays another card — so it is not instant, and a second GM arriving
+ * meanwhile would otherwise start one too. Writing first, then reading back
+ * what the server kept, means the loser of a race stands down instead.
  */
-export async function onMessage(message) {
+export async function turnFor(message) {
   const flux = message.getFlag(SCOPE, FLAG);
   if (!flux || flux.done) return;
-  if (!game.users.activeGM?.isSelf) return;
+  if (!game.user.isGM) return;
 
-  await message.setFlag(SCOPE, FLAG, { ...flux, done: true });
+  await message.setFlag(SCOPE, FLAG, { ...flux, done: true, by: game.user.id });
+  if (message.getFlag(SCOPE, FLAG)?.by !== game.user.id) return;
+
   const { placed, reason } = await PathOfSuns.turnCard();
 
   /* A spent deck is worth saying out loud: the rule wanted a card turned and
@@ -73,6 +88,9 @@ export async function onMessage(message) {
 export function render(message, html) {
   const flux = message.getFlag(SCOPE, FLAG);
   if (!flux) return;
+
+  /* The card turn happens here, not on creation. See the note at the top. */
+  if (!flux.done) turnFor(message);
 
   const warning = html.querySelector(".flux-warning");
   if (!warning) return;
@@ -123,6 +141,5 @@ export async function giveDespair(message) {
 
 /** Listen once, at ready. */
 export function listen() {
-  Hooks.on("createChatMessage", (message) => onMessage(message));
   Hooks.on("renderChatMessageHTML", (message, html) => render(message, html));
 }
