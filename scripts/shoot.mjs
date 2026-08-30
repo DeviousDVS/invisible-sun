@@ -26,6 +26,7 @@
  */
 
 import { chromium } from "playwright";
+import { join } from "./lib/join.mjs";
 import path from "node:path";
 
 const URL_BASE = process.env.FOUNDRY_URL || "http://localhost:30000";
@@ -75,19 +76,7 @@ page.on("console", m => {
 });
 
 try {
-  await page.goto(`${URL_BASE}/join`, { waitUntil: "networkidle" });
-  await page.selectOption("select[name=userid]", { label: USER });
-  await page.fill("input[name=password]", PASSWORD);
-  await page.click("button[name=join]");
-
-  try {
-    await page.waitForURL("**/game", { timeout: 30_000 });
-  } catch {
-    const msg = await page.locator("#notifications").textContent().catch(() => "");
-    throw new Error(`Login failed for "${USER}". ${msg?.trim() || "Still on the join page."}`);
-  }
-
-  await page.waitForFunction(() => window.game?.ready === true, { timeout: 90_000 });
+  await join(page, { user: USER, password: PASSWORD, base: URL_BASE });
 
   /* ── list ── */
   if (mode === "list") {

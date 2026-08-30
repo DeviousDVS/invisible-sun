@@ -28,6 +28,7 @@
  * Usage:  npm run smoke
  */
 import { chromium } from "playwright";
+import { join } from "./lib/join.mjs";
 
 const URL_BASE = process.env.FOUNDRY_URL || "http://localhost:30000";
 const USER = process.env.FOUNDRY_USER || "Claude";
@@ -67,17 +68,7 @@ page.on("console", m => {
 let made = null, aborted = null, savedPath = null, boardMessages = [];
 try {
   /* ── 1. The world loads ── */
-  await page.goto(`${URL_BASE}/join`, { waitUntil: "networkidle" });
-  await page.selectOption("select[name=userid]", { label: USER });
-  await page.fill("input[name=password]", PASSWORD);
-  await page.click("button[name=join]");
-  try {
-    await page.waitForURL("**/game", { timeout: 30_000 });
-  } catch {
-    const msg = await page.locator("#notifications").textContent().catch(() => "");
-    throw new Error(`Login failed for "${USER}". ${msg?.trim() || "still on the join page"}`);
-  }
-  await page.waitForFunction(() => window.game?.ready === true, { timeout: 90_000 });
+  await join(page, { user: USER, password: PASSWORD, base: URL_BASE });
 
   const info = await page.evaluate(() => ({
     system: game.system.version, foundry: game.version, gm: game.user.isGM
