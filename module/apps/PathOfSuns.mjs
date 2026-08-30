@@ -275,7 +275,9 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
    *
    * Separate from the button because the board is no longer the only thing that
    * turns a card: a magical flux "immediately turns a new Sooth card" (The Way,
-   * p13), and that happens whether or not anyone has the board open.
+   * p13), and that happens whether or not anyone has the board open. The Gate
+   * lists the same prompt from the other side, among the things that "probably
+   * should trigger a card turn" (p7).
    *
    * Writing the board is a world setting, so only a GM can do it; a player
    * calling this gets `written: false` and nothing else happens.

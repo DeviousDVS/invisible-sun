@@ -279,6 +279,19 @@ export async function applyEffects(actor, effects) {
  * only one: the same message, the same warning, the same card turn, the same
  * picker. A table should not have to learn two of anything.
  *
+ * ── That a card turns for this too ──
+ * The Way attaches the card turn to the paragraph about dice, and says of a GM
+ * shift only that the Despair is always given. Read alone it leaves the turn
+ * open to argument.
+ *
+ * The Gate settles it from the other side. Listing what should prompt a card
+ * turn, it names both "A GM shift is introduced" and "Magical flux occurs"
+ * (The Gate, p7) — separately, so a GM-shift flux answers to each of them.
+ *
+ * It is guidance rather than a rule: the list is what "probably should trigger
+ * a card turn", played "at the GM's discretion". So the turn happens and the
+ * board's undo is the discretion.
+ *
  * The intensity is the GM's because there are no dice to read it off.
  */
 export async function raise({ actor, intensity = "minor", label = "" }) {
