@@ -2753,7 +2753,7 @@ a.sentence-part:hover {
 .practices .mind-size-tag {
   cursor: pointer;
   min-width: 22px;
-  padding: 0 3px;
+  padding: 2px 3px;
   border: 1px solid var(--isun-border);
   border-radius: 3px;
   font-size: 0.78em;
