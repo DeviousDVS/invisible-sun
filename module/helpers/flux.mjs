@@ -15,22 +15,31 @@
  * Despair is always given to the vislae." That is a different entry point and
  * is not this one.)
  *
+ * ── When the card turns ──
+ * After the effect is chosen, not before. The sentence is "The GM determines
+ * the flux effect and immediately turns a new Sooth card" — determine, then
+ * turn — and at the table it reads in that order too: the magic goes wrong, we
+ * learn what it did, and the world answers with a new card.
+ *
+ * It turned on sight at first, which put the board's announcement between the
+ * roll and its consequence and made three cards that had nothing to say to
+ * each other.
+ *
+ * A flux nobody finalises therefore turns nothing. That is the honest reading —
+ * it is not finished — and a GM who wants the card without picking off a chart
+ * still has the board's own Turn button.
+ *
  * ── Why the roller does not do it ──
  * A player rolls, and the board is a world setting no player may write. So the
- * roll flags its message, and a GM client acts on the flag.
+ * roll flags its message, and a GM resolves it.
  *
- * Which GM: the first one to draw the card, claiming it as it goes. Not an
- * elected one. Electing the lowest-id active GM is the rule this system uses
- * for migrations, and it is right there because a migration that the elected
- * client misses simply runs on the next load. A flux has no next load. Elected,
- * it went to a GM whose session was still marked active but was no longer
- * there, and the flux did nothing at all — no card, no button, no error, and a
- * flag left saying it had not happened yet.
- *
- * Acting as the card is drawn cannot be missed that way: a GM who is not there
- * draws nothing, and the next GM who does picks it up. The cost is that two
- * GMs looking at once could both start, which the claim below narrows and the
- * board's undo covers. Silence was the worse failure.
+ * Which GM: whichever one chooses the effect, claiming the turn as it goes. Not
+ * an elected one. Electing the lowest-id active GM is the rule this system uses
+ * for migrations, and it is right there because a migration the elected client
+ * misses simply runs on the next load. A flux has no next load. Elected, it
+ * went to a GM whose session was marked active but was no longer there, and the
+ * flux did nothing at all — no card, no button, no error, and a flag left
+ * saying it had not happened yet.
  */
 import { PathOfSuns } from "../apps/PathOfSuns.mjs";
 import { FluxPicker } from "../apps/FluxPicker.mjs";
@@ -50,9 +59,6 @@ export function flagFor({ fluxCount, fluxIntensity, actor }) {
 
 /**
  * Turn a Sooth card because magic fluxed.
- *
- * Called on every client that draws the card; does nothing on all but the first
- * GM to reach it.
  *
  * The claim is written before the turn rather than after. A turn can chain — an
  * Adept plays another card — so it is not instant, and a second GM arriving
@@ -89,9 +95,6 @@ export async function turnFor(message) {
 export function render(message, html) {
   const flux = message.getFlag(SCOPE, FLAG);
   if (!flux) return;
-
-  /* The card turn happens here, not on creation. See the note at the top. */
-  if (!flux.done) turnFor(message);
 
   const warning = html.querySelector(".flux-warning");
   if (!warning) return;
@@ -189,6 +192,10 @@ export async function chooseEffect(message, actor) {
     speaker: actor ? ChatMessage.getSpeaker({ actor }) : {},
     content
   });
+
+  /* And now the card, last, so the board's announcement answers the flux rather
+   * than interrupting it. */
+  await turnFor(message);
 }
 
 /**
