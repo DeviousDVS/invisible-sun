@@ -42,6 +42,7 @@ import { registerDiceSoNice } from "./module/helpers/dice-so-nice.mjs";
 import { CompendiumBrowser } from "./module/apps/CompendiumBrowser.mjs";
 import { ContentImporter } from "./module/apps/ContentImporter.mjs";
 import { PathOfSuns } from "./module/apps/PathOfSuns.mjs";
+import * as flux from "./module/helpers/flux.mjs";
 import { DEFAULT_STATE as PATH_OF_SUNS } from "./module/helpers/sooth.mjs";
 
 // ── Migrations ───────────────────────────────────────────
@@ -359,6 +360,11 @@ Hooks.once("ready", async () => {
   /* A GM turning a card writes the world setting; this is what makes every
    * other open board redraw when they do. */
   PathOfSuns.listen();
+
+  /* A flux "immediately turns a new Sooth card" (The Way, p13). The roller may
+   * be a player and the board is a world setting, so the roll flags its message
+   * and one GM client acts on the flag. */
+  flux.listen();
 
   /* The card is drawn per client, not stored: it says different things to a
    * player and to the GM, so one saved rendering would show the GM's view to

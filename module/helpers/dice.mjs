@@ -3,6 +3,7 @@
  */
 
 import { colorsetForSun } from "./dice-so-nice.mjs";
+import * as flux from "./flux.mjs";
 
 /**
  * Roll a Venture/Challenge action.
@@ -168,11 +169,19 @@ async function postResult(data) {
   const { renderTemplate } = foundry.applications.handlebars;
   const content = await renderTemplate("systems/invisible-sun/templates/chat/dice-result.hbs", templateData);
   
+  /* A flux is flagged onto the message rather than acted on here. The roller
+   * may be a player, and what a flux does — turn a Sooth card — writes a world
+   * setting only a GM may write. See helpers/flux.mjs. */
+  const flags = data.hasFlux
+    ? { [flux.SCOPE]: { [flux.FLAG]: flux.flagFor(data) } }
+    : {};
+
   await ChatMessage.create({
     speaker: data.actor ? ChatMessage.getSpeaker({ actor: data.actor }) : {},
     content,
     rolls: data.roll ? [data.roll] : [],
+    flags
   });
-  
+
   return data;
 }

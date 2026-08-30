@@ -2673,6 +2673,33 @@ a.sentence-part:hover + .sentence-part.affix {
   color: var(--isun-acumen);
 }
 
+/* The Despair a flux may cost. Offered inside the warning rather than beside
+ * it, because it is a consequence of that flux and not of the roll. */
+.flux-warning .flux-despair {
+  display: block;
+  width: 100%;
+  margin-top: var(--isun-space-xs);
+  padding: 2px 8px;
+  font-size: 0.85em;
+  border: 1px solid var(--isun-wound);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--isun-wound);
+  cursor: pointer;
+}
+
+.flux-warning .flux-despair:hover {
+  background: var(--isun-wound);
+  color: var(--isun-bg-primary);
+}
+
+.flux-warning .flux-despair-given {
+  margin: var(--isun-space-xs) 0 0;
+  font-size: 0.85em;
+  font-style: italic;
+  color: var(--isun-text-secondary);
+}
+
 /* ── The Vance's mind ──────────────────────────────────────────────
  * A capacity bar above Practices, and a cell in each Vancian row. Only a Vance
  * renders any of this; see the note in practices.hbs.

@@ -270,21 +270,38 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
    * ────────────────────────────────────────────── */
 
   /** Turn the next card, and anything an Adept or Companion drags after it. */
-  static async #onTurnCard() {
+  /**
+   * Turn the next card, wherever the instruction came from.
+   *
+   * Separate from the button because the board is no longer the only thing that
+   * turns a card: a magical flux "immediately turns a new Sooth card" (The Way,
+   * p13), and that happens whether or not anyone has the board open.
+   *
+   * Writing the board is a world setting, so only a GM can do it; a player
+   * calling this gets `written: false` and nothing else happens.
+   *
+   * @returns {Promise<{placed: Array, written: boolean, reason: string}>}
+   */
+  static async turnCard() {
     const state = sooth.read();
     const deck = await sooth.deck();
 
-    if (!deck.length) {
-      ui.notifications?.warn(game.i18n.localize("ISUN.PathNoDeck"));
-      return;
-    }
+    if (!deck.length) return { placed: [], written: false, reason: "ISUN.PathNoDeck" };
+
     const { state: turned, placed } = sooth.turn(state, deck);
+    if (!placed.length) return { placed: [], written: false, reason: "ISUN.PathDeckSpent" };
+
+    const written = await sooth.write(turned);
+    if (written) await PathOfSuns.#announce(turned, placed, sooth.lookup(deck, turned));
+    return { placed, written, reason: "" };
+  }
+
+  static async #onTurnCard() {
+    const { placed, reason } = await PathOfSuns.turnCard();
     if (!placed.length) {
-      ui.notifications?.warn(game.i18n.localize("ISUN.PathDeckSpent"));
+      ui.notifications?.warn(game.i18n.localize(reason));
       return;
     }
-    await sooth.write(turned);
-    await PathOfSuns.#announce(turned, placed, sooth.lookup(deck, turned));
     this.render();
   }
 
