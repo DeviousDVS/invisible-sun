@@ -547,10 +547,17 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     const article = game.i18n.localize(
       /^[aeiou]/i.test(foundation) ? "ISUN.SentenceArticleAn" : "ISUN.SentenceArticleA");
 
-    /* The possessive sits outside the link: "Vance" is the item's name, the
-     * "'s" is grammar wrapped around it. */
+    /* The grammar sits outside the link: "Vance" is the item's name, and the
+     * plural's "s" — or "the" before it, or the "a" that makes Goetica — is
+     * not part of that name.
+     *
+     * Which phrasing an order takes is a fact about the order, so it is
+     * declared with the rest of them in CONFIG.ISUN.orders rather than decided
+     * here. The Apostate is one of those declarations now instead of a branch:
+     * they are not of an order, which is a different sentence rather than a
+     * special case of this one. */
     const orderPhrase = game.i18n.format(
-      context.isApostate ? "ISUN.SentenceApostate" : "ISUN.SentenceOfTheOrder",
+      context.orderInfo?.sentence ?? "ISUN.SentenceOfTheOrder",
       { order: part("order", context.orders[0], "[Order]") });
 
     context.characterSentenceHTML = game.i18n.format("ISUN.CharacterSentence", {

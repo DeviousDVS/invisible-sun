@@ -287,12 +287,27 @@ export const ISUN = Object.freeze({
    * ORDERS
    * ────────────────────────────────────────────── */
 
+  /**
+   * `sentence` is how the order names itself in the character sentence, where
+   * the orders do not agree with one another: a Weaver and a Maker are one of
+   * many — "of the order of Weavers" — but a Vance is "of the order of the
+   * Vance", and a Goetic is "of the order of Goetica". An Apostate is not of an
+   * order at all and says so.
+   *
+   * Only the ones that differ carry a key; the rest fall back to the plural.
+   * The affix sits outside the link the sheet wraps around the order's name,
+   * for the same reason the plural's "s" does — "Vance" is the item's name and
+   * the grammar is not part of it.
+   */
   orders: {
-    vance: { label: "ISUN.OrderVance", abbr: "V", magicStyle: "Prepared Spells" },
+    vance: { label: "ISUN.OrderVance", abbr: "V", magicStyle: "Prepared Spells",
+             sentence: "ISUN.SentenceOfTheVance" },
     weaver: { label: "ISUN.OrderWeaver", abbr: "W", magicStyle: "Thread Weaving" },
-    goetic: { label: "ISUN.OrderGoetic", abbr: "G", magicStyle: "Summoning" },
+    goetic: { label: "ISUN.OrderGoetic", abbr: "G", magicStyle: "Summoning",
+              sentence: "ISUN.SentenceOfTheGoetic" },
     maker: { label: "ISUN.OrderMaker", abbr: "M", magicStyle: "Crafting" },
-    apostate: { label: "ISUN.OrderApostate", abbr: "A", magicStyle: "Unaligned" },
+    apostate: { label: "ISUN.OrderApostate", abbr: "A", magicStyle: "Unaligned",
+                sentence: "ISUN.SentenceApostate" },
   },
 
   /* ──────────────────────────────────────────────

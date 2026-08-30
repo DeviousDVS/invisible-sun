@@ -79,6 +79,8 @@
     "SentenceArticleA": "a",
     "SentenceArticleAn": "an",
     "SentenceOfTheOrder": " of the order of {order}s",
+    "SentenceOfTheVance": " of the order of the {order}",
+    "SentenceOfTheGoetic": " of the order of {order}a",
     "SentenceApostate": " {order}",
     "ArcPlanned": "Planned",
     "ArcActive": "Active",
