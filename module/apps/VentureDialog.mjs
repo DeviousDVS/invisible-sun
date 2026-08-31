@@ -68,7 +68,7 @@ export class VentureDialog {
           callback: (event, button) => new foundry.applications.ux.FormDataExtended(button.form).object },
         { action: "cancel", label: "Cancel", icon: "fa-solid fa-xmark" }
       ],
-      render: (event, dialog) => this.#live(dialog.element, board.value + base),
+      render: (event, dialog) => this.#live(dialog.element, board.value + base, skills),
       rejectClose: false
     });
 
@@ -97,7 +97,12 @@ export class VentureDialog {
   }
 
   /** Keep the running venture and target honest as the form is filled in. */
-  static #live(root, sooth = 0) {
+  static #live(root, sooth = 0, skills = []) {
+    /* The skills are a multi-select, so what is chosen is a list of ids rather
+     * than a set of ticked boxes, and the level has to be looked up. Built once
+     * here rather than read off the options, which core rebuilds into its own
+     * markup as the element upgrades. */
+    const levelOf = new Map(skills.map(s => [s.id, s.level]));
     // A browser does not enforce `max` on a typed value, so a spend is clamped
     // here as well as when it is applied. Without this the preview promises a
     // venture the roll will not honour, because the pool has not got the bene.
@@ -111,9 +116,8 @@ export class VentureDialog {
 
     const recalc = () => {
       let venture = sooth;
-      for (const el of root.querySelectorAll("input.skill-pick:checked")) {
-        venture += Number(el.dataset.level) || 0;
-      }
+      const picked = root.querySelector('multi-select[name="skills"]')?.value ?? [];
+      for (const id of picked) venture += levelOf.get(id) ?? 0;
       for (const el of root.querySelectorAll("input.bene-spend")) {
         venture += spendOf(el);
       }
@@ -135,7 +139,11 @@ export class VentureDialog {
       t.classList.toggle("impossible", target >= 10 && dice === 0);
     };
 
-    root.querySelectorAll("input, select").forEach(el => {
+    /* multi-select as well as its inner select. The element rebuilds itself
+     * into a tag list and a plain <select>, and taking a tag off again fires
+     * change on the host rather than on that select — so listening only to
+     * what is inside catches skills being added and not removed. */
+    root.querySelectorAll("input, select, multi-select").forEach(el => {
       el.addEventListener("change", recalc);
       el.addEventListener("input", recalc);
     });
@@ -147,11 +155,14 @@ export class VentureDialog {
     let venture = (Number(form.modifier) || 0) + board.value;
     const used = [...board.sources];
 
+    /* One name for a single pick, an array for several, and absent for none —
+     * so it is normalised before it is walked rather than trusted to be a
+     * list. */
+    const picked = new Set([form.skills ?? []].flat().filter(Boolean));
     for (const s of skills) {
-      if (form[`skill.${s.id}`]) {
-        venture += s.level;
-        used.push(`${s.name} +${s.level}`);
-      }
+      if (!picked.has(s.id)) continue;
+      venture += s.level;
+      used.push(`${s.name} +${s.level}`);
     }
 
     let dice = Number(form.magicDice) || 0;

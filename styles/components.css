@@ -1230,8 +1230,11 @@ a.sentence-part:hover + .sentence-part.affix {
 .venture-dialog .target-total.impossible { color: var(--isun-failure, #b3261e); }
 
 .venture-dialog .hint { font-size: 0.8em; opacity: 0.7; margin: 0 0 0.35rem; }
-.venture-dialog .skill-picks { max-height: 11rem; overflow-y: auto; }
-.venture-dialog .skill-pick-row,
+/* The skills are core's multi-select now. It brings its own tag styling; the
+ * cap is so a character with a shelf of development skills cannot push the
+ * spends off the bottom of the window. */
+.venture-dialog .skill-picks { max-height: 9rem; overflow-y: auto; }
+
 .venture-dialog .pool-spend-row {
   display: grid; grid-template-columns: auto 1fr auto auto;
   gap: 0.4rem; align-items: center; padding: 0.1rem 0;
@@ -1239,8 +1242,7 @@ a.sentence-part:hover + .sentence-part.affix {
 .venture-dialog .pool-spend-row { grid-template-columns: 1fr 4rem auto 6rem; }
 .venture-dialog .pool-spend-row.enhancement .pool-effect { font-style: italic; }
 .venture-dialog .pool-avail,
-.venture-dialog .pool-effect,
-.venture-dialog .pick-level { font-size: 0.85em; opacity: 0.75; }
+.venture-dialog .pool-effect { font-size: 0.85em; opacity: 0.75; }
 .venture-dialog .venture-extras { display: flex; gap: 1rem; margin-top: 0.5rem; }
 .venture-dialog .venture-extras label { flex: 1; }
 .venture-dialog .venture-extras input { width: 100%; }

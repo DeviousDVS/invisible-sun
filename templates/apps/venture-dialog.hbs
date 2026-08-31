@@ -27,16 +27,15 @@
     <fieldset class="venture-skills">
       <legend>{{localize "ISUN.Skills"}}</legend>
       <p class="hint">{{localize "ISUN.VentureTwoSkillsHint"}}</p>
-      <div class="skill-picks">
+      {{!-- Core's own multi-select: a dropdown that keeps what has been chosen
+            as tags beside it. A list of checkboxes was fine at six skills and
+            unusable at sixty, which a character with a few development skills
+            reaches quickly. FormDataExtended reads it as an array of ids. --}}
+      <multi-select name="skills" class="skill-picks">
         {{#each skills as |s|}}
-          <label class="skill-pick-row">
-            <input type="checkbox" class="skill-pick" name="skill.{{s.id}}"
-                   data-level="{{s.level}}" {{#if s.checked}}checked{{/if}} />
-            <span class="pick-name">{{s.name}}</span>
-            <span class="pick-level">+{{s.level}}</span>
-          </label>
+          <option value="{{s.id}}" {{#if s.checked}}selected{{/if}}>{{s.name}} +{{s.level}}</option>
         {{/each}}
-      </div>
+      </multi-select>
     </fieldset>
   {{/if}}
 
