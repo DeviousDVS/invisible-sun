@@ -31,8 +31,13 @@ export class VentureDialog {
    * @param {number} [options.challenge]  Challenge, if something already knows it.
    * @param {string} [options.label]      What the roll is called in chat.
    * @param {number} [options.magicDice]  Magic dice the effect already grants.
+   * @param {number} [options.base]       Venture the action carries in itself —
+   *                                      a practice's level, which "you always
+   *                                      add" and so cannot be declined.
+   * @param {string} [options.baseLabel]  What to call it in the dialog.
    */
-  static async open(actor, { skill = null, challenge = 0, label = "", magicDice = 0 } = {}) {
+  static async open(actor, { skill = null, challenge = 0, label = "", magicDice = 0,
+                             base = 0, baseLabel = "" } = {}) {
     const skills = actor.items.filter(i => i.type === "Skill")
       .sort((a, b) => a.name.localeCompare(b.name))
       .map(i => ({
@@ -49,7 +54,8 @@ export class VentureDialog {
     const { renderTemplate } = foundry.applications.handlebars;
     const content = await renderTemplate(
       "systems/invisible-sun/templates/apps/venture-dialog.hbs",
-      { skills, pools, challenge, magicDice, label: label || skill?.name || "Action",
+      { skills, pools, challenge, magicDice, base, baseLabel,
+        label: label || skill?.name || "Action",
         sooth: board.value,
         soothText: board.value ? sooth.signed(board.value) : "",
         soothSources: board.sources.join(", ") });
@@ -62,12 +68,13 @@ export class VentureDialog {
           callback: (event, button) => new foundry.applications.ux.FormDataExtended(button.form).object },
         { action: "cancel", label: "Cancel", icon: "fa-solid fa-xmark" }
       ],
-      render: (event, dialog) => this.#live(dialog.element, board.value),
+      render: (event, dialog) => this.#live(dialog.element, board.value + base),
       rejectClose: false
     });
 
     if (!result || result === "cancel") return null;
-    return this.#roll(actor, skills, pools, result, board);
+    return this.#roll(actor, skills, pools, result,
+      { value: board.value + base, sources: base ? [...board.sources, baseLabel] : board.sources });
   }
 
   /** Every pool a bene or enhancement could come from. */

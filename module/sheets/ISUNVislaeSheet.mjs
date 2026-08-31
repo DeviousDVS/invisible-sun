@@ -6,6 +6,7 @@ import { VentureDialog } from "../apps/VentureDialog.mjs";
 import { ApplyIdentity } from "../apps/ApplyIdentity.mjs";
 import { HeartSkills } from "../apps/HeartSkills.mjs";
 import * as vance from "../helpers/vance.mjs";
+import * as practice from "../helpers/practice.mjs";
 import { ForteAbilityPicker } from "../apps/ForteAbilityPicker.mjs";
 import { CompendiumPicker } from "../apps/CompendiumPicker.mjs";
 import { IncantationGrant } from "../apps/IncantationGrant.mjs";
@@ -1121,6 +1122,27 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     await item.update({ "system.halved": !item.system.halved });
   }
 
+  /**
+   * Use a practice: pay for it, roll for it, and see what it costs to keep.
+   *
+   * This was a stub that rolled challenge 0 against venture 0 with one magic
+   * die and spent nothing, whatever the practice was. What the rules ask for:
+   *
+   *   the cost    Sorcery equal to the level, "almost always" (The Way, p8),
+   *               and nothing at all for a Vancian spell or a forte ability
+   *               that says so.
+   *   the venture "you always add the level of the effect to the venture" (p7).
+   *   the dice    what the card itself grants — "+1 die", "+2 dice" — not one
+   *               by default.
+   *   the target  "the challenge is the level of the target", or nothing, which
+   *               is the commoner case: cast on yourself or on something that
+   *               does not object and no roll is needed at all.
+   *
+   * Refused outright when it cannot be paid for or, for a Vance, is not in
+   * mind. Elsewhere this system reports over-limit and lets the table decide,
+   * but those are caps on what may be held; this is the price of an act, and a
+   * spell a Vance has not prepared is not in their head to cast.
+   */
   async _onItemRoll(event, target) {
     event.preventDefault();
     const li = target.closest(".item");
@@ -1129,13 +1151,25 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     const item = doc.items.get(li.dataset.itemId);
     if (!item) return;
 
-    await game.invisibleSun.rollVenture({
-      challenge: 0,
-      venture: 0,
-      magicDice: 1,
-      label: game.i18n.format("ISUN.UsedItem", { name: item.name }),
-      actor: doc
+    const { allowed, reason, cost, pool } = practice.canCast(doc, item);
+    if (!allowed) {
+      ui.notifications?.warn(game.i18n.format(reason,
+        { name: item.name, cost, pool, level: item.system?.level ?? 0 }));
+      return;
+    }
+
+    const result = await VentureDialog.open(doc, {
+      challenge: practice.challengeFor(),
+      magicDice: practice.magicDiceOf(item),
+      base: item.system?.level ?? 0,
+      baseLabel: item.name,
+      label: game.i18n.format("ISUN.UsedItem", { name: item.name })
     });
+    if (!result) return;   // cancelled; nothing is spent and nothing is used
+
+    /* Paid after the roll, not before. The dialog can be dismissed, and a
+     * practice that was never used should not have been paid for. */
+    if (cost) await doc.adjustPool("sorcery", -cost);
 
     /* The depletion value, not the item holding it. checkDepletion parses a
      * string, so passing the Item put an object through .match() and threw —
@@ -1146,5 +1180,49 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     if (item.system.depletion) {
       await game.invisibleSun.checkDepletion(item.system.depletion, doc);
     }
+
+    await this.constructor.#offerRetain(doc, item);
+  }
+
+  /**
+   * Ask a Vance whether the spell stays in mind.
+   *
+   * "To cast a spell is to expel it from your mind and soul (unless you use
+   * your personal power to grasp onto it so you can cast it again)" — and that
+   * grasp costs "Sorcery equal to the spell's level" (The Key, Vance 1st
+   * degree). So the default is that it goes: keeping it is the deliberate act
+   * and the one that is paid for.
+   *
+   * Asked only of a Vancian spell that was prepared, which is the only thing
+   * with anything to lose.
+   */
+  static async #offerRetain(actor, item) {
+    if (!practice.isVancian(item) || !item.system.prepared) return;
+
+    const cost = practice.retainCost(item);
+    const afford = (actor.system.stats?.qualia?.pools?.sorcery?.value ?? 0) >= cost;
+
+    const keep = await foundry.applications.api.DialogV2.wait({
+      window: { title: game.i18n.localize("ISUN.RetainTitle"), icon: "fa-solid fa-brain" },
+      classes: ["invisible-sun"],
+      content: `<p>${game.i18n.format("ISUN.RetainAsk", { name: item.name, cost })}</p>`
+        + (afford ? "" : `<p class="notes">${game.i18n.localize("ISUN.RetainCannotAfford")}</p>`),
+      buttons: [
+        { action: "keep", default: afford, icon: "fa-solid fa-hand-holding-heart",
+          label: game.i18n.format("ISUN.RetainKeep", { cost }),
+          disabled: !afford, callback: () => true },
+        { action: "release", default: !afford, icon: "fa-solid fa-wind",
+          label: game.i18n.localize("ISUN.RetainRelease"), callback: () => false }
+      ],
+      rejectClose: false
+    });
+
+    /* Dismissing the window is not keeping it. The spell leaves unless somebody
+     * says otherwise and pays, which is the way round the rule is written. */
+    if (keep === true && afford) {
+      await actor.adjustPool("sorcery", -cost);
+      return;
+    }
+    await item.update({ "system.prepared": false });
   }
 }

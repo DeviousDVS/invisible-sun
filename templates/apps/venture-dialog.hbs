@@ -67,6 +67,16 @@
     </label>
   </div>
 
+  {{!-- The practice's own level. "You always add the level of the effect to the
+        venture" (The Way, p7), so it is not the player's to decline — shown,
+        like the board's, and already counted. --}}
+  {{#if base}}
+    <div class="vd-sooth" data-tooltip="{{baseLabel}}">
+      {{baseLabel}}
+      <strong class="vd-bonus">+{{base}}</strong>
+    </div>
+  {{/if}}
+
   {{!-- The board's, not the player's, so it is shown rather than offered. It is
         already in the running venture above. --}}
   {{#if sooth}}
