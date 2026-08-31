@@ -18,21 +18,31 @@
 {{/inline}}
 
 <div class="dice-result {{#if shift}}flux-shift{{else if success}}success{{else}}failure{{/if}}">
-  <div class="roll-title">{{label}}</div>
-
   {{!-- The practice itself, when one was used. Everyone can already see the
         roll; nobody but its owner can see what the thing actually does, and a
-        table cannot adjudicate an effect it has not read. --}}
+        table cannot adjudicate an effect it has not read.
+
+        It is the card's title when there is one, rather than sitting under a
+        heading that repeats its name — the label reads "Used Dentata" and the
+        block below it said "Dentata" again. --}}
   {{#if practice}}
     <div class="used-practice">
-      <div class="up-head">
-        {{#if practice.colour}}
-          <span class="color-badge {{colorClass practice.colour}}" title="{{practice.colour}}"></span>
+      <header class="up-head">
+        {{#if practice.img}}
+          <img class="up-icon" src="{{practice.img}}" alt="" />
         {{/if}}
-        <span class="up-name">{{practice.name}}</span>
-        <span class="up-kind">{{practice.kind}}</span>
+        <span class="up-titles">
+          <span class="up-name">{{practice.name}}</span>
+          <span class="up-kind">
+            {{#if practice.colour}}
+              <span class="color-badge {{colorClass practice.colour}}"
+                    data-tooltip="{{practice.colour}}"></span>
+            {{/if}}
+            {{practice.kind}}
+          </span>
+        </span>
         <span class="up-level">{{localize "ISUN.Lvl"}} {{practice.level}}</span>
-      </div>
+      </header>
 
       <div class="up-costs">
         {{#if practice.paid}}
@@ -49,6 +59,8 @@
         <div class="up-description">{{{practice.description}}}</div>
       {{/if}}
     </div>
+  {{else}}
+    <div class="roll-title">{{label}}</div>
   {{/if}}
 
   {{#if shift}}
