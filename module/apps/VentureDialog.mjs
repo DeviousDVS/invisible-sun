@@ -37,7 +37,7 @@ export class VentureDialog {
    * @param {string} [options.baseLabel]  What to call it in the dialog.
    */
   static async open(actor, { skill = null, challenge = 0, label = "", magicDice = 0,
-                             base = 0, baseLabel = "" } = {}) {
+                             base = 0, baseLabel = "", practice = null } = {}) {
     const skills = actor.items.filter(i => i.type === "Skill")
       .sort((a, b) => a.name.localeCompare(b.name))
       .map(i => ({
@@ -74,7 +74,8 @@ export class VentureDialog {
 
     if (!result || result === "cancel") return null;
     return this.#roll(actor, skills, pools, result,
-      { value: board.value + base, sources: base ? [...board.sources, baseLabel] : board.sources });
+      { value: board.value + base, sources: base ? [...board.sources, baseLabel] : board.sources },
+      practice);
   }
 
   /** Every pool a bene or enhancement could come from. */
@@ -151,7 +152,8 @@ export class VentureDialog {
   }
 
   /** Deduct what was spent, then roll. */
-  static async #roll(actor, skills, pools, form, board = { value: 0, sources: [] }) {
+  static async #roll(actor, skills, pools, form, board = { value: 0, sources: [] },
+                     practice = null) {
     let venture = (Number(form.modifier) || 0) + board.value;
     const used = [...board.sources];
 
@@ -187,6 +189,7 @@ export class VentureDialog {
       magicDice: dice,
       label: form.label || "Action",
       actor,
+      practice,
       sources: used
     });
   }

@@ -18,11 +18,16 @@ import * as flux from "./flux.mjs";
  * @param {string} options.label        - Display name for the roll
  * @param {Actor}  options.actor        - Rolling actor (for chat speaker)
  * @param {string[]} options.sources     - What made up the venture, for chat
+ * @param {Object} [options.practice]    - The practice used, if one was: its
+ *                                         name, kind, level, colour, what it
+ *                                         cost and what it does. Carried to the
+ *                                         card so the table can read the effect
+ *                                         without owning the item.
  * @returns {Object} result
  */
 export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, sortilege = 0,
                                    experimentalDice = 0, label = "", actor = null,
-                                   sources = [], sun = ""}) {
+                                   sources = [], sun = "", practice = null}) {
   const target = challenge - venture;
 
   /* Resolved here rather than as a default parameter: a default is evaluated at
@@ -32,13 +37,15 @@ export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, so
 
   // Auto-success
   if (target <= 0) {
-    return postResult({ label, challenge, venture, target: 0, autoSuccess: true, actor, sources });
+    return postResult({ label, challenge, venture, target: 0, autoSuccess: true,
+                        actor, sources, practice });
   }
 
   // Impossible: a die reads 0-9, so a target of 10 cannot be met without more
   // dice to try it on. Experimental dice do not count — they never succeed.
   if (target >= 10 && magicDice === 0 && sortilege === 0) {
-    return postResult({ label, challenge, venture, target, impossible: true, actor, sources });
+    return postResult({ label, challenge, venture, target, impossible: true,
+                        actor, sources, practice });
   }
   
   // Build dice pool. The experimental dice are a separate term because they
@@ -107,7 +114,7 @@ export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, so
     magicResults: mappedMagic,
     experimentalResults: mappedExperimental,
     success, successes, hasFlux, fluxCount, fluxIntensity, fluxIntensityLabel,
-    roll, actor, sources
+    roll, actor, sources, practice
   });
 }
 

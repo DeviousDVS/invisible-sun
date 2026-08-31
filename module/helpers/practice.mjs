@@ -96,6 +96,33 @@ export function canCast(actor, item) {
 }
 
 /**
+ * What to call this kind of practice.
+ *
+ * A spell names its tradition, because the four are not interchangeable and one
+ * list mixes them: a Vance may hold general spells beside the ones in their
+ * grimoire, and only the Vancian ones are prepared and cast free. "General" is
+ * not printed — it is the absence of a tradition rather than a fifth one.
+ *
+ * Here rather than in the sheet because the chat card names a practice too, and
+ * the table and the card should not disagree about what a thing is.
+ */
+export function kindLabelFor(item, kind = "") {
+  const key = kind || {
+    Spell: "spell", Incantation: "incantation",
+    ForteAbility: "forte", MinorMagic: "minor"
+  }[item?.type] || "";
+  if (!key) return "";
+
+  const tradition = key === "spell" ? (item?.system?.spellType ?? "general") : "";
+  if (tradition && tradition !== "general") {
+    return game.i18n.format("ISUN.KindSpellOf", {
+      tradition: game.i18n.localize(CONFIG.ISUN.spellTypes[tradition] ?? tradition)
+    });
+  }
+  return game.i18n.localize(`ISUN.Kind${key.charAt(0).toUpperCase()}${key.slice(1)}`);
+}
+
+/**
  * The challenge a practice faces, from what the player is aiming at.
  *
  * "The challenge is the level of the target modified by defenses or other

@@ -20,6 +20,37 @@
 <div class="dice-result {{#if shift}}flux-shift{{else if success}}success{{else}}failure{{/if}}">
   <div class="roll-title">{{label}}</div>
 
+  {{!-- The practice itself, when one was used. Everyone can already see the
+        roll; nobody but its owner can see what the thing actually does, and a
+        table cannot adjudicate an effect it has not read. --}}
+  {{#if practice}}
+    <div class="used-practice">
+      <div class="up-head">
+        {{#if practice.colour}}
+          <span class="color-badge {{colorClass practice.colour}}" title="{{practice.colour}}"></span>
+        {{/if}}
+        <span class="up-name">{{practice.name}}</span>
+        <span class="up-kind">{{practice.kind}}</span>
+        <span class="up-level">{{localize "ISUN.Lvl"}} {{practice.level}}</span>
+      </div>
+
+      <div class="up-costs">
+        {{#if practice.paid}}
+          <span class="up-cost">{{localize "ISUN.PracticePaid" cost=practice.cost}}</span>
+        {{else}}
+          <span class="up-cost free">{{localize "ISUN.PracticeFree"}}</span>
+        {{/if}}
+        {{#if practice.depletion}}
+          <span class="up-depletion">{{localize "ISUN.Depletion"}} {{practice.depletion}}</span>
+        {{/if}}
+      </div>
+
+      {{#if practice.description}}
+        <div class="up-description">{{{practice.description}}}</div>
+      {{/if}}
+    </div>
+  {{/if}}
+
   {{#if shift}}
     {{!-- A flux the GM brought about rather than one the dice found. There was
           no roll, so there is nothing to report but the flux itself. --}}

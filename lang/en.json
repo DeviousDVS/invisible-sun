@@ -593,6 +593,8 @@
     "ImpossibleReason": "No die can reach the target, and there are none spare to try it on.",
     "AutoSuccessReason": "The venture already meets the challenge.",
     "UsedItem": "Used {name}",
+    "PracticePaid": "{cost} Sorcery spent",
+    "PracticeFree": "No Sorcery spent",
     "CastNotPrepared": "{name} is not in mind. A Vance must prepare a spell before casting it.",
     "CastNotEnoughSorcery": "{name} costs {cost} Sorcery and only {pool} is left in the pool.",
     "RetainTitle": "Keep it in mind?",

@@ -6,7 +6,7 @@ import { VentureDialog } from "../apps/VentureDialog.mjs";
 import { ApplyIdentity } from "../apps/ApplyIdentity.mjs";
 import { HeartSkills } from "../apps/HeartSkills.mjs";
 import * as vance from "../helpers/vance.mjs";
-import * as practice from "../helpers/practice.mjs";
+import * as practiceRules from "../helpers/practice.mjs";
 import { ForteAbilityPicker } from "../apps/ForteAbilityPicker.mjs";
 import { CompendiumPicker } from "../apps/CompendiumPicker.mjs";
 import { IncantationGrant } from "../apps/IncantationGrant.mjs";
@@ -315,36 +315,16 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     // same way: a forte ability "unless stated otherwise, costs Sorcery to use,
     // equal to the level of the effect", exactly as a spell does. One list lets
     // a player sort across all of them, which four separate lists cannot.
-    /* What the Kind column says. Localised here rather than in the template
-     * because a spell's is composed rather than looked up, and `cost` already
-     * localises here for the same reason.
-     *
-     * A spell names its tradition, because the four are not interchangeable and
-     * one list mixes them: a Vance may hold general spells alongside the ones in
-     * their grimoire, and only the Vancian ones are prepared, bought by class,
-     * and drawn from the order's own list. Reading "Spell" against both hid the
-     * distinction the player has to act on. The other kinds have one flavour
-     * each and stay as they were.
-     *
-     * "General" is not printed. It is the absence of a tradition rather than a
-     * fifth one, and "General Spell" reads as a category the books do not have.
-     */
-    const kindLabel = (item, kind) => {
-      const type = kind === "spell" ? (item.system.spellType ?? "general") : "";
-      if (type && type !== "general") {
-        return game.i18n.format("ISUN.KindSpellOf", {
-          tradition: game.i18n.localize(CONFIG.ISUN.spellTypes[type] ?? type)
-        });
-      }
-      return game.i18n.localize(
-        `ISUN.Kind${kind.charAt(0).toUpperCase()}${kind.slice(1)}`);
-    };
-
+    /* What the Kind column says lives in helpers/practice.mjs, because the
+     * chat card names a practice too and the two must not disagree about what
+     * a thing is. Localised there rather than in the template because a
+     * spell's label is composed rather than looked up, and `cost` already
+     * localises here for the same reason. */
     const practice = (item, kind, action) => {
       const sys = item.system;
       return {
         item, kind, action,
-        kindLabel: kindLabel(item, kind),
+        kindLabel: practiceRules.kindLabelFor(item, kind),
         level: sys.level ?? 0,
         color: sys.color ?? "",
         /* What a practice costs in Sorcery is its level, so the two are not
@@ -1151,7 +1131,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     const item = doc.items.get(li.dataset.itemId);
     if (!item) return;
 
-    const { allowed, reason, cost, pool } = practice.canCast(doc, item);
+    const { allowed, reason, cost, pool } = practiceRules.canCast(doc, item);
     if (!allowed) {
       ui.notifications?.warn(game.i18n.format(reason,
         { name: item.name, cost, pool, level: item.system?.level ?? 0 }));
@@ -1159,11 +1139,12 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     }
 
     const result = await VentureDialog.open(doc, {
-      challenge: practice.challengeFor(),
-      magicDice: practice.magicDiceOf(item),
+      challenge: practiceRules.challengeFor(),
+      magicDice: practiceRules.magicDiceOf(item),
       base: item.system?.level ?? 0,
       baseLabel: item.name,
-      label: game.i18n.format("ISUN.UsedItem", { name: item.name })
+      label: game.i18n.format("ISUN.UsedItem", { name: item.name }),
+      practice: await ISUNVislaeSheet.#practiceCard(item, cost)
     });
     if (!result) return;   // cancelled; nothing is spent and nothing is used
 
@@ -1185,6 +1166,40 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   }
 
   /**
+   * What the chat card says about the practice that was used.
+   *
+   * The point is the table rather than the caster: everyone can see the roll
+   * already, and nobody but the owner can see what the spell actually does. So
+   * the effect travels with the roll.
+   *
+   * Range and duration are not carried. Both fields exist on the model and both
+   * are empty on all 1,117 entries across the four packs, so a row for them
+   * would be a label with nothing after it.
+   *
+   * The description is enriched here, where there is an item to enrich it
+   * against; chat content is not enriched on the way in.
+   */
+  static async #practiceCard(item, cost) {
+    const { TextEditor } = foundry.applications.ux;
+    return {
+      name: item.name,
+      img: item.img,
+      kind: practiceRules.kindLabelFor(item),
+      level: item.system?.level ?? 0,
+      colour: item.system?.color ?? "",
+      cost,
+      /* Said only when there was one. A Vancian spell costs nothing to cast and
+       * a no-cost forte ability nothing ever, and "0 Sorcery" invites the
+       * reader to wonder what went wrong. */
+      paid: cost > 0,
+      depletion: item.system?.depletion ?? "",
+      description: item.system?.description
+        ? await TextEditor.implementation.enrichHTML(item.system.description, { relativeTo: item })
+        : ""
+    };
+  }
+
+  /**
    * Ask a Vance whether the spell stays in mind.
    *
    * "To cast a spell is to expel it from your mind and soul (unless you use
@@ -1197,9 +1212,9 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
    * with anything to lose.
    */
   static async #offerRetain(actor, item) {
-    if (!practice.isVancian(item) || !item.system.prepared) return;
+    if (!practiceRules.isVancian(item) || !item.system.prepared) return;
 
-    const cost = practice.retainCost(item);
+    const cost = practiceRules.retainCost(item);
     const afford = (actor.system.stats?.qualia?.pools?.sorcery?.value ?? 0) >= cost;
 
     const keep = await foundry.applications.api.DialogV2.wait({
