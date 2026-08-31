@@ -47,6 +47,8 @@
     "Success": "Success!",
     "Failure": "Failure",
     "AutoSuccess": "Automatic Success",
+    "Routine": "Routine",
+    "RoutineReason": "A routine challenge is never rolled for.",
     "Impossible": "Impossible",
     "MagicalFlux": "Magical Flux!",
     "FluxWarning": "A 0 on a magic die has caused a magical flux!",

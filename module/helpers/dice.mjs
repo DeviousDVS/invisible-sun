@@ -4,6 +4,7 @@
 
 import { colorsetForSun } from "./dice-so-nice.mjs";
 import * as flux from "./flux.mjs";
+import { outcomeKind } from "./outcome.mjs";
 
 /**
  * Roll a Venture/Challenge action.
@@ -28,22 +29,24 @@ import * as flux from "./flux.mjs";
 export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, sortilege = 0,
                                    experimentalDice = 0, label = "", actor = null,
                                    sources = [], sun = "", practice = null}) {
-  const target = challenge - venture;
-
   /* Resolved here rather than as a default parameter: a default is evaluated at
    * call time, which is fine, but writing game.i18n into the signature reads as
    * though it were evaluated at module load, when i18n is not ready. */
   label = label || game.i18n.localize("ISUN.Action");
 
-  // Auto-success
-  if (target <= 0) {
-    return postResult({ label, challenge, venture, target: 0, autoSuccess: true,
+  const target = challenge - venture;
+  const kind = outcomeKind({ challenge, venture, magicDice, sortilege });
+
+  /* Nothing to roll against, or nothing left to decide. `routine` is the
+   * challenge being none; `assured` is the venture having covered it. Both
+   * succeed without dice and the card says which. */
+  if (kind === "routine" || kind === "assured") {
+    return postResult({ label, challenge, venture, target: Math.max(0, target),
+                        autoSuccess: true, routine: kind === "routine",
                         actor, sources, practice });
   }
 
-  // Impossible: a die reads 0-9, so a target of 10 cannot be met without more
-  // dice to try it on. Experimental dice do not count — they never succeed.
-  if (target >= 10 && magicDice === 0 && sortilege === 0) {
+  if (kind === "impossible") {
     return postResult({ label, challenge, venture, target, impossible: true,
                         actor, sources, practice });
   }

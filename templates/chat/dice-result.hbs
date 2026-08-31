@@ -80,8 +80,12 @@
         {{localize "ISUN.Impossible"}}
       </div>
     {{else if autoSuccess}}
-      <div class="success-banner" data-tooltip="{{localize 'ISUN.AutoSuccessReason'}}">
-        {{localize "ISUN.AutoSuccess"}}
+      {{!-- Two ways to succeed without dice, and the card says which: a routine
+            challenge was never rolled for, while an assured one was covered by
+            the venture. --}}
+      <div class="success-banner"
+           data-tooltip="{{#if routine}}{{localize 'ISUN.RoutineReason'}}{{else}}{{localize 'ISUN.AutoSuccessReason'}}{{/if}}">
+        {{#if routine}}{{localize "ISUN.Routine"}}{{else}}{{localize "ISUN.AutoSuccess"}}{{/if}}
       </div>
     {{else}}
 
