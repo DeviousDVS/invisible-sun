@@ -43,6 +43,68 @@ for (const file of sources) {
   }
 }
 
+/* ── Nothing imports upwards ──
+ *
+ * The system is layered, and the layers were folklore until a rule reaching for
+ * an application made two files impossible to load outside a browser and took
+ * their tests with them. `module/helpers/flux.mjs` imported the Path of Suns
+ * and the flux picker; an app reads `foundry.applications.api` as it loads, so
+ * helpers/flux.mjs and helpers/dice.mjs could not be imported in Node at all.
+ *
+ * The rule is one sentence: a module may import its own layer, or a layer below
+ * it, and never one above. What "below" means is the list here, and the order
+ * is the order things depend in rather than anything grander.
+ *
+ *   data-models  what a thing is. Depends on nothing.
+ *   helpers      rules and shared reckoning. dice/ is the die classes and sits
+ *                beside them.
+ *   importers    reading the books. Wants helpers; wanted by the importer app.
+ *   documents    Actor and Item, which apply the rules to stored data.
+ *   apps         windows. migrations sit here: they are run once at startup and
+ *                reach as widely.
+ *   sheets       the things a player actually opens.
+ *   root         invisible-sun.mjs, which knows about everything and is the one
+ *                place allowed to.
+ *
+ * Two layers sharing a rank may import each other; that is deliberate for
+ * helpers and dice, which are the same kind of thing under two names.
+ *
+ * This is a shape check, not a taste check: it will not tell anyone whether a
+ * file is in the right layer, only that the arrows point one way. */
+const LAYER_RANK = {
+  "data-models": 0,
+  dice: 1, helpers: 1,
+  importers: 2,
+  documents: 3,
+  apps: 4, migrations: 4,
+  sheets: 5,
+  root: 6
+};
+
+const layerOf = (file) => {
+  const rel = path.relative(ROOT, file).split(path.sep).join("/");
+  const match = /^module\/([^/]+)\//.exec(rel);
+  return (match && match[1] in LAYER_RANK) ? match[1] : "root";
+};
+
+for (const file of sources) {
+  const source = readFileSync(file, "utf8");
+  const from = layerOf(file);
+
+  for (const match of source.matchAll(
+    /^\s*import\s+(?:[\s\S]*?)\s*from\s*["'](\.[^"']+)["']/gm)) {
+    const target = path.resolve(path.dirname(file), match[1]);
+    const to = layerOf(target);
+    if (LAYER_RANK[to] <= LAYER_RANK[from]) continue;
+
+    fail(`${path.relative(ROOT, file)} imports upwards, from ${from} into ${to}:\n`
+      + `    ${match[1]}\n`
+      + `    A layer may import its own or one below it. If ${to} is genuinely `
+      + `needed here,\n    hand it in at startup the way invisible-sun.mjs `
+      + `hands flux.listen the board.`);
+  }
+}
+
 /* ── The JSON the system loads at runtime is valid ── */
 const json = {};
 for (const file of ["system.json", "package.json", "lang/en.json"]) {

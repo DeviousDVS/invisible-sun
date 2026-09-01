@@ -223,21 +223,45 @@ them). **Never write a raw colour where a token exists.**
 
 ### The layers, and which way they may point
 
+A module may import its own layer, or one below it, and never one above.
+Lowest first:
+
 ```
-invisible-sun.mjs          registration and hooks only
-   ↓
-module/documents/          Actor and Item subclasses — derived data, business rules
-module/data-models/        schemas; the shape of stored data
-   ↓
-module/sheets/             what a document looks like
-module/apps/               a feature: its windows, its dialogs, its rules
-   ↓
-module/helpers/            a capability many unrelated callers need
+module/data-models/        schemas; the shape of stored data. Imports nothing.
+module/helpers/            rules and shared reckoning
+module/dice/               the die classes; the same kind of thing, beside them
 module/importers/          PDF → item data
+module/documents/          Actor and Item, applying the rules to stored data
+module/apps/               a feature: its windows, its dialogs
+module/migrations/         run once at startup, and reach as widely as an app
+module/sheets/             what a player actually opens
+invisible-sun.mjs          registration and hooks; knows about everything
 ```
 
-**Helpers do not import apps. Data models do not import sheets.** The one
-allowed upward reference is `CONFIG.ISUN`, which everything may read.
+`helpers/` and `dice/` share a rank and may import each other. Everything may
+read `CONFIG.ISUN`, which is a global rather than an import and so is not a
+layer at all.
+
+**`scripts/check.mjs` enforces this**, and `npm test` runs it. It is a shape
+check and not a taste check: it will tell you the arrows point one way, never
+whether a file is in the right layer to begin with.
+
+#### When a lower layer needs something from a higher one
+
+Hand it in at startup rather than importing it. `helpers/flux.mjs` needs the
+Path of Suns to turn a card and the picker to ask what happened, and takes both
+as arguments to `listen()`; `invisible-sun.mjs` is the one place that knows
+about both.
+
+This is not architecture for its own sake. `flux.mjs` used to import those two
+apps directly, and an app reads `foundry.applications.api` as it loads — so
+`flux.mjs` and `dice.mjs`, which imports it, could not be loaded in Node at all.
+Two files of rules with no way to test them, because of what they reached for.
+Cutting the two edges made both loadable and eleven tests possible.
+
+Take the dependency as an argument rather than from a registry, so what a module
+needs is declared where it is used. Take it in the function that arms the module
+— `listen`, not a separate `provide` — so it cannot be wired up without it.
 
 ### apps/ or helpers/: by feature, or by capability
 
