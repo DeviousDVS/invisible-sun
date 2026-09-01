@@ -41,11 +41,24 @@
  * flux did nothing at all — no card, no button, no error, and a flag left
  * saying it had not happened yet.
  */
-import { PathOfSuns } from "../apps/PathOfSuns.mjs";
-import { FluxPicker } from "../apps/FluxPicker.mjs";
-
 export const SCOPE = "invisible-sun";
 export const FLAG = "flux";
+
+/**
+ * The two things a flux needs done that it cannot do itself.
+ *
+ * Turning a Sooth card is the board's, and choosing an effect wants a window.
+ * Both live in apps/, and importing them from here pointed a rule at an
+ * application — which is backwards, and had a cost beyond tidiness: apps read
+ * `foundry.applications.api` as they load, so this module and dice.mjs, which
+ * imports it, could not be loaded in Node at all. Two files of rules with no
+ * way to test them, because of what they reached for.
+ *
+ * So they are handed in at startup instead. `listen` takes them, because a
+ * listener wired without them would be a flux that quietly does nothing — the
+ * failure this already had once, for a different reason.
+ */
+const uses = { turnCard: null, chooseEffect: null };
 
 /**
  * What a rolled flux records on its message.
@@ -73,7 +86,7 @@ export async function turnFor(message) {
   await message.setFlag(SCOPE, FLAG, { ...flux, done: true, by: game.user.id });
   if (message.getFlag(SCOPE, FLAG)?.by !== game.user.id) return;
 
-  const { placed, reason } = await PathOfSuns.turnCard();
+  const { placed, reason } = await uses.turnCard();
 
   /* A spent deck is worth saying out loud: the rule wanted a card turned and
    * there was none to turn, and silence would read as the flux having been
@@ -160,7 +173,7 @@ export async function chooseEffect(message, actor) {
   const flux = message.getFlag(SCOPE, FLAG);
   if (!flux || flux.effect) return;
 
-  const chosen = await FluxPicker.open({ intensity: flux.intensity, actor });
+  const chosen = await uses.chooseEffect({ intensity: flux.intensity, actor });
   if (!chosen) return;
 
   /* Choosing the effect is choosing to have it happen, so what the sheet can
@@ -381,7 +394,15 @@ export async function promptShift() {
   return raise({ actor: game.actors.get(chosen.actor), intensity: chosen.intensity });
 }
 
-/** Listen once, at ready. */
-export function listen() {
+/**
+ * Listen once, at ready, with the two things above.
+ *
+ * @param {object}   deps
+ * @param {Function} deps.turnCard      turns the next Sooth card
+ * @param {Function} deps.chooseEffect  asks the GM which effect it was
+ */
+export function listen({ turnCard, chooseEffect }) {
+  uses.turnCard = turnCard;
+  uses.chooseEffect = chooseEffect;
   Hooks.on("renderChatMessageHTML", (message, html) => render(message, html));
 }

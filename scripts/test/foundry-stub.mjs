@@ -19,7 +19,30 @@
  * and the real deck has to be searched for one. `deck()` below builds exactly
  * the cards a case asks for.
  */
+import { readFileSync } from "node:fs";
 import { ISUN } from "../../module/helpers/config.mjs";
+
+/**
+ * The real language file, not a fake one.
+ *
+ * A stub that echoed keys back would let a test pass against a key nobody has
+ * written, which is the one thing an i18n stub is well placed to catch. Read
+ * once; it is 700 short strings.
+ */
+const STRINGS = JSON.parse(
+  readFileSync(new URL("../../lang/en.json", import.meta.url), "utf8"));
+
+/** Foundry's own: dotted lookup, then {placeholder} substitution. */
+function localize(key) {
+  const found = String(key ?? "").split(".")
+    .reduce((at, part) => (at && typeof at === "object") ? at[part] : undefined, STRINGS);
+  return typeof found === "string" ? found : String(key ?? "");
+}
+
+function format(key, data = {}) {
+  return localize(key).replace(/\{(\w+)\}/g, (whole, name) =>
+    Object.hasOwn(data, name) ? String(data[name]) : whole);
+}
 
 /**
  * Install the globals and return a handle for driving them.
@@ -41,6 +64,10 @@ export function stubFoundry({ automated = true, board = null, deck = [] } = {}) 
   globalThis.CONFIG = { ISUN };
   globalThis.game = {
     user: { get isGM() { return state.isGM; } },
+
+    /* Backed by lang/en.json, so a string the system never wrote comes back as
+     * its own key and the assertion that expected English fails. */
+    i18n: { localize, format },
 
     settings: {
       get: (scope, key) => state.settings[key],

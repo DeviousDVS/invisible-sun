@@ -43,6 +43,7 @@ import { CompendiumBrowser } from "./module/apps/CompendiumBrowser.mjs";
 import { ContentImporter } from "./module/apps/ContentImporter.mjs";
 import { PathOfSuns } from "./module/apps/PathOfSuns.mjs";
 import * as flux from "./module/helpers/flux.mjs";
+import { FluxPicker } from "./module/apps/FluxPicker.mjs";
 import { DEFAULT_STATE as PATH_OF_SUNS } from "./module/helpers/sooth.mjs";
 
 // ── Migrations ───────────────────────────────────────────
@@ -377,8 +378,16 @@ Hooks.once("ready", async () => {
 
   /* A flux "immediately turns a new Sooth card" (The Way, p13). The roller may
    * be a player and the board is a world setting, so the roll flags its message
-   * and one GM client acts on the flag. */
-  flux.listen();
+   * and a GM client acts on the flag.
+   *
+   * The board and the picker are handed in rather than imported: flux.mjs is
+   * rules, and a rule reaching for an application cannot be loaded outside a
+   * browser, which took its tests with it. This is the one place that knows
+   * about both. */
+  flux.listen({
+    turnCard: () => PathOfSuns.turnCard(),
+    chooseEffect: (options) => FluxPicker.open(options)
+  });
 
   /* The card is drawn per client, not stored: it says different things to a
    * player and to the GM, so one saved rendering would show the GM's view to
