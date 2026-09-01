@@ -25,6 +25,8 @@
  * card goes through `#patch` for that reason, and the GM's own calls take the
  * same path minus the round trip.
  */
+import * as pools from "../helpers/pools.mjs";
+
 const SOCKET = "system.invisible-sun";
 const FLAG_SCOPE = "invisible-sun";
 const FLAG_KEY = "challenge";
@@ -189,28 +191,19 @@ export class ChallengeCard {
    * What the declared pool costs
    * ────────────────────────────────────────────── */
 
+  /* Both of these are helpers/pools.mjs now, kept here as the names the rest of
+   * the challenge flow already calls. The rule moved because the dialog a
+   * player opens for themselves needs the same answer, and could not reach a
+   * static on this class without a window importing a window. */
+
   /** Which half of the stats a pool belongs to. */
   static groupOf(pool) {
-    return CONFIG.ISUN.certesPoolNames.includes(pool) ? "certes" : "qualia";
+    return pools.groupOf(pool);
   }
 
-  /**
-   * The scourge and vex the declared pool brings, before the player adds
-   * anything. Neither is a choice.
-   *
-   * A scourge applies to every action related to its pool and is not spent
-   * (The Key, p2242), so it is simply the pool's scourgeTotal — which already
-   * sums the four scopes that reach it. A vex is spent, and how many is the
-   * lesser of the GM's ceiling and what the pool actually holds.
-   */
+  /** The scourge and vex the declared pool brings, before the player adds anything. */
   static poolCost(actor, pool, maxVex = 0) {
-    const p = actor?.system?.stats?.[this.groupOf(pool)]?.pools?.[pool];
-    if (!p) return { scourge: 0, vex: 0, bene: 0 };
-    return {
-      scourge: p.scourgeTotal ?? 0,
-      vex: Math.min(Math.max(0, maxVex), p.vex ?? 0),
-      bene: p.value ?? 0
-    };
+    return pools.costOf(actor, pool, { maxVex });
   }
 
   /**

@@ -1,6 +1,7 @@
 /**
  * Extend the base Actor document to support custom derivation logic.
  */
+import * as pools from "../helpers/pools.mjs";
 import * as vance from "../helpers/vance.mjs";
 
 export class ISUNActor extends Actor {
@@ -793,16 +794,11 @@ export class ISUNActor extends Actor {
    *
    * The books name pools without their stat — Sorcery, never "the Qualia pool
    * Sorcery" — so anything taking a pool from a rule has to work this out, and
-   * it should not be worked out twice.
+   * it should not be worked out twice. It is helpers/pools.mjs that works it
+   * out; this is the name the methods below already call.
    */
   #findPool(poolKey) {
-    const key = String(poolKey ?? "").toLowerCase();
-    const group = CONFIG.ISUN.certesPoolNames.includes(key) ? "certes"
-      : CONFIG.ISUN.qualiaPoolNames.includes(key) ? "qualia" : null;
-    if (!group) return null;
-
-    const pool = this.system.stats?.[group]?.pools?.[key];
-    return pool ? { group, key, pool, path: `system.stats.${group}.pools.${key}` } : null;
+    return pools.find(this, poolKey);
   }
 
   /**

@@ -1143,6 +1143,11 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       magicDice: practiceRules.magicDiceOf(item),
       base: item.system?.level ?? 0,
       baseLabel: item.name,
+      /* Every magical practice draws on Sorcery, whatever it costs — a Vancian
+       * spell and a no-cost forte ability still work the pool, so a scourge on
+       * it still bites. Naming it is what lets the dialog reach the scourge and
+       * offer the vex. */
+      pool: "sorcery",
       label: game.i18n.format("ISUN.UsedItem", { name: item.name }),
       practice: await ISUNVislaeSheet.#practiceCard(item, cost)
     });

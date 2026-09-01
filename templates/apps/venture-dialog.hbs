@@ -39,6 +39,9 @@
     </fieldset>
   {{/if}}
 
+  {{!-- Guarded because a declared pool withdraws the bene rows, and a character
+        with no Sortilege then has nothing left to put in here. --}}
+  {{#if pools.length}}
   <fieldset class="venture-pools">
     <legend>{{localize "ISUN.SpendFromPools"}}</legend>
     <div class="pool-spends">
@@ -54,6 +57,35 @@
       {{/each}}
     </div>
   </fieldset>
+  {{/if}}
+
+  {{!-- What the pool the action draws on brings with it. Only ever present when
+        the action named a pool, which today means a magical practice.
+
+        The scourge is the pool's own state — shown, already counted, and not
+        the player's to decline. The vex is offered at zero because "the GM
+        decides when" (The Key, p2241): it is called in at the table, not
+        volunteered. --}}
+  {{#if drain}}
+    <fieldset class="venture-drain">
+      <legend>{{localize "ISUN.PoolTakes" pool=drain.label}}</legend>
+      {{#if drain.scourge}}
+        <div class="drain-row" data-tooltip="{{localize 'ISUN.ScourgeHint'}}">
+          <span class="drain-name">{{localize "ISUN.Scourge"}}</span>
+          <strong class="vd-penalty">&minus;{{drain.scourge}}</strong>
+          <span class="pool-effect">{{localize "ISUN.ScourgeStands"}}</span>
+        </div>
+      {{/if}}
+      {{#if drain.vex}}
+        <label class="drain-row vex" data-tooltip="{{localize 'ISUN.VexSpendHint'}}">
+          <span class="drain-name">{{localize "ISUN.Vex"}}</span>
+          <input type="number" name="vexSpend" min="0" max="{{drain.vex}}" value="0" />
+          <span class="pool-avail">/ {{drain.vex}}</span>
+          <span class="pool-effect">&minus;1 {{localize "ISUN.Venture"}}</span>
+        </label>
+      {{/if}}
+    </fieldset>
+  {{/if}}
 
   <div class="venture-extras">
     <label>
