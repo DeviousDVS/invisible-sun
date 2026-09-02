@@ -68,6 +68,15 @@
   --isun-acumen:          #27ae60;
   --isun-crux:            #e67e22;
   --isun-flux:            #e74c3c;
+
+  /* The two dice in the box: the mundane die is blue, the magic dice are red.
+     Deeper than the Blue and Red suns of the same names, which are display
+     colours picked to read against a dark sheet — these are the body of a die
+     and carry a pale numeral. Kept in step with dice-so-nice.mjs, so the die on
+     the table, the die in chat and the die Dice So Nice throws all agree. */
+  --isun-die-mundane:     #2a6099;
+  --isun-die-magic:       #b4342c;
+  --isun-die-label:       #f5f0e6;
   
   /* Typography */
   --isun-font-heading:    'Duvall', 'Georgia', serif;

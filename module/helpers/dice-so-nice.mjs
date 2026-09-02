@@ -1,19 +1,25 @@
 /**
  * Invisible Sun — Dice So Nice! integration
  *
- * Three things differ from a stock d10 and all of them are label work rather
- * than new geometry:
+ * Four things differ from a stock d10, and none of them is new geometry:
  *
  *   Faces read 0-9.  Foundry rolls 1..10, so the tenth face carries the 0.
  *                    Without this the 3D die shows a 10 while the chat result
  *                    says 0.
+ *   Blue and red.    The game ships one blue die for the mundane roll and red
+ *                    ones for the magic, so the dice on the screen are the dice
+ *                    in the box. dice.mjs puts these on the terms.
  *   The Experimental Die has nine blank faces and one marked one. Dice So Nice
  *                    draws a label as text unless it ends in an image
  *                    extension, and an empty string draws nothing at all, so
  *                    blank faces need no asset.
  *   The nine suns    are already colours in the system config, so each gets a
- *                    colourset and a magic die can be rolled in the colour of
- *                    the sun it belongs to.
+ *                    colourset. They are a flourish rather than the way magic
+ *                    is told from mundane: three of the nine are neutrals that
+ *                    a lit surface flattens together, and gold and invisible
+ *                    differ by about 6 — far too close to carry the distinction
+ *                    on their own. Red against blue does that; a sun colour, if
+ *                    one is given, dresses the magic dice on top.
  *
  * The marked face uses CONFIG.ISUN.fluxGlyph, the same mark the chat card shows.
  * Duvall carries the numerals but has no symbol glyph — its character set is
@@ -104,6 +110,42 @@ export function registerDiceSoNice() {
       }, "default");
     }
 
+    /* The dice Invisible Sun actually ships: one blue die for the mundane roll
+     * and red ones for the magic. That is the distinction the game itself makes
+     * physically, and it is a better one than any tint of the nine suns — three
+     * of those are neutrals separated only by lightness, which a lit surface
+     * flattens, and gold and invisible are the same colour to within a colour
+     * difference of 6.
+     *
+     * Plastic rather than metal: these are dice, not ingots, and metal's
+     * specular highlight is exactly what washes a colour toward white.
+     *
+     * Registered "default" as well as applied, so they are also in the list a
+     * player can choose from for their own rolls. */
+    dice3d.addColorset({
+      name: "isun-mundane",
+      description: "Invisible Sun — Mundane",
+      category: "Invisible Sun",
+      background: MUNDANE_BLUE,
+      foreground: labelFor(MUNDANE_BLUE),
+      outline: "#000000",
+      texture: "none",
+      material: "plastic",
+      font: "Duvall"
+    }, "default");
+
+    dice3d.addColorset({
+      name: "isun-magic",
+      description: "Invisible Sun — Magic",
+      category: "Invisible Sun",
+      background: MAGIC_RED,
+      foreground: labelFor(MAGIC_RED),
+      outline: "#000000",
+      texture: "none",
+      material: "plastic",
+      font: "Duvall"
+    }, "default");
+
     // The Experimental Die is not one of the Nine and reusing a sun's colours
     // washed the mark out — the Invisible Sun is a light gold, so its symbol
     // sat near-white on near-white. It gets its own: a dark die so the one
@@ -125,6 +167,12 @@ export function registerDiceSoNice() {
 
 /** The flux red the sheets and chat cards already use. */
 const FLUX_COLOUR = "#e74c3c";
+
+/* The two dice in the box. Deeper than the Blue and Red suns of the same names,
+ * which are display colours picked to read against a dark sheet; these are the
+ * body colour of a die and carry a pale numeral. */
+const MUNDANE_BLUE = "#2a6099";
+const MAGIC_RED = "#b4342c";
 
 const LABEL_DARK = "#14121a";
 const LABEL_PALE = "#f5f0e6";

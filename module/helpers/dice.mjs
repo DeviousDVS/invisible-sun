@@ -60,21 +60,37 @@ export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, so
 
   const roll = await new Roll(parts.join(" + ")).evaluate();
 
-  // Dice So Nice reads a term's appearance, so the magic being worked can
-  // colour the dice it is worked with.
-  const colorset = colorsetForSun(sun);
-  if (colorset) {
-    for (const term of roll.dice) {
-      term.options.appearance = { ...(term.options.appearance ?? {}), colorset };
-    }
-  }
-
-  // Parse results. Terms are in the order they were pushed above.
+  /* Which term is which, named once. Both the appearance below and the reading
+   * further down need to know, and working it out twice is how they come to
+   * disagree. Terms are in the order they were pushed above. */
+  const mundaneTerm = roll.dice[0];
   let t = 1;
   const magicTerm = totalMagicDice > 0 ? roll.dice[t++] : null;
   const experimentalTerm = experimentalDice > 0 ? roll.dice[t] : null;
 
-  const mundaneResult = roll.dice[0].results[0].result;
+  /* The dice on the table are blue for the mundane die and red for the magic
+   * ones, so the ones on the screen are too.
+   *
+   * Set per term, which is the part the previous version got wrong: it painted
+   * every term in the sun's colour, so the mundane die was tinted by the magic
+   * being worked and the two became harder to tell apart rather than easier.
+   *
+   * A sun colour still overrides the red when one is given. Measured against
+   * the deck, the nine suns are not a workable way to tell magic from mundane —
+   * gold and invisible sit at a colour difference of 6 under a lit surface, and
+   * 82% of spells land in a pair that close — but as a flourish on top of a
+   * distinction already carried by red against blue, it costs nothing.
+   *
+   * The Experimental Die is not listed: its preset names its own colourset, and
+   * it is not one of the Nine and never was. */
+  const wear = (term, colorset) => {
+    if (!term || !colorset) return;
+    term.options.appearance = { ...(term.options.appearance ?? {}), colorset };
+  };
+  wear(mundaneTerm, "isun-mundane");
+  wear(magicTerm, colorsetForSun(sun) ?? "isun-magic");
+
+  const mundaneResult = mundaneTerm.results[0].result;
   const magicResults = magicTerm ? magicTerm.results.map(r => r.result) : [];
   const experimentalResults = experimentalTerm ? experimentalTerm.results.map(r => r.result) : [];
   

@@ -150,28 +150,42 @@
   font-size: 1.2em;
 }
 
-.mundane-die {
+/* The two dice are the same die in two colours, so everything about them is
+   shared except the colour — which is the whole of what tells them apart, on
+   the screen as on the table.
+
+   The shape is a d10 seen face on: a point at the top, the widest span about a
+   third of the way down, then a taper to a point at the bottom. What was here
+   before was a regular hexagon, widest across its whole middle, and its own
+   comment called itself an approximation. Six vertices either way — these are
+   just the ones a pentagonal trapezohedron actually presents. */
+.die.mundane-die,
+.die.magic-die {
   width: 40px;
   height: 40px;
-  background: var(--isun-bg-elevated);
-  border: 2px solid var(--isun-text-primary);
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); /* Hexagon approx for d10 */
+  clip-path: polygon(50% 0%, 100% 32%, 82% 80%, 50% 100%, 18% 80%, 0% 32%);
+  color: var(--isun-die-label);
+  /* No border: a border under a clip-path is clipped with everything else, so
+     the fill is the shape and there is nothing to outline it with. */
+  border: none;
 }
 
-.magic-die {
-  width: 30px;
-  height: 30px;
-  font-size: 1em;
-  background: var(--isun-bg-secondary);
-  border: 1px solid var(--isun-border-accent);
-  color: var(--isun-text-accent);
-  border-radius: 4px;
-}
+/* Blue for the mundane die, red for the magic, as the boxed dice are. */
+.mundane-die { background: var(--isun-die-mundane); }
+.magic-die   { background: var(--isun-die-magic); }
 
+/* A fluxed die cannot be told from an ordinary magic die by hue — the flux red
+   and the die red are 17 apart, which is close enough to miss in a moving chat
+   log. So it flips instead: the bright fill takes a dark numeral where every
+   other die has a pale one, and it carries a halo.
+
+   drop-shadow rather than box-shadow, which would be clipped away with the
+   corners of the square the clip-path cuts the die out of. */
 .flux-die {
+  background: var(--isun-flux);
+  color: var(--isun-bg-secondary);
   border-color: var(--isun-flux);
-  color: var(--isun-flux);
-  box-shadow: var(--isun-glow-flux);
+  filter: drop-shadow(0 0 5px var(--isun-flux)) drop-shadow(0 0 2px var(--isun-flux));
 }
 
 .flux-warning {
@@ -1366,7 +1380,11 @@ a.sentence-part:hover + .sentence-part.affix {
   color: transparent;          /* nothing is lettered on these faces */
 }
 
-/* Sized and shaped like a magic die, but unmarked unless it fluxed. */
+/* Deliberately not the blue and red pair: smaller, square-cornered, and edged
+   in a dashed line rather than filled. An Experimental Die "never contributes
+   to successes, only to flux" (The Nightside, p518), so it is not a die that
+   can be read alongside the others and should not look like one. Unmarked
+   unless it fluxed. */
 .dice-display .die.experimental-die {
   width: 30px;
   height: 30px;
