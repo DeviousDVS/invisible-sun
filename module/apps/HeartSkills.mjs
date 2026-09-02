@@ -70,6 +70,7 @@ export class HeartSkills {
 
     const picked = await DialogV2.wait({
       window: { title: `${heart.name} — choose ${wanted} skills` },
+      classes: ["invisible-sun", "heart-skills-dialog"],
       content: `<div class="heart-skills">
           <p>${foundry.utils.escapeHTML(heart.name)} starts you with ${wanted}
              of these, at level ${level}.</p>

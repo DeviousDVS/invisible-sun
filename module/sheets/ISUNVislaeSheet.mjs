@@ -967,6 +967,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
 
     const form = await DialogV2.prompt({
       window: { title: game.i18n.localize("ISUN.ApplyDamage") },
+      classes: ["invisible-sun", "apply-damage-dialog"],
       content: `
         <div class="form-group">
           <label>${game.i18n.localize("ISUN.DamageAmount")}</label>
@@ -1013,6 +1014,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     const pool = game.i18n.localize(`ISUN.Pool${poolKey.charAt(0).toUpperCase()}${poolKey.slice(1)}`);
     const ok = await foundry.applications.api.DialogV2.confirm({
       window: { title: game.i18n.localize("ISUN.NegateTitle") },
+      classes: ["invisible-sun", "negate-dialog"],
       content: `<p>${game.i18n.format("ISUN.NegatePrompt", { kind: label, pool, available })}</p>`,
       rejectClose: false
     });
@@ -1166,6 +1168,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     if (item.system.depletion) {
       await game.invisibleSun.checkDepletion(item.system.depletion, doc);
     }
+
 
     await this.constructor.#offerRetain(doc, item);
   }

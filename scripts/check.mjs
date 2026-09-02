@@ -383,6 +383,112 @@ if (existsSync(quirksLocal) && existsSync(quirksJson)) {
   }
 }
 
+/* ── No stylesheet rule may reach Foundry's own interface ──
+ *
+ * A system's stylesheets are loaded into the whole application, not into its
+ * own windows. There is no scoping, so a rule written for a sheet applies to
+ * every element in Foundry that happens to match it — the file picker, the
+ * settings menus, and other systems' sheets alike.
+ *
+ * This was not hypothetical. `.form-group` set `flex-direction: column` and
+ * `.form-group > label` set `text-transform: uppercase`, and both are core
+ * Foundry classes: every labelled field in the application stacked its label
+ * above its control and shouted it in the heading font. Core's own
+ * `align-items: center`, meant for the row layout it expects, then centred the
+ * lot. The file picker was unrecognisable.
+ *
+ * What decides whether a rule can escape is its *leftmost* compound selector,
+ * because that is what has to match for anything after it to be considered.
+ * `.item-list .item` is safe — core has `.item`, but nothing in core has
+ * `.item-list` to contain it. `.form-group > label` is not.
+ *
+ * So the rule is about heads only: a top-level selector may not lead with a
+ * bare element, and may not lead with a class name that Foundry uses for its
+ * own furniture. Scope it under `.invisible-sun`, which every sheet, app and
+ * dialog this system opens carries, or give it an `isun-` prefix if it is a
+ * chat card and has no such ancestor.
+ *
+ * The list below is not all of Foundry's classes. Keeping a copy of those in
+ * step would be its own maintenance problem, and a stale copy is worse than an
+ * honest partial one. Every name in it was checked against foundry2.css rather
+ * than guessed — six plausible-looking ones were dropped on being looked up,
+ * `.item` and `.item-list` among them, which is why guessing is not good
+ * enough. It is the furniture a system sheet reaches for by accident, which is
+ * the same thing as saying it is the list that would have caught this.
+ *
+ * To audit exhaustively against the Foundry you actually run, pull the class
+ * names out of its stylesheet and compare heads:
+ *
+ *   grep -oE '\.[-_a-zA-Z][\w-]*' <foundry>/resources/app/public/css/foundry2.css
+ *
+ * Add to the list when something new gets through. */
+const CORE_CLASSES = new Set([
+  /* Form furniture — what broke the file picker. */
+  "form-group", "form-fields", "form-footer", "form-header", "hint", "notes",
+  /* Application chrome, shared with every other system's sheets. */
+  "sheet", "sheet-header", "sheet-tabs", "application", "dialog",
+  "dialog-content", "dialog-buttons",
+  "window-app", "window-content", "window-header", "window-title",
+  /* Sidebar, chat and rolls. */
+  "chat-message", "message-header", "message-content", "message-sender",
+  "dice-roll", "dice-result", "dice-formula", "dice-total", "dice-tooltip",
+  "sidebar", "sidebar-tab", "directory", "directory-list", "directory-item",
+  /* Generic names Foundry has already claimed. */
+  "tag", "tags", "flexrow", "flexcol", "highlight", "step-title",
+  "editor", "editor-content", "tab", "tabs", "control", "controls",
+  "icon", "thumbnail", "notification"
+]);
+
+for (const rel of manifest?.styles ?? []) {
+  let css;
+  try {
+    css = readFileSync(path.join(ROOT, rel), "utf8");
+  } catch (err) {
+    fail(`could not read ${rel}: ${err.message}`);
+    continue;
+  }
+  /* Comments first, or a selector quoted inside one counts as a rule. Then the
+   * top level only: what is nested inside a media query is still a rule, so
+   * those are unwrapped rather than skipped. */
+  css = css.replace(/\/\*[\s\S]*?\*\//g, "");
+
+  const selectors = [];
+  let depth = 0, buffer = "", selector = "";
+  for (const ch of css) {
+    if (ch === "{") {
+      if (depth === 0) { selector = buffer.trim(); buffer = ""; }
+      depth += 1;
+    } else if (ch === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        if (selector && !selector.startsWith("@")) selectors.push(...selector.split(","));
+        buffer = "";
+      }
+    } else if (depth === 0) buffer += ch;
+  }
+
+  for (const raw of selectors) {
+    const sel = raw.trim();
+    if (!sel || /\.invisible-sun|\.isun-|#isun-/.test(sel)) continue;
+
+    const head = sel.split(/[\s>+~]/)[0];
+    if (head.startsWith(":")) continue;          // :root, and nothing else so far
+
+    const classes = [...head.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].map(m => m[1]);
+    const where = `${rel}: ${sel}`;
+
+    if (!classes.length && /^[a-zA-Z*]/.test(head)) {
+      fail(`"${where}" leads with a bare element selector, so it styles every `
+         + `${head} in Foundry.\n    Scope it under .invisible-sun.`);
+    } else if (classes.length && classes.every(c => CORE_CLASSES.has(c))) {
+      fail(`"${where}" leads with .${classes.join(".")}, which Foundry uses for its own `
+         + `interface.\n    Unscoped, this rule reaches the file picker, the settings menus `
+         + `and other systems' sheets.\n    Scope it under .invisible-sun, or rename the class `
+         + `with an isun- prefix if it is a chat card.`);
+    }
+  }
+}
+
 /* ── Report ── */
 if (problems.length) {
   console.error(`\n${problems.length} problem${problems.length === 1 ? "" : "s"}:\n`);

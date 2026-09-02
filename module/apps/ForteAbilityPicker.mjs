@@ -72,6 +72,7 @@ export class ForteAbilityPicker {
     await DialogV2.wait({
       window: { title: game.i18n.format("ISUN.FortePickerTitle", { forte: forte.name }),
                 resizable: true },
+      classes: ["invisible-sun", "forte-ability-picker"],
       position: { width: 620, height: 640 },
       content: build().html,
       buttons: [{ action: "close", label: "Close", default: true }],

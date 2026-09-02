@@ -93,7 +93,7 @@
 }
 
 /* Chat Dice Results */
-.dice-result {
+.isun-dice-result {
   background: var(--isun-bg-primary);
   border: 1px solid var(--isun-border-accent);
   border-radius: 4px;
@@ -102,7 +102,7 @@
   font-family: var(--isun-font-ui);
 }
 
-.dice-result .roll-title {
+.isun-dice-result .roll-title {
   font-family: var(--isun-font-heading);
   font-size: 1.2em;
   color: var(--isun-text-accent);
@@ -268,7 +268,7 @@ a.sentence-part:hover + .sentence-part.affix {
 
 /* Labelled field: caption above a control, sized by its container rather than
    stretching to the full sheet width. */
-.form-group,
+.invisible-sun .form-group,
 .economy-field,
 .house-field,
 .defense-group,
@@ -279,7 +279,7 @@ a.sentence-part:hover + .sentence-part.affix {
   min-width: 0;
 }
 
-.form-group > label,
+.invisible-sun .form-group > label,
 .economy-field > label,
 .house-field > label,
 .defense-group > label {
@@ -290,7 +290,7 @@ a.sentence-part:hover + .sentence-part.affix {
   color: var(--isun-text-secondary);
 }
 
-.form-group.checkbox {
+.invisible-sun .form-group.checkbox {
   flex-direction: row;
   align-items: center;
   gap: var(--isun-space-xs);
@@ -300,14 +300,14 @@ a.sentence-part:hover + .sentence-part.affix {
 
 /* Foundry's {{formGroup}} emits .form-group > label + .form-fields, so the
    generic schema-driven item sheet needs the inner wrapper styled too. */
-.form-fields {
+.invisible-sun .form-fields {
   display: flex;
   align-items: center;
   gap: var(--isun-space-xs);
   min-width: 0;
 }
 
-.form-fields > * {
+.invisible-sun .form-fields > * {
   flex: 1;
   min-width: 0;
 }
@@ -622,7 +622,7 @@ a.sentence-part:hover + .sentence-part.affix {
   margin-bottom: 2px;
 }
 
-.tag {
+.invisible-sun .tag {
   display: inline-block;
   font-size: 0.8em;
   padding: 1px 7px;
@@ -631,9 +631,9 @@ a.sentence-part:hover + .sentence-part.affix {
   border: 1px solid var(--isun-border);
 }
 
-.tag.quality { color: var(--isun-acumen); border-color: rgba(39,174,96,0.45); }
+.invisible-sun .tag.quality { color: var(--isun-acumen); border-color: rgba(39,174,96,0.45); }
 /* Absences are what a thread cannot do, so they read as a constraint. */
-.tag.absence { color: var(--isun-wound); border-color: rgba(192,57,43,0.45); }
+.invisible-sun .tag.absence { color: var(--isun-wound); border-color: rgba(192,57,43,0.45); }
 
 /* ════════════════════════════════════════════════════════
  * CONNECTIONS
@@ -814,7 +814,7 @@ a.sentence-part:hover + .sentence-part.affix {
   gap: 2px;
 }
 
-.step-title {
+.invisible-sun .step-title {
   font-family: var(--isun-font-heading);
   color: var(--isun-text-primary);
   font-size: 0.9em;
@@ -1263,7 +1263,7 @@ a.sentence-part:hover + .sentence-part.affix {
 /* The practice a roll was for, on the result card. Set apart from the numbers
  * above it, because it is the one part of the card a player who does not own
  * the item cannot get anywhere else. */
-.dice-result .used-practice {
+.isun-dice-result .used-practice {
   margin: var(--isun-space-xs) 0;
   padding: var(--isun-space-xs) var(--isun-space-sm);
   border: 1px solid var(--isun-border);
@@ -1273,7 +1273,7 @@ a.sentence-part:hover + .sentence-part.affix {
   text-align: left;
 }
 
-.dice-result .up-head {
+.isun-dice-result .up-head {
   display: flex;
   align-items: center;
   gap: var(--isun-space-sm);
@@ -1281,7 +1281,7 @@ a.sentence-part:hover + .sentence-part.affix {
 
 /* The practice's own art, which says what kind of thing this is faster than
  * the word beneath it does. Square and small: it is a mark, not a picture. */
-.dice-result .up-icon {
+.isun-dice-result .up-icon {
   flex: 0 0 auto;
   width: 34px;
   height: 34px;
@@ -1291,35 +1291,35 @@ a.sentence-part:hover + .sentence-part.affix {
   background: var(--isun-bg-elevated);
 }
 
-.dice-result .up-titles {
+.isun-dice-result .up-titles {
   display: flex;
   flex-direction: column;
   min-width: 0;
   flex: 1;
 }
 
-.dice-result .up-name {
+.isun-dice-result .up-name {
   font-family: var(--isun-font-heading);
   color: var(--isun-text-accent);
   line-height: 1.15;
 }
 
-.dice-result .up-kind,
-.dice-result .up-level {
+.isun-dice-result .up-kind,
+.isun-dice-result .up-level {
   font-size: 0.78em;
   font-family: var(--isun-font-smallcaps);
   color: var(--isun-text-secondary);
 }
 
-.dice-result .up-kind {
+.isun-dice-result .up-kind {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.dice-result .up-level { flex: 0 0 auto; white-space: nowrap; }
+.isun-dice-result .up-level { flex: 0 0 auto; white-space: nowrap; }
 
-.dice-result .up-costs {
+.isun-dice-result .up-costs {
   display: flex;
   flex-wrap: wrap;
   gap: var(--isun-space-sm);
@@ -1328,9 +1328,9 @@ a.sentence-part:hover + .sentence-part.affix {
   color: var(--isun-text-secondary);
 }
 
-.dice-result .up-cost.free { font-style: italic; }
+.isun-dice-result .up-cost.free { font-style: italic; }
 
-.dice-result .up-description {
+.isun-dice-result .up-description {
   margin-top: var(--isun-space-xs);
   padding-top: var(--isun-space-xs);
   border-top: 1px solid var(--isun-border);
@@ -1338,8 +1338,8 @@ a.sentence-part:hover + .sentence-part.affix {
   color: var(--isun-text-primary);
 }
 
-.dice-result .up-description p { margin: 0 0 0.4em; }
-.dice-result .up-description p:last-child { margin-bottom: 0; }
+.isun-dice-result .up-description p { margin: 0 0 0.4em; }
+.isun-dice-result .up-description p:last-child { margin-bottom: 0; }
 
 /* ── Roll result ──────────────────────────────────────── */
 .flux-intensity {
@@ -1809,7 +1809,7 @@ a.sentence-part:hover + .sentence-part.affix {
    Drawn per client: a player sees the row they can answer, a GM sees them all.
    Compact, because several of these stack up in a chat log.
 
-   Self-contained colour, as .dice-result is. A chat message sits outside the
+   Self-contained colour, as .isun-dice-result is. A chat message sits outside the
    .invisible-sun.sheet scope, so it inherits Foundry's chat palette instead —
    which rendered the name in near-black on our dark card and the buttons as
    rgb(17,17,17) on rgba(0,0,0,0.1): an unreadable black box. */

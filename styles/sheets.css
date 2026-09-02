@@ -6,7 +6,7 @@
 }
 
 /* Header */
-.sheet-header {
+.invisible-sun .sheet-header {
   display: flex;
   flex-direction: row;
   padding: var(--isun-space-md);
@@ -101,7 +101,7 @@
 /* Tabs */
 /* Nine tabs no longer fit one row at the default width, so let them wrap
    rather than overflow off the edge of the sheet. */
-.sheet-tabs {
+.invisible-sun .sheet-tabs {
   display: flex;
   flex-wrap: wrap;
   /* Core styles the tab strip for a single row; without these the wrapped
@@ -113,7 +113,7 @@
   padding: 0 var(--isun-space-md);
 }
 
-.sheet-tabs .item {
+.invisible-sun .sheet-tabs .item {
   padding: var(--isun-space-sm) var(--isun-space-sm);
   white-space: nowrap;
   flex: 0 0 auto;
@@ -126,12 +126,12 @@
   transition: all 0.2s ease;
 }
 
-.sheet-tabs .item:hover {
+.invisible-sun .sheet-tabs .item:hover {
   color: var(--isun-text-primary);
   text-shadow: var(--isun-glow-gold);
 }
 
-.sheet-tabs .item.active {
+.invisible-sun .sheet-tabs .item.active {
   color: var(--isun-text-accent);
   border-bottom: 2px solid var(--isun-border-accent);
 }
@@ -154,8 +154,8 @@
 }
 
 /* Header and tab strip keep their natural height while the body flexes. */
-.sheet-header,
-.sheet-tabs {
+.invisible-sun .sheet-header,
+.invisible-sun .sheet-tabs {
   flex: 0 0 auto;
 }
 
@@ -172,7 +172,7 @@
   gap: var(--isun-space-md);
 }
 
-.form-group.full-width {
+.invisible-sun .form-group.full-width {
   grid-column: 1 / -1;
 }
 

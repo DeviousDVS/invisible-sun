@@ -329,6 +329,7 @@ export class PathOfSuns extends HandlebarsApplicationMixin(ApplicationV2) {
     const chosen = await DialogV2.prompt({
       window: { title: game.i18n.format("ISUN.PathPlaceOn", {
         sun: game.i18n.localize(CONFIG.ISUN.suns[sun].label) }) },
+      classes: ["invisible-sun", "path-place-dialog"],
       content: `<select name="uuid" style="width:100%">${options}</select>`,
       ok: {
         label: game.i18n.localize("ISUN.PathPlace"),

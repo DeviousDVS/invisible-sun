@@ -94,6 +94,7 @@ export class VentureDialog {
 
     const result = await DialogV2.wait({
       window: { title: `Venture — ${label || skill?.name || actor.name}` },
+      classes: ["invisible-sun", "venture-dialog-app"],
       content,
       buttons: [
         { action: "roll", label: "Roll", default: true, icon: "fa-solid fa-dice",

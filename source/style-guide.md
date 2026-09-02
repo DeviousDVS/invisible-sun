@@ -217,6 +217,37 @@ Every rule is scoped to a component root — `.path-of-suns`, `.challenge-card`,
 `.sooth-card`. Design tokens are `--isun-*` custom properties on `:root` (41 of
 them). **Never write a raw colour where a token exists.**
 
+#### A stylesheet is loaded into all of Foundry, not into our windows
+
+There is no scoping. A rule written for a sheet applies to every element in the
+application that matches it — the file picker, the settings menus, and other
+systems' sheets.
+
+What decides whether a rule can escape is its **leftmost** compound selector,
+because that is what has to match before anything after it is considered.
+`.item-list .item` is safe: core has no `.item-list` to contain the `.item`.
+`.form-group > label` is not, and that pair is what made every labelled field
+in Foundry stack its label above its control and shout it in the heading font.
+
+So the head of a top-level selector must be ours:
+
+- **Lead with a class we own.** `.thread-card`, `.pool-row`, `.arc-status`.
+- **Never lead with a bare element.** `label {}` styles every label in Foundry.
+- **Never lead with a name Foundry uses.** `.form-group`, `.sheet-header`,
+  `.dice-result`, `.tag`. Scope it under `.invisible-sun`, which every sheet,
+  app and dialog this system opens carries.
+- **Chat cards have no such ancestor**, so they take an `isun-` prefix instead:
+  `.isun-dice-result`, `.isun-chat-card`.
+
+`check.mjs` enforces the last three. It carries a list of core class names,
+every one of which was looked up in `foundry2.css` rather than guessed — six
+plausible ones were dropped on being checked, `.item` and `.item-list` among
+them.
+
+A dialog opened with `DialogV2` gets no classes unless you pass them. Pass
+`classes: ["invisible-sun", "<name>"]` every time, or its content sits outside
+the scope everything else relies on.
+
 ---
 
 ## 5. Architecture
