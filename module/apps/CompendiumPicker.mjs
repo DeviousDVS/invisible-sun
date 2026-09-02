@@ -22,9 +22,11 @@ const { DialogV2 } = foundry.applications.api;
 export class CompendiumPicker {
 
   /**
-   * @param {object}   config
-   * @param {Actor}    config.actor      who is being added to
-   * @param {string}   config.pack       pack id, e.g. "invisible-sun.threads"
+   * @param {object}          config
+   * @param {Actor}           config.actor  who is being added to
+   * @param {string|string[]} config.pack   pack id, or several — spells are
+   *                                        split across two, and a Vance holds
+   *                                        from both
    * @param {string}   config.type       item type the "create new" button makes
    * @param {string}   config.title      window title
    * @param {string}   [config.hint]     a line above the list
@@ -34,19 +36,33 @@ export class CompendiumPicker {
    * @returns {Promise<Item[]>} the items added, empty if nothing was
    */
   static async open({ actor, pack, type, title, hint = "", fields = [], only, summarise }) {
-    const compendium = game.packs.get(pack);
-    if (!compendium) {
-      ui.notifications?.error(game.i18n.format("ISUN.PackMissing", { pack }));
-      return [];
+    /* One pack or several. A missing one is reported and passed over rather
+     * than fatal: a world without the Vance deck should still be able to add a
+     * general spell, and refusing the lot would say the opposite. */
+    const wanted = [pack].flat().filter(Boolean);
+    const packs = [];
+    for (const id of wanted) {
+      const compendium = game.packs.get(id);
+      if (compendium) packs.push([id, compendium]);
+      else ui.notifications?.warn(game.i18n.format("ISUN.PackMissing", { pack: id }));
     }
+    if (!packs.length) return [];
 
-    const index = await compendium.getIndex({ fields: fields.map(f => `system.${f}`) });
     // Held by name: a compendium item copied onto an actor keeps its name but
     // gets a new id, so the id is no use for telling what is already there.
     const held = new Set(actor.items.filter(i => i.type === type)
       .map(i => i.name.toLowerCase()));
 
-    const entries = [...index]
+    const index = [];
+    for (const [id, compendium] of packs) {
+      const read = await compendium.getIndex({ fields: fields.map(f => `system.${f}`) });
+      /* uuid is read across explicitly: on an index entry it is a getter, and
+       * spreading would drop it and fall back to a uuid built by hand. The
+       * pack id is carried for that fallback's sake. */
+      for (const entry of read) index.push({ ...entry, uuid: entry.uuid, _pack: id });
+    }
+
+    const entries = index
       .filter(e => !type || e.type === type)
       // A caller may narrow the pack to a specific set — seeking a conation
       // incantation offers only the ones the vislae has known before, not the
@@ -55,7 +71,9 @@ export class CompendiumPicker {
       .sort((a, b) => a.name.localeCompare(b.name))
       .map(e => ({
         id: e._id,
-        uuid: e.uuid ?? `Compendium.${pack}.${e._id}`,
+        // "Compendium.<scope>.<pack>.<DocumentType>.<id>" — the document type
+        // is not optional, and the form without it resolves to nothing.
+        uuid: e.uuid ?? `Compendium.${e._pack}.Item.${e._id}`,
         name: e.name,
         img: e.img,
         summary: summarise?.(e) ?? "",

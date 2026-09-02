@@ -127,7 +127,11 @@
   </div>
 
   <div class="practice-add">
-    <a class="item-create" data-type="Spell" data-action="item-create"><i class="fa-solid fa-plus"></i> {{localize "TYPES.Item.Spell"}}</a>
+    {{!-- A picker, not a create. Everything a spell card prints is already in
+          the packs, so a blank Spell is a page of retyping. Both decks are
+          offered: a Vance holds general spells beside their grimoire. Inventing
+          one is still on the button inside. --}}
+    <a class="item-pick" data-action="pick-spell"><i class="fa-solid fa-plus"></i> {{localize "TYPES.Item.Spell"}}</a>
     {{!-- An incantation is granted, not picked: the universe decides what the
           character gets. So this draws one rather than making a blank item or
           opening a list. --}}

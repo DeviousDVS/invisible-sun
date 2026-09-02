@@ -62,6 +62,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       "toggle-degree":      this.prototype._onToggleDegree,
       "pick-forte-ability": this.prototype._onPickForteAbility,
       "pick-thread":        this.prototype._onPickThread,
+      "pick-spell":         this.prototype._onPickSpell,
       "grant-incantation":  this.prototype._onGrantIncantation,
       "filter-practices":   this.prototype._onFilterPractices,
       "advancement-adjust": this.prototype._onAdjustAdvancement,
@@ -756,6 +757,65 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
         const range = [s.defaultRange, s.defaultDuration].filter(Boolean).join(" · ");
         const qualities = (s.qualities ?? []).slice(0, 4).join(", ");
         return [qualities, range].filter(Boolean).join("  —  ");
+      }
+    });
+    this.render();
+  }
+
+  /**
+   * Add a spell from the compendium.
+   *
+   * A blank Spell is a page of retyping — level, colour, cost, range, duration,
+   * depletion, dice, facets and the description, all of which are printed on a
+   * card that is already in the pack. So the "+" offers the pack, and keeps the
+   * option to invent one for a spell a table has made up.
+   *
+   * Which decks are offered depends on the order, and the two directions are
+   * not symmetrical. A Vance holds general spells beside the ones in their
+   * grimoire, so they are offered both. Nobody else is offered the Vance deck
+   * at all: Vancian magic is what the order *is* — spells prepared into the
+   * mind and cast free — and there is no price at which a Weaver buys into it.
+   *
+   * Offered, not enforced. A spell already on the sheet stays there and still
+   * casts, so a GM who hands a Vance spell to somebody else as a plot object
+   * has not been overruled by a dialog. This only decides what the "+" puts in
+   * front of a player, which for a Weaver was a whole deck they could never use.
+   *
+   * A character with no Order item yet counts as not a Vance, which is right:
+   * the deck arrives with the order, and dropping the Order on the sheet is
+   * what opens it.
+   */
+  async _onPickSpell(event, target) {
+    event.preventDefault();
+    const vance = this.document.orderKey === "vance";
+    await CompendiumPicker.open({
+      actor: this.document,
+      pack: vance
+        ? ["invisible-sun.spells", "invisible-sun.vance-spells"]
+        : ["invisible-sun.spells"],
+      type: "Spell",
+      title: game.i18n.localize("ISUN.PickerSpellTitle"),
+      hint: game.i18n.localize(vance ? "ISUN.PickerSpellHintVance" : "ISUN.PickerSpellHint"),
+      /* More than the summary shows: the picker searches everything the index
+       * carries, so fetching depletion means "sun sets" finds the spells that
+       * end at nightfall even though no row prints it. */
+      fields: ["level", "color", "spellType", "depletion", "cost", "facets"],
+      /* What tells one spell from another in a list of several hundred: its
+       * level, which is also what it costs to cast, its colour, and the
+       * tradition it belongs to. The tradition is said only when there is one —
+       * "general" is the absence of a tradition rather than a fifth one, and
+       * printing it on every general spell would bury the word on the rows
+       * where it means something. */
+      summarise: e => {
+        const sys = e.system ?? {};
+        const tradition = sys.spellType && sys.spellType !== "general"
+          ? game.i18n.localize(CONFIG.ISUN.spellTypes[sys.spellType] ?? sys.spellType)
+          : "";
+        /* Not localised: spellColorChoices maps a colour to itself, so the
+         * stored value is already the label. The suns are named, not described. */
+        const colour = sys.color ?? "";
+        return [sys.level != null ? game.i18n.format("ISUN.LevelN", { level: sys.level }) : "",
+                colour, tradition].filter(Boolean).join(" · ");
       }
     });
     this.render();
