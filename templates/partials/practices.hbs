@@ -112,7 +112,14 @@
             </span>
           {{/if}}
         </div>
-        <div class="depletion" title="{{p.depletion}}">{{p.depletion}}</div>
+        {{!-- A button only where there is a number to throw. An entry that ends
+              on the next sunset has no range, so it stays as words. --}}
+        {{#if p.depletionRollable}}
+          <a class="depletion rollable" data-action="roll-depletion"
+             data-tooltip="{{p.depletion}} — {{localize 'ISUN.DepletionRollHint'}}">{{p.depletion}}</a>
+        {{else}}
+          <div class="depletion" title="{{p.depletion}}">{{p.depletion}}</div>
+        {{/if}}
         <div class="actions">
           <a class="btn-cast" data-action="{{p.action}}" title="{{localize 'ISUN.Use'}}">
             <i class="fa-solid fa-wand-sparkles"></i>

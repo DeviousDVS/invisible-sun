@@ -96,6 +96,37 @@ export function canCast(actor, item) {
 }
 
 /**
+ * The range a depletion roll checks against, or null if there is no roll.
+ *
+ * Depletion is printed as a number and a moment: "0 (check each round)",
+ * "0–1 (check each use)", "0–4 (check each hour)". The number is the range a
+ * d10 has to land in; the parenthesis says when to throw it, and that is the
+ * table's business rather than the sheet's.
+ *
+ * Anchored at the start, which is the whole of the difference between a
+ * depletion and a condition. Two entries read "Ends automatically when you
+ * suffer 5 points of cumulative cold damage" — an unanchored pattern finds the
+ * 5 and offers a depletion roll of 5 that the book never wrote. Of 541 entries
+ * across the packs, 370 begin with a number and are rolled; the other 171 end
+ * on a sunrise, a sunset or a condition and are never rolled at all.
+ *
+ * The dash matters as much as the anchor. Every ranged entry in the packs is
+ * written with an en dash and not one with a hyphen, so a pattern accepting
+ * only "-" read "1–3" as 1 and "0–1" as 0 — understating depletion on every
+ * ranged item in the game.
+ *
+ * @returns {{low: number, high: number}|null}
+ */
+export function depletionRange(depletion) {
+  if (typeof depletion !== "string") return null;
+  const match = depletion.match(/^\s*(\d+)\s*(?:[-–—]\s*(\d+))?/);
+  if (!match) return null;
+
+  const low = Number(match[1]);
+  return { low, high: match[2] !== undefined ? Number(match[2]) : low };
+}
+
+/**
  * What to call this kind of practice.
  *
  * A spell names its tradition, because the four are not interchangeable and one

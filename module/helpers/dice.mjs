@@ -4,6 +4,7 @@
 
 import { colorsetForSun } from "./dice-so-nice.mjs";
 import * as flux from "./flux.mjs";
+import { depletionRange } from "./practice.mjs";
 import { outcomeKind } from "./outcome.mjs";
 
 /**
@@ -146,34 +147,26 @@ export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, so
  * in it simply does not deplete.
  */
 export async function checkDepletion(depletionString, actor = null) {
-  if (typeof depletionString !== "string") return null;
-  if (!depletionString || depletionString === "—") return null;
-
-  /* "X" or "X–Y". The dash is the point: every ranged entry in the packs — all
-   * 153 of them — is written with an en dash, and not one uses a hyphen, so a
-   * pattern accepting only "-" never matched a range at all. It read "1–3" as
-   * 1 and "0–1" as 0, understating depletion on every ranged item in the game.
-   * Both dashes and the em dash are accepted now; the leading guard above still
-   * catches a bare "—" used to mean "does not deplete". */
-  const match = depletionString.match(/(\d+)\s*(?:[-–—]\s*(\d+))?/);
-  if (!match) return null;
-  
-  const low = parseInt(match[1]);
-  const high = match[2] !== undefined ? parseInt(match[2]) : low;
+  /* Reading the range is helpers/practice.mjs's, because the sheet has to ask
+   * the same question to know whether the depletion is one that can be rolled
+   * at all — 171 of the 541 entries end on a sunrise or a condition instead. */
+  const range = depletionRange(depletionString);
+  if (!range) return null;
+  const { low, high } = range;
   
   const roll = await new Roll("1d10").evaluate();
   const rawResult = roll.dice[0].results[0].result;
   const result = rawResult === 10 ? 0 : rawResult; // Map 10 to 0
   
   const depleted = result >= low && result <= high;
-  const range = low === high ? String(low) : `${low}–${high}`;
+  const rangeText = low === high ? String(low) : `${low}–${high}`;
 
   const { renderTemplate } = foundry.applications.handlebars;
   const content = await renderTemplate(
     "systems/invisible-sun/templates/chat/depletion-result.hbs",
     {
-      result, depleted, range,
-      rangeLabel: game.i18n.format("ISUN.DepletionRange", { range }),
+      result, depleted, range: rangeText,
+      rangeLabel: game.i18n.format("ISUN.DepletionRange", { range: rangeText }),
       original: depletionString
     });
 
@@ -183,7 +176,7 @@ export async function checkDepletion(depletionString, actor = null) {
     rolls: [roll]
   });
 
-  return { roll, result, depleted, range, original: depletionString };
+  return { roll, result, depleted, range: rangeText, original: depletionString };
 }
 
 /**

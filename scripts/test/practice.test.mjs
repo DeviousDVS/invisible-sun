@@ -120,6 +120,50 @@ describe("whether it can be used at all", () => {
   });
 });
 
+describe("whether a depletion can be rolled at all", () => {
+
+  /* The number is what a d10 must land in; the parenthesis says when to throw
+   * it, and that half is the table's. These cases are the ones that decide
+   * whether the column is a button or just words. */
+
+  test("a single number, and the moment it names is ignored", () => {
+    assert.deepEqual(practice.depletionRange("0 (check each round)"), { low: 0, high: 0 });
+    assert.deepEqual(practice.depletionRange("0 (check each use)"), { low: 0, high: 0 });
+    assert.deepEqual(practice.depletionRange("2 (check each hour)"), { low: 2, high: 2 });
+  });
+
+  test("a range, written with the dash the books actually use", () => {
+    // Every ranged entry in the packs uses an en dash and not one a hyphen. A
+    // pattern accepting only "-" read "0–1" as 0 and understated depletion on
+    // every ranged item in the game.
+    assert.deepEqual(practice.depletionRange("0–1 (check each use)"), { low: 0, high: 1 });
+    assert.deepEqual(practice.depletionRange("0—4 (check each hour)"), { low: 0, high: 4 });
+    assert.deepEqual(practice.depletionRange("1-3"), { low: 1, high: 3 });
+  });
+
+  test("nothing to roll for one that ends on a sunrise or a sunset", () => {
+    // 171 of the 541 entries across the packs are these. They are conditions,
+    // not rolls, and offering a die for them would invent a rule.
+    assert.equal(practice.depletionRange("Ends automatically when the sun next sets"), null);
+    assert.equal(practice.depletionRange("When the sun next rises or sets"), null);
+  });
+
+  test("a number inside a condition is not a range", () => {
+    /* "Ends automatically when you suffer 5 points of cumulative cold damage."
+     * An unanchored pattern finds the 5 and offers a depletion of 5 that the
+     * book never wrote. Two entries read like this, and both used to roll. */
+    assert.equal(practice.depletionRange(
+      "Ends automatically when you suffer 5 points of cumulative cold damage"), null);
+  });
+
+  test("the dash used to mean it does not deplete", () => {
+    assert.equal(practice.depletionRange("—"), null);
+    assert.equal(practice.depletionRange(""), null);
+    assert.equal(practice.depletionRange(null), null);
+    assert.equal(practice.depletionRange(undefined), null);
+  });
+});
+
 describe("the challenge a practice faces", () => {
 
   test("the level of what is targeted", () => {

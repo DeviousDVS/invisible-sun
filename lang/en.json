@@ -435,6 +435,7 @@
     "DieUnit": "die",
     "DiceUnit": "dice",
     "Depletion": "Depletion",
+    "DepletionRollHint": "click to roll it. The book says when to check; the moment is yours.",
     "Free": "free",
     "NoPractices": "No spells, incantations, forte abilities or minor magics yet.",
     "NoHouseSecrets": "No house secrets.",

@@ -72,6 +72,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
        * mean "use this", and all reach the same handler. */
       "toggle-prepared":    this.prototype._onTogglePrepared,
       "toggle-halved":      this.prototype._onToggleHalved,
+      "roll-depletion":     this.prototype._onRollDepletion,
       "roll-spell":         this.prototype._onItemRoll,
       "roll-incantation":   this.prototype._onItemRoll,
       "use-ability":        this.prototype._onItemRoll
@@ -344,6 +345,10 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
           ? `+${sys.bonusDice} ${game.i18n.localize(sys.bonusDice === 1 ? "ISUN.DieUnit" : "ISUN.DiceUnit")}`
           : ""),
         depletion: sys.depletion || "",
+        /* Whether the Depletion column is a button or just words. 370 of the
+         * 541 entries begin with a number and can be thrown; the rest end on a
+         * sunrise or a condition and there is nothing to roll. */
+        depletionRollable: !!practiceRules.depletionRange(sys.depletion),
         condition: sys.condition || "",
         /* What the board is doing to this one right now. "Spells and effects
          * linked to the stronger sun have their effective level increased by 1
@@ -760,6 +765,30 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       }
     });
     this.render();
+  }
+
+  /**
+   * Roll a practice's depletion, when the table says the moment has come.
+   *
+   * "0 (check each round)", "0–1 (check each use)", "0–4 (check each hour)" —
+   * the number is what a d10 has to land in and the parenthesis is when to
+   * throw it. Only the second half of that is a rule the sheet could enforce,
+   * and it would need to know about rounds, hours and days that Foundry is not
+   * tracking, so the moment stays the table's and the throw is a click.
+   *
+   * Offered only where there is something to roll: an entry that ends on the
+   * next sunset has no range, and the column renders as plain text.
+   */
+  async _onRollDepletion(event, target) {
+    event.preventDefault();
+    const li = target.closest(".item");
+    const item = li && this.document.items.get(li.dataset.itemId);
+    if (!item) return;
+
+    /* The depletion value, not the item holding it. checkDepletion parses a
+     * string, so passing the Item put an object through .match() and threw —
+     * and a guard on truthiness could not catch it, because an Item is truthy. */
+    await game.invisibleSun.checkDepletion(item.system?.depletion ?? "", this.document);
   }
 
   /**
@@ -1219,16 +1248,16 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
      * practice that was never used should not have been paid for. */
     if (cost) await doc.adjustPool("sorcery", -cost);
 
-    /* The depletion value, not the item holding it. checkDepletion parses a
-     * string, so passing the Item put an object through .match() and threw —
-     * and the guard above it could not catch that, because an Item is truthy.
+    /* Depletion is deliberately not rolled here. It used to be, on the reading
+     * that using a thing is when it wears out — but the books say when to check
+     * and it is hardly ever the moment of casting. Of 541 entries across the
+     * packs: 106 check each round, 49 each use, 25 each hour, 10 each day, and
+     * 171 do not roll at all but end on a sunrise, a sunset or a condition.
+     * Rolling on the cast was wrong for the great majority and quietly spent
+     * things that should still have been in play.
      *
-     * Awaited, so the depletion result cannot reach chat ahead of the roll it
-     * follows, and given the actor so the message has a speaker. */
-    if (item.system.depletion) {
-      await game.invisibleSun.checkDepletion(item.system.depletion, doc);
-    }
-
+     * So the table decides when, and the Depletion column in the practices
+     * table is the control that throws it. See _onRollDepletion. */
 
     await this.constructor.#offerRetain(doc, item);
   }
