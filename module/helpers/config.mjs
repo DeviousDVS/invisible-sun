@@ -617,10 +617,14 @@ export const ISUN = Object.freeze({
   },
 
   /**
-   * The mark for magical flux: Font Awesome 7 `fa-burst`.
+   * The Experimental Die's marked face: Font Awesome 7 `fa-disease`.
    *
-   * Defined once here and read by everything that draws it — the Experimental
-   * Die's 3D face, the chat card, and Foundry's own roll tooltip. The
+   * The last Font Awesome mark left. Everything else that stood for a flux now
+   * wears `fluxMark` below — the sun drawn for this system — and this one is
+   * next, whenever the die it belongs to is worth reopening.
+   *
+   * Read by the Experimental Die's 3D face, the chat card, and Foundry's own
+   * roll tooltip. The
    * stylesheet reads it through the --isun-flux-glyph custom property rather
    * than repeating the codepoint, so changing this line changes all of them.
    *

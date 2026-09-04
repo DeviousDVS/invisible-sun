@@ -196,7 +196,7 @@ Hooks.once("init", () => {
         name: "magicalFlux",
         order: 91,
         title: "ISUN.FluxButton",
-        icon: "fa-solid fa-burst",
+        icon: "isun-flux-icon",
         button: true,
         onChange: () => flux.promptShift()
       };

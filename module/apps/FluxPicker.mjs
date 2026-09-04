@@ -55,7 +55,7 @@ export class FluxPicker {
       : game.i18n.localize("ISUN.FluxPickerTitle");
 
     const chosen = await DialogV2.wait({
-      window: { title, icon: "fa-solid fa-burst" },
+      window: { title, icon: "isun-flux-icon" },
       classes: ["invisible-sun", "flux-picker"],
       position: { width: 620, height: 640 },
       content: this.#content(entries, intensity),

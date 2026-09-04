@@ -188,6 +188,29 @@
   filter: drop-shadow(0 0 5px var(--isun-flux)) drop-shadow(0 0 2px var(--isun-flux));
 }
 
+/* The flux mark as an icon, anywhere a Font Awesome class would go — a window
+   header, a dialog button, a scene control, or an <i> in a template. Foundry
+   writes the class it is given onto an <i>, so a class is all this has to be.
+
+   Masked rather than an <img> so it takes the colour of whatever it sits in,
+   the way a glyph does, and so the one file serves the die, the chat card and
+   these without a coloured copy for each.
+
+   The file carries a wide margin, sized so the mark sits clear of the edges of
+   a Dice So Nice face: the drawing is 55% of it. Anywhere flatter than a die
+   that margin is only empty space, so the mask is scaled past its box to crop
+   it — 100/55, about 180%, would make the drawing exactly fill the box, and
+   this sits just under that so the mark has the breathing room a glyph has. */
+.isun-flux-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  background-color: currentColor;
+  -webkit-mask: var(--isun-flux-mark) center / 165% no-repeat;
+  mask: var(--isun-flux-mark) center / 165% no-repeat;
+}
+
 /* A magic die reading 0 has fluxed, and the 0 says nothing else: dice are only
    thrown when the target is 1 or more, so a 0 face can never score. The mark
    goes where the numeral was, and nothing is lost by it.

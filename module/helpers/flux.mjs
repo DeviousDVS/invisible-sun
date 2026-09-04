@@ -219,7 +219,7 @@ function renderEffect(message, warning, flux, actor) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "flux-choose";
-  button.innerHTML = `<i class="fa-solid fa-burst"></i> `
+  button.innerHTML = `<i class="isun-flux-icon"></i> `
     + game.i18n.localize("ISUN.FluxChooseEffect");
   button.addEventListener("click", () => chooseEffect(message, actor));
   warning.append(button);
@@ -435,7 +435,7 @@ export async function promptShift() {
       `<option value="${esc(key)}">${esc(game.i18n.localize(label))}</option>`).join("");
 
   const chosen = await DialogV2.wait({
-    window: { title: game.i18n.localize("ISUN.FluxShiftTitle"), icon: "fa-solid fa-burst" },
+    window: { title: game.i18n.localize("ISUN.FluxShiftTitle"), icon: "isun-flux-icon" },
     classes: ["invisible-sun", "flux-shift-dialog"],
     content: `<div class="flux-shift-form">
         <p class="hint">${game.i18n.localize("ISUN.FluxShiftHint")}</p>
@@ -450,7 +450,7 @@ export async function promptShift() {
       </div>`,
     buttons: [
       { action: "raise", label: game.i18n.localize("ISUN.FluxShiftRaise"), default: true,
-        icon: "fa-solid fa-burst",
+        icon: "isun-flux-icon",
         callback: (event, button) => ({
           actor: button.form.elements.actor.value,
           intensity: button.form.elements.intensity.value
