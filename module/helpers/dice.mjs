@@ -119,9 +119,14 @@ export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, so
   const fluxIntensity = !hasFlux ? ""
     : CONFIG.ISUN.fluxByDice[Math.min(diceCast, 3)] ?? "grand";
   /* The bare value is a key fragment and a CSS class, not something to show a
-   * player — the card was printing "minor" where it meant "Minor flux". */
+   * player — the card was printing "minor" where it meant "Minor flux".
+   *
+   * Read from the table rather than spelled out of the value: it is the same
+   * three keys either way, but a composed key is invisible to the localisation
+   * check, and the dynamic prefix that had to be declared to keep it quiet
+   * exempted every other flux string from the unused report along with it. */
   const fluxIntensityLabel = fluxIntensity
-    ? game.i18n.localize(`ISUN.Flux${fluxIntensity.charAt(0).toUpperCase()}${fluxIntensity.slice(1)}`)
+    ? game.i18n.localize(CONFIG.ISUN.fluxIntensities[fluxIntensity] ?? "")
     : "";
 
   // Success comes from the mundane die and any magic dice — never from an

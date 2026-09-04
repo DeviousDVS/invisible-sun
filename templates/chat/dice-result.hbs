@@ -7,13 +7,12 @@
       system does not otherwise need. --}}
 {{#*inline "fluxWarning"}}
   <div class="flux-warning">
-    <i class="fa-solid fa-burst"></i> {{localize "ISUN.MagicalFlux"}}
+    {{localize "ISUN.MagicalFlux"}}
     {{!-- The intensity is localised before it gets here: the raw value is a key
           fragment ("minor"), not something to show a player. --}}
     {{#if fluxIntensityLabel}}
       <span class="flux-intensity {{fluxIntensity}}">{{fluxIntensityLabel}}</span>
     {{/if}}
-    <p>{{#if fluxReason}}{{localize fluxReason}}{{else}}{{localize "ISUN.FluxWarning"}}{{/if}}</p>
   </div>
 {{/inline}}
 

@@ -56,7 +56,6 @@ const pathOfSuns = Object.entries(suns)
 export const DYNAMIC_KEY_PREFIXES = Object.freeze([
   "ISUN.Arc",            // arc status:      character-arc-tracker.hbs
   "ISUN.ChallengeState", // response state:  ChallengeCard.mjs
-  "ISUN.Flux",           // flux intensity:  dice.mjs
   "ISUN.Injury",         // injury source:   wound-tracker.hbs, _fields.mjs
   "ISUN.Kind",           // practice kind:   ISUNVislaeSheet.mjs
   "ISUN.Outcome",        // roll outcome:    ChallengeCard.mjs

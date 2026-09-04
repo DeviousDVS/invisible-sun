@@ -399,8 +399,7 @@ export async function raise({ actor, intensity = "minor", label = "" }) {
     shift: true,
     label: label || game.i18n.localize("ISUN.FluxShiftLabel"),
     fluxIntensity: intensity,
-    fluxIntensityLabel: game.i18n.localize(CONFIG.ISUN.fluxIntensities[intensity] ?? ""),
-    fluxReason: "ISUN.FluxShiftWarning"
+    fluxIntensityLabel: game.i18n.localize(CONFIG.ISUN.fluxIntensities[intensity] ?? "")
   });
 
   return ChatMessage.create({
