@@ -130,6 +130,17 @@ export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, so
   const successes = allResults.filter(r => r >= target).length;
   const success = successes > 0;
   
+  /* The Sooth card first, if the magic went wrong. A flux "immediately turns a
+   * new Sooth card", and at the table the answer wants to land before the
+   * account of what caused it — so the turn is awaited here, ahead of the
+   * message, rather than left to whoever finalises the effect later.
+   *
+   * Awaited, so the two cards cannot race: the turn posts its own message and
+   * this one must follow it. A player has to ask a GM to do it and may be told
+   * nothing at all, in which case fluxTurned is false, the flag below stays
+   * live, and the card turns later exactly as it used to. */
+  const fluxTurned = hasFlux ? await flux.turnAhead() : false;
+
   // Build and post result
   return postResult({
     label, challenge, venture, target,
@@ -137,6 +148,7 @@ export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, so
     magicResults: mappedMagic,
     experimentalResults: mappedExperimental,
     success, successes, hasFlux, fluxCount, fluxIntensity, fluxIntensityLabel,
+    fluxTurned,
     roll, actor, sources, practice
   });
 }

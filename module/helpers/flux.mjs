@@ -16,18 +16,28 @@
  * is not this one.)
  *
  * ── When the card turns ──
- * After the effect is chosen, not before. The sentence is "The GM determines
- * the flux effect and immediately turns a new Sooth card" — determine, then
- * turn — and at the table it reads in that order too: the magic goes wrong, we
- * learn what it did, and the world answers with a new card.
+ * First, ahead of the roll it belongs to. "The GM determines the flux effect
+ * and immediately turns a new Sooth card" (The Way, p13) puts the turn after
+ * the determining, and this followed that literally for a while: the roll, then
+ * the effect, then the card. Play said otherwise. What a table wants to see the
+ * moment the dice land is what the world did about it, and the effect — which
+ * the GM has to read the room to choose — arrives whenever it arrives.
  *
- * It turned on sight at first, which put the board's announcement between the
- * roll and its consequence and made three cards that had nothing to say to
- * each other.
+ * So the card is turned before the roll is announced, and the log reads: the
+ * world answers, here is what was cast and what it rolled, and here in time is
+ * what the flux did.
  *
- * A flux nobody finalises therefore turns nothing. That is the honest reading —
- * it is not finished — and a GM who wants the card without picking off a chart
- * still has the board's own Turn button.
+ * ── Turning it before the message that carries it ──
+ * The flag that a GM acts on lives on the result message, so acting on the flag
+ * cannot be earlier than that message. Turning first therefore has to happen
+ * before it exists, and the board is a world setting no player may write — so a
+ * player's client asks a GM's and waits for the answer.
+ *
+ * It waits briefly and then gives up. A stalled roll is worse than a card out
+ * of order, and giving up is not losing the turn: the message still carries a
+ * live flag, and the card turns when the effect is chosen, which is exactly
+ * where it used to. Strict order when someone answers, the old order when
+ * nobody does.
  *
  * ── Why the roller does not do it ──
  * A player rolls, and the board is a world setting no player may write. So the
@@ -43,6 +53,20 @@
  */
 export const SCOPE = "invisible-sun";
 export const FLAG = "flux";
+
+/* The system's one channel. Every handler on it sees every payload, so each
+ * checks the action it owns — see ChallengeCard, which listens here too. */
+const SOCKET = "system.invisible-sun";
+const ASK = "fluxTurnAhead";
+const ANSWER = "fluxTurnedAhead";
+
+/* Long enough for a GM on the same table to answer and short enough that a
+ * silent one does not hold the dice up. A local client answers in tens of
+ * milliseconds; this is two and a half seconds. */
+const ANSWER_WAIT = 2500;
+
+/** Asks waiting on an answer, by id. */
+const waiting = new Map();
 
 /**
  * The two things a flux needs done that it cannot do itself.
@@ -66,8 +90,56 @@ const uses = { turnCard: null, chooseEffect: null };
  * Kept on the message rather than passed to a function because the client that
  * has to act is not the one that rolled, and a document is how the two meet.
  */
-export function flagFor({ fluxCount, fluxIntensity, actor }) {
-  return { count: fluxCount, intensity: fluxIntensity, actor: actor?.id ?? null, done: false };
+export function flagFor({ fluxCount, fluxIntensity, actor, fluxTurned = false }) {
+  return {
+    count: fluxCount, intensity: fluxIntensity, actor: actor?.id ?? null,
+    /* `done` is the turn's business, and it is already done when the card went
+     * out ahead of this message. Left false when nobody answered in time, which
+     * is what puts the turn back at the end of chooseEffect. */
+    done: !!fluxTurned
+  };
+}
+
+/**
+ * Turn the Sooth card now, before the roll it answers is announced.
+ *
+ * A GM turns it themselves. Anyone else asks: the board is a world setting only
+ * a GM may write, and the flag a GM normally acts on does not exist yet.
+ *
+ * @returns {Promise<boolean>} whether a card actually went out
+ */
+export async function turnAhead() {
+  if (game.user.isGM) return turnNow();
+
+  /* Nominated rather than broadcast, so two GMs cannot both turn a card. The
+   * same first-active-GM rule the challenge card uses. */
+  const gm = game.users.filter(u => u.isGM && u.active)
+    .sort((a, b) => a.id.localeCompare(b.id))[0];
+  if (!gm) return false;
+
+  const id = foundry.utils.randomID();
+  return new Promise(resolve => {
+    const giveUp = setTimeout(() => { waiting.delete(id); resolve(false); }, ANSWER_WAIT);
+    waiting.set(id, turned => {
+      clearTimeout(giveUp);
+      waiting.delete(id);
+      resolve(turned);
+    });
+    game.socket.emit(SOCKET, { action: ASK, id, gm: gm.id });
+  });
+}
+
+/**
+ * Turn one, and say so if the deck had none left.
+ *
+ * A spent deck is worth saying out loud: the rule wanted a card turned and
+ * there was none to turn, and silence would read as the flux having been
+ * handled.
+ */
+async function turnNow() {
+  const { placed, reason } = await uses.turnCard();
+  if (!placed?.length && reason) ui.notifications?.warn(game.i18n.localize(reason));
+  return !!placed?.length;
 }
 
 /**
@@ -86,15 +158,7 @@ export async function turnFor(message) {
   await message.setFlag(SCOPE, FLAG, { ...flux, done: true, by: game.user.id });
   if (message.getFlag(SCOPE, FLAG)?.by !== game.user.id) return;
 
-  const { placed, reason } = await uses.turnCard();
-
-  /* A spent deck is worth saying out loud: the rule wanted a card turned and
-   * there was none to turn, and silence would read as the flux having been
-   * handled. */
-  if (!placed.length && reason) {
-    ui.notifications?.warn(game.i18n.localize(reason));
-  }
-  return placed;
+  return turnNow();
 }
 
 /**
@@ -206,8 +270,10 @@ export async function chooseEffect(message, actor) {
     content
   });
 
-  /* And now the card, last, so the board's announcement answers the flux rather
-   * than interrupting it. */
+  /* Only if it is still owed. The card normally went out before this message
+   * did; this is the fallback for a flux whose ask found no GM listening, and
+   * turnFor answers to the flag rather than to us — it stands down when the
+   * turn is already recorded as done. */
   await turnFor(message);
 }
 
@@ -323,6 +389,11 @@ export async function raise({ actor, intensity = "minor", label = "" }) {
     "system.advancement.despair": (actor.system.advancement?.despair ?? 0) + 1
   });
 
+  /* And the Sooth card before it too, for the same reason a rolled flux turns
+   * one first: the world answers, and then we read what happened. No asking
+   * here — raise is already a GM. */
+  const turned = await turnAhead();
+
   const { renderTemplate } = foundry.applications.handlebars;
   const content = await renderTemplate("systems/invisible-sun/templates/chat/dice-result.hbs", {
     shift: true,
@@ -336,7 +407,7 @@ export async function raise({ actor, intensity = "minor", label = "" }) {
     speaker: ChatMessage.getSpeaker({ actor }),
     content,
     flags: { [SCOPE]: { [FLAG]: {
-      count: 0, intensity, actor: actor.id, done: false, despair: true, shift: true
+      count: 0, intensity, actor: actor.id, done: turned, despair: true, shift: true
     } } }
   });
 }
@@ -404,5 +475,18 @@ export async function promptShift() {
 export function listen({ turnCard, chooseEffect }) {
   uses.turnCard = turnCard;
   uses.chooseEffect = chooseEffect;
+
+  /* Both halves of the ask live here, because every client is one or the other:
+   * the nominated GM turns the card, and the asker is woken by the answer. */
+  game.socket.on(SOCKET, async (payload) => {
+    if (payload?.action === ASK) {
+      if (!game.user.isGM || payload.gm !== game.user.id) return;
+      let turned = false;
+      try { turned = await turnNow(); } catch (err) { console.error(err); }
+      game.socket.emit(SOCKET, { action: ANSWER, id: payload.id, turned });
+      return;
+    }
+    if (payload?.action === ANSWER) waiting.get(payload.id)?.(!!payload.turned);
+  });
   Hooks.on("renderChatMessageHTML", (message, html) => render(message, html));
 }

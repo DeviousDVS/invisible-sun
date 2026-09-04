@@ -106,6 +106,93 @@ describe("applying what the chart said", () => {
   });
 });
 
+describe("turning the card before the roll is announced", () => {
+
+  /* The card is meant to land before the account of what caused it, so the turn
+   * has to happen before the message that carries the flux exists. Only a GM
+   * may write the board, so a player has to ask — and what these pin down is
+   * what happens when the asking goes each of its three ways. */
+
+  let state;
+  const arm = (turns = true) => {
+    let called = 0;
+    flux.listen({
+      turnCard: async () => { called += 1; return turns ? { placed: ["a card"] } : { placed: [], reason: "ISUN.PathDeckEmpty" }; },
+      chooseEffect: async () => null
+    });
+    return () => called;
+  };
+
+  before(() => { state = stubFoundry(); });
+  after(() => unstubFoundry());
+
+  test("a GM turns it themselves, and asks nobody", async () => {
+    state.isGM = true;
+    state.sent.length = 0;
+    const calls = arm();
+
+    assert.equal(await flux.turnAhead(), true);
+    assert.equal(calls(), 1, "the card was turned here");
+    assert.deepEqual(state.sent, [], "nothing went over the wire");
+  });
+
+  test("a GM whose deck is spent reports no turn", async () => {
+    // The flag then stays live, and the card is still owed later.
+    state.isGM = true;
+    state.notified.length = 0;
+    const calls = arm(false);
+
+    assert.equal(await flux.turnAhead(), false);
+    assert.equal(calls(), 1);
+    assert.deepEqual(state.notified.map(n => n.kind), ["warn"],
+      "silence would read as the flux having been handled");
+  });
+
+  test("a player asks the first active GM, and only that one", async () => {
+    state.isGM = false;
+    state.sent.length = 0;
+    state.users = [
+      { id: "zed", isGM: true, active: true },
+      { id: "amy", isGM: true, active: true },
+      { id: "bob", isGM: false, active: true },
+    ];
+    arm();
+
+    const asked = flux.turnAhead();
+    assert.equal(state.sent.length, 1, "one ask, not one per GM");
+    const { payload } = state.sent[0];
+    assert.equal(payload.action, "fluxTurnAhead");
+    assert.equal(payload.gm, "amy", "nominated by id, so two GMs cannot both turn one");
+
+    await state.receive({ action: "fluxTurnedAhead", id: payload.id, turned: true });
+    assert.equal(await asked, true);
+  });
+
+  test("a player with no GM connected does not wait for one", async () => {
+    // Nobody can turn it, so there is nothing to wait for and the roll goes on.
+    state.isGM = false;
+    state.sent.length = 0;
+    state.users = [{ id: "bob", isGM: false, active: true },
+                   { id: "gone", isGM: true, active: false }];
+    arm();
+
+    assert.equal(await flux.turnAhead(), false);
+    assert.deepEqual(state.sent, [], "an absent GM is not asked");
+  });
+
+  test("an answer for somebody else's ask is ignored", async () => {
+    state.isGM = false;
+    state.sent.length = 0;
+    state.users = [{ id: "amy", isGM: true, active: true }];
+    arm();
+
+    const asked = flux.turnAhead();
+    await state.receive({ action: "fluxTurnedAhead", id: "not-mine", turned: true });
+    await state.receive({ action: "fluxTurnedAhead", id: state.sent[0].payload.id, turned: false });
+    assert.equal(await asked, false, "the ask resolves on its own answer, not the first one seen");
+  });
+});
+
 describe("what a rolled flux records on its message", () => {
 
   test("the count, the chart, and who it happened to", async () => {
@@ -121,5 +208,12 @@ describe("what a rolled flux records on its message", () => {
 
   test("done starts false, because nothing has been done", async () => {
     assert.equal(flux.flagFor({ fluxCount: 1, fluxIntensity: "minor" }).done, false);
+  });
+
+  test("but it starts done when the card is already out", async () => {
+    /* The turn happens before this message exists, so the flag records it as
+     * already handled — otherwise the GM finalising the effect would turn a
+     * second one. */
+    assert.equal(flux.flagFor({ fluxCount: 1, fluxIntensity: "minor", fluxTurned: true }).done, true);
   });
 });

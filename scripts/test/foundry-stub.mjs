@@ -58,12 +58,38 @@ export function stubFoundry({ automated = true, board = null, deck = [] } = {}) 
       applySoothModifiers: automated
     },
     deck,
-    isGM: true
+    isGM: true,
+    /* Who else is connected, and what went out over the wire. A flux asks a GM
+     * to turn a card before the roll is announced, so both are needed to test
+     * which way that goes. */
+    users: [],
+    sent: [],
+    socketHandlers: [],
+    hooks: [],
+    /* What the user was told. Some rules are only observable as a notification —
+     * a spent deck says so out loud rather than failing. */
+    notified: []
   };
 
   globalThis.CONFIG = { ISUN };
+  globalThis.foundry = { utils: { randomID: () => `id${state.sent.length}` } };
+  /* Recorded, not run. A module's arming point registers hooks as well as
+   * socket handlers, and a test of the second should not trip over the first. */
+  globalThis.Hooks = { on: (name, fn) => state.hooks.push({ name, fn }), once: () => {} };
+  globalThis.ui = {
+    notifications: Object.fromEntries(["warn", "error", "info"].map(kind =>
+      [kind, (message) => state.notified.push({ kind, message })]))
+  };
   globalThis.game = {
-    user: { get isGM() { return state.isGM; } },
+    user: { get isGM() { return state.isGM; }, id: "self" },
+    get users() { return state.users; },
+
+    /* Records rather than sends, and lets a test play the other end: `receive`
+     * is what a payload arriving from another client looks like. */
+    socket: {
+      emit: (channel, payload) => state.sent.push({ channel, payload }),
+      on: (channel, handler) => state.socketHandlers.push({ channel, handler })
+    },
 
     /* Backed by lang/en.json, so a string the system never wrote comes back as
      * its own key and the assertion that expected English fails. */
@@ -85,6 +111,11 @@ export function stubFoundry({ automated = true, board = null, deck = [] } = {}) 
     }
   };
 
+  /** Deliver a payload as though another client had sent it. */
+  state.receive = async (payload) => {
+    for (const { handler } of state.socketHandlers) await handler(payload);
+  };
+
   return state;
 }
 
@@ -92,6 +123,9 @@ export function stubFoundry({ automated = true, board = null, deck = [] } = {}) 
 export function unstubFoundry() {
   delete globalThis.CONFIG;
   delete globalThis.game;
+  delete globalThis.foundry;
+  delete globalThis.Hooks;
+  delete globalThis.ui;
 }
 
 /* ──────────────────────────────────────────────
