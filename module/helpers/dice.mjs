@@ -2,7 +2,7 @@
  * Invisible Sun — throwing the dice
  */
 
-import { colorsetForSun } from "./dice-so-nice.mjs";
+import { colorsetForSun, MAGIC_SYSTEM } from "./dice-so-nice.mjs";
 import * as flux from "./flux.mjs";
 import { depletionRange } from "./practice.mjs";
 import { outcomeKind } from "./outcome.mjs";
@@ -84,12 +84,15 @@ export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, so
    *
    * The Experimental Die is not listed: its preset names its own colourset, and
    * it is not one of the Nine and never was. */
-  const wear = (term, colorset) => {
-    if (!term || !colorset) return;
-    term.options.appearance = { ...(term.options.appearance ?? {}), colorset };
+  const wear = (term, appearance) => {
+    if (!term) return;
+    term.options.appearance = { ...(term.options.appearance ?? {}), ...appearance };
   };
-  wear(mundaneTerm, "isun-mundane");
-  wear(magicTerm, colorsetForSun(sun) ?? "isun-magic");
+  wear(mundaneTerm, { colorset: "isun-mundane" });
+  /* The magic die also changes system, which is what puts the flux mark on its
+   * tenth face. A preset belongs to a (type, system) pair and both dice are
+   * d10s, so this is the only way to letter one of them differently. */
+  wear(magicTerm, { colorset: colorsetForSun(sun) ?? "isun-magic", system: MAGIC_SYSTEM });
 
   const mundaneResult = mundaneTerm.results[0].result;
   const magicResults = magicTerm ? magicTerm.results.map(r => r.result) : [];

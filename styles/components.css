@@ -188,6 +188,42 @@
   filter: drop-shadow(0 0 5px var(--isun-flux)) drop-shadow(0 0 2px var(--isun-flux));
 }
 
+/* A magic die reading 0 has fluxed, and the 0 says nothing else: dice are only
+   thrown when the target is 1 or more, so a 0 face can never score. The mark
+   goes where the numeral was, and nothing is lost by it.
+
+   A mask rather than a background image. The file ships white so that Dice So
+   Nice can draw it on a die face untinted, and a mask takes its colour from
+   what is painted through it — so the same file serves both, and here it is
+   painted in the pale every other die letters its numerals in.
+
+   Pale rather than the dark the numeral used: 3.4:1 against the bright fill
+   where the dark gave 5.0, which is still ample for a mark of this size, and it
+   keeps every die in the row lettered the same colour. What says this one
+   fluxed is the mark itself and the halo, not an inverted numeral. */
+.magic-die.flux-die {
+  position: relative;
+  color: transparent;
+}
+
+.magic-die.flux-die::after {
+  content: "";
+  position: absolute;
+  /* Flush to the die, because the mark's own file carries the margin that keeps
+     it clear of the d10's points. Insetting here as well shrank it twice and
+     left barely a stroke of it on a 40px die — the size of the mark is the
+     asset's business, and one knob is enough. */
+  inset: 0;
+  background-color: var(--isun-die-label);
+  /* Over 100% on purpose. The file's margin is sized for a Dice So Nice face,
+     where the mark has to sit clear of the edges of a pentagon; a chat die is
+     already a small flat shape and wants none of that padding. Scaling past the
+     box crops the margin away and leaves the mark the size it was before the
+     die needed it smaller. Change it with the asset's margin, not on its own. */
+  -webkit-mask: var(--isun-flux-mark) center / 116% no-repeat;
+  mask: var(--isun-flux-mark) center / 116% no-repeat;
+}
+
 .flux-warning {
   color: var(--isun-flux);
   text-align: center;

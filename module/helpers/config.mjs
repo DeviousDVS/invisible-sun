@@ -631,6 +631,20 @@ export const ISUN = Object.freeze({
    */
   fluxGlyph: "\uf7fa", //.fa-disease{--fa:"\f7fa"}
 
+  /**
+   * The flux mark itself: a sun, drawn for this system.
+   *
+   * A magic die reading 0 has fluxed, and the 0 carries no other meaning —
+   * dice are only thrown when the target is 1 or more, so a 0 face can never
+   * score. Nothing is lost by showing the mark instead of the numeral, and
+   * what the table sees is the thing that actually happened.
+   *
+   * One file for both uses. Dice So Nice draws a label as an image when it
+   * ends in an image extension, and the chat card uses the same file as a CSS
+   * mask so the mark takes its colour from the die it sits on.
+   */
+  fluxMark: "systems/invisible-sun/icons/flux.png",
+
   /* ──────────────────────────────────────────────
    * SKILLS
    * ────────────────────────────────────────────── */

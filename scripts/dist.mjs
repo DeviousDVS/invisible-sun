@@ -140,8 +140,12 @@ const declared = [
   ...(manifest.license && !manifest.license.includes(" ") ? [manifest.license] : []),
 ];
 
-/* Referenced by string, not by import, so they ship whole. */
-const wholeDirectories = ["templates", "fonts"];
+/* Referenced by string, not by import, so they ship whole. `icons/` is this
+ * system's own artwork — the flux mark the magic dice wear — and is named
+ * from a stylesheet and from a Dice So Nice label, neither of which the
+ * import walk can see. It is not `assets/`, which is refused below because
+ * that is where extracted card art lands. */
+const wholeDirectories = ["templates", "fonts", "icons"];
 /* Read at a glance by anyone who unpacks the archive. */
 const courtesy = ["README.md", "CHANGELOG.md"].filter(f => existsSync(path.join(ROOT, f)));
 

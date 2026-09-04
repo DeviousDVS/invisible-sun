@@ -115,6 +115,15 @@ Hooks.once("init", () => {
   // which is a thing to forget when the icon changes. Publishing it as a custom
   // property keeps ISUN.fluxGlyph the only place it is written down.
   document.documentElement.style.setProperty("--isun-flux-glyph", `"${ISUN.fluxGlyph}"`);
+  /* Routed and absolute, both deliberately. A relative url() inside a custom
+   * property is resolved against the stylesheet that *uses* it, not against the
+   * document — so "systems/invisible-sun/icons/flux.png" became
+   * "styles/systems/invisible-sun/icons/flux.png" once components.css read it,
+   * 404'd, and the mask silently matted the mark away to nothing. An absolute
+   * path resolves the same from any stylesheet, and getRoute supplies the
+   * prefix a Foundry served from a subdirectory needs. */
+  document.documentElement.style.setProperty("--isun-flux-mark",
+    `url("${foundry.utils.getRoute(ISUN.fluxMark)}")`);
 
   // ── Custom Dice ──────────────────────────────────────
   // Dice So Nice resolves a preset whose denomination is not numeric through

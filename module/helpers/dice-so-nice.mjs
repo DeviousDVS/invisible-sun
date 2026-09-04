@@ -58,6 +58,18 @@ const FA = '"Font Awesome 7 Pro"';
  */
 const IS_FACES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
+/**
+ * The magic die's own system, so that only it wears the mark.
+ *
+ * Both dice are d10s and a preset belongs to a (type, system) pair, so one
+ * system cannot label the magic die's tenth face differently from the mundane
+ * one's. A second system can, and Dice So Nice will switch to it for a single
+ * die: it merges a term's appearance and, finding a `system` there that it
+ * knows, takes that system's preset for the die. The magic term names this one;
+ * the mundane die is left in the first and keeps its 0.
+ */
+export const MAGIC_SYSTEM = "invisible-sun-magic";
+
 export function registerDiceSoNice() {
   Hooks.once("diceSoNiceReady", (dice3d) => {
     /* Nine blanks, then the marked face. Built here rather than at module
@@ -77,6 +89,22 @@ export function registerDiceSoNice() {
       type: "d10",
       system: "invisible-sun",
       labels: IS_FACES,
+      font: "Duvall"
+    });
+
+    /* The same die, with the flux mark where the 0 would be. Dice So Nice draws
+     * a label as an image when it ends in an image extension and as text
+     * otherwise, so the nine numerals and the mark sit in one array.
+     *
+     * The image is drawn as it is: a colourset's foreground colours lettering
+     * and does not tint an image, which is why the file ships white — white on
+     * the red die, and white on the dark Experimental Die too, wherever it is
+     * next used. */
+    dice3d.addSystem({ id: MAGIC_SYSTEM, name: "Invisible Sun — Magic" });
+    dice3d.addDicePreset({
+      type: "d10",
+      system: MAGIC_SYSTEM,
+      labels: [...IS_FACES.slice(0, 9), CONFIG.ISUN.fluxMark],
       font: "Duvall"
     });
 
