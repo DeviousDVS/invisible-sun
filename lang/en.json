@@ -171,6 +171,7 @@
     "SoothNarrativeHint": "What the GM might bring into play on this card turn. Usually just one of them, and often none.",
     "SoothShiftsHint": "Suggestions for a shift, should the GM want one. The Joy meanings are all favourable and the Despair meanings are not.",
     "PathTitle": "The Path of Suns",
+    "SceneControlGroup": "Invisible Sun",
     "PathButton": "The Path of Suns",
     "PathTurn": "Turn a Card",
     "PathUndo": "Take Back",

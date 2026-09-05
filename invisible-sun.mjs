@@ -162,45 +162,68 @@ Hooks.once("init", () => {
     footer.appendChild(importer);
   });
 
-  /* The Path of Suns goes on the scene controls rather than in chat.
+  /* The system's own group on the scene controls.
    *
-   * It is a board, not an action: "the Path of Suns board needs to have a
-   * prominent place at your game table" (The Gate, p71), and what a player
-   * wants is to glance at it, from wherever they are. The token group is where
-   * it sits because that group is the one every user has and the one selected
-   * when a world loads — a tool anywhere else is behind a click that changes
-   * which canvas layer is active.
+   * These two were tools inside the token group, on the reasoning that the
+   * token group is the one every user has and the one a world loads with, so a
+   * tool anywhere else sits behind a click that changes which canvas layer is
+   * active. The second half of that is not true of a group of our own: a
+   * control group with no `layer` activates nothing, and core only calls a
+   * group's onChange when it becomes active, never when it is left. So the
+   * canvas is untouched by coming here — the token layer stays active and
+   * tokens stay selectable while these tools are showing.
    *
-   * `button: true` means it does its thing and stays unselected, rather than
-   * becoming the active tool.
+   * What it costs is a click. What it buys is somewhere for the system's tools
+   * to live that is not the middle of core's, and room for the ones still to
+   * come.
+   *
+   * `button: true` on each means it does its thing and stays unselected rather
+   * than becoming the active tool — so the group has no tool to activate, which
+   * core allows: it looks for a non-button tool to make current and settles for
+   * none.
    */
   Hooks.on("getSceneControlButtons", (controls) => {
-    const tokens = controls.tokens;
-    if (!tokens) return;
-    tokens.tools ??= {};
-    tokens.tools.pathOfSuns = {
-      name: "pathOfSuns",
-      // Past core's own tools, which run to 8.
+    controls.invisibleSun = {
+      name: "invisibleSun",
+      // Past core's own groups, which run to 8.
       order: 90,
-      title: "ISUN.PathButton",
-      icon: "fa-solid fa-sun",
-      button: true,
-      onChange: () => PathOfSuns.open()
-    };
+      title: "ISUN.SceneControlGroup",
+      /* The cube the game comes in, rather than a sun. The Path of Suns tool
+       * inside is the sun, and a group wearing its own tool's mark tells you
+       * nothing about what else is in it. */
+      icon: "fa-solid fa-cube",
+      tools: {
+        /* A board, not an action: "the Path of Suns board needs to have a
+         * prominent place at your game table" (The Gate, p71), and what a
+         * player wants is to glance at it from wherever they are. */
+        pathOfSuns: {
+          name: "pathOfSuns",
+          order: 1,
+          title: "ISUN.PathButton",
+          icon: "fa-solid fa-sun",
+          button: true,
+          onChange: () => PathOfSuns.open()
+        },
 
-    /* A flux the GM brings about rather than one the dice found. GM only,
-     * unlike the board: the Path of Suns is something the table watches, and
-     * this is something only a GM may do. */
-    if (game.user.isGM) {
-      tokens.tools.magicalFlux = {
-        name: "magicalFlux",
-        order: 91,
-        title: "ISUN.FluxButton",
-        icon: "isun-flux-icon",
-        button: true,
-        onChange: () => flux.promptShift()
-      };
-    }
+        /* A flux the GM brings about rather than one the dice found. GM only,
+         * unlike the board: the Path of Suns is something the table watches,
+         * and this is something only a GM may do. Hidden by `visible` rather
+         * than by leaving it out, so the shape of the group is one object to
+         * read rather than an object and an amendment to it. */
+        magicalFlux: {
+          name: "magicalFlux",
+          order: 2,
+          title: "ISUN.FluxButton",
+          /* Two classes: the mark, and the box it needs here. Core writes the
+           * string onto the button verbatim, and on a scene control the mark is
+           * the button rather than a glyph sitting inside one. */
+          icon: "isun-flux-icon isun-tool-icon",
+          button: true,
+          visible: game.user.isGM,
+          onChange: () => flux.promptShift()
+        }
+      }
+    };
   });
 
   /* Declaring a challenge belongs with chat, because the card is a chat message

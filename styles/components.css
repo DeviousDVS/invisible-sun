@@ -246,6 +246,12 @@
   mask: var(--isun-flux-mark) center / 165% no-repeat;
 }
 
+/* The same mark as a scene-control tool, where it is the button rather than a
+   glyph inside one — so it takes the whole box. Without this it stands 1.5em
+   wide in a column of 2em tools, and its hover target is narrower than it
+   looks. */
+.isun-tool-icon { width: 100%; height: 100%; vertical-align: unset; }
+
 /* A magic die reading 0 has fluxed, and the 0 says nothing else: dice are only
    thrown when the target is 1 or more, so a 0 face can never score. The mark
    goes where the numeral was, and nothing is lost by it.
