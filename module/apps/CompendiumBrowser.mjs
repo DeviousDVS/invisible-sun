@@ -219,6 +219,45 @@ export class CompendiumBrowser extends HandlebarsApplicationMixin(ApplicationV2)
     return context;
   }
 
+  /* Which fields have a caret to keep. Asked of the type rather than of the
+   * element, because reading selectionStart off a number or an email input
+   * throws rather than answering. */
+  static #CARET_TYPES = new Set(["text", "search", "url", "tel", "password"]);
+
+  static #hasCaret(el) {
+    if (!el) return false;
+    if (el.tagName === "TEXTAREA") return true;
+    return el.tagName === "INPUT" && CompendiumBrowser.#CARET_TYPES.has(el.type);
+  }
+
+  /**
+   * Carry the caret across a re-render, not just the focus.
+   *
+   * Every search re-runs the whole window — it is one part — so the field being
+   * typed into is rebuilt under the typist. ApplicationV2 finds that field
+   * again by selector and focuses it, but a freshly built input begins with its
+   * caret at position zero, and the next letter therefore landed in front of
+   * everything already there: "flameward" arrived as "wardmefla".
+   *
+   * Core saves which field to go back to. These two save where in it.
+   */
+  _preSyncPartState(partId, newElement, priorElement, state) {
+    super._preSyncPartState(partId, newElement, priorElement, state);
+    const focused = priorElement.querySelector(":focus");
+    if (!CompendiumBrowser.#hasCaret(focused)) return;
+    state.caret = [focused.selectionStart, focused.selectionEnd, focused.selectionDirection];
+  }
+
+  _syncPartState(partId, newElement, priorElement, state) {
+    super._syncPartState(partId, newElement, priorElement, state);
+    if (!state.caret || !state.focus) return;
+    const field = newElement.querySelector(state.focus);
+    /* Restored even if the text came back different — setSelectionRange clamps
+     * to what is there, so the worst this does is land at the end, and the
+     * start is never the better guess. */
+    if (CompendiumBrowser.#hasCaret(field)) field.setSelectionRange(...state.caret);
+  }
+
   _attachPartListeners(partId, el, options) {
     super._attachPartListeners(partId, el, options);
 
