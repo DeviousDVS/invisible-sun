@@ -1385,8 +1385,19 @@ a.sentence-part:hover + .sentence-part.affix {
 .venture-dialog .venture-drain legend { font-variant: small-caps; }
 
 .venture-dialog .venture-extras { display: flex; gap: 1rem; margin-top: 0.5rem; }
-.venture-dialog .venture-extras label { flex: 1; }
-.venture-dialog .venture-extras input { width: 100%; }
+/* Caption beside its field rather than above it. The field was 100% wide, which
+   is what pushed the caption onto its own line — two short controls spending
+   four lines of the dialog on a row that has space for both. The field is now
+   the 4rem the spend rows use, so every number in the dialog stands in the same
+   column. */
+.venture-dialog .venture-extras label {
+  flex: 1; display: flex; align-items: center; gap: 0.5rem;
+}
+/* nowrap so "Other modifier" stays one line: the dialog sizes to its content,
+   so a caption that refuses to break widens the window instead of stacking
+   itself, which is the whole point of putting it beside the field. */
+.venture-dialog .venture-extras label > span { flex: 1; white-space: nowrap; }
+.venture-dialog .venture-extras input { width: 4rem; }
 
 /* The practice a roll was for, on the result card. Set apart from the numbers
  * above it, because it is the one part of the card a player who does not own
