@@ -46,14 +46,33 @@
     <legend>{{localize "ISUN.SpendFromPools"}}</legend>
     <div class="pool-spends">
       {{#each pools as |p|}}
-        <label class="pool-spend-row {{#if p.isEnhancement}}enhancement{{/if}}">
+        <div class="pool-spend-row {{#if p.isEnhancement}}enhancement{{/if}}">
           <span class="pool-name">{{p.label}}</span>
-          <input type="number" min="0" max="{{p.value}}" value="0"
-                 name="pool.{{p.key}}"
-                 class="{{#if p.isEnhancement}}enh-spend{{else}}bene-spend{{/if}}" />
+          {{!-- One pip per point that could go on this action: what the pool
+                holds, or what the rules allow, whichever runs out first. The
+                hidden input is what the form reads and what the running venture
+                watches. Sortilege is drawn in its own colour, as the sheet
+                draws it, because an enhancement buys a die and a bene buys
+                venture. --}}
+          {{#if p.isEnhancement}}
+            <span class="enh-pips" data-tooltip="{{@root.sortilegeHint}}">
+              <input type="hidden" name="pool.{{p.key}}" value="0" class="enh-spend" />
+              {{#times p.spendable}}
+                <a class="spend-pip enhancement-pip" data-n="{{add @index 1}}"></a>
+              {{/times}}
+              {{#unless p.spendable}}<span class="spend-none">—</span>{{/unless}}
+            </span>
+          {{else}}
+            <span class="bene-pips" data-tooltip="{{@root.beneHint}}">
+              <input type="hidden" name="pool.{{p.key}}" value="0" class="bene-spend" />
+              {{#times p.spendable}}
+                <a class="spend-pip bene-pip" data-n="{{add @index 1}}"></a>
+              {{/times}}
+            </span>
+          {{/if}}
           <span class="pool-avail">/ {{p.value}}</span>
           <span class="pool-effect">{{#if p.isEnhancement}}+1 die{{else}}+1 venture{{/if}}</span>
-        </label>
+        </div>
       {{/each}}
     </div>
   </fieldset>

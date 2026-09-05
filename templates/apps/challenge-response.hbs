@@ -56,21 +56,36 @@
     {{!-- Only the declared pool's bene: a bene "can be used with any action
           relevant to that pool" (The Key, p1902), so another pool's cannot
           pay for this one. --}}
-    <label class="cr-spend-row">
+    <div class="cr-spend-row">
       <span class="cr-spend-name">{{poolLabel}} {{localize "ISUN.Bene"}}</span>
-      <input type="number" class="cr-bene" name="bene" value="0" min="0" max="{{bene}}" />
+      {{!-- One pip per bene that could go on this action: what the pool holds,
+            or what a secret allows, whichever runs out first. --}}
+      <span class="bene-pips" data-tooltip="{{beneHint}}">
+        <input type="hidden" class="cr-bene" name="bene" value="0" />
+        {{#times beneSpendable}}
+          <a class="spend-pip bene-pip" data-n="{{add @index 1}}"></a>
+        {{/times}}
+      </span>
       <span class="cr-avail">/ {{bene}}</span>
       <span class="cr-effect">+1 {{localize "ISUN.Venture"}}</span>
-    </label>
+    </div>
 
     {{!-- Sortilege is the exception: its enhancements "can be used with any
           action", so it is offered whatever pool was declared. It buys a die. --}}
-    <label class="cr-spend-row enhancement">
+    <div class="cr-spend-row enhancement">
       <span class="cr-spend-name">{{localize "ISUN.PoolSortilege"}}</span>
-      <input type="number" class="cr-sortilege" name="sortilege" value="0" min="0" max="{{sortilege}}" />
+      {{!-- Drawn in its own colour, as the sheet draws it: an enhancement buys
+            a die where a bene buys venture, and they should not look alike. --}}
+      <span class="enh-pips" data-tooltip="{{sortilegeHint}}">
+        <input type="hidden" class="cr-sortilege" name="sortilege" value="0" />
+        {{#times sortilegeSpendable}}
+          <a class="spend-pip enhancement-pip" data-n="{{add @index 1}}"></a>
+        {{/times}}
+        {{#unless sortilegeSpendable}}<span class="spend-none">—</span>{{/unless}}
+      </span>
       <span class="cr-avail">/ {{sortilege}}</span>
       <span class="cr-effect">+1 {{localize "ISUN.Die"}}</span>
-    </label>
+    </div>
   </fieldset>
 
   <div class="cr-summary">

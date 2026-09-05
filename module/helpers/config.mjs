@@ -136,6 +136,65 @@ export const ISUN = Object.freeze({
   ),
 
   /* ──────────────────────────────────────────────
+   * SPENDING BENE
+   * ────────────────────────────────────────────── */
+
+  /**
+   * How many bene one action may be paid with, before any secret raises it.
+   *
+   * One. "Any character can add 1 to the venture of a magical action by
+   * spending 1 bene" (The Way, p8), and the two secrets below say what they
+   * replace: "rather than just 1", "rather than just 3".
+   */
+  beneLimit: 1,
+
+  /**
+   * The secrets that raise it, by the name the books print.
+   *
+   *   Expansive Endeavor    "You can spend up to 3 bene from the appropriate
+   *                          stat pool to devote effort to an action, rather
+   *                          than just 1" (The Way, p88). Level 3.
+   *   Magnificent Endeavor  "up to 10 … rather than just 3, as allowed by
+   *                          Expansive Endeavor" (The Way, p90). Level 8, and
+   *                          it requires the other.
+   *
+   * Matched on the name because that is all a character holds: a secret arrives
+   * from the compendium as an item with a level and a description, and nothing
+   * on it says what it does mechanically. A world that renames one loses the
+   * raise, and a translation would have to translate this table with the pack —
+   * the cost of reading rules out of content that was written for people.
+   *
+   * The higher of the two wins rather than the two summing. Magnificent
+   * Endeavor replaces the 3 with 10, and says so.
+   */
+  beneSecrets: {
+    "expansive endeavor": 3,
+    "magnificent endeavor": 10,
+  },
+
+  /**
+   * How many enhancements Sortilege may put on one action.
+   *
+   * Read out of the secret that raises it, because the secret says what it is
+   * an improvement on: "You can add two enhancements from Sortilege to an
+   * action, or you can add one enhancement from Sortilege to something that
+   * already has enhancements, like a spell" (Advanced Sortilege, level 5).
+   * Two rather than one, and one rather than none — so without it a vislae adds
+   * one enhancement to an ordinary action and cannot aid a spell with Sortilege
+   * at all, a spell already carrying enhancements of its own.
+   *
+   * `enhanced` is that second case: an action that already has enhancements,
+   * which here means a practice, since a practice brings its own magic dice.
+   */
+  sortilegeLimits: {
+    base:     { plain: 1, enhanced: 0 },
+    advanced: { plain: 2, enhanced: 1 },
+  },
+
+  /** The secret that lifts it, by the name the book prints. */
+  sortilegeSecret: "advanced sortilege",
+
+  /* ──────────────────────────────────────────────
    * CHALLENGE SCALE
    * ────────────────────────────────────────────── */
 

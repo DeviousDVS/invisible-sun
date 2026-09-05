@@ -116,3 +116,91 @@ describe("what the pool takes off the venture", () => {
       "the scourge ignores the ceiling that clamps the vex");
   });
 });
+
+describe("how many bene one action may be paid with", () => {
+
+  /* "Any character can add 1 to the venture of a magical action by spending 1
+   * bene" (The Way, p8), and two secrets raise that. The cap is on the action,
+   * so it does not matter how many pools are in front of the player or how much
+   * each of them holds. */
+
+  const withSecrets = (...names) => ({
+    items: names.map(name => ({ type: "Secret", name }))
+  });
+
+  test("one, for a character who has bought nothing", () => {
+    assert.equal(pools.beneCap(withSecrets()), 1);
+    assert.equal(pools.beneCap(null), 1);
+  });
+
+  test("three with Expansive Endeavor", () => {
+    // "up to 3 bene … rather than just 1" (The Way, p88).
+    assert.equal(pools.beneCap(withSecrets("Expansive Endeavor")), 3);
+  });
+
+  test("ten with Magnificent Endeavor", () => {
+    // "up to 10 … rather than just 3" (The Way, p90).
+    assert.equal(pools.beneCap(withSecrets("Magnificent Endeavor")), 10);
+  });
+
+  test("holding both is ten, not thirteen", () => {
+    /* The second replaces the first — "rather than just 3, as allowed by
+     * Expansive Endeavor" — and holding both is the normal case, since one is
+     * the prerequisite of the other. */
+    assert.equal(pools.beneCap(withSecrets("Expansive Endeavor", "Magnificent Endeavor")), 10);
+    assert.equal(pools.beneCap(withSecrets("Magnificent Endeavor", "Expansive Endeavor")), 10);
+  });
+
+  test("matched however the name was cased or spaced", () => {
+    assert.equal(pools.beneCap(withSecrets("  expansive endeavor ")), 3);
+    assert.equal(pools.beneCap(withSecrets("EXPANSIVE ENDEAVOR")), 3);
+  });
+
+  test("an item of another type with the same name does not count", () => {
+    // A spell called Expansive Endeavor is not the secret of that name.
+    const actor = { items: [{ type: "Spell", name: "Expansive Endeavor" }] };
+    assert.equal(pools.beneCap(actor), 1);
+  });
+
+  test("other secrets leave it alone", () => {
+    assert.equal(pools.beneCap(withSecrets("Bleed Serpents", "Sudden Insight")), 1);
+  });
+});
+
+describe("how many enhancements Sortilege may put on one action", () => {
+
+  /* "You can add two enhancements from Sortilege to an action, or you can add
+   * one enhancement from Sortilege to something that already has enhancements,
+   * like a spell" (Advanced Sortilege, level 5). The secret names the baseline
+   * by saying what it improves on. */
+
+  const withSecrets = (...names) => ({ items: names.map(name => ({ type: "Secret", name })) });
+  const ADVANCED = "Advanced Sortilege";
+
+  test("one enhancement on an ordinary action", () => {
+    assert.equal(pools.sortilegeCap(withSecrets()), 1);
+    assert.equal(pools.sortilegeCap(null), 1);
+  });
+
+  test("none at all on something that already has enhancements", () => {
+    // A spell brings its own dice, and Sortilege cannot be stacked onto it.
+    assert.equal(pools.sortilegeCap(withSecrets(), { enhanced: true }), 0);
+  });
+
+  test("Advanced Sortilege makes it two, and one", () => {
+    assert.equal(pools.sortilegeCap(withSecrets(ADVANCED)), 2);
+    assert.equal(pools.sortilegeCap(withSecrets(ADVANCED), { enhanced: true }), 1);
+  });
+
+  test("matched however the name was cased", () => {
+    assert.equal(pools.sortilegeCap(withSecrets("advanced SORTILEGE")), 2);
+  });
+
+  test("a different secret does not lift it", () => {
+    assert.equal(pools.sortilegeCap(withSecrets("Expansive Endeavor")), 1);
+  });
+
+  test("an item of another type with that name does not count", () => {
+    assert.equal(pools.sortilegeCap({ items: [{ type: "Spell", name: ADVANCED }] }), 1);
+  });
+});

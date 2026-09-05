@@ -74,6 +74,9 @@ export default [
         URL: "readonly",
         FormData: "readonly",
         HTMLElement: "readonly",
+        // Setting a form value in script fires nothing, so the pip rows raise
+        // their own change and the dialog recalculates as if it were typed.
+        Event: "readonly",
         // The importer reads PDFs and writes images in the browser.
         Blob: "readonly",
         File: "readonly",

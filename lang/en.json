@@ -54,6 +54,8 @@
     "MundaneDie": "Mundane Die",
     "MagicDie": "Magic Die",
     "Bene": "Bene",
+    "BeneCapHint": "Bene you can put on one action: {cap}. Click a pip to spend, click the last one again to take it back.",
+    "SortilegeCapHint": "Enhancements you can add: {cap} to an ordinary action, {onEnhanced} to one that already carries dice. Each buys a die.",
     "Enhancement": "Enhancement",
     "Refresh": "Refresh",
     "Cast": "Cast",

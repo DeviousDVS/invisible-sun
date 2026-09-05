@@ -30,7 +30,9 @@
  * so there is no window in which a pool has been debited but the card does not
  * yet say why.
  */
+import { SpendPips } from "./SpendPips.mjs";
 import { ChallengeCard } from "./ChallengeCard.mjs";
+import * as poolRules from "../helpers/pools.mjs";
 import * as sooth from "../helpers/sooth.mjs";
 
 const { DialogV2 } = foundry.applications.api;
@@ -52,7 +54,16 @@ export class ChallengeResponse {
     if (!actor) return null;
 
     const cost = ChallengeCard.poolCost(actor, data.pool, data.maxVex);
-    const sortilege = actor.system?.stats?.qualia?.pools?.sortilege?.value ?? 0;
+    /* What one action may be paid with — one bene unless a secret says more. */
+    const cap = poolRules.beneCap(actor);
+    /* Answering a challenge is not casting, so nothing here already carries
+     * enhancements. The field is still a field — this dialog was not asked to
+     * grow pips — but the rule applies to it either way. */
+    const sortCap = poolRules.sortilegeCap(actor, { enhanced: false });
+    /* Held and spendable are different numbers now, and the row shows both: the
+     * pips are what may go on this action, the "/ n" is what is in the pool. */
+    const sortHeld = actor.system?.stats?.qualia?.pools?.sortilege?.value ?? 0;
+    const sortilege = Math.min(sortHeld, sortCap);
     const board = await sooth.ventureFor(actor);
 
     const skills = actor.items.filter(i => i.type === "Skill")
@@ -71,7 +82,14 @@ export class ChallengeResponse {
         scourge: cost.scourge,
         vex: cost.vex,
         bene: cost.bene,
-        sortilege,
+        /* Pips to draw, and the cap they answer to. The pool caps it as well:
+         * a secret allowing ten does not conjure a tenth bene to spend. */
+        beneSpendable: Math.min(cost.bene, cap),
+        beneHint: game.i18n.format("ISUN.BeneCapHint", { cap }),
+        sortilege: sortHeld,
+        sortilegeSpendable: sortilege,
+        sortilegeHint: game.i18n.format("ISUN.SortilegeCapHint",
+          { cap: sortCap, onEnhanced: poolRules.sortilegeCap(actor, { enhanced: true }) }),
         skills,
         sooth: board.value,
         soothText: board.value ? sooth.signed(board.value) : "",
@@ -89,8 +107,18 @@ export class ChallengeResponse {
             new foundry.applications.ux.FormDataExtended(button.form).object },
         { action: "cancel", label: game.i18n.localize("ISUN.Cancel") }
       ],
-      render: (_e, dialog) =>
-        this.#live(dialog.element ?? dialog, { ...data, ...cost, sortilege, sooth: board.value }),
+      render: (_e, dialog) => {
+        const root = dialog.element ?? dialog;
+        SpendPips.wire(root, ".bene-pips", Math.min(cost.bene, cap));
+        /* A fixed ceiling here, unlike the venture dialog's: answering a
+         * challenge is not casting, so nothing in front of the player already
+         * carries enhancements for Sortilege to be barred from. */
+        SpendPips.wire(root, ".enh-pips", sortilege);
+        /* The capped figures, not the raw pool: what the running total clamps
+         * against should be what the pips will actually let a player spend. */
+        this.#live(root, { ...data, ...cost, bene: Math.min(cost.bene, cap),
+                           sortilege, sooth: board.value });
+      },
       rejectClose: false
     });
 
@@ -102,7 +130,7 @@ export class ChallengeResponse {
     return {
       skills: skills.filter(s => result[`skill.${s.id}`])
         .map(s => ({ id: s.id, name: s.name, level: s.level })),
-      bene: this.#clamp(result.bene, cost.bene),
+      bene: this.#clamp(result.bene, Math.min(cost.bene, cap)),
       sortilege: this.#clamp(result.sortilege, sortilege),
       // The board as it stood when the player answered, and what it was.
       sooth: board.value,

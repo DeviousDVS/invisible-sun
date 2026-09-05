@@ -80,3 +80,53 @@ export function costOf(actor, poolKey, { maxVex = 0 } = {}) {
     bene: found.pool.value ?? 0
   };
 }
+
+/**
+ * The most bene this character may put on one action.
+ *
+ * A cap on the act, not on the pool: "up to 3 bene from the appropriate stat
+ * pool to devote effort to an action" is three for the action however many
+ * pools are in front of you, and however many each of them holds.
+ *
+ * Nothing enforces that Magnificent Endeavor requires Expansive Endeavor. That
+ * is a rule about buying the secret, not about spending under it, and a
+ * character who somehow holds the second without the first is a thing for a GM
+ * to notice rather than for a dialog to refuse.
+ */
+export function beneCap(actor) {
+  let cap = CONFIG.ISUN.beneLimit ?? 1;
+  const raises = CONFIG.ISUN.beneSecrets ?? {};
+
+  for (const item of actor?.items ?? []) {
+    if (item.type !== "Secret") continue;
+    const raised = raises[String(item.name ?? "").trim().toLowerCase()];
+    if (raised > cap) cap = raised;
+  }
+  return cap;
+}
+
+/** Whether this character holds a secret of the given name. */
+function holdsSecret(actor, name) {
+  const wanted = String(name ?? "").trim().toLowerCase();
+  for (const item of actor?.items ?? []) {
+    if (item.type === "Secret" && String(item.name ?? "").trim().toLowerCase() === wanted) return true;
+  }
+  return false;
+}
+
+/**
+ * The most enhancements Sortilege may put on one action.
+ *
+ * Two answers rather than one, because the rule turns on what is being aided:
+ * an ordinary action takes one, and something that already carries enhancements
+ * takes none at all. Advanced Sortilege raises each by one.
+ *
+ * @param {Actor}   actor
+ * @param {boolean} [options.enhanced]  the action already has enhancements —
+ *                                      a practice, which brings its own dice
+ */
+export function sortilegeCap(actor, { enhanced = false } = {}) {
+  const limits = CONFIG.ISUN.sortilegeLimits ?? {};
+  const which = holdsSecret(actor, CONFIG.ISUN.sortilegeSecret) ? limits.advanced : limits.base;
+  return (enhanced ? which?.enhanced : which?.plain) ?? 0;
+}

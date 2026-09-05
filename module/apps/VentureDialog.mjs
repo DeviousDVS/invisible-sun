@@ -1,3 +1,4 @@
+import { SpendPips } from "./SpendPips.mjs";
 import { rollVenture } from "../helpers/dice.mjs";
 import * as poolRules from "../helpers/pools.mjs";
 import * as sooth from "../helpers/sooth.mjs";
@@ -77,7 +78,26 @@ export class VentureDialog {
         checked: skill && i.id === skill.id
       }));
 
-    const pools = this.#poolsOf(actor, pool);
+    /* What one action may be paid with, across every pool the dialog offers —
+     * one bene unless a secret raises it. See helpers/pools.mjs. */
+    const cap = poolRules.beneCap(actor);
+    /* Sortilege answers to its own rule, and to what is being aided. "Something
+     * that already has enhancements, like a spell" is not every practice — it
+     * is one actually carrying dice. A spell that grants none has nothing to
+     * stack onto, and Sortilege may aid it like any other action.
+     *
+     * Both answers are worked out here and chosen between as the dialog is
+     * used, because the magic dice are a field the player can still change:
+     * declining a conditional die should give Sortilege back, and adding one
+     * should take it away.
+     */
+    const sortWhenPlain = poolRules.sortilegeCap(actor, { enhanced: false });
+    const sortWhenEnhanced = poolRules.sortilegeCap(actor, { enhanced: true });
+    /* Drawn for the most that could ever be allowed; the live ceiling dims what
+     * is not allowed now, which is how a row says "not onto this" rather than
+     * disappearing. */
+    const sortCap = Math.max(sortWhenPlain, sortWhenEnhanced);
+    const pools = this.#poolsOf(actor, pool, cap, sortCap);
     const drain = this.#drainOf(actor, pool);
     // Read once, and carried to the roll: see ChallengeResponse on why the
     // board is not read again as the dice land.
@@ -87,6 +107,9 @@ export class VentureDialog {
     const content = await renderTemplate(
       "systems/invisible-sun/templates/apps/venture-dialog.hbs",
       { skills, pools, drain, challenge, magicDice, base, baseLabel,
+        beneHint: game.i18n.format("ISUN.BeneCapHint", { cap }),
+        sortilegeHint: game.i18n.format("ISUN.SortilegeCapHint",
+          { cap: sortWhenPlain, onEnhanced: sortWhenEnhanced }),
         label: label || skill?.name || "Action",
         sooth: board.value,
         soothText: board.value ? sooth.signed(board.value) : "",
@@ -101,14 +124,23 @@ export class VentureDialog {
           callback: (event, button) => new foundry.applications.ux.FormDataExtended(button.form).object },
         { action: "cancel", label: "Cancel", icon: "fa-solid fa-xmark" }
       ],
-      render: (event, dialog) => this.#live(dialog.element, board.value + base, skills, drain),
+      render: (event, dialog) => {
+        const el = dialog.element;
+        SpendPips.wire(el, ".bene-pips", cap);
+        /* Read as the dice stand, not as they stood when this opened. */
+        const enhancedNow = () =>
+          (Number(el.querySelector('[name="magicDice"]')?.value) || 0) > 0;
+        const sortilege = SpendPips.wire(el, ".enh-pips",
+          () => (enhancedNow() ? sortWhenEnhanced : sortWhenPlain));
+        this.#live(el, board.value + base, skills, drain, sortilege);
+      },
       rejectClose: false
     });
 
     if (!result || result === "cancel") return null;
     return this.#roll(actor, skills, pools, result,
       { value: board.value + base, sources: base ? [...board.sources, baseLabel] : board.sources },
-      practice, drain);
+      practice, drain, { bene: cap, sortPlain: sortWhenPlain, sortEnhanced: sortWhenEnhanced });
   }
 
   /**
@@ -117,7 +149,7 @@ export class VentureDialog {
    * With a pool declared, only the enhancement pools survive: see the header on
    * why a magical practice is not offered bene.
    */
-  static #poolsOf(actor, declared = "") {
+  static #poolsOf(actor, declared = "", cap = Infinity, sortCap = Infinity) {
     const out = [];
     for (const stat of ["certes", "qualia"]) {
       const group = actor.system.stats?.[stat]?.pools ?? {};
@@ -126,6 +158,9 @@ export class VentureDialog {
         out.push({
           path: `system.stats.${stat}.pools.${key}.value`,
           key, stat,
+          /* How many pips to draw: what is held, or what the action may carry.
+           * Drawing the smaller of the two is what makes the cap visible. */
+          spendable: Math.min(pool.value ?? 0, key === "sortilege" ? sortCap : cap),
           label: game.i18n.localize(`ISUN.Pool${key.charAt(0).toUpperCase()}${key.slice(1)}`),
           value: pool.value ?? 0,
           // Sortilege holds enhancements rather than bene, so it buys dice.
@@ -164,17 +199,24 @@ export class VentureDialog {
   }
 
   /** Keep the running venture and target honest as the form is filled in. */
-  static #live(root, sooth = 0, skills = [], drain = null) {
+  static #live(root, sooth = 0, skills = [], drain = null, sortilege = null) {
     /* The skills are a multi-select, so what is chosen is a list of ids rather
      * than a set of ticked boxes, and the level has to be looked up. Built once
      * here rather than read off the options, which core rebuilds into its own
      * markup as the element upgrades. */
     const levelOf = new Map(skills.map(s => [s.id, s.level]));
-    // A browser does not enforce `max` on a typed value, so a spend is clamped
-    // here as well as when it is applied. Without this the preview promises a
-    // venture the roll will not honour, because the pool has not got the bene.
+    /* A browser does not enforce `max` on a typed value, so a spend is clamped
+     * here as well as when it is applied. Without this the preview promises a
+     * venture the roll will not honour, because the pool has not got the bene.
+     *
+     * hasAttribute rather than Number(el.max): an element carrying no max reads
+     * as "", and Number("") is 0, which is finite — so an absent ceiling
+     * clamped every spend to nothing. That went unnoticed while every spend was
+     * a number field with a max on it, and bit the moment the bene rows became
+     * pips keeping their count on a plain hidden input. Each click set a value
+     * and this wrote a 0 straight back over it. */
     const spendOf = (el) => {
-      const max = Number(el.max);
+      const max = el.hasAttribute("max") ? Number(el.max) : Infinity;
       let v = Math.max(0, Math.round(Number(el.value) || 0));
       if (Number.isFinite(max)) v = Math.min(v, max);
       if (String(v) !== el.value) el.value = v;
@@ -193,6 +235,11 @@ export class VentureDialog {
       // clamped by the same rule as a spend, because it is one.
       const vexEl = root.querySelector('input[name="vexSpend"]');
       if (vexEl) venture -= spendOf(vexEl);
+
+      /* The magic dice decide what Sortilege may add, so the pips are redrawn
+       * before they are counted — an enhancement the action may no longer carry
+       * is given back here rather than reaching the roll. */
+      sortilege?.refresh();
 
       let dice = Number(root.querySelector('[name="magicDice"]')?.value) || 0;
       for (const el of root.querySelectorAll("input.enh-spend")) {
@@ -223,7 +270,8 @@ export class VentureDialog {
 
   /** Deduct what was spent, then roll. */
   static async #roll(actor, skills, pools, form, board = { value: 0, sources: [] },
-                     practice = null, drain = null) {
+                     practice = null, drain = null,
+                     caps = { bene: Infinity, sortPlain: Infinity, sortEnhanced: Infinity }) {
     let venture = (Number(form.modifier) || 0) + board.value;
     const used = [...board.sources];
 
@@ -239,8 +287,22 @@ export class VentureDialog {
 
     let dice = Number(form.magicDice) || 0;
     const updates = {};
+    /* The cap again, on the way out. The pips enforce it as they are clicked,
+     * and a form that reached here saying otherwise should still not be paid —
+     * the same reason every spend is clamped against the pool as well. */
+    let budget = caps.bene;
+    /* Read off the form rather than off what the dialog opened with: the magic
+     * dice are the player's to change, and what Sortilege may add follows them.
+     * The pips enforce this as they are clicked; a form arriving here saying
+     * otherwise should still not be paid. */
+    const sortLimit = (Number(form.magicDice) || 0) > 0 ? caps.sortEnhanced : caps.sortPlain;
     for (const p of pools) {
-      const spend = Math.max(0, Math.min(Number(form[`pool.${p.key}`]) || 0, p.value));
+      let spend = Math.max(0, Math.min(Number(form[`pool.${p.key}`]) || 0, p.value));
+      if (p.isEnhancement) spend = Math.min(spend, sortLimit);
+      else {
+        spend = Math.min(spend, budget);
+        budget -= spend;
+      }
       if (!spend) continue;
       updates[p.path] = p.value - spend;
       if (p.isEnhancement) {
