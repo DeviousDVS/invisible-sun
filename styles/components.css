@@ -94,7 +94,6 @@
   height: 16px;
   border-radius: 50%;
   border: 2px solid var(--isun-wound);
-  cursor: pointer;
 }
 
 .wound-pip.full {
@@ -108,8 +107,14 @@
   height: 16px;
   border-radius: 50%;
   border: 2px solid var(--isun-anguish);
-  cursor: pointer;
 }
+
+/* Only where the pip actually does something. A Wound track is the GM's to
+   click, and on a player's sheet these are a readout — a pointer over one
+   promises a click that has no handler behind it. Keyed off the attribute that
+   carries the handler, so the two cannot fall out of step. */
+.wound-pip[data-action],
+.anguish-pip[data-action] { cursor: pointer; }
 
 .anguish-pip.full {
   background: var(--isun-anguish);

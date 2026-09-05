@@ -1,12 +1,20 @@
+{{!-- A Wound and an Anguish are the GM's to give and to take back, the way a
+      vex is: they arrive from damage the GM applies, and a player clicking a
+      pip was writing down an injury nobody had dealt. So the pips carry an
+      action for a GM and none for a player, who reads their own track and sees
+      what it costs on the pools beneath it.
+
+      The attribute is what makes a pip live — no data-action, no handler — so
+      the cursor is keyed off the same attribute rather than asserted twice. --}}
 <div class="health-tracking">
   <div class="health-row wounds-row">
     <label>{{localize "ISUN.Wounds"}}</label>
     <div class="health-pips">
       {{#times (subtract system.status.wounds.max system.status.wounds.value)}}
-        <span class="wound-pip empty" data-action="add-wound"></span>
+        <span class="wound-pip empty" {{#if @root.isGM}}data-action="add-wound"{{/if}}></span>
       {{/times}}
       {{#times system.status.wounds.value}}
-        <span class="wound-pip full" data-action="remove-wound"></span>
+        <span class="wound-pip full" {{#if @root.isGM}}data-action="remove-wound"{{/if}}></span>
       {{/times}}
     </div>
     {{#if system.status.dead}}
@@ -20,10 +28,10 @@
     <label>{{localize "ISUN.Anguish"}}</label>
     <div class="health-pips">
       {{#times (subtract system.status.anguish.max system.status.anguish.value)}}
-        <span class="anguish-pip empty" data-action="add-anguish"></span>
+        <span class="anguish-pip empty" {{#if @root.isGM}}data-action="add-anguish"{{/if}}></span>
       {{/times}}
       {{#times system.status.anguish.value}}
-        <span class="anguish-pip full" data-action="remove-anguish"></span>
+        <span class="anguish-pip full" {{#if @root.isGM}}data-action="remove-anguish"{{/if}}></span>
       {{/times}}
     </div>
     {{#if system.status.broken}}

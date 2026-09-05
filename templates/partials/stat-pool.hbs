@@ -1,5 +1,16 @@
 {{!-- Scourges inflicted at a wider scope than one pool. Those from Wounds and
-      Anguish are derived and appear on the pools themselves. --}}
+      Anguish are derived and appear on the pools themselves, so a player still
+      sees the ones their own sheet is causing.
+
+      These are the GM's, and the bar is theirs alone: every control in it is an
+      input only a GM has occasion to fill in, the way only a GM places a vex.
+      A player learns what one costs them where it is charged — the venture
+      dialog names the scourge as it comes off the roll.
+
+      @root.isGM rather than isGM: this partial is included with the sheet's own
+      context today, and reading through the root keeps it right if it is ever
+      included with hash arguments instead. --}}
+{{#if @root.isGM}}
 <div class="scourge-bar">
   <span class="scourge-bar-label" title="{{localize 'ISUN.ScourgeHint'}}">{{localize "ISUN.Scourges"}}</span>
   <div class="scourge-scope">
@@ -21,6 +32,7 @@
     </span>
   {{/if}}
 </div>
+{{/if}}
 
 {{!-- Three budgets, because they are not interchangeable: a heart's Certes
       and Qualia belong to their own stat and only the free points may go
