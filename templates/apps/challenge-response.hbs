@@ -54,7 +54,11 @@
           relevant to that pool" (The Key, p1902), so another pool's cannot
           pay for this one. --}}
     <div class="cr-spend-row">
-      <span class="cr-spend-name">{{poolLabel}} {{localize "ISUN.Bene"}}</span>
+      {{!-- Just "Bene". Which pool's is settled two lines above, in the header
+            this dialog opens with, and the comment above says it can only be
+            the declared pool's — so naming it again here repeated something the
+            reader has just read, and did it in a column sized for one word. --}}
+      <span class="cr-spend-name">{{localize "ISUN.Bene"}}</span>
       {{!-- One pip per bene that could go on this action: what the pool holds,
             or what a secret allows, whichever runs out first. --}}
       <span class="bene-pips" data-tooltip="{{beneHint}}">

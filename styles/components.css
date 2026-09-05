@@ -26,6 +26,11 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
+  /* Only as wide as the pips in it, and never narrower than one — a row with
+     nothing to spend keeps the column open rather than closing it up and
+     shifting everything after it. */
+  width: max-content;
+  min-width: 12px;
 }
 
 .spend-pip {
@@ -1380,17 +1385,16 @@ a.sentence-part:hover + .sentence-part.affix {
    display above would otherwise outrank the browser's own rule for [hidden]. */
 .invisible-sun .add-skill[hidden] { display: none; }
 
-/* Every row is its own grid, so an `auto` column is sized by that row alone —
-   and "/ 105" is 12px wider than "/ 3". The 1fr name column gave those 12px up,
-   which walked the pips left in exactly the rows holding the most: the pools
-   worth looking at were the ones out of line.
+/* Every column is fixed or content-sized, and none of them flexes against
+   another. That is what keeps the pips in one place: an `auto` name column
+   would be sized by its own row's text, and a `1fr` one would hand its width to
+   whichever count ran to three digits — both of which walked the pips left in
+   some rows and not others.
 
-   So the count column is fixed at 2rem, four digits' worth. Nothing in the row
-   flexes against it now: the name still takes the slack, the pips stand in one
-   column whatever the pools hold, and a longer count grows into its own space
-   rather than out of somebody else's. */
+   The count is 2rem, four digits' worth. The pips column follows what is in it
+   rather than holding 4rem open for pips no row has. */
 .venture-dialog .pool-spend-row {
-  display: grid; grid-template-columns: 1fr 4rem 2rem 6rem;
+  display: grid; grid-template-columns: 70px auto 2rem 6rem;
   gap: 0.4rem; align-items: center; padding: 0.1rem 0;
 }
 .venture-dialog .pool-spend-row.enhancement .pool-effect { font-style: italic; }
@@ -1401,7 +1405,7 @@ a.sentence-part:hover + .sentence-part.affix {
    every line in here comes off the venture. */
 .venture-dialog .drain-row {
   display: grid;
-  grid-template-columns: 1fr 4rem 2rem 6rem;
+  grid-template-columns: 70px auto 2rem 6rem;
   align-items: center;
   gap: 0.4rem;
 }
@@ -2168,7 +2172,10 @@ a.sentence-part:hover + .sentence-part.affix {
   border-radius: 3px;
   cursor: pointer;
 }
-.challenge-response .cr-spend-name { flex: 1; }
+/* The width the venture dialog gives a pool name, so the two read alike. Not
+   flexing, for the reason its columns do not: a name that takes the slack hands
+   it back the moment a count beside it grows a digit. */
+.challenge-response .cr-spend-name { flex: none; width: 70px; }
 
 .challenge-response .cr-avail,
 .challenge-response .cr-effect { font-size: 0.8em; color: var(--isun-text-secondary); }
