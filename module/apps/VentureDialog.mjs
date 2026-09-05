@@ -1,3 +1,4 @@
+import { SkillPicker } from "./SkillPicker.mjs";
 import { SpendPips } from "./SpendPips.mjs";
 import { rollVenture } from "../helpers/dice.mjs";
 import * as poolRules from "../helpers/pools.mjs";
@@ -126,6 +127,7 @@ export class VentureDialog {
       ],
       render: (event, dialog) => {
         const el = dialog.element;
+        SkillPicker.wire(el, skills);
         SpendPips.wire(el, ".bene-pips", cap);
         /* Read as the dice stand, not as they stood when this opened. */
         const enhancedNow = () =>
@@ -200,10 +202,10 @@ export class VentureDialog {
 
   /** Keep the running venture and target honest as the form is filled in. */
   static #live(root, sooth = 0, skills = [], drain = null, sortilege = null) {
-    /* The skills are a multi-select, so what is chosen is a list of ids rather
-     * than a set of ticked boxes, and the level has to be looked up. Built once
-     * here rather than read off the options, which core rebuilds into its own
-     * markup as the element upgrades. */
+    /* What is chosen is a row per skill carrying its id, so the level has to
+     * be looked up. Built once here rather than read off the rows, so the
+     * number that reaches the venture is the one the actor has and not one the
+     * markup could be stale about. */
     const levelOf = new Map(skills.map(s => [s.id, s.level]));
     /* A browser does not enforce `max` on a typed value, so a spend is clamped
      * here as well as when it is applied. Without this the preview promises a
@@ -225,8 +227,9 @@ export class VentureDialog {
 
     const recalc = () => {
       let venture = sooth - (drain?.scourge ?? 0);
-      const picked = root.querySelector('multi-select[name="skills"]')?.value ?? [];
-      for (const id of picked) venture += levelOf.get(id) ?? 0;
+      for (const el of root.querySelectorAll('.skill-pick input[name="skills"]')) {
+        venture += levelOf.get(el.value) ?? 0;
+      }
       for (const el of root.querySelectorAll("input.bene-spend")) {
         venture += spendOf(el);
       }
@@ -257,14 +260,13 @@ export class VentureDialog {
       t.classList.toggle("impossible", target >= 10 && dice === 0);
     };
 
-    /* multi-select as well as its inner select. The element rebuilds itself
-     * into a tag list and a plain <select>, and taking a tag off again fires
-     * change on the host rather than on that select — so listening only to
-     * what is inside catches skills being added and not removed. */
-    root.querySelectorAll("input, select, multi-select").forEach(el => {
-      el.addEventListener("change", recalc);
-      el.addEventListener("input", recalc);
-    });
+    /* Listened for on the dialog rather than on each field. The skill rows are
+     * built after this runs and rebuilt every time one is added or taken off,
+     * so a listener bound to the fields themselves would be bound to elements
+     * that no longer exist. Both events, because a typed number reports
+     * `input` as it is typed and a click reports `change`. */
+    root.addEventListener("change", recalc);
+    root.addEventListener("input", recalc);
     recalc();
   }
 

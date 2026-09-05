@@ -30,6 +30,7 @@
  * so there is no window in which a pool has been debited but the card does not
  * yet say why.
  */
+import { SkillPicker } from "./SkillPicker.mjs";
 import { SpendPips } from "./SpendPips.mjs";
 import { ChallengeCard } from "./ChallengeCard.mjs";
 import * as poolRules from "../helpers/pools.mjs";
@@ -68,7 +69,8 @@ export class ChallengeResponse {
 
     const skills = actor.items.filter(i => i.type === "Skill")
       .sort((a, b) => a.name.localeCompare(b.name))
-      .map(i => ({ id: i.id, name: i.name, level: i.system.level }));
+      .map(i => ({ id: i.id, name: i.name, level: i.system.level,
+                   category: i.system.category }));
 
     const { renderTemplate } = foundry.applications.handlebars;
     const content = await renderTemplate(
@@ -109,6 +111,7 @@ export class ChallengeResponse {
       ],
       render: (_e, dialog) => {
         const root = dialog.element ?? dialog;
+        SkillPicker.wire(root, skills);
         SpendPips.wire(root, ".bene-pips", Math.min(cost.bene, cap));
         /* A fixed ceiling here, unlike the venture dialog's: answering a
          * challenge is not casting, so nothing in front of the player already
@@ -117,18 +120,23 @@ export class ChallengeResponse {
         /* The capped figures, not the raw pool: what the running total clamps
          * against should be what the pips will actually let a player spend. */
         this.#live(root, { ...data, ...cost, bene: Math.min(cost.bene, cap),
-                           sortilege, sooth: board.value });
+                           sortilege, skills, sooth: board.value });
       },
       rejectClose: false
     });
 
     if (!result || result === "cancel") return null;
 
+    /* One name for a single pick, an array for several, and absent for none —
+     * so it is normalised before it is walked rather than trusted to be a
+     * list. */
+    const picked = new Set([result.skills ?? []].flat().filter(Boolean));
+
     /* Clamped here as well as at the spend. A browser does not enforce `max`
      * on a typed number, and the caller re-reads the pools anyway — but a
      * choice that leaves this method should already be a legal one. */
     return {
-      skills: skills.filter(s => result[`skill.${s.id}`])
+      skills: skills.filter(s => picked.has(s.id))
         .map(s => ({ id: s.id, name: s.name, level: s.level })),
       bene: this.#clamp(result.bene, Math.min(cost.bene, cap)),
       sortilege: this.#clamp(result.sortilege, sortilege),
@@ -149,8 +157,15 @@ export class ChallengeResponse {
    * here as well as when it is recorded — otherwise the preview promises a
    * venture the pool cannot pay for.
    */
-  static #live(root, { challenge, scourge, vex, bene: beneMax, sortilege: sortMax, sooth = 0 }) {
+  static #live(root, { challenge, scourge, vex, bene: beneMax, sortilege: sortMax,
+                       skills = [], sooth = 0 }) {
     if (!root?.querySelector) return;
+
+    /* What is chosen is a row per skill carrying its id, so the level has to
+     * be looked up. Built once here rather than read off the rows, so the
+     * number that reaches the venture is the one the actor has and not one the
+     * markup could be stale about. */
+    const levelOf = new Map(skills.map(s => [s.id, s.level]));
 
     const clampInput = (el, max) => {
       let v = Math.max(0, Math.round(Number(el.value) || 0));
@@ -161,8 +176,8 @@ export class ChallengeResponse {
 
     const recalc = () => {
       let venture = sooth - (scourge + vex);
-      for (const el of root.querySelectorAll("input.cr-skill:checked")) {
-        venture += Number(el.dataset.level) || 0;
+      for (const el of root.querySelectorAll('.skill-pick input[name="skills"]')) {
+        venture += levelOf.get(el.value) ?? 0;
       }
       const beneEl = root.querySelector("input.cr-bene");
       const sortEl = root.querySelector("input.cr-sortilege");
@@ -183,10 +198,12 @@ export class ChallengeResponse {
       }
     };
 
-    root.querySelectorAll("input").forEach(el => {
-      el.addEventListener("change", recalc);
-      el.addEventListener("input", recalc);
-    });
+    /* Listened for on the dialog rather than on each field. The skill rows are
+     * built after this runs and rebuilt every time one is added or taken off,
+     * so a listener bound to the fields themselves would be bound to elements
+     * that no longer exist. */
+    root.addEventListener("change", recalc);
+    root.addEventListener("input", recalc);
     recalc();
   }
 }

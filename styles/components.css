@@ -1338,10 +1338,24 @@ a.sentence-part:hover + .sentence-part.affix {
 .venture-dialog .target-total.impossible { color: var(--isun-failure, #b3261e); }
 
 .venture-dialog .hint { font-size: 0.8em; opacity: 0.7; margin: 0 0 0.35rem; }
-/* The skills are core's multi-select now. It brings its own tag styling; the
- * cap is so a character with a shelf of development skills cannot push the
- * spends off the bottom of the window. */
-.venture-dialog .skill-picks { max-height: 9rem; overflow-y: auto; }
+/* The chosen skills, and the link that opens the picker. Scoped to the system
+ * class rather than to either dialog: both draw the same rows, and a third
+ * caller should not have to add itself to a selector list to be styled. */
+.invisible-sun .skill-picks { display: flex; flex-direction: column; gap: 0.15rem; }
+.invisible-sun .skill-pick {
+  display: grid; grid-template-columns: 1fr auto auto;
+  gap: 0.5rem; align-items: center;
+  padding: 0.1rem 0.3rem; border-radius: 3px;
+}
+.invisible-sun .skill-pick:hover { background: rgba(255, 255, 255, 0.06); }
+.invisible-sun .skill-pick-level { color: var(--isun-text-accent); }
+.invisible-sun .remove-skill { color: var(--isun-text-secondary); cursor: pointer; }
+.invisible-sun .remove-skill:hover { color: var(--isun-wound); }
+/* Sits under the rows the way "+ Spell" sits under the practices table. */
+.invisible-sun .add-skill { display: inline-block; margin-top: 0.25rem; font-size: 0.9em; }
+/* Nothing left to pick hides the link — and this has to say so, because the
+   display above would otherwise outrank the browser's own rule for [hidden]. */
+.invisible-sun .add-skill[hidden] { display: none; }
 
 .venture-dialog .pool-spend-row {
   display: grid; grid-template-columns: auto 1fr auto auto;
@@ -1603,17 +1617,23 @@ a.sentence-part:hover + .sentence-part.affix {
  * never scrolled because nothing ever told it it was too tall. */
 .compendium-picker .window-content,
 .compendium-picker .dialog-form,
-.compendium-picker .dialog-content {
+.compendium-picker .dialog-content,
+.skill-picker .window-content,
+.skill-picker .dialog-form,
+.skill-picker .dialog-content {
   flex: 1;
   min-height: 0;
 }
 
-.compendium-picker .compendium-picker-body {
+.compendium-picker .compendium-picker-body,
+.skill-picker .skill-picker-body {
   display: flex; flex-direction: column; gap: 0.5rem;
   flex: 1; min-height: 0;
 }
-.compendium-picker .picker-search { width: 100%; }
-.compendium-picker .picker-list {
+.compendium-picker .picker-search,
+.skill-picker .picker-search { width: 100%; }
+.compendium-picker .picker-list,
+.skill-picker .picker-list {
   flex: 1; min-height: 0; overflow-y: auto;
   border: 1px solid var(--isun-border); border-radius: 3px; padding: 0.25rem;
 }
@@ -1623,23 +1643,51 @@ a.sentence-part:hover + .sentence-part.affix {
   gap: 0.5rem; align-items: center; padding: 0.25rem 0.3rem; border-radius: 3px;
   cursor: pointer;
 }
-.compendium-picker .picker-row:hover:not(.held) { background: rgba(255, 255, 255, 0.06); }
+.compendium-picker .picker-row:hover:not(.held),
+.skill-picker .picker-row:hover:not(.held) { background: rgba(255, 255, 255, 0.06); }
 .compendium-picker .picker-row img {
   width: 1.6rem; height: 1.6rem; object-fit: cover; border: none; border-radius: 3px;
 }
-.compendium-picker .picker-name { font-weight: 600; }
+.compendium-picker .picker-name,
+.skill-picker .picker-name { font-weight: 600; }
 /* The summary is what distinguishes two aggregates, but it is long — one line,
    clipped, rather than wrapping every row to three. */
 .compendium-picker .picker-summary {
   grid-column: 3; font-size: 0.8em; opacity: 0.7;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.compendium-picker .picker-held { font-size: 0.75em; opacity: 0.6; font-style: italic; }
+.compendium-picker .picker-held,
+.skill-picker .picker-held { font-size: 0.75em; opacity: 0.6; font-style: italic; }
 /* One already on the sheet reads as settled, not merely unavailable. */
-.compendium-picker .picker-row.held { opacity: 0.5; cursor: default; }
-.compendium-picker .picker-row.hidden { display: none; }
-.compendium-picker .picker-count { font-size: 0.85em; opacity: 0.75; margin: 0; }
-.compendium-picker .hint { font-size: 0.8em; opacity: 0.7; margin: 0; }
+.compendium-picker .picker-row.held,
+.skill-picker .picker-row.held { opacity: 0.5; cursor: default; }
+.compendium-picker .picker-row.hidden,
+.skill-picker .picker-row.hidden { display: none; }
+.compendium-picker .picker-count,
+.skill-picker .picker-count { font-size: 0.85em; opacity: 0.75; margin: 0; }
+.compendium-picker .hint,
+.skill-picker .hint { font-size: 0.8em; opacity: 0.7; margin: 0; }
+
+/* ── Skill picker ─────────────────────────────────────── */
+/* No image and a level instead of a summary, so the row is its own grid; the
+   rest of the window is the compendium picker's, above. */
+.skill-picker .picker-row {
+  display: grid; grid-template-columns: auto 1fr auto auto;
+  gap: 0.5rem; align-items: center; padding: 0.25rem 0.3rem; border-radius: 3px;
+  cursor: pointer;
+}
+.skill-picker .picker-level { color: var(--isun-text-accent); font-size: 0.9em; }
+/* Grouped the way the sheet groups them, which is the way a level is priced. */
+.skill-picker .picker-group + .picker-group { margin-top: 0.4rem; }
+.skill-picker .picker-group-name {
+  font-family: var(--isun-font-smallcaps, inherit);
+  font-size: 0.75em; letter-spacing: 0.05em;
+  color: var(--isun-text-secondary);
+  padding: 0.15rem 0.3rem;
+  border-bottom: 1px solid var(--isun-border);
+}
+/* A search that empties a group takes its heading with it. */
+.skill-picker .picker-group.hidden { display: none; }
 
 /* ── Compendium browser ───────────────────────────────── */
 .compendium-browser .browser-layout { display: grid; grid-template-columns: 17rem 1fr; gap: 0.75rem; height: 100%; }
@@ -2070,8 +2118,6 @@ a.sentence-part:hover + .sentence-part.affix {
 }
 .challenge-response .hint { font-size: 0.8em; margin: 0 0 4px; }
 
-.challenge-response .cr-skill-list { max-height: 9rem; overflow-y: auto; }
-.challenge-response .cr-skill-row,
 .challenge-response .cr-spend-row {
   display: flex;
   align-items: center;
@@ -2080,10 +2126,7 @@ a.sentence-part:hover + .sentence-part.affix {
   border-radius: 3px;
   cursor: pointer;
 }
-.challenge-response .cr-skill-row:hover { background: var(--isun-bg-elevated); }
-.challenge-response .cr-skill-name,
 .challenge-response .cr-spend-name { flex: 1; }
-.challenge-response .cr-skill-level { color: var(--isun-text-accent); }
 
 .challenge-response .cr-avail,
 .challenge-response .cr-effect { font-size: 0.8em; color: var(--isun-text-secondary); }

@@ -38,15 +38,12 @@
     <fieldset class="cr-skills">
       <legend>{{localize "ISUN.Skills"}}</legend>
       <p class="hint">{{localize "ISUN.VentureTwoSkillsHint"}}</p>
-      <div class="cr-skill-list">
-        {{#each skills as |s|}}
-          <label class="cr-skill-row">
-            <input type="checkbox" class="cr-skill" name="skill.{{s.id}}" data-level="{{s.level}}" />
-            <span class="cr-skill-name">{{s.name}}</span>
-            <span class="cr-skill-level">+{{s.level}}</span>
-          </label>
-        {{/each}}
-      </div>
+      {{!-- Filled by SkillPicker, as the venture dialog's is: see the note
+            there on why the rows are not drawn here. --}}
+      <div class="skill-picks"></div>
+      <a class="item-pick add-skill" data-tooltip="{{localize 'ISUN.SkillPickerAddHint'}}">
+        <i class="fa-solid fa-plus"></i> {{localize "TYPES.Item.Skill"}}
+      </a>
     </fieldset>
   {{/if}}
 
