@@ -10,12 +10,22 @@ export function registerHandlebarsHelpers() {
   /* Removed ifEquals, eq, unlessEquals as they are built-in */
 
   /** Loop N times: {{#times 5}}...{{/times}}, index available as {{@index}}.
+   *
    *  The surrounding context is preserved — passing a fresh {index} object
-   *  instead would hide outer values like poolName from the block body. */
+   *  instead would hide outer values like poolName from the block body.
+   *
+   *  The data frame is preserved too, which is a separate thing and was not.
+   *  Handing block.fn a bare `{ index: i }` replaced the whole frame, so every
+   *  other @-value went with it: `@root` inside a {{#times}} block read as
+   *  undefined, and an {{#if @root.isGM}} in there quietly took the false arm
+   *  whoever was looking. A frame built from the incoming one keeps @root, and
+   *  keeps an enclosing loop's @index reachable as @../index. */
   Handlebars.registerHelper("times", function (n, block) {
     let out = "";
     for (let i = 0; i < n; i++) {
-      out += block.fn(this, { data: { index: i } });
+      const data = Handlebars.createFrame(block.data ?? {});
+      data.index = i;
+      out += block.fn(this, { data });
     }
     return out;
   });
