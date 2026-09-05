@@ -400,7 +400,7 @@
     "InjuryMental": "Mental injury",
     "AddPhysicalInjury": "Add a physical injury",
     "AddMentalInjury": "Add a mental injury",
-    "InjuryTrackHint": "Injuries share one track. When it fills, the last injury decides whether the set becomes a Wound or an Anguish.",
+    "InjuryTrackHint": "The last injury on the tracker determines whether you gain a Wound or an Anguish.",
     "ScourgeHint": "Scourge: subtract 1 from your venture for every action drawing on this pool.",
     "Dead": "Dead",
     "DeadHint": "Three Wounds. The character is dead.",
