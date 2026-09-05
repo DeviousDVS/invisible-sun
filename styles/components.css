@@ -66,6 +66,23 @@
   border-color: var(--isun-text-primary);
 }
 
+/* A diamond is a square turned 45°, so it paints 1.41 times its box: a 12px
+   enhancement pip covered 17px and its left edge stood 2.5px outside the column
+   every bene pip starts in, which is what made an enhancement row look shifted
+   against a bene one. Adjacent diamonds ate the 3px gap between them for the
+   same reason.
+
+   Turned and then scaled back by that same root two, so the painted diamond
+   fills exactly the 12px a circle does: one left edge, one set of gaps, one
+   row. Only where the pips are spent — the sheet draws these as a readout with
+   nothing beside them to line up against.
+
+   Every state respells the turn, because transform is one property and a rule
+   that sets only a scale would drop the rotation and leave a square. */
+.spend-pip.enhancement-pip { transform: rotate(45deg) scale(0.7071); }
+.spend-pip.enhancement-pip:hover { transform: rotate(45deg) scale(0.8485); }
+.spend-pip.enhancement-pip.beyond:hover { transform: rotate(45deg) scale(0.7071); }
+
 .wound-pip {
   display: inline-block;
   width: 16px;
@@ -1363,11 +1380,19 @@ a.sentence-part:hover + .sentence-part.affix {
    display above would otherwise outrank the browser's own rule for [hidden]. */
 .invisible-sun .add-skill[hidden] { display: none; }
 
+/* Every row is its own grid, so an `auto` column is sized by that row alone —
+   and "/ 105" is 12px wider than "/ 3". The 1fr name column gave those 12px up,
+   which walked the pips left in exactly the rows holding the most: the pools
+   worth looking at were the ones out of line.
+
+   So the count column is fixed at 2rem, four digits' worth. Nothing in the row
+   flexes against it now: the name still takes the slack, the pips stand in one
+   column whatever the pools hold, and a longer count grows into its own space
+   rather than out of somebody else's. */
 .venture-dialog .pool-spend-row {
-  display: grid; grid-template-columns: auto 1fr auto auto;
+  display: grid; grid-template-columns: 1fr 4rem 2rem 6rem;
   gap: 0.4rem; align-items: center; padding: 0.1rem 0;
 }
-.venture-dialog .pool-spend-row { grid-template-columns: 1fr 4rem auto 6rem; }
 .venture-dialog .pool-spend-row.enhancement .pool-effect { font-style: italic; }
 .venture-dialog .pool-avail,
 .venture-dialog .pool-effect { font-size: 0.85em; opacity: 0.75; }
@@ -1376,7 +1401,7 @@ a.sentence-part:hover + .sentence-part.affix {
    every line in here comes off the venture. */
 .venture-dialog .drain-row {
   display: grid;
-  grid-template-columns: 1fr 4rem auto 6rem;
+  grid-template-columns: 1fr 4rem 2rem 6rem;
   align-items: center;
   gap: 0.4rem;
 }
@@ -2147,6 +2172,10 @@ a.sentence-part:hover + .sentence-part.affix {
 
 .challenge-response .cr-avail,
 .challenge-response .cr-effect { font-size: 0.8em; color: var(--isun-text-secondary); }
+/* Fixed for the reason the venture dialog's count column is: a row is flex, so
+   a wider count took its width off the name beside it and walked the pips left
+   in whichever row held the most. Four digits' worth at this size. */
+.challenge-response .cr-avail { flex: none; width: 2rem; }
 .challenge-response .cr-effect { width: 5.5rem; text-align: right; }
 .challenge-response .cr-spend-row.enhancement .cr-effect { color: var(--isun-text-primary); }
 
