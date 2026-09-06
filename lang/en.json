@@ -271,6 +271,8 @@
     "GMNotes": "GM Notes",
     "Combat": "Combat",
     "DefenceHealth": "Defence & Health",
+    "NextDegree": "Next degree",
+    "NextDegreeHint": "What the next degree costs in Crux.",
     "Advancement": "Advancement",
     "Ephemera": "Ephemera",
     "ObjectsOfPower": "Objects of Power",

@@ -30,6 +30,22 @@ export function registerHandlebarsHelpers() {
     return out;
   });
 
+  /** 1 -> "1st": {{ordinal 3}} gives "3rd".
+   *
+   *  The teens are the whole reason this is a function rather than a lookup on
+   *  the last digit: 11, 12 and 13 take "th" where 1, 2 and 3 take "st", "nd"
+   *  and "rd", and 111 through 113 do the same. English only, which is what
+   *  the sheet is written in — a translation wanting its own ordinals would
+   *  replace this rather than parameterise it. */
+  Handlebars.registerHelper("ordinal", function (n) {
+    const value = Math.trunc(Number(n));
+    if (!Number.isFinite(value)) return "";
+    const teens = Math.abs(value) % 100;
+    if (teens >= 11 && teens <= 13) return `${value}th`;
+    const last = Math.abs(value) % 10;
+    return `${value}${last === 1 ? "st" : last === 2 ? "nd" : last === 3 ? "rd" : "th"}`;
+  });
+
   /** Get sun CSS colour from colour key: {{sunColor "green"}} */
   Handlebars.registerHelper("sunColor", function (colorKey) {
     const suns = CONFIG.ISUN?.suns || {};

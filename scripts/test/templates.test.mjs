@@ -21,6 +21,7 @@ import assert from "node:assert/strict";
 import { registerHandlebarsHelpers } from "../../module/helpers/templates.mjs";
 
 let times;
+let ordinal;
 
 before(() => {
   const registered = {};
@@ -34,6 +35,7 @@ before(() => {
   };
   registerHandlebarsHelpers();
   times = registered.times;
+  ordinal = registered.ordinal;
 });
 
 after(() => { delete globalThis.Handlebars; });
@@ -95,5 +97,52 @@ describe("looping a fixed number of times", () => {
   test("a block arriving with no frame of its own is still handled", () => {
     const block = { fn: (self, options) => String(options.data.index) };
     assert.equal(times.call({}, 2, block), "01");
+  });
+});
+
+/**
+ * The degree select reads "2nd" rather than "2", so the number and the word
+ * after it make one phrase: "2nd Degree, Crafter".
+ */
+describe("saying a number in its order", () => {
+
+  test("the three that are not th", () => {
+    assert.equal(ordinal(1), "1st");
+    assert.equal(ordinal(2), "2nd");
+    assert.equal(ordinal(3), "3rd");
+  });
+
+  test("everything else in the first ten", () => {
+    for (const n of [4, 5, 6, 7, 8, 9, 10]) assert.equal(ordinal(n), `${n}th`);
+  });
+
+  test("the teens are th, which is the whole reason for the rule", () => {
+    assert.equal(ordinal(11), "11th", "not 11st");
+    assert.equal(ordinal(12), "12th", "not 12nd");
+    assert.equal(ordinal(13), "13th", "not 13rd");
+  });
+
+  test("past the teens the last digit decides again", () => {
+    assert.equal(ordinal(21), "21st");
+    assert.equal(ordinal(22), "22nd");
+    assert.equal(ordinal(23), "23rd");
+    assert.equal(ordinal(24), "24th");
+  });
+
+  test("and the hundred-and-teens are th as well", () => {
+    assert.equal(ordinal(111), "111th");
+    assert.equal(ordinal(112), "112th");
+    assert.equal(ordinal(113), "113th");
+    assert.equal(ordinal(121), "121st");
+  });
+
+  test("a degree the ladder does not have is not a crash", () => {
+    assert.equal(ordinal(0), "0th");
+    assert.equal(ordinal(undefined), "");
+    assert.equal(ordinal("not a number"), "");
+  });
+
+  test("a string of digits is still a number", () => {
+    assert.equal(ordinal("3"), "3rd");
   });
 });

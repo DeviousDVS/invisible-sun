@@ -423,7 +423,13 @@ a.sentence-part:hover + .sentence-part.affix {
 .invisible-sun .form-group > label,
 .economy-field > label,
 .house-field > label,
-.defense-group > label {
+.defense-group > label,
+/* The degree caption is a caption like any of these; it just happens to sit
+   beside its control rather than over it. The title is in with it because the
+   two are one phrase — "DEGREE, CRAFTER" — and a title in a different face
+   read as a separate remark sitting next to the caption. */
+.degree-picker > label,
+.degree-picker .degree-title {
   font-family: var(--isun-font-heading);
   font-size: 0.75em;
   letter-spacing: 0.05em;
@@ -1884,8 +1890,25 @@ a.sentence-part:hover + .sentence-part.affix {
 .order-degree .degree-title { font-variant: small-caps; opacity: 0.85; }
 .degree-picker { display: flex; gap: 0.4rem; align-items: center; }
 .degree-picker select { width: 4rem; }
-.degree-picker .degree-title { font-variant: small-caps; opacity: 0.8; }
 
+/* Held to the far end of the row, and quieter than the caption beside it — the
+   same family and size, dimmed, because it is a price rather than a fact about
+   the character. The star keeps its Crux colour so the number is recognisable
+   as Crux without a second word for it, and dims with the rest. */
+.degree-next {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--isun-font-heading);
+  font-size: 0.7em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--isun-text-secondary);
+  opacity: 0.55;
+  white-space: nowrap;
+}
+.degree-next i { color: var(--isun-crux); }
 
 /* ── Picking a forte ability ──────────────────────────────
    Opened from the practices header rather than living on the sheet: a tree is

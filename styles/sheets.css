@@ -481,8 +481,8 @@
    the moment of spending. Set apart so it does not read as a fifth holding. */
 .crux-readout {
   display: grid;
-  /* Deliberately the same four columns as a row above, so the star sits under
-     the icons and the number under the numbers — it is a different kind of
+  /* Deliberately the same four columns as the rows below, so the star sits
+     over the icons and the number over the numbers — it is a different kind of
      thing, but it should still read as part of the same table. */
   grid-template-columns: 1fr 2.4rem 2.5ch 1.2em;
   align-items: center;
@@ -497,7 +497,7 @@
   color: var(--isun-crux);
   justify-self: center;
   /* Column 4 by name. This row has no adjust controls, so left to place itself
-     the star landed in column 3 and sat 32px left of the icons above it. */
+     the star landed in column 3 and sat 32px left of the icons below it. */
   grid-column: 4;
 }
 

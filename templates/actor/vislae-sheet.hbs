@@ -33,6 +33,55 @@
         <div class="overview-advancement">
           <h3>{{localize "ISUN.Advancement"}}</h3>
 
+          {{!-- Degree sits with advancement: it is bought with Crux, which is
+                the line directly under it.
+
+                Ordered as it is said rather than as a form is usually laid
+                out: "2nd Degree, Crafter" is one fact in one line, where a
+                caption over a bare number made the reader assemble it. The
+                comma rides on the label so the flex gap cannot open a space in
+                front of it, and goes when there is no title to follow it.
+
+                The number is the character's; the name for it belongs to the
+                order and is read from there. --}}
+          <div class="degree-picker">
+            <select name="system.meta.orderDegree">
+              <option value="0" {{#if (eq system.meta.orderDegree 0)}}selected{{/if}}>—</option>
+              {{#each degreeLadder as |d|}}
+                <option value="{{d.degree}}" {{#if d.current}}selected{{/if}}>{{ordinal d.degree}}</option>
+              {{/each}}
+            </select>
+            <label>{{localize "ISUN.OrderDegree"}}{{#if orderDegreeTitle}},{{/if}}</label>
+            <span class="degree-title">{{orderDegreeTitle}}</span>
+            {{!-- What the next rung costs, at the far end of the row that sells
+                  it. Quieter than the degree itself: it is what a player is
+                  saving towards rather than what they have, and the Crux they
+                  hold is already stated in full a line below. Absent at the top
+                  of the ladder, and for a character with no order. --}}
+            {{#if nextDegree}}
+              <span class="degree-next" data-tooltip="{{localize 'ISUN.NextDegreeHint'}}">
+                {{localize "ISUN.NextDegree"}} {{nextDegree.cost}}
+                <i class="fa-solid fa-star"></i>
+              </span>
+            {{/if}}
+          </div>
+
+          {{!-- Crux is not one of the four below. It is what a Joy and a
+                Despair are worth together, and it comes into existence only
+                when something is bought — so this is a rate, not a holding.
+                Uneven pools are worth saying out loud: knowing you have the Joy
+                but not the Despair is what tells a player which path to walk
+                next. --}}
+          <div class="crux-readout{{#unless crux}} empty{{/unless}}"
+               data-tooltip="{{localize 'ISUN.CruxHint'}}">
+            <span class="crux-label">{{localize "ISUN.CruxAvailable"}}</span>
+            <span class="crux-value">{{crux}}</span>
+            <i class="fa-solid fa-star"></i>
+            {{#if cruxShortOf}}
+              <span class="crux-limit">{{localize "ISUN.CruxShortOf"}} {{cruxShortOf}}</span>
+            {{/if}}
+          </div>
+
           {{!-- Four things that are earned and kept: name, value, icon, in
                 fixed columns so the numbers form a line the eye can run down.
                 Each says where it comes from on hover, because a sun and a moon
@@ -70,37 +119,6 @@
                 <i class="fa-solid {{a.icon}}"></i>
               </div>
             {{/each}}
-          </div>
-
-          {{!-- Crux is not one of them. It is what a Joy and a Despair are
-                worth together, and it comes into existence only when something
-                is bought — so this is a rate, not a holding. Uneven pools are
-                worth saying out loud: knowing you have the Joy but not the
-                Despair is what tells a player which path to walk next. --}}
-          <div class="crux-readout{{#unless crux}} empty{{/unless}}"
-               data-tooltip="{{localize 'ISUN.CruxHint'}}">
-            <span class="crux-label">{{localize "ISUN.CruxAvailable"}}</span>
-            <span class="crux-value">{{crux}}</span>
-            <i class="fa-solid fa-star"></i>
-            {{#if cruxShortOf}}
-              <span class="crux-limit">{{localize "ISUN.CruxShortOf"}} {{cruxShortOf}}</span>
-            {{/if}}
-          </div>
-
-          {{!-- Degree sits with advancement: it is bought with Crux. --}}
-          <div class="form-group mt-4">
-            <label>{{localize "ISUN.OrderDegree"}}</label>
-            {{!-- The number is the character's; the name for it belongs to
-                  the order and is read from there. --}}
-            <div class="degree-picker">
-              <select name="system.meta.orderDegree">
-                <option value="0" {{#if (eq system.meta.orderDegree 0)}}selected{{/if}}>—</option>
-                {{#each degreeLadder as |d|}}
-                  <option value="{{d.degree}}" {{#if d.current}}selected{{/if}}>{{d.degree}}</option>
-                {{/each}}
-              </select>
-              <span class="degree-title">{{orderDegreeTitle}}</span>
-            </div>
           </div>
         </div>
       </div>
