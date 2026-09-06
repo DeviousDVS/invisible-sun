@@ -130,3 +130,44 @@ export function sortilegeCap(actor, { enhanced = false } = {}) {
   const which = holdsSecret(actor, CONFIG.ISUN.sortilegeSecret) ? limits.advanced : limits.base;
   return (enhanced ? which?.enhanced : which?.plain) ?? 0;
 }
+
+/**
+ * What may be spent to shrug off damage that has just landed.
+ *
+ * "A character can spend a Physicality bene to negate a Wound" and Intellect
+ * does the same for an Anguish, but never the other way about: "a character
+ * cannot use Intellect bene to negate Wounds at any time" (The Gate, p2508).
+ * So the pool is decided by what arrived, not chosen.
+ *
+ * Three numbers bound each row and the smallest wins: the bene cap, which is
+ * one unless a secret raises it; what the pool actually holds; and how many
+ * Wounds turned up, since there is nothing to spend a second bene on if only
+ * one did.
+ *
+ * The cap is shared across both rows, not applied to each. It is a cap on the
+ * act — see beneCap — and one blow that lands a Wound and an Anguish together
+ * is still one thing happening to a character, however many pools answer for
+ * it. What is drawn per row is the most that row could ever take; what may be
+ * spent across them at any moment is the cap.
+ *
+ * @param {Actor}  actor
+ * @param {number} [arrived.wounds]
+ * @param {number} [arrived.anguish]
+ * @returns {{cap: number, rows: object[]}} rows only for what actually arrived
+ */
+export function negationRows(actor, { wounds = 0, anguish = 0 } = {}) {
+  const count = (n) => Math.max(0, Math.trunc(Number(n) || 0));
+  const kinds = [
+    { kind: "wounds", group: "certes", poolKey: "physicality", arrived: count(wounds) },
+    { kind: "anguish", group: "qualia", poolKey: "intellect", arrived: count(anguish) }
+  ];
+
+  const cap = beneCap(actor);
+  return {
+    cap,
+    rows: kinds.filter(k => k.arrived > 0).map(k => {
+      const held = actor?.system?.stats?.[k.group]?.pools?.[k.poolKey]?.value ?? 0;
+      return { ...k, held, spendable: Math.min(cap, held, k.arrived) };
+    })
+  };
+}

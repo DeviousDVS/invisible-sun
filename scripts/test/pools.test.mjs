@@ -204,3 +204,93 @@ describe("how many enhancements Sortilege may put on one action", () => {
     assert.equal(pools.sortilegeCap({ items: [{ type: "Spell", name: ADVANCED }] }), 1);
   });
 });
+
+/**
+ * What may be spent to shrug off damage as it lands.
+ *
+ * The interesting part is that three separate numbers can be the binding one,
+ * and which of them it is changes what a player is being offered. A cap they
+ * have not raised, a pool they have emptied, and a blow that only landed one
+ * Wound all cut the same row down, and each has to be the answer when it is
+ * the smallest.
+ */
+describe("what may be spent to negate damage as it lands", () => {
+
+  const vislae = ({ physicality = 0, intellect = 0, secrets = [] } = {}) => ({
+    items: secrets.map(name => ({ type: "Secret", name })),
+    system: { stats: {
+      certes: { pools: { physicality: { value: physicality } } },
+      qualia: { pools: { intellect: { value: intellect } } }
+    } }
+  });
+
+  test("a Wound draws on Physicality and an Anguish on Intellect", () => {
+    /* "A character cannot use Intellect bene to negate Wounds at any time"
+     * (The Gate, p2508), so the pool follows what arrived. */
+    const { rows } = pools.negationRows(
+      vislae({ physicality: 3, intellect: 3 }), { wounds: 1, anguish: 1 });
+    assert.deepEqual(rows.map(r => [r.kind, r.poolKey]),
+      [["wounds", "physicality"], ["anguish", "intellect"]]);
+  });
+
+  test("nothing arrived means nothing to offer", () => {
+    assert.deepEqual(pools.negationRows(vislae({ physicality: 5 }), {}).rows, []);
+    assert.deepEqual(pools.negationRows(vislae({ physicality: 5 }),
+      { wounds: 0, anguish: 0 }).rows, []);
+  });
+
+  test("only the kind that arrived gets a row", () => {
+    const { rows } = pools.negationRows(
+      vislae({ physicality: 3, intellect: 3 }), { wounds: 2 });
+    assert.deepEqual(rows.map(r => r.kind), ["wounds"]);
+  });
+
+  test("without a secret the cap is one, however much is held", () => {
+    const { cap, rows } = pools.negationRows(
+      vislae({ physicality: 9 }), { wounds: 4 });
+    assert.equal(cap, 1);
+    assert.equal(rows[0].spendable, 1);
+  });
+
+  test("Expansive Endeavor is what lets several Wounds go at once", () => {
+    const { cap, rows } = pools.negationRows(
+      vislae({ physicality: 9, secrets: ["Expansive Endeavor"] }), { wounds: 4 });
+    assert.equal(cap, 3);
+    assert.equal(rows[0].spendable, 3);
+  });
+
+  test("the pool binds when it is emptier than the cap", () => {
+    const { rows } = pools.negationRows(
+      vislae({ physicality: 2, secrets: ["Expansive Endeavor"] }), { wounds: 4 });
+    assert.equal(rows[0].held, 2);
+    assert.equal(rows[0].spendable, 2, "a secret does not conjure a third bene");
+  });
+
+  test("what arrived binds when fewer Wounds landed than could be paid for", () => {
+    const { rows } = pools.negationRows(
+      vislae({ physicality: 9, secrets: ["Expansive Endeavor"] }), { wounds: 1 });
+    assert.equal(rows[0].spendable, 1, "there is no second Wound to spend on");
+  });
+
+  test("the cap is one figure for the event, not one for each pool", () => {
+    /* One blow landing both is still one thing happening to a character, so a
+     * player with the baseline cap chooses which of the two to shrug off — the
+     * rows are drawn at what each could take, and the cap is what crosses them. */
+    const { cap, rows } = pools.negationRows(
+      vislae({ physicality: 5, intellect: 5 }), { wounds: 2, anguish: 2 });
+    assert.equal(cap, 1);
+    assert.deepEqual(rows.map(r => r.spendable), [1, 1]);
+  });
+
+  test("a pool that is empty offers nothing to spend from", () => {
+    const { rows } = pools.negationRows(vislae({ physicality: 0 }), { wounds: 2 });
+    assert.equal(rows[0].spendable, 0);
+  });
+
+  test("counts arriving as strings or fractions are still counts", () => {
+    const { rows } = pools.negationRows(vislae({ physicality: 5 }), { wounds: "2" });
+    assert.equal(rows[0].arrived, 2);
+    assert.deepEqual(pools.negationRows(vislae({ physicality: 5 }), { wounds: -3 }).rows, []);
+  });
+});
+

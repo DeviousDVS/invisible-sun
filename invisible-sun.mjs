@@ -31,6 +31,7 @@ import { ISUNSoothCardSheet } from "./module/sheets/items/ISUNSoothCardSheet.mjs
 
 // ── Challenges ───────────────────────────────────────────
 import { ChallengeCard } from "./module/apps/ChallengeCard.mjs";
+import { NegationCard } from "./module/apps/NegationCard.mjs";
 import { ChallengeDeclaration } from "./module/apps/ChallengeDeclaration.mjs";
 
 // ── Helpers ──────────────────────────────────────────────
@@ -106,6 +107,7 @@ Hooks.once("init", () => {
     CompendiumBrowser,
     ContentImporter,
     ChallengeCard,
+    NegationCard,
     ChallengeDeclaration,
     PathOfSuns
   };
@@ -404,6 +406,18 @@ Hooks.once("ready", async () => {
    * a GM client, which applies it. Every client listens; only a GM acts. */
   ChallengeCard.listen();
 
+  /* The same relay, for the same reason, for the bene that shrugs off a Wound.
+   * See NegationCard. */
+  NegationCard.listen();
+
+  /* Damage announces what it did, and the window that answers it is offered
+   * from here. The document cannot reach the card itself — applications sit
+   * above documents and the import would point the wrong way — and every caller
+   * remembering to offer it was what let a flux Wound land in silence.
+   *
+   * Fired on the client that applied the damage, so one blow makes one card. */
+  Hooks.on("isun.damageApplied", (actor, result) => NegationCard.offer(actor, result));
+
   /* A GM turning a card writes the world setting; this is what makes every
    * other open board redraw when they do. */
   PathOfSuns.listen();
@@ -424,7 +438,10 @@ Hooks.once("ready", async () => {
   /* The card is drawn per client, not stored: it says different things to a
    * player and to the GM, so one saved rendering would show the GM's view to
    * everyone. renderChatMessage is deprecated in v13 and warns. */
-  Hooks.on("renderChatMessageHTML", (message, html) => ChallengeCard.render(message, html));
+  Hooks.on("renderChatMessageHTML", (message, html) => {
+    ChallengeCard.render(message, html);
+    NegationCard.render(message, html);
+  });
 
   /* Whatever this world has not had yet. Elects a single GM, runs only what is
    * outstanding, and records how far it got. See module/migrations/. */

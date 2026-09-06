@@ -419,14 +419,22 @@ export class ISUNActor extends Actor {
       const key = type === "mental" ? "anguish" : "wounds";
       const value = Math.min(h[key].max, h[key].value + amount);
       await this.update({ [`${path}.${key}.value`]: value });
-      return { absorbed: 0, injuries: 0, direct: amount };
+      /* Reported the same way the converting path reports, so a Wound a flux
+       * inflicts can be answered like a Wound a blow inflicts. It used to say
+       * only how much was dealt, which is why nothing could offer the bene
+       * window for one: there was no count of what had actually arrived. */
+      return this.#damageDone({
+        absorbed: 0, injuries: 0, direct: amount,
+        newWounds: key === "wounds" ? value - h.wounds.value : 0,
+        newAnguish: key === "anguish" ? value - h.anguish.value : 0
+      });
     }
 
     // Armor is physical only; Ward is the magical counterpart and does not
     // reduce damage point-for-point, so it is not applied here.
     const armor = (type === "physical" && !ignoreArmor) ? (this.system.armor ?? h.armor ?? 0) : 0;
     const got = Math.max(0, amount - armor);
-    if (!got) return { absorbed: amount, injuries: 0, direct: 0 };
+    if (!got) return this.#damageDone({ absorbed: amount, injuries: 0, direct: 0 });
 
     const before = { wounds: h.wounds.value, anguish: h.anguish.value };
     await this.update({ [`${path}.injuries`]: [...(h.injuries ?? []), ...Array(got).fill(type)] });
@@ -434,13 +442,32 @@ export class ISUNActor extends Actor {
     // Report any conversion the damage caused, so a caller can offer the
     // bene-negation window while it is still open.
     const after = this.health;
-    return {
+    return this.#damageDone({
       absorbed: Math.min(armor, amount),
       injuries: got,
       direct: 0,
       newWounds: after.wounds.value - before.wounds,
       newAnguish: after.anguish.value - before.anguish
-    };
+    });
+  }
+
+  /**
+   * Announce what damage did, and hand the result back to the caller.
+   *
+   * A hook rather than a call, because the window that offers a bene to negate
+   * a Wound is an application and this is a document: the layering forbids one
+   * reaching for the other, and every caller remembering to offer it for itself
+   * is what left a flux Wound landing in silence. One announcement here covers
+   * the sheet's button, the injury pips, a flux and anything a macro does.
+   *
+   * Fired on the client that applied the damage, so one blow makes one offer
+   * rather than one per person watching.
+   */
+  #damageDone(result) {
+    if (result.newWounds || result.newAnguish) {
+      Hooks.callAll("isun.damageApplied", this, result);
+    }
+    return result;
   }
 
   /**
@@ -452,7 +479,7 @@ export class ISUNActor extends Actor {
    * arrives: "once damage is sustained, a character cannot use Physicality to
    * negate a Wound" (The Gate, p2540). Enforcing that window is the caller's job.
    */
-  async negateWithBene(kind = "wounds") {
+  async negateWithBene(kind = "wounds", { count = 1 } = {}) {
     const [group, poolKey] = kind === "anguish"
       ? ["qualia", "intellect"]
       : ["certes", "physicality"];
@@ -462,11 +489,22 @@ export class ISUNActor extends Actor {
     if (!p?.value) return { refused: "noBene", poolKey };
     if (!h?.[kind]?.value) return { refused: "nothingToNegate" };
 
+    /* Several at once, under Expansive Endeavor, and in one update rather than
+     * one per bene: three separate writes would let a sheet redraw between them
+     * showing a character who had paid for a Wound they still had.
+     *
+     * Bounded here as well as by whatever asked. The pool cannot go past what
+     * it holds and the track cannot go past what is on it — a request for more
+     * than either takes what is there and no more. The cap that says how many
+     * an *action* may spend belongs to the caller; this is only arithmetic. */
+    const spend = Math.max(1, Math.min(Math.trunc(Number(count) || 1),
+                                       p.value, h[kind].value));
+
     await this.update({
-      [`system.stats.${group}.pools.${poolKey}.value`]: p.value - 1,
-      [`${this.healthPath}.${kind}.value`]: h[kind].value - 1
+      [`system.stats.${group}.pools.${poolKey}.value`]: p.value - spend,
+      [`${this.healthPath}.${kind}.value`]: h[kind].value - spend
     });
-    return { negated: kind, spent: poolKey };
+    return { negated: kind, spent: poolKey, count: spend };
   }
 
   /**

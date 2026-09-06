@@ -2088,6 +2088,82 @@ a.sentence-part:hover + .sentence-part.affix {
    .invisible-sun.sheet scope, so it inherits Foundry's chat palette instead —
    which rendered the name in near-black on our dark card and the buttons as
    rgb(17,17,17) on rgba(0,0,0,0.1): an unreadable black box. */
+/* ── Negating a Wound ──────────────────────────────────── */
+/* Built like the challenge card, because it is the same kind of thing: a card
+   that is a control for one person and a record for everybody else. */
+.isun-negation-card {
+  font-size: 0.9em;
+  background: var(--isun-bg-primary);
+  border: 1px solid var(--isun-wound);
+  border-radius: 4px;
+  padding: var(--isun-space-sm);
+  color: var(--isun-text-primary);
+  font-family: var(--isun-font-ui);
+}
+/* Once it is answered it stops asking: the frame goes quiet and the card reads
+   as a line in the log rather than a thing still wanting a decision. */
+.isun-negation-card.resolved { border-color: var(--isun-border); opacity: 0.85; }
+
+.isun-negation-card .neg-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--isun-space-xs);
+  margin-bottom: 0.35rem;
+}
+.isun-negation-card .neg-head i { color: var(--isun-wound); }
+.isun-negation-card .neg-title {
+  font-family: var(--isun-font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.85em;
+}
+.isun-negation-card .neg-who { margin-left: auto; opacity: 0.75; font-size: 0.85em; }
+
+.isun-negation-card .neg-what { margin: 0 0 0.35rem; display: flex; gap: 0.5rem; }
+.isun-negation-card .neg-arrived {
+  font-family: var(--isun-font-heading);
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.isun-negation-card .neg-arrived.wounds { color: var(--isun-wound); }
+.isun-negation-card .neg-arrived.anguish { color: var(--isun-anguish); }
+
+.isun-negation-card .hint { font-size: 0.8em; opacity: 0.7; margin: 0 0 0.4rem; }
+
+/* The same shape the venture dialog spends in, on one grid across both rows so
+   the two line up. Not a fixed name column, as the dialog has: a chat card is
+   narrower and less predictable than a dialog, and 70px clipped "Physicality"
+   to "PHYSICALIT". max-content cannot clip whatever the pool is called, and
+   sharing one grid is what keeps two rows in the same columns while it does. */
+.isun-negation-card .neg-rows {
+  display: grid;
+  grid-template-columns: max-content auto 2rem auto;
+  gap: 0.15rem 0.4rem;
+  align-items: center;
+}
+.isun-negation-card .neg-row { display: contents; }
+.isun-negation-card .neg-pool {
+  font-family: var(--isun-font-heading);
+  font-size: 0.8em;
+  text-transform: uppercase;
+  color: var(--isun-text-secondary);
+}
+.isun-negation-card .neg-avail,
+.isun-negation-card .neg-effect { font-size: 0.85em; opacity: 0.75; }
+
+.isun-negation-card .neg-actions {
+  display: flex;
+  gap: var(--isun-space-sm);
+  margin-top: 0.5rem;
+}
+.isun-negation-card .neg-actions button { flex: 1; }
+
+.isun-negation-card .neg-outcome { margin: 0; font-size: 0.9em; }
+.isun-negation-card .neg-outcome.spent { color: var(--isun-success, #2e7d32); }
+.isun-negation-card .neg-outcome.stood { opacity: 0.7; }
+.isun-negation-card .neg-waiting { margin: 0; }
+
 .challenge-card {
   font-size: 0.9em;
   background: var(--isun-bg-primary);

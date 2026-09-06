@@ -1,0 +1,62 @@
+{{!-- The offer, as it stands. A player with the pools sees pips and two
+      buttons; everyone else sees that the offer was made and what came of it,
+      because the card is the record as well as the control. --}}
+<div class="isun-negation-card{{#if resolved}} resolved{{/if}}">
+  <div class="neg-head">
+    <i class="fa-solid fa-shield-halved"></i>
+    <span class="neg-title">{{localize "ISUN.NegateTitle"}}</span>
+    <span class="neg-who">{{data.name}}</span>
+  </div>
+
+  <p class="neg-what">
+    {{#each rows as |r|}}
+      <span class="neg-arrived {{r.kind}}">{{r.arrived}} {{r.label}}</span>
+    {{/each}}
+  </p>
+
+  {{#if resolved}}
+    {{#if anySpent}}
+      <p class="neg-outcome spent">
+        {{#each rows as |r|}}
+          {{#if r.spentHere}}
+            <span>{{localize "ISUN.NegateSpent" count=r.spentHere pool=r.poolLabel kind=r.label}}</span>
+          {{/if}}
+        {{/each}}
+      </p>
+    {{else}}
+      <p class="neg-outcome stood">{{localize "ISUN.NegateStood"}}</p>
+    {{/if}}
+  {{else if mine}}
+    <p class="hint">{{localize "ISUN.NegateWindowHint"}}</p>
+
+    <div class="neg-rows">
+      {{#each rows as |r|}}
+        <div class="neg-row">
+          <span class="neg-pool">{{r.poolLabel}}</span>
+          {{!-- One pip per bene that could go on this Wound: what the pool
+                holds, what a secret allows, and how many arrived, whichever
+                runs out first. The cap crosses both rows, so spending here can
+                dim the pips in the row below. --}}
+          <span class="bene-pips" data-tooltip="{{@root.capHint}}">
+            <input type="hidden" class="negate-spend" data-kind="{{r.kind}}" value="0" />
+            {{#times r.spendable}}
+              <a class="spend-pip bene-pip" data-n="{{add @index 1}}"></a>
+            {{/times}}
+            {{#unless r.spendable}}<span class="spend-none">—</span>{{/unless}}
+          </span>
+          <span class="neg-avail">/ {{r.held}}</span>
+          <span class="neg-effect">−1 {{r.label}}</span>
+        </div>
+      {{/each}}
+    </div>
+
+    <div class="neg-actions">
+      <button type="button" data-action="negate" disabled>
+        <i class="fa-solid fa-shield-halved"></i> {{localize "ISUN.NegateSpendButton"}}
+      </button>
+      <button type="button" data-action="stand">{{localize "ISUN.NegateLetStand"}}</button>
+    </div>
+  {{else}}
+    <p class="hint neg-waiting">{{localize "ISUN.NegateWaiting"}}</p>
+  {{/if}}
+</div>

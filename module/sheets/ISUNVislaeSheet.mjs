@@ -260,6 +260,13 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       // The 1st degree is where a character starts, so it is not bought.
       cost: d.degree === 1 ? 0 : d.cruxCost
     }));
+    /* What the next rung costs, for the row that offers the choice. Read off
+     * the ladder rather than computed, so it is the same number the ladder
+     * shows further down the sheet. Null at the top of the ladder, and null
+     * with no order to have degrees in — in both cases there is nothing to
+     * save towards and the row says nothing. */
+    context.nextDegree = context.degreeLadder.find(d => d.degree === held + 1) ?? null;
+
     /* An Apostate has no ladder at all: a fixed set to begin with, and the
      * rest bought one at a time for 1 Crux each (The Key, p5535). */
     context.isApostate = context.orderKey === "apostate";
@@ -1044,11 +1051,14 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   }
 
   /**
-   * Take damage, then offer the bene-negation window.
+   * Take damage. The bene-negation window follows on its own.
    *
-   * The window only exists at the moment damage arrives — "once damage is
-   * sustained, a character cannot use Physicality to negate a Wound" — so it is
-   * offered here, immediately, and nowhere else on the sheet.
+   * It used to be offered from here, as a confirm on whoever clicked. That was
+   * one path out of four — a flux, the injury pips and any macro landed a Wound
+   * in silence — and it asked the wrong person once applying damage went
+   * GM-only. applyDamage announces what it did now, and NegationCard answers,
+   * so every path offers the window and it opens for the player whose bene it
+   * is. See module/apps/NegationCard.mjs.
    */
   async _onApplyDamage(event, target) {
     event.preventDefault();
@@ -1080,34 +1090,11 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     });
     if (!form) return;
 
-    const result = await this.document.applyDamage({
+    await this.document.applyDamage({
       amount: Number(form.amount) || 0,
       type: form.type === "mental" ? "mental" : "physical",
       ignoreArmor: !!form.ignoreArmor
     });
-    if (!result) return;
-
-    for (const [kind, count] of [["wounds", result.newWounds], ["anguish", result.newAnguish]]) {
-      for (let i = 0; i < (count ?? 0); i++) await this._offerNegation(kind);
-    }
-  }
-
-  /** Offer one bene to cancel one arriving Wound or Anguish. */
-  async _offerNegation(kind) {
-    const poolKey = kind === "anguish" ? "intellect" : "physicality";
-    const group = kind === "anguish" ? "qualia" : "certes";
-    const available = this.document.system.stats?.[group]?.pools?.[poolKey]?.value ?? 0;
-    if (!available) return;
-
-    const label = game.i18n.localize(kind === "anguish" ? "ISUN.Anguish" : "ISUN.Wounds");
-    const pool = game.i18n.localize(`ISUN.Pool${poolKey.charAt(0).toUpperCase()}${poolKey.slice(1)}`);
-    const ok = await foundry.applications.api.DialogV2.confirm({
-      window: { title: game.i18n.localize("ISUN.NegateTitle") },
-      classes: ["invisible-sun", "negate-dialog"],
-      content: `<p>${game.i18n.format("ISUN.NegatePrompt", { kind: label, pool, available })}</p>`,
-      rejectClose: false
-    });
-    if (ok) await this.document.negateWithBene(kind);
   }
 
   /** Spend a longer rest to recover a Wound or an Anguish. */
