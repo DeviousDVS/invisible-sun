@@ -7,6 +7,20 @@
       The attribute is what makes a pip live — no data-action, no handler — so
       the cursor is keyed off the same attribute rather than asserted twice. --}}
 <div class="health-tracking">
+  {{!-- What a character stands behind, before what has got through it. Read
+        first because it is the standing state — Wounds and Anguish are what the
+        session has done to them, and this is what they brought. --}}
+  <div class="defenses-row">
+    <div class="defense-group">
+      <label>{{localize "ISUN.Armor"}}</label>
+      <input type="number" name="system.status.armor" value="{{system.status.armor}}" min="0" />
+    </div>
+    <div class="defense-group">
+      <label>{{localize "ISUN.Ward"}}</label>
+      <input type="number" name="system.status.ward" value="{{system.status.ward}}" min="0" />
+    </div>
+  </div>
+
   <div class="health-row wounds-row">
     <label>{{localize "ISUN.Wounds"}}</label>
     <div class="health-pips">
@@ -22,6 +36,14 @@
         <i class="fa-solid fa-skull"></i> {{localize "ISUN.Dead"}}
       </span>
     {{/if}}
+    {{!-- At the end of the track it heals, rather than in a row of actions
+          below where two links had to name which track they meant. After the
+          flag, not before it, so the link keeps the same place whether or not
+          there is a flag to show. Dimmed rather than dropped when no long rest
+          is left, so the reason a heal is unavailable stays on screen. --}}
+    <a class="row-action{{#unless canRestHeal}} disabled{{/unless}}"
+       data-action="rest-recover" data-kind="wounds"
+       title="{{localize 'ISUN.RestHealHint'}}">{{localize "ISUN.HealWound"}}</a>
   </div>
 
   <div class="health-row anguish-row">
@@ -39,30 +61,47 @@
         <i class="fa-solid fa-brain"></i> {{localize "ISUN.Broken"}}
       </span>
     {{/if}}
+    <a class="row-action{{#unless canRestHeal}} disabled{{/unless}}"
+       data-action="rest-recover" data-kind="anguish"
+       title="{{localize 'ISUN.RestHealHint'}}">{{localize "ISUN.HealAnguish"}}</a>
   </div>
 
   {{!-- One shared Injury track. Each pip records where it came from, because
         the pip that fills the track decides whether the set becomes a Wound or
-        an Anguish. --}}
+        an Anguish.
+
+        The track is the GM's on both counts, like the Wound and Anguish pips
+        above it: an injury arrives from damage the GM applies, and taking one
+        back off is undoing that. A player keeps the pips and their titles —
+        what is on the track, and where each one came from — and none of the
+        clicks. --}}
   <div class="injuries-row">
     <label>{{localize "ISUN.Injuries"}}</label>
     <div class="injury-track">
       {{#each system.status.injuries as |source i|}}
-        <span class="injury-pip full {{source}}" data-action="remove-injury" data-index="{{i}}"
+        <span class="injury-pip full {{source}}"
+              {{#if @root.isGM}}data-action="remove-injury" data-index="{{i}}"{{/if}}
               title="{{localize (concat "ISUN.Injury" (capitalize source))}}"></span>
       {{/each}}
       {{#times (subtract system.status.injuryProgress.threshold system.status.injuryProgress.count)}}
         <span class="injury-pip empty"></span>
       {{/times}}
-      <span class="injury-add">
-        <a data-action="add-injury" data-source="physical" title="{{localize 'ISUN.AddPhysicalInjury'}}">
-          <i class="fa-solid fa-droplet"></i>
-        </a>
-        <a data-action="add-injury" data-source="mental" title="{{localize 'ISUN.AddMentalInjury'}}">
-          <i class="fa-solid fa-brain"></i>
-        </a>
-      </span>
+      {{#if @root.isGM}}
+        <span class="injury-add">
+          <a data-action="add-injury" data-source="physical" title="{{localize 'ISUN.AddPhysicalInjury'}}">
+            <i class="fa-solid fa-droplet"></i>
+          </a>
+          <a data-action="add-injury" data-source="mental" title="{{localize 'ISUN.AddMentalInjury'}}">
+            <i class="fa-solid fa-brain"></i>
+          </a>
+        </span>
+      {{/if}}
     </div>
+    {{#if @root.isGM}}
+      <a class="row-action" data-action="apply-damage" title="{{localize 'ISUN.ApplyDamageHint'}}">
+        <i class="fa-solid fa-burst"></i> {{localize "ISUN.ApplyDamage"}}
+      </a>
+    {{/if}}
   </div>
   <p class="hint injury-hint">{{localize "ISUN.InjuryTrackHint"}}</p>
 
@@ -80,30 +119,19 @@
         </span>
       {{/each}}
     </div>
-  </div>
-  <div class="rest-actions">
-    <a data-action="apply-damage" title="{{localize 'ISUN.ApplyDamageHint'}}">
-      <i class="fa-solid fa-burst"></i> {{localize "ISUN.ApplyDamage"}}
-    </a>
-    <a data-action="rest-recover" data-kind="wounds"
-       class="{{#unless canRestHeal}}disabled{{/unless}}"
-       title="{{localize 'ISUN.RestHealHint'}}">{{localize "ISUN.HealWound"}}</a>
-    <a data-action="rest-recover" data-kind="anguish"
-       class="{{#unless canRestHeal}}disabled{{/unless}}"
-       title="{{localize 'ISUN.RestHealHint'}}">{{localize "ISUN.HealAnguish"}}</a>
-    <a data-action="new-day" title="{{localize 'ISUN.NewDayHint'}}">
-      <i class="fa-solid fa-bed"></i> {{localize "ISUN.NewDay"}}
-    </a>
-  </div>
+    {{!-- Each of the four controls now ends the row it acts on: a heal spends
+          from the rests, damage fills the injury track, and a new day puts the
+          rests back. They were a row of their own underneath, which meant
+          reading a label to learn which track it meant.
 
-  <div class="defenses-row">
-    <div class="defense-group">
-      <label>{{localize "ISUN.Armor"}}</label>
-      <input type="number" name="system.status.armor" value="{{system.status.armor}}" min="0" />
-    </div>
-    <div class="defense-group">
-      <label>{{localize "ISUN.Ward"}}</label>
-      <input type="number" name="system.status.ward" value="{{system.status.ward}}" min="0" />
-    </div>
+          Damage and a new day stay the GM's. Damage arrives from what the GM
+          applies, and a new day is the table moving on rather than one player
+          deciding it has — where spending a long rest to heal is a choice about
+          the character's own afternoon, out of a budget their sheet keeps. --}}
+    {{#if @root.isGM}}
+      <a class="row-action" data-action="new-day" title="{{localize 'ISUN.NewDayHint'}}">
+        <i class="fa-solid fa-bed"></i> {{localize "ISUN.NewDay"}}
+      </a>
+    {{/if}}
   </div>
 </div>

@@ -480,11 +480,16 @@ a.sentence-part:hover + .sentence-part.affix {
  * OVERVIEW TAB
  * ════════════════════════════════════════════════════════ */
 
+/* The two panels are a pair, so they are one height: the taller decides it and
+   the shorter fills to match, which is what `stretch` does and what `start` was
+   preventing. Each was sizing to its own contents, so the shorter one ended
+   part way down its neighbour with a ragged edge between them. Their contents
+   still sit at the top of each; it is the boxes that match. */
 .overview-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--isun-space-md);
-  align-items: start;
+  align-items: stretch;
 }
 
 .health-tracking {
@@ -512,13 +517,49 @@ a.sentence-part:hover + .sentence-part.affix {
   gap: 6px;
 }
 
+/* The control that ends a row and acts on it — a heal, applying damage, a new
+   day. Held to the right so the four line up down the block however wide the
+   track to their left runs, and styled by their own class rather than by a
+   container, since the container is a different row in each case.
+
+   A row that also carries a flag gives the flag the free space first, because
+   the flag comes before this in the markup — which is what keeps the link in
+   the same place whether or not a character is Dead or Broken. */
+.row-action {
+  margin-left: auto;
+  font-size: 0.78em;
+  color: var(--isun-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.row-action:hover { color: var(--isun-text-accent); }
+/* No long rest left. Dimmed and inert rather than removed: a link that
+   disappears looks like a feature that is missing. */
+.row-action.disabled { opacity: 0.4; pointer-events: none; }
+
 .injuries-row,
 .defenses-row {
   display: flex;
   align-items: center;
   gap: var(--isun-space-md);
+}
+
+/* Wider than the 4px inside a pair, so the two pairs read as two things rather
+   than one run of four. The gap between them has to beat the gap within them,
+   or "Armor 2 Ward 0" is a sentence with no joins in it. */
+.defenses-row { gap: var(--isun-space-lg); }
+
+.injuries-row {
   padding-top: var(--isun-space-sm);
   border-top: 1px solid var(--isun-border);
+}
+
+/* First in the block now, so its rule goes underneath. The line was a
+   separator from whatever sat above, and at the top of the block it would read
+   as an underline for the heading the block sits beneath. */
+.defenses-row {
+  padding-bottom: var(--isun-space-sm);
+  border-bottom: 1px solid var(--isun-border);
 }
 
 .injuries-row > label {
@@ -534,7 +575,10 @@ a.sentence-part:hover + .sentence-part.affix {
   gap: var(--isun-space-md);
 }
 
-.injury-group {
+.injury-group,
+/* Caption beside its field, not over it: two of these sit side by side and
+   stacked captions made it a guess which number went with which word. */
+.defense-group {
   flex-direction: row;
   align-items: center;
   gap: var(--isun-space-xs);
@@ -548,6 +592,9 @@ a.sentence-part:hover + .sentence-part.affix {
   text-align: center;
 }
 
+/* Both panels are titled, and neither title carries the space a heading
+   normally opens above itself — the panel's own padding is that space. */
+.overview-health h3,
 .overview-advancement h3 {
   margin-top: 0;
 }
@@ -1015,10 +1062,13 @@ a.sentence-part:hover + .sentence-part.affix {
 }
 
 .injury-pip.empty { border-color: var(--isun-border); }
-.injury-pip.full { cursor: pointer; }
 .injury-pip.full.physical { background: var(--isun-wound); border-color: var(--isun-wound); }
 .injury-pip.full.mental { background: var(--isun-anguish); border-color: var(--isun-anguish); }
-.injury-pip.full:hover { transform: scale(1.15); }
+/* Only where the pip does something — the same rule the Wound and Anguish pips
+   answer to, keyed off the attribute that carries the handler so a pointer
+   cannot promise a click with nothing behind it. */
+.injury-pip[data-action] { cursor: pointer; }
+.injury-pip[data-action]:hover { transform: scale(1.15); }
 
 .injury-add {
   display: inline-flex;
@@ -1286,16 +1336,6 @@ a.sentence-part:hover + .sentence-part.affix {
   margin-left: 2px;
 }
 
-.rest-actions {
-  display: flex;
-  gap: var(--isun-space-md);
-  margin-top: var(--isun-space-xs);
-  font-size: 0.78em;
-}
-
-.rest-actions a { color: var(--isun-text-secondary); cursor: pointer; }
-.rest-actions a:hover { color: var(--isun-text-accent); }
-.rest-actions a.disabled { opacity: 0.4; pointer-events: none; }
 
 /* A vex is spent like a bene but subtracts, so it sits with them and reads as
    their opposite. */
@@ -1845,6 +1885,7 @@ a.sentence-part:hover + .sentence-part.affix {
 .degree-picker { display: flex; gap: 0.4rem; align-items: center; }
 .degree-picker select { width: 4rem; }
 .degree-picker .degree-title { font-variant: small-caps; opacity: 0.8; }
+
 
 /* ── Picking a forte ability ──────────────────────────────
    Opened from the practices header rather than living on the sheet: a tree is
