@@ -24,6 +24,7 @@ const SOURCE_DIR = path.join(__dirname, '../source/data');
 const PACKS_DIR = path.join(__dirname, '../packs/_source');
 
 const crypto = require('crypto');
+const { splitBeat } = require('../module/data-models/item/arc-beat.mjs');
 
 function generateId(name, type) {
   return crypto.createHash('md5').update(type + ':' + name).digest('hex').substring(0, 16);
@@ -506,15 +507,18 @@ if (fs.existsSync(path.join(SOURCE_DIR, 'character-arcs.json'))) {
    * tab, on the description and on every step. */
   const plain = text => String(text ?? '').trim();
 
-  // A beat reads "Naming the Secret. 1 Acumen reward. You give your goal a
-  // name..." — the reward is stated inline, so lift it into its own field while
-  // keeping the whole text as the description.
-  const beat = text => {
-    const t = plain(text);
-    if (!t) return { description: '', reward: '', completed: false };
-    const m = t.match(/(\d+\s+Acumen[^.]*|1\s+Joy[^.]*|1\s+Despair[^.]*)/i);
-    return { description: t, reward: m ? m[1].trim() : '', completed: false };
-  };
+  /* A beat reads "Naming the Secret. 1 Acumen reward. You give your goal a
+   * name..." — a name, then what it pays, then what happens. Split by the
+   * system's own rule rather than a copy of it: the importer, the data model
+   * and this script all have to agree about where a name ends, and they used
+   * to have three answers between them.
+   *
+   * Split here, at build time, rather than left for the model to do on read.
+   * A read-time migration is written back the moment anything updates the
+   * item — which is how the pack came to hold twenty resolutions named after
+   * their own first sentence. A pack that ships already named gives the
+   * migration nothing to do and nothing to persist. */
+  const beat = text => ({ ...splitBeat(plain(text)), completed: false });
 
   for (const data of arcsData) {
     const item = createItem(titleCase(data.name), "CharacterArc", {

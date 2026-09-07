@@ -16,6 +16,11 @@
  */
 import { columnAnchors, columnLines, isHeading, PARAGRAPH_SLACK, pageWords } from "./book-page.mjs";
 import { titleCase } from "./fortes.mjs";
+/* The rule for taking a beat apart lives with the model that defines a beat:
+ * the importer writes them and the model migrates old ones, and both have to
+ * agree about what a beat's name is. A data model may not reach up to an
+ * importer, so it is the importer that reaches down. */
+import { splitBeat } from "../data-models/item/arc-beat.mjs";
 
 /**
  * The beats an arc runs through.
@@ -43,14 +48,6 @@ const LABEL_RE = new RegExp(`^(${BEAT}(?:\\s+and\\s+${BEAT})*):\\s*(.*)$`);
 /** "Step(s) and Climax" → ["Step", "Climax"]. */
 const beatsNamed = (label) =>
   label.split(/\s+and\s+/).map(part => part.replace(/\(s\)$/, "").trim());
-
-/**
- * What a beat pays.
- *
- * Stated inside the beat's own sentence rather than in a field of its own, and
- * always in the same three currencies. Taken from the text and left in it.
- */
-const REWARD_RE = /(\d+\s+Acumen[^.]*|1\s+Joy[^.]*|1\s+Despair[^.]*)/i;
 
 /** Split one arc's lines into its description and its beats. */
 export function parseArc(lines) {
@@ -138,12 +135,7 @@ export function reader() {
   };
 }
 
-/** A beat, whole, with what it pays lifted out of it. */
-const beat = (text) => ({
-  description: text ?? "",
-  reward: REWARD_RE.exec(text ?? "")?.[1].trim() ?? "",
-  completed: false
-});
+const beat = (text) => ({ ...splitBeat(text), completed: false });
 
 /**
  * One character arc.

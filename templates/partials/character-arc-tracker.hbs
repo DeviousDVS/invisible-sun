@@ -17,10 +17,16 @@
       <p class="arc-desc">{{arc.system.description}}</p>
       
       <div class="arc-timeline">
+        {{!-- The book's name for the beat, where it has one. The label alone
+              said "Opening" on every arc in the list; the name is what tells
+              one from another at a glance. --}}
         <div class="timeline-step {{#if arc.system.opening.completed}}completed{{/if}}">
           <div class="step-indicator"></div>
           <div class="step-content">
             <span class="step-title">{{localize "ISUN.ArcOpening"}}</span>
+            {{#if arc.system.opening.title}}
+              <span class="step-name">{{arc.system.opening.title}}</span>
+            {{/if}}
             <span class="step-reward">{{arc.system.opening.reward}}</span>
           </div>
         </div>
@@ -30,6 +36,7 @@
             <div class="step-indicator"></div>
             <div class="step-content">
               <span class="step-title">{{localize "ISUN.ArcStep" n=(add index 1)}}</span>
+              {{#if step.title}}<span class="step-name">{{step.title}}</span>{{/if}}
               <span class="step-desc">{{step.description}}</span>
               <span class="step-reward">{{step.reward}}</span>
             </div>
@@ -40,6 +47,9 @@
           <div class="step-indicator climax"></div>
           <div class="step-content">
             <span class="step-title">{{localize "ISUN.ArcClimax"}}</span>
+            {{#if arc.system.climax.title}}
+              <span class="step-name">{{arc.system.climax.title}}</span>
+            {{/if}}
             <span class="step-reward">{{arc.system.climax.reward}}</span>
           </div>
         </div>
@@ -48,6 +58,9 @@
           <div class="step-indicator"></div>
           <div class="step-content">
             <span class="step-title">{{localize "ISUN.ArcResolution"}}</span>
+            {{#if arc.system.resolution.title}}
+              <span class="step-name">{{arc.system.resolution.title}}</span>
+            {{/if}}
             <span class="step-reward">{{arc.system.resolution.reward}}</span>
           </div>
         </div>

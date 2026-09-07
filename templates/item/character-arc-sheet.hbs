@@ -1,53 +1,85 @@
+{{!-- An arc drawn as the beats it is made of, in the order they happen:
+      opening, its steps, climax, resolution. Every beat is the same row —
+      a tick, a name, what it pays, and what happens — because they are the
+      same thing, and a step differs from a climax only in having an index
+      and a way to remove it. --}}
 <div class="{{cssClass}} flexcol" autocomplete="off">
   <header class="sheet-header">
     <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}" data-action="editImage" />
     <div class="header-fields">
-      <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Arc Name"/></h1>
+      <h1 class="charname">
+        <input name="name" type="text" value="{{item.name}}" placeholder="{{localize 'ISUN.ArcNew'}}" />
+      </h1>
       <div class="item-subtitle">
         <select name="system.status">
           {{selectOptions config.arcStatuses selected=system.status localize=true}}
         </select>
-        <span>Cost:</span>
-        <input type="text" name="system.cost" value="{{system.cost}}" />
+        <span class="arc-progress">{{progress}}</span>
       </div>
     </div>
   </header>
 
-  <section class="sheet-body item-sheet-body">
-    
+  <section class="sheet-body item-sheet-body arc-body">
+
+    {{!-- The books write this as a sentence — the opening beat's name and what
+          it costs to take the arc on — so it gets a line rather than a box. --}}
+    <div class="form-group full-width">
+      <label>{{localize "ISUN.Cost"}}</label>
+      <input type="text" name="system.cost" value="{{system.cost}}" />
+    </div>
+
     <div class="form-group full-width">
       <label>{{localize "ISUN.EntryDescription"}}</label>
-      <input type="text" name="system.description" value="{{system.description}}" />
+      <textarea name="system.description" rows="3">{{system.description}}</textarea>
     </div>
 
-    <!-- Opening -->
-    <div class="arc-step-edit">
-      <h3>{{localize "ISUN.ArcOpening"}}</h3>
-      <div class="grid-3col">
-        <div class="form-group"><label>{{localize "ISUN.EntryDescription"}}</label><input type="text" name="system.opening.description" value="{{system.opening.description}}"></div>
-        <div class="form-group"><label>{{localize "ISUN.Reward"}}</label><input type="text" name="system.opening.reward" value="{{system.opening.reward}}"></div>
-        <div class="form-group checkbox"><label>{{localize "ISUN.ArcCompleted"}}</label><input type="checkbox" name="system.opening.completed" {{checked system.opening.completed}}></div>
-      </div>
-    </div>
+    <div class="arc-beats">
+      {{#each beats as |b|}}
+        <div class="arc-beat {{b.kind}}{{#if b.completed}} done{{/if}}">
+          {{!-- A real checkbox, styled as the timeline's pip. The sheet submits
+                on change, so ticking a beat writes it — no handler, and it
+                still answers to a keyboard. --}}
+          <label class="beat-tick" data-tooltip="{{localize 'ISUN.ArcCompleted'}}">
+            <input type="checkbox" name="{{b.path}}.completed" {{checked b.completed}} />
+            <span class="beat-pip"></span>
+          </label>
 
-    <!-- Climax -->
-    <div class="arc-step-edit">
-      <h3>{{localize "ISUN.ArcClimax"}}</h3>
-      <div class="grid-3col">
-        <div class="form-group"><label>{{localize "ISUN.EntryDescription"}}</label><input type="text" name="system.climax.description" value="{{system.climax.description}}"></div>
-        <div class="form-group"><label>{{localize "ISUN.Reward"}}</label><input type="text" name="system.climax.reward" value="{{system.climax.reward}}"></div>
-        <div class="form-group checkbox"><label>{{localize "ISUN.ArcCompleted"}}</label><input type="checkbox" name="system.climax.completed" {{checked system.climax.completed}}></div>
-      </div>
-    </div>
+          <div class="beat-body">
+            <div class="beat-head">
+              {{!-- Which beat it is, and what the book calls it. The label is
+                    fixed and the name is the character's to change, so one is
+                    text and the other is a field. --}}
+              <span class="beat-name">{{b.label}}</span>
+              <input type="text" class="beat-title" name="{{b.path}}.title"
+                     value="{{b.title}}" placeholder="{{localize 'ISUN.ArcBeatTitlePlaceholder'}}" />
+              <input type="text" class="beat-reward" name="{{b.path}}.reward"
+                     value="{{b.reward}}" placeholder="{{localize 'ISUN.Reward'}}" />
+              {{#if (eq b.kind "step")}}
+                <a class="beat-remove" data-action="arcRemoveStep" data-index="{{b.index}}"
+                   data-tooltip="{{localize 'ISUN.ArcRemoveStep'}}">
+                  <i class="fa-solid fa-xmark"></i>
+                </a>
+              {{/if}}
+            </div>
+            <textarea class="beat-desc" name="{{b.path}}.description" rows="2"
+                      placeholder="{{localize 'ISUN.ArcBeatPlaceholder'}}">{{b.description}}</textarea>
+          </div>
+        </div>
 
-    <!-- Resolution -->
-    <div class="arc-step-edit">
-      <h3>{{localize "ISUN.ArcResolution"}}</h3>
-      <div class="grid-3col">
-        <div class="form-group"><label>{{localize "ISUN.EntryDescription"}}</label><input type="text" name="system.resolution.description" value="{{system.resolution.description}}"></div>
-        <div class="form-group"><label>{{localize "ISUN.Reward"}}</label><input type="text" name="system.resolution.reward" value="{{system.resolution.reward}}"></div>
-        <div class="form-group checkbox"><label>{{localize "ISUN.ArcCompleted"}}</label><input type="checkbox" name="system.resolution.completed" {{checked system.resolution.completed}}></div>
-      </div>
+        {{!-- After the last step, or after the opening when there are none: a
+              new step belongs in the middle of an arc rather than after its
+              resolution. --}}
+        {{#if b.addHere}}
+          <div class="beat-add-row">
+            <a class="beat-add" data-action="arcAddStep">
+              <i class="fa-solid fa-plus"></i> {{localize "ISUN.ArcAddStep"}}
+            </a>
+            {{#unless @root.hasSteps}}
+              <span class="hint arc-no-steps">{{localize "ISUN.ArcNoSteps"}}</span>
+            {{/unless}}
+          </div>
+        {{/if}}
+      {{/each}}
     </div>
 
   </section>

@@ -877,6 +877,23 @@ a.sentence-part:hover + .sentence-part.affix {
   margin-top: 0;
 }
 
+
+/* The soul panel. Shaped like every other section on the Magic tab — that is
+   .isun-panel doing the work — and coloured like nothing else on it, because
+   an owner should be able to tell at a glance which part of the page the rest
+   of the table is not reading. */
+.secret-soul { border-color: var(--isun-sun-indigo); }
+/* Scoped through the sheet because that is what it has to outrank: every h3 on
+   a sheet is gold with a grey rule under it, and a bare `.secret-soul h3` lost
+   to it on specificity and left the heading gold in an indigo frame. */
+.invisible-sun.sheet .secret-soul h3 {
+  color: var(--isun-sun-indigo);
+  border-bottom-color: var(--isun-sun-indigo);
+}
+/* The eye, at the size the heading's own font would draw it rather than the
+   size a display face draws a glyph it has no design for. */
+.secret-soul h3 i { font-size: 0.8em; margin-right: 0.35rem; }
+
 .secret-soul input {
   min-height: 44px;
   font-family: var(--isun-font-heading);
@@ -916,21 +933,104 @@ a.sentence-part:hover + .sentence-part.affix {
 .titled-entry .entry-title { flex: 0 0 30%; }
 .titled-entry .entry-desc  { flex: 1; min-width: 0; }
 
-/* The soul panel. Shaped like every other section on the Magic tab — that is
-   .isun-panel doing the work — and coloured like nothing else on it, because
-   an owner should be able to tell at a glance which part of the page the rest
-   of the table is not reading. */
-.secret-soul { border-color: var(--isun-sun-indigo); }
-/* Scoped through the sheet because that is what it has to outrank: every h3 on
-   a sheet is gold with a grey rule under it, and a bare `.secret-soul h3` lost
-   to it on specificity and left the heading gold in an indigo frame. */
-.invisible-sun.sheet .secret-soul h3 {
-  color: var(--isun-sun-indigo);
-  border-bottom-color: var(--isun-sun-indigo);
+/* The beat's own name on the tracker, beside the label that says which beat it
+   is: "Opening" is the same on every arc, and "Sharing Your Home" is not. */
+.arc-timeline .step-name {
+  font-family: var(--isun-font-smallcaps, inherit);
+  color: var(--isun-text-primary);
 }
-/* The eye, at the size the heading's own font would draw it rather than the
-   size a display face draws a glyph it has no design for. */
-.secret-soul h3 i { font-size: 0.8em; margin-right: 0.35rem; }
+
+/* ── An arc's own sheet ───────────────────────────────────
+   Four kinds of beat drawn as one row: a tick, a name, what it pays, and what
+   happens. The pip is a real checkbox wearing the timeline's clothes, so the
+   form writes it and a keyboard reaches it. */
+.character-arc .arc-progress { color: var(--isun-text-secondary); font-size: 0.85em; }
+
+.character-arc .arc-beats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: var(--isun-space-sm);
+}
+
+.character-arc .arc-beat {
+  display: grid;
+  grid-template-columns: 1.4rem 1fr;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--isun-border);
+  border-left: 3px solid var(--isun-border);
+  border-radius: 3px;
+  background: var(--isun-bg-surface);
+}
+/* The climax is the beat the arc is shaped around, so it is the one that looks
+   different — and the resolution answers it, so it borrows the same colour at
+   half strength. */
+.character-arc .arc-beat.climax { border-left-color: var(--isun-text-accent); }
+.character-arc .arc-beat.resolution { border-left-color: var(--isun-sun-indigo); }
+.character-arc .arc-beat.done { opacity: 0.72; }
+
+.character-arc .beat-tick { display: flex; align-items: flex-start; cursor: pointer; }
+/* The checkbox itself is out of sight but still in the tab order and still
+   what the form reads; the pip is what is drawn for it. */
+.character-arc .beat-tick input { position: absolute; opacity: 0; width: 0; height: 0; }
+.character-arc .beat-pip {
+  display: inline-block;
+  width: 13px; height: 13px;
+  margin-top: 0.25rem;
+  border-radius: 50%;
+  border: 2px solid var(--isun-border-accent);
+}
+.character-arc .beat-tick input:checked + .beat-pip {
+  background: var(--isun-border-accent);
+  box-shadow: var(--isun-glow-gold);
+}
+.character-arc .beat-tick input:focus-visible + .beat-pip {
+  outline: 2px solid var(--isun-text-accent);
+  outline-offset: 2px;
+}
+
+.character-arc .beat-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.character-arc .beat-name {
+  flex: 0 0 auto;
+  font-family: var(--isun-font-heading);
+  font-size: 0.8em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--isun-text-secondary);
+}
+.character-arc .arc-beat.climax .beat-name { color: var(--isun-text-accent); }
+/* The book's name for the beat takes the room, because it is what tells one
+   beat from another; the label beside it is the same four words on every arc. */
+.character-arc .beat-title { flex: 1; min-width: 0; }
+/* Rewards are short — "3 Acumen reward" — so the field is sized for one rather
+   than stretching across the row and reading as the important half. */
+.character-arc .beat-reward { flex: 0 0 9rem; font-size: 0.85em; }
+.character-arc .beat-remove { color: var(--isun-text-secondary); cursor: pointer; }
+.character-arc .beat-remove:hover { color: var(--isun-wound); }
+
+/* Descriptions run from a line to seven hundred characters, so this is a box
+   that grows rather than an input that hides the end of the sentence. */
+.character-arc .beat-desc {
+  width: 100%;
+  margin-top: 0.25rem;
+  resize: vertical;
+  min-height: 2.6rem;
+}
+
+.character-arc .beat-add-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding-left: 1.9rem;
+}
+.character-arc .beat-add { color: var(--isun-text-secondary); cursor: pointer; font-size: 0.85em; }
+.character-arc .beat-add:hover { color: var(--isun-text-accent); }
+.character-arc .arc-no-steps { margin: 0; font-size: 0.8em; opacity: 0.6; }
 
 /* ════════════════════════════════════════════════════════
  * CHARACTER ARCS
