@@ -418,8 +418,7 @@ a.sentence-part:hover + .sentence-part.affix {
 .overview-health,
 .overview-advancement,
 .inventory-section,
-.economy-section,
-.house-section {
+.economy-section {
   background: var(--isun-bg-surface);
   border: 1px solid var(--isun-border);
   border-radius: 4px;
@@ -430,9 +429,7 @@ a.sentence-part:hover + .sentence-part.affix {
    stretching to the full sheet width. */
 .invisible-sun .form-group,
 .economy-field,
-.house-field,
-.defense-group,
-.injury-group {
+.defense-group {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -441,7 +438,6 @@ a.sentence-part:hover + .sentence-part.affix {
 
 .invisible-sun .form-group > label,
 .economy-field > label,
-.house-field > label,
 .defense-group > label,
 /* The degree caption is a caption like any of these; it just happens to sit
    beside its control rather than over it. The title is in with it because the
@@ -566,23 +562,23 @@ a.sentence-part:hover + .sentence-part.affix {
 .defenses-row {
   display: flex;
   align-items: center;
-  gap: var(--isun-space-md);
 }
 
-/* Wider than the 4px inside a pair, so the two pairs read as two things rather
-   than one run of four. The gap between them has to beat the gap within them,
-   or "Armor 2 Ward 0" is a sentence with no joins in it. */
-.defenses-row { gap: var(--isun-space-lg); }
-
 .injuries-row {
+  gap: var(--isun-space-md);
   padding-top: var(--isun-space-sm);
   border-top: 1px solid var(--isun-border);
 }
 
-/* First in the block now, so its rule goes underneath. The line was a
-   separator from whatever sat above, and at the top of the block it would read
-   as an underline for the heading the block sits beneath. */
+/* The gap is wider than the 4px inside a pair, so the two pairs read as two
+   things rather than one run of four — it has to beat the gap within them, or
+   "Armor 2 Ward 0" is a sentence with no joins in it.
+
+   The rule goes underneath because this row leads the block. It was a separator
+   from whatever sat above, and at the top it would read as an underline for the
+   heading the block sits beneath. */
 .defenses-row {
+  gap: var(--isun-space-lg);
   padding-bottom: var(--isun-space-sm);
   border-bottom: 1px solid var(--isun-border);
 }
@@ -595,12 +591,6 @@ a.sentence-part:hover + .sentence-part.affix {
   color: var(--isun-text-secondary);
 }
 
-.injury-inputs {
-  display: flex;
-  gap: var(--isun-space-md);
-}
-
-.injury-group,
 /* Caption beside its field, not over it: two of these sit side by side and
    stacked captions made it a guess which number went with which word. */
 .defense-group {
@@ -611,7 +601,6 @@ a.sentence-part:hover + .sentence-part.affix {
 
 /* Numeric stat entry stays compact — without a width these stretch to fill
    the sheet and the label/field pairing becomes unreadable. */
-.injury-group input,
 .defense-group input {
   width: 52px;
   text-align: center;
@@ -635,13 +624,11 @@ a.sentence-part:hover + .sentence-part.affix {
 }
 
 .inventory-section > h3,
-.economy-section > h3,
-.house-section > h3 {
+.economy-section > h3 {
   margin-top: 0;
 }
 
-.economy-grid,
-.house-grid {
+.economy-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--isun-space-md);
@@ -716,8 +703,7 @@ a.sentence-part:hover + .sentence-part.affix {
   gap: var(--isun-space-xs);
 }
 
-.economy-field.full-width,
-.house-field.full-width {
+.economy-field.full-width {
   grid-column: 1 / -1;
 }
 
@@ -725,15 +711,7 @@ a.sentence-part:hover + .sentence-part.affix {
  * LISTS
  * ════════════════════════════════════════════════════════ */
 
-.list-title {
-  font-family: var(--isun-font-heading);
-  color: var(--isun-text-accent);
-  margin: var(--isun-space-md) 0 var(--isun-space-xs) 0;
-}
-
-.spell-list,
-.skill-list,
-.forte-abilities-list {
+.skill-list {
   margin-bottom: var(--isun-space-md);
 }
 
@@ -751,7 +729,6 @@ a.sentence-part:hover + .sentence-part.affix {
 .item-edit,
 .item-delete,
 .btn-cast,
-.btn-use,
 .btn-refresh {
   color: var(--isun-text-secondary);
   cursor: pointer;
@@ -761,7 +738,6 @@ a.sentence-part:hover + .sentence-part.affix {
 .item-create:hover,
 .item-pick:hover,
 .btn-cast:hover,
-.btn-use:hover,
 .btn-refresh:hover {
   color: var(--isun-text-accent);
   text-shadow: var(--isun-glow-gold);
@@ -1659,7 +1635,6 @@ a.sentence-part:hover + .sentence-part.affix {
   border-radius: 4px;
 }
 .alloc-banner .alloc-label { font-variant: small-caps; letter-spacing: 0.04em; }
-.alloc-banner .alloc-count { font-size: 1.3em; font-weight: 700; color: var(--isun-text-accent); }
 .alloc-banner .alloc-hint { font-size: 0.8em; opacity: 0.7; }
 
 .pool-alloc { display: flex; gap: 0.15rem; }
@@ -2110,14 +2085,6 @@ a.sentence-part:hover + .sentence-part.affix {
 }
 .challenge-declaration .cd-target.offline { opacity: 0.55; }
 
-/* ── The challenge card ───────────────────────────────────
-   Drawn per client: a player sees the row they can answer, a GM sees them all.
-   Compact, because several of these stack up in a chat log.
-
-   Self-contained colour, as .isun-dice-result is. A chat message sits outside the
-   .invisible-sun.sheet scope, so it inherits Foundry's chat palette instead —
-   which rendered the name in near-black on our dark card and the buttons as
-   rgb(17,17,17) on rgba(0,0,0,0.1): an unreadable black box. */
 /* ── A new day for the table ───────────────────────────── */
 .new-day-dialog .new-day-body { display: flex; flex-direction: column; gap: 0.4rem; }
 .new-day-dialog .hint { font-size: 0.8em; opacity: 0.7; margin: 0; }
@@ -2256,6 +2223,14 @@ a.sentence-part:hover + .sentence-part.affix {
 .isun-negation-card .neg-outcome.stood { opacity: 0.7; }
 .isun-negation-card .neg-waiting { margin: 0; }
 
+/* ── The challenge card ───────────────────────────────────
+   Drawn per client: a player sees the row they can answer, a GM sees them all.
+   Compact, because several of these stack up in a chat log.
+
+   Self-contained colour, as .isun-dice-result is. A chat message sits outside the
+   .invisible-sun.sheet scope, so it inherits Foundry's chat palette instead —
+   which rendered the name in near-black on our dark card and the buttons as
+   rgb(17,17,17) on rgba(0,0,0,0.1): an unreadable black box. */
 .challenge-card {
   font-size: 0.9em;
   background: var(--isun-bg-primary);
