@@ -2096,6 +2096,42 @@ a.sentence-part:hover + .sentence-part.affix {
    .invisible-sun.sheet scope, so it inherits Foundry's chat palette instead —
    which rendered the name in near-black on our dark card and the buttons as
    rgb(17,17,17) on rgba(0,0,0,0.1): an unreadable black box. */
+/* ── A new day for the table ───────────────────────────── */
+.new-day-dialog .new-day-body { display: flex; flex-direction: column; gap: 0.4rem; }
+.new-day-dialog .hint { font-size: 0.8em; opacity: 0.7; margin: 0; }
+
+.new-day-dialog .new-day-rows {
+  display: flex;
+  flex-direction: column;
+  max-height: 18rem;
+  overflow-y: auto;
+  border: 1px solid var(--isun-border);
+  border-radius: 3px;
+  padding: 0.2rem;
+}
+
+.new-day-dialog .new-day-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.15rem 0.25rem;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.new-day-dialog .new-day-row:hover { background: rgba(255, 255, 255, 0.06); }
+.new-day-dialog .new-day-row img {
+  width: 1.6rem; height: 1.6rem; object-fit: cover; border: none; border-radius: 3px;
+}
+.new-day-dialog .new-day-name { flex: 1; min-width: 0; }
+/* Why this one is ticked, said rather than left to be inferred from the tick. */
+.new-day-dialog .new-day-here {
+  font-size: 0.72em;
+  font-family: var(--isun-font-smallcaps, inherit);
+  color: var(--isun-text-secondary);
+  white-space: nowrap;
+}
+.new-day-dialog .new-day-count { font-size: 0.85em; opacity: 0.75; margin: 0; }
+
 /* ── Introducing a flux ────────────────────────────────── */
 /* Caption beside its dropdown rather than over it. Stacked, two words were
    taking a line each in a window 260px wide; beside them the whole form is two

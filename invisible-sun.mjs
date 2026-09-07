@@ -32,6 +32,7 @@ import { ISUNSoothCardSheet } from "./module/sheets/items/ISUNSoothCardSheet.mjs
 // ── Challenges ───────────────────────────────────────────
 import { ChallengeCard } from "./module/apps/ChallengeCard.mjs";
 import { NegationCard } from "./module/apps/NegationCard.mjs";
+import { NewDay } from "./module/apps/NewDay.mjs";
 import { ChallengeDeclaration } from "./module/apps/ChallengeDeclaration.mjs";
 
 // ── Helpers ──────────────────────────────────────────────
@@ -108,6 +109,7 @@ Hooks.once("init", () => {
     ContentImporter,
     ChallengeCard,
     NegationCard,
+    NewDay,
     ChallengeDeclaration,
     PathOfSuns
   };
@@ -223,7 +225,21 @@ Hooks.once("init", () => {
           button: true,
           visible: game.user.isGM,
           onChange: () => flux.promptShift()
+        },
 
+        /* The sun coming up on the whole table. The sheet has this button for
+         * one character; a GM ending a session wanted it for four, and was
+         * opening four sheets to press it. GM only, for the reason the sheet's
+         * own is: a new day is the table moving on rather than one player
+         * deciding it has. */
+        newDay: {
+          name: "newDay",
+          order: 3,
+          title: "ISUN.NewDayButton",
+          icon: "fa-solid fa-bed",
+          button: true,
+          visible: game.user.isGM,
+          onChange: () => NewDay.open()
         }
       }
     };
