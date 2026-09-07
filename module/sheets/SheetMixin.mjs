@@ -53,6 +53,47 @@ export const SheetMixin = (Base) => class extends Base {
    * `editImage` action that does the same thing and respects permissions, and
    * every profile-img already carried the data-edit="img" it reads — so the
    * templates name the core action and this mixin no longer needs a listener. */
+
+  /**
+   * Where a sheet scrolls, so that pressing something does not lose your place.
+   *
+   * Every one of these sheets is a single Handlebars part, which means every
+   * render replaces the whole of it. ApplicationV2 will put the scroll back
+   * afterwards, but only for the selectors a part names in `scrollable` — and
+   * naming none, as all eight of these did, means a click anywhere returns you
+   * to the top. Ticking a spell into mind two thirds of the way down the magic
+   * tab sent the page back to the portrait, and the next tick had to be hunted
+   * for again.
+   *
+   * One selector covers it: `.sheet-body` is the scrolling element on every
+   * sheet here, actor and item alike, and measurement says nothing else on one
+   * of them scrolls at all. A sheet that grows a second scroller adds it here.
+   */
+  static SCROLLABLE = [".sheet-body"];
+
+  /**
+   * Record where each of them was, for `_syncPartState` to put back.
+   *
+   * Added to what the parent collected rather than replacing it: it also
+   * records which field had focus and which `<details>` were open, and losing
+   * either would trade one kind of lost place for another.
+   *
+   * Recorded here rather than declared as `scrollable` on each part because
+   * `PARTS` is written out in eight separate sheets, and a rule that has to be
+   * remembered eight times is a rule that will be missed on the ninth.
+   */
+  _preSyncPartState(partId, newElement, priorElement, state) {
+    super._preSyncPartState(partId, newElement, priorElement, state);
+    for (const selector of this.constructor.SCROLLABLE ?? []) {
+      const el = priorElement.querySelector(selector);
+      /* Only where there is something to remember. A sheet shorter than its
+       * window scrolls to 0, and writing that back is harmless but it is also
+       * a line of state saying nothing. */
+      if (el?.scrollTop || el?.scrollLeft) {
+        state.scrollPositions.push([selector, el.scrollTop, el.scrollLeft]);
+      }
+    }
+  }
 }
 
 export const ActorSheetMixin = (Base) => class extends SheetMixin(Base) {
