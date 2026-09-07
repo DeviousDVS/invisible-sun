@@ -19,38 +19,30 @@ export class ISUNItem extends Item {
       }
     }
 
-    this.#learnAsVance();
+    this.#forgetVancianLearning();
   }
 
   /**
-   * A spell arriving on a Vance is learned the way a Vance learns.
+   * Conversion belongs to the character, not to the spell.
    *
    * "Vances may wish to learn other spells and use them in their Vancian spell
-   * method, storing them in their mind for later" (The Way, p57). It is what a
-   * Vance does with a spell — their order *is* their spells — so it is the
-   * default rather than a second step, and the Mind column on the practices
-   * list is where a player takes it back for a spell they would rather cast out
-   * of Sorcery.
+   * method" (The Way, p57) — wish to, at twice the time it took to learn the
+   * spell in the first place. So it is something a player decides and does, on
+   * the practices list, and never something that happens to a spell for having
+   * arrived somewhere.
    *
-   * Here rather than in the picker so that every way a spell can arrive is
-   * covered: the picker, a drag from a compendium, a drag from another
-   * character, a GM handing one over.
-   *
-   * And cleared going the other way. Conversion is the character's, not the
-   * spell's, so a spell dragged off a Vance onto a Weaver arrives as what it
-   * always was — a Weaver who kept the flag would have a spell in a mind they
-   * do not have.
+   * What is done here is the other direction, which nobody decides. A spell
+   * carried off a Vance onto anyone else arrives as what it always was: a
+   * Weaver who kept the flag would have a spell held in a mind they do not
+   * have, and it would cast for nothing on the strength of a stale tick.
    */
-  #learnAsVance() {
-    if (this.type !== "Spell") return;
+  #forgetVancianLearning() {
+    if (this.type !== "Spell" || !this.system?.converted) return;
+    /* A world item or a pack entry belongs to nobody. Only a character's own
+     * copy carries this, so only a copy landing on a character is checked. */
     const actor = this.parent;
-    /* A world item or a pack entry belongs to nobody and is converted by
-     * nobody. Only a character's own copy carries this. */
     if (actor?.documentName !== "Actor") return;
-
-    const isVance = actor.orderKey === "vance";
-    if (isVance && vance.canConvert(this)) this.updateSource(vance.conversion(this, true));
-    else if (!isVance && this.system?.converted) this.updateSource(vance.conversion(this, false));
+    if (actor.orderKey !== "vance") this.updateSource(vance.conversion(this, false));
   }
 
   /**

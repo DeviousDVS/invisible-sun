@@ -72,7 +72,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
        * mean "use this", and all reach the same handler. */
       "toggle-prepared":    this.prototype._onTogglePrepared,
       "toggle-halved":      this.prototype._onToggleHalved,
-      "toggle-converted":   this.prototype._onToggleConverted,
+      "learn-vancian":      this.prototype._onLearnVancian,
       "roll-depletion":     this.prototype._onRollDepletion,
       "roll-spell":         this.prototype._onItemRoll,
       "roll-incantation":   this.prototype._onItemRoll,
@@ -312,9 +312,6 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     const { allowed, reason } = vance.canPrepare(item, mind);
     return {
       vancian: true,
-      /* Native to the tradition, or learned into it. Only the second can be
-       * given back — a Vance spell is Vancian by being a Vance spell. */
-      converted: !!item.system.converted,
       prepared: !!item.system.prepared,
       halved: !!item.system.halved,
       footprint: vance.footprint(item),
@@ -365,7 +362,12 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
          *
          * A forte ability marked "(no cost)" is the one real exception — 74 of
          * the 491 — and the level badge says so rather than a column. */
-        free: !!sys.noCost,
+        /* Marked free when it costs no Sorcery to use, which is no longer a
+         * fixed property of the practice. A spell held in mind casts for
+         * nothing and the same spell out of mind casts for its level, so the
+         * badge is what shows a player which of the two they are looking at —
+         * tick the box and the number stops being a price. */
+        free: !!sys.noCost || practiceRules.heldInMind(item),
         // A spell carries its bonus as printed ("+1 die"); a forte ability's is
         // parsed out of its level line as a number. Both mean the same thing, so
         // the column says it the same way.
@@ -1202,7 +1204,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   }
 
   /**
-   * Learn a spell the Vancian way, or give it back to ordinary casting.
+   * Learn a spell the Vancian way.
    *
    * "Vances may wish to learn other spells and use them in their Vancian spell
    * method… This requires twice the amount of time to learn the spell in the
@@ -1210,21 +1212,22 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
    * time is the table's to spend: this records the decision, as preparing a
    * spell records the hour it took.
    *
-   * A spell arriving on a Vance is converted already — `ISUNItem._preCreate`
-   * does it — so in practice this is mostly the other direction: a player who
-   * would rather pay Sorcery for a general spell than give up room in mind.
-   * Both are one control, because they are one decision seen from two sides.
+   * One way only, because it takes nothing away. A converted spell is still
+   * cast the way it always was — pay the Sorcery, hold nothing in mind — and
+   * has gained the choice of being held instead. There is nothing to give back,
+   * so there is no button offering to.
    *
-   * Refused for a spell of the Vance deck itself. Casting one of those out of
-   * Sorcery is a conversion the book also allows, at twice the time again, but
-   * it is a different act with a different price and it is not this button.
+   * Refused for a spell of the Vance deck itself, which has no other way to be
+   * cast and so nothing to gain. Casting one of those out of Sorcery is a
+   * conversion the book also allows, at twice the time again, but it is a
+   * different act with a different price and it is not this.
    */
-  async _onToggleConverted(event, target) {
+  async _onLearnVancian(event, target) {
     event.preventDefault();
     const item = this.document.items.get(target.closest(".item")?.dataset.itemId);
-    if (!item || item.type !== "Spell" || item.system.spellType === "vance") return;
+    if (!item || !vance.canConvert(item)) return;
 
-    await item.update(vance.conversion(item, !item.system.converted));
+    await item.update(vance.conversion(item, true));
   }
 
   /**

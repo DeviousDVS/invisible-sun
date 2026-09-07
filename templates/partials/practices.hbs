@@ -62,9 +62,10 @@
       <div class="item practice" data-item-id="{{p.item.id}}" data-kind="{{p.kind}}">
         {{!-- The level, which is also what the practice costs in Sorcery to
               use — the two were separate columns saying the same number. The
-              exception is a forte ability that states no cost, and the badge
-              marks those rather than a column carrying one word for the other
-              fourteen in fifteen rows. --}}
+              badge marks the exceptions rather than a column carrying one word
+              for the other fourteen rows in fifteen: a forte ability that
+              states no cost, and a spell held in mind, which casts for nothing
+              until it is let go of again. --}}
         <div class="level">
           <span class="level-badge{{#if p.free}} free{{/if}}"
                 {{#if p.free}}data-tooltip="{{localize 'ISUN.NoSorceryCost'}}"{{/if}}>{{p.level}}</span>
@@ -86,7 +87,7 @@
                   the class it would land in, so the price is on the label
                   rather than behind it. --}}
             {{#if p.canConvert}}
-              <a class="mind-learn" data-action="toggle-converted"
+              <a class="mind-learn" data-action="learn-vancian"
                  data-tooltip="{{localize 'ISUN.MindLearnHint' class=p.convertClass}}">
                 <i class="fa-solid fa-plus"></i>
               </a>
@@ -105,15 +106,6 @@
                  data-tooltip="{{#if p.halved}}{{localize 'ISUN.MindRestoreHint'}}{{else}}{{localize 'ISUN.MindHalveHint'}}{{/if}}">
                 {{p.footprint}}
               </a>
-              {{!-- Only a spell learned into the tradition can be given back to
-                    ordinary casting. One of the Vance deck's own is Vancian by
-                    being what it is, and has nothing here to undo. --}}
-              {{#if p.converted}}
-                <a class="mind-release" data-action="toggle-converted"
-                   data-tooltip="{{localize 'ISUN.MindReleaseHint'}}">
-                  <i class="fa-solid fa-rotate-left"></i>
-                </a>
-              {{/if}}
             {{/if}}
           </div>
         {{/if}}

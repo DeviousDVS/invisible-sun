@@ -3615,16 +3615,13 @@ a.sentence-part:hover + .sentence-part.affix {
   border-color: var(--isun-border-accent);
 }
 
-/* Learning a spell the Vancian way, and giving it back again. One decision seen
- * from two sides, so they are drawn the same: a quiet glyph that brightens
- * under the pointer and says what it would do in its tooltip.
+/* Learning a spell the Vancian way: a quiet glyph that brightens under the
+ * pointer and says what it would do in its tooltip.
  *
- * Quieter than the footprint beside it. For a converted spell this sits third
- * in a cell that already has a checkbox and a number, and it is the least
- * frequent of the three by a long way — where the "+" on an unconverted spell
- * has the cell to itself and is found by being the only thing in it. */
-.practices .mind-learn,
-.practices .mind-release {
+ * Quiet, because it has the cell to itself and is found by being the only
+ * thing in it — a spell already learned that way shows a checkbox and a
+ * footprint here instead. */
+.practices .mind-learn {
   flex: 0 0 auto;
   padding: 2px;
   font-size: 0.72em;
@@ -3634,8 +3631,7 @@ a.sentence-part:hover + .sentence-part.affix {
   cursor: pointer;
 }
 
-.practices .mind-learn:hover,
-.practices .mind-release:hover {
+.practices .mind-learn:hover {
   color: var(--isun-text-accent);
   opacity: 1;
 }

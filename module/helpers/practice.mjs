@@ -26,35 +26,44 @@ const COSTS_ITS_LEVEL = new Set(["Spell", "Incantation", "ForteAbility", "MinorM
  * learn a general spell their way, and a spell that occupied the mind but still
  * cost Sorcery to cast would have been the result of the two disagreeing.
  * Helpers may import each other, so now there is one of it. */
-import { isVancian } from "./vance.mjs";
-export { isVancian };
+import { isVancian, isVanceSpell, heldInMind } from "./vance.mjs";
+export { isVancian, isVanceSpell, heldInMind };
 
 /**
  * What using this costs in Sorcery.
  *
- * A Vancian spell is nothing: "The spell is eager to be cast, so casting it
- * requires no energy or effort from us. Just an action" (The Key, Vance 1st
+ * A spell held in mind is nothing: "The spell is eager to be cast, so casting
+ * it requires no energy or effort from us. Just an action" (The Key, Vance 1st
  * degree). What it costs is to keep — see `retainCost`.
+ *
+ * Held in mind, not merely capable of being. A spell a Vance has learned their
+ * way keeps the way it could always be cast, and paying its level is that way:
+ * conversion adds the mind as an option and takes nothing away, so the same
+ * spell costs its level today and nothing tomorrow, according to whether it
+ * was prepared. One of the tradition's own has no such choice — it is cast out
+ * of mind or not at all, so it never has a price, and `canCast` is what refuses
+ * it when there is nothing prepared to cast.
  *
  * A forte ability marked "(no cost)" is nothing either; 74 of the 491 are.
  */
 export function costOf(item) {
   if (!item || !COSTS_ITS_LEVEL.has(item.type)) return 0;
-  if (isVancian(item)) return 0;
   if (item.system?.noCost) return 0;
+  if (heldInMind(item) || isVanceSpell(item)) return 0;
   return Math.max(0, item.system?.level ?? 0);
 }
 
 /**
- * What holding on to a Vancian spell costs, once cast.
+ * What holding on to a spell costs, once cast out of the mind.
  *
  * "If we want to retain the ability to cast that spell again without going
  * through the preparation phase, there is a Sorcery cost involved equal to the
- * spell's level" (The Key, Vance 1st degree). Zero for anything else, which
- * has nothing to retain.
+ * spell's level" (The Key, Vance 1st degree). Zero for anything else, which has
+ * nothing to retain — including a converted spell cast the ordinary way, which
+ * was never in the mind to be expelled from it.
  */
 export function retainCost(item) {
-  return isVancian(item) ? Math.max(0, item.system?.level ?? 0) : 0;
+  return heldInMind(item) ? Math.max(0, item.system?.level ?? 0) : 0;
 }
 
 /**
@@ -81,8 +90,9 @@ export function magicDiceOf(item) {
  * Two things stop it outright, and both are refusals rather than warnings —
  * unlike the ephemera and object limits, which report and let the table decide.
  * The difference is that those are caps on what may be held and these are the
- * cost of an act: a Vance who has not prepared a spell has nothing in mind to
- * cast, and a vislae without the Sorcery cannot pay for the effect.
+ * cost of an act: a Vance who has not prepared one of their own spells has
+ * nothing in mind to cast, and a vislae without the Sorcery cannot pay for the
+ * effect.
  *
  * @returns {{allowed: boolean, reason: string, cost: number, pool: number}}
  */
@@ -90,7 +100,10 @@ export function canCast(actor, item) {
   const cost = costOf(item);
   const pool = actor?.system?.stats?.qualia?.pools?.sorcery?.value ?? 0;
 
-  if (isVancian(item) && !item.system?.prepared) {
+  /* Only the tradition's own. A converted spell that is not in mind is not
+   * unusable — it is a general spell, cast the way it always was, and refusing
+   * it would take away the way it could be cast before it was ever converted. */
+  if (isVanceSpell(item) && !item.system?.prepared) {
     return { allowed: false, reason: "ISUN.CastNotPrepared", cost, pool };
   }
   if (cost > pool) {

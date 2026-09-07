@@ -83,7 +83,38 @@ export function reductionsFor(degree) {
  */
 export function isVancian(item) {
   if (item?.type !== "Spell") return false;
-  return item.system?.spellType === "vance" || !!item.system?.converted;
+  return isVanceSpell(item) || !!item.system?.converted;
+}
+
+/**
+ * One of the Vance tradition's own, as against a spell learned into it.
+ *
+ * The two part company at the moment of casting. A converted spell keeps the
+ * way it could always be cast — pay the Sorcery, no preparation, no room taken
+ * — and gains the Vancian way beside it. One of the tradition's own has only
+ * the one way: "To cast a spell is to expel it from your mind and soul", and a
+ * spell that was never put there cannot be expelled from it.
+ *
+ * The book allows the other conversion too — a Vance may make one of their own
+ * spells castable out of Sorcery, at twice the time again — but that is a
+ * different act with a different price, and it is not built.
+ */
+export function isVanceSpell(item) {
+  return item?.type === "Spell" && item.system?.spellType === "vance";
+}
+
+/**
+ * Is this spell in the Vance's mind right now?
+ *
+ * The question that decides what casting costs, which is not the same question
+ * as which deck the spell came from. A spell held in mind "is eager to be cast,
+ * so casting it requires no energy or effort from us. Just an action" (The Key,
+ * Vance 1st degree). The same spell not held is cast the ordinary way, out of
+ * Sorcery — for a converted spell that is a real choice made afresh each time,
+ * and for one of the tradition's own it is not a choice at all.
+ */
+export function heldInMind(item) {
+  return isVancian(item) && !!item.system?.prepared;
 }
 
 /**
@@ -121,7 +152,13 @@ export function canConvert(item) {
  * Returned as an update rather than applied, so the one description of the act
  * can be tested without a document to write it to.
  *
- * Learning fixes the class from the level, and does not put the spell in mind:
+ * Learning adds a way to cast the spell; it takes none away. A converted spell
+ * can still be cast the way it always could — pay the Sorcery, take up no room
+ * — and can now also be held in mind and cast for nothing. Which of the two
+ * happens is decided by whether it is prepared at the moment of casting, so
+ * this writes no preference either way.
+ *
+ * It fixes the class from the level, and does not put the spell in mind:
  * preparation "takes about an hour" and is its own act, made against whatever
  * room is free at the time.
  *

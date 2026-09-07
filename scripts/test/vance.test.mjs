@@ -422,6 +422,26 @@ describe("learning a spell that is not a Vance's own", () => {
     assert.equal(vance.isVancian({ type: "Incantation", system: { converted: true } }), false);
   });
 
+  test("but only one of the tradition's own is a Vance spell", () => {
+    // The two part company at the moment of casting: a converted spell can be
+    // cast out of Sorcery and one of the tradition's own cannot.
+    assert.equal(vance.isVanceSpell(spell({ spellType: "vance" })), true);
+    assert.equal(vance.isVanceSpell(spell({ spellType: "general", converted: true })), false);
+    assert.equal(vance.isVanceSpell(spell({ spellType: "general" })), false);
+  });
+
+  test("held in mind is a fact about now, not about the deck", () => {
+    // What decides the price of casting. A spell that could be held and is not
+    // is cast the way any other spell of its level is.
+    assert.equal(vance.heldInMind(spell({ spellType: "vance", prepared: true })), true);
+    assert.equal(vance.heldInMind(spell({ spellType: "vance" })), false);
+    assert.equal(vance.heldInMind(spell({ spellType: "general", converted: true, prepared: true })), true);
+    assert.equal(vance.heldInMind(spell({ spellType: "general", converted: true })), false);
+    // Never, for a spell nobody has learned that way — the tick would be
+    // meaningless and must not be read as holding anything.
+    assert.equal(vance.heldInMind(spell({ spellType: "general", prepared: true })), false);
+  });
+
   test("only a spell that is not already Vancian is offered the conversion", () => {
     assert.equal(vance.canConvert(spell({ spellType: "general" })), true);
     assert.equal(vance.canConvert(spell({ spellType: "weaver" })), true);
@@ -433,7 +453,8 @@ describe("learning a spell that is not a Vance's own", () => {
 
   test("learning fixes the class from the level and puts nothing in mind", () => {
     // Preparation "takes about an hour" and is its own act, made against
-    // whatever room is free at the time.
+    // whatever room is free at the time — and until it happens the spell is
+    // cast the way it always was.
     const { system } = vance.conversion(spell({ spellType: "general", level: 6 }), true);
     assert.equal(system.converted, true);
     assert.equal(system.spellClass, "gamma");

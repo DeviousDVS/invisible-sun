@@ -45,20 +45,39 @@ describe("what a practice costs", () => {
     assert.equal(practice.costOf(vancian({ level: 4 })), 0);
   });
 
-  test("nothing to cast a spell a Vance learned their way either", () => {
+  test("nothing to cast a spell a Vance learned their way, once it is in mind", () => {
     // "Vances may wish to learn other spells and use them in their Vancian
-    // spell method" (The Way, p57) — their way, so on their terms: it is held
-    // in mind and it casts free. A spell that took up room and still cost
-    // Sorcery would be paying twice for one conversion.
-    assert.equal(practice.costOf(learned({ level: 4 })), 0);
-    assert.equal(practice.costOf(spell({ level: 4 })), 4, "and not before it is learned");
+    // spell method, storing them in their mind for later" (The Way, p57).
+    // Stored: it is being held that makes casting free, not having been
+    // converted.
+    assert.equal(practice.costOf(learned({ level: 4, prepared: true })), 0);
+  });
+
+  test("but its level while it is not, because that way of casting stays", () => {
+    // The whole of what conversion does is add a second way to cast. Charging
+    // nothing for a converted spell that is not in mind would let a Vance cast
+    // every general spell they own for free by learning it and never preparing
+    // it — and taking the ordinary way away would be worse, because it is the
+    // way the spell could be cast before anyone converted anything.
+    assert.equal(practice.costOf(learned({ level: 4 })), 4);
+    assert.equal(practice.costOf(spell({ level: 4 })), 4, "as it was before");
+  });
+
+  test("one of the tradition's own never has a Sorcery price", () => {
+    // It has no other way to be cast, so there is no price for casting it that
+    // way. canCast is what refuses it when nothing is prepared.
+    assert.equal(practice.costOf(vancian({ level: 4, prepared: true })), 0);
+    assert.equal(practice.costOf(vancian({ level: 4 })), 0);
   });
 
   test("but its level to keep one", () => {
     // "if we want to retain the ability to cast that spell again… there is a
     // Sorcery cost involved equal to the spell's level".
-    assert.equal(practice.retainCost(vancian({ level: 4 })), 4);
-    assert.equal(practice.retainCost(learned({ level: 4 })), 4, "a converted spell is kept the same way");
+    assert.equal(practice.retainCost(vancian({ level: 4, prepared: true })), 4);
+    assert.equal(practice.retainCost(learned({ level: 4, prepared: true })), 4,
+      "a converted spell is kept the same way");
+    assert.equal(practice.retainCost(learned({ level: 4 })), 0,
+      "but one cast the ordinary way was never in mind to be kept");
     assert.equal(practice.retainCost(spell({ level: 4 })), 0, "nothing else is retained");
   });
 
@@ -121,7 +140,7 @@ describe("whether it can be used at all", () => {
     assert.equal(answer.reason, "ISUN.CastNotPrepared");
   });
 
-  test("a prepared Vancian spell costs nothing, so an empty pool is no bar", () => {
+  test("a prepared spell of the tradition costs nothing, so an empty pool is no bar", () => {
     const answer = practice.canCast(caster(0), vancian({ level: 8, prepared: true }));
     assert.equal(answer.allowed, true);
     assert.equal(answer.cost, 0);
@@ -131,14 +150,21 @@ describe("whether it can be used at all", () => {
     assert.equal(practice.canCast(caster(0), ability({ level: 7, noCost: true })).allowed, true);
   });
 
-  test("a converted spell has to be in mind, like any other spell in a mind", () => {
-    // The trap the conversion sets: a spell that casts free but is not in mind
-    // would be castable by anyone, at will, for nothing.
-    const answer = practice.canCast(caster(9), learned({ level: 4, prepared: false }));
-    assert.equal(answer.allowed, false);
-    assert.equal(answer.reason, "ISUN.CastNotPrepared");
+  test("a converted spell not in mind is cast the ordinary way, and paid for", () => {
+    // Not refused. It is a general spell that a Vance has also learned their
+    // way, and the way it could always be cast does not go away.
+    const answer = practice.canCast(caster(9), learned({ level: 4 }));
+    assert.equal(answer.allowed, true);
+    assert.equal(answer.cost, 4);
 
-    assert.equal(practice.canCast(caster(0), learned({ level: 4, prepared: true })).allowed, true);
+    // And still refused when the pool cannot pay for it, like any other spell.
+    assert.equal(practice.canCast(caster(3), learned({ level: 4 })).allowed, false);
+  });
+
+  test("a converted spell in mind costs nothing, so an empty pool is no bar", () => {
+    const answer = practice.canCast(caster(0), learned({ level: 4, prepared: true }));
+    assert.equal(answer.allowed, true);
+    assert.equal(answer.cost, 0);
   });
 });
 
