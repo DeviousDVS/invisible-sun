@@ -3546,6 +3546,31 @@ a.sentence-part:hover + .sentence-part.affix {
   border-color: var(--isun-border-accent);
 }
 
+/* Learning a spell the Vancian way, and giving it back again. One decision seen
+ * from two sides, so they are drawn the same: a quiet glyph that brightens
+ * under the pointer and says what it would do in its tooltip.
+ *
+ * Quieter than the footprint beside it. For a converted spell this sits third
+ * in a cell that already has a checkbox and a number, and it is the least
+ * frequent of the three by a long way — where the "+" on an unconverted spell
+ * has the cell to itself and is found by being the only thing in it. */
+.practices .mind-learn,
+.practices .mind-release {
+  flex: 0 0 auto;
+  padding: 2px;
+  font-size: 0.72em;
+  line-height: 1;
+  color: var(--isun-text-secondary);
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.practices .mind-learn:hover,
+.practices .mind-release:hover {
+  color: var(--isun-text-accent);
+  opacity: 1;
+}
+
 /* What the Path of Suns is doing to a practice, in the Suns column. Not
  * applied to anything: the player chooses at the moment of casting whether to
  * take the shift as a level or as a Sorcery cost, so this reports and waits. */

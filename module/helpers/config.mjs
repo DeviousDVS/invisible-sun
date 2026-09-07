@@ -482,6 +482,30 @@ export const ISUN = Object.freeze({
    */
   vancianReductions: { 1: 0, 2: 2, 3: 2, 4: 4, 5: 4, 6: 6 },
 
+  /**
+   * What class a spell falls into when a Vance learns it their way.
+   *
+   * "Vances may wish to learn other spells and use them in their Vancian spell
+   * method, storing them in their mind for later. This requires twice the
+   * amount of time to learn the spell in the first place, but no additional
+   * Acumen. A spell can be placed within a Vancian spell class using these
+   * guidelines: Level 1-3 alpha class, Level 4-5 beta class, Level 6-7 gamma
+   * class, Level 8-10 omega class" (The Way, p57).
+   *
+   * Bands rather than a formula, because that is how the book prints it and the
+   * widths are not regular: three levels, then two, then two, then three.
+   *
+   * The deck runs 1 to 10, so the ends are never reached in play; a level
+   * outside them takes the nearest band, which is the reading that cannot
+   * leave a spell with no class at all.
+   */
+  vancianConversion: [
+    { upTo: 3,  spellClass: "alpha" },
+    { upTo: 5,  spellClass: "beta"  },
+    { upTo: 7,  spellClass: "gamma" },
+    { upTo: 10, spellClass: "omega" },
+  ],
+
   spellTypes: {
     general: "ISUN.SpellGeneral",
     vance: "ISUN.SpellVance",

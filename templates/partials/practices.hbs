@@ -74,13 +74,23 @@
           <span>{{p.item.name}}</span>
         </div>
         <div class="type" title="{{p.kindLabel}}">{{p.kindLabel}}</div>
-        {{!-- Preparation. Blank for anything the Vancian rules do not reach:
-              a general spell, an incantation, a forte ability. The footprint
-              doubles as the halving control, because reducing a spell is a
-              statement about how much room it takes and that is the number
-              being changed. --}}
+        {{!-- Preparation, and whether the Vancian rules reach this at all. Blank
+              for an incantation, a forte ability or a minor magic, which are
+              never held in mind. A spell either is held — prepared, and taking
+              a footprint that doubles as the halving control, because reducing
+              a spell is a statement about how much room it takes — or is a
+              spell this Vance could learn their way and has not. --}}
         {{#if @root.mind}}
           <div class="mind-cell">
+            {{!-- The offer sits in the column it would take room in, and names
+                  the class it would land in, so the price is on the label
+                  rather than behind it. --}}
+            {{#if p.canConvert}}
+              <a class="mind-learn" data-action="toggle-converted"
+                 data-tooltip="{{localize 'ISUN.MindLearnHint' class=p.convertClass}}">
+                <i class="fa-solid fa-plus"></i>
+              </a>
+            {{/if}}
             {{#if p.vancian}}
               <input type="checkbox" data-action="toggle-prepared"
                      {{#if p.prepared}}checked{{/if}}
@@ -95,6 +105,15 @@
                  data-tooltip="{{#if p.halved}}{{localize 'ISUN.MindRestoreHint'}}{{else}}{{localize 'ISUN.MindHalveHint'}}{{/if}}">
                 {{p.footprint}}
               </a>
+              {{!-- Only a spell learned into the tradition can be given back to
+                    ordinary casting. One of the Vance deck's own is Vancian by
+                    being what it is, and has nothing here to undo. --}}
+              {{#if p.converted}}
+                <a class="mind-release" data-action="toggle-converted"
+                   data-tooltip="{{localize 'ISUN.MindReleaseHint'}}">
+                  <i class="fa-solid fa-rotate-left"></i>
+                </a>
+              {{/if}}
             {{/if}}
           </div>
         {{/if}}

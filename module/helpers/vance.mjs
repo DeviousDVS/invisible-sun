@@ -68,14 +68,76 @@ export function reductionsFor(degree) {
 /**
  * Is this a spell the Vancian rules apply to?
  *
- * A Vance may hold general spells alongside their grimoire, and those are not
- * prepared, take up no room, and must not be counted. Only the tradition's own
- * spells are, and only ones that state a class — a Vancian spell with no class
- * recorded is a data gap, and counting it as zero would silently let a Vance
- * carry it for free.
+ * Two ways to be one. The tradition's own spells are, by being what they are.
+ * And so is any other spell a Vance has taken the trouble to learn their way:
+ * "Vances may wish to learn other spells and use them in their Vancian spell
+ * method, storing them in their mind for later" (The Way, p57). That is not a
+ * property of the spell but of the character who learned it, so it is recorded
+ * on their copy — see `converted` on the spell model.
+ *
+ * Everything the Vancian rules say then follows for both alike: they occupy
+ * the mind, they are prepared, they cast free and cost Sorcery to keep.
+ *
+ * A spell a Vance simply holds without converting is none of that. It is cast
+ * the ordinary way, out of Sorcery, and takes up no room at all.
  */
 export function isVancian(item) {
-  return item?.type === "Spell" && item.system?.spellType === "vance";
+  if (item?.type !== "Spell") return false;
+  return item.system?.spellType === "vance" || !!item.system?.converted;
+}
+
+/**
+ * The class a spell of this level is placed in when converted.
+ *
+ * The bands are `CONFIG.ISUN.vancianConversion`, printed in The Way p57. A
+ * level past the end of the table takes the last band rather than nothing: a
+ * converted spell with no class would count as zero room and be carried free,
+ * which is the one answer the rules certainly do not give.
+ */
+export function classForLevel(level) {
+  const bands = CONFIG.ISUN.vancianConversion ?? [];
+  if (!bands.length) return "";
+  const n = Math.max(0, Number(level) || 0);
+  return (bands.find(band => n <= band.upTo) ?? bands.at(-1)).spellClass;
+}
+
+/**
+ * Is this a spell a Vance could learn their way, but has not?
+ *
+ * Only the spells that are not already Vancian one way or the other. A Vance
+ * spell is prepared because of what it is, and asking to convert one would be
+ * offering the character something they already have.
+ *
+ * Says nothing about whether the character is a Vance — that is the caller's
+ * to know, and the caller is the one holding the actor.
+ */
+export function canConvert(item) {
+  return item?.type === "Spell" && !isVancian(item);
+}
+
+/**
+ * What changes when a spell is learned the Vancian way, or released again.
+ *
+ * Returned as an update rather than applied, so the one description of the act
+ * can be tested without a document to write it to.
+ *
+ * Learning fixes the class from the level, and does not put the spell in mind:
+ * preparation "takes about an hour" and is its own act, made against whatever
+ * room is free at the time.
+ *
+ * Releasing clears all three. A spell cast out of Sorcery is not in anybody's
+ * mind, has no footprint to halve, and takes no class — and clearing the class
+ * rather than keeping it means a spell learned again after a change of level
+ * is placed by the band it is in now.
+ */
+export function conversion(item, learn) {
+  /* Nested rather than dotted, so the same description serves both callers:
+   * `item.update()` after the fact, and `updateSource()` while the spell is
+   * still being created and there is no document to update yet. */
+  return { system: learn
+    ? { converted: true, spellClass: classForLevel(item?.system?.level),
+        prepared: false, halved: false }
+    : { converted: false, spellClass: "", prepared: false, halved: false } };
 }
 
 /**

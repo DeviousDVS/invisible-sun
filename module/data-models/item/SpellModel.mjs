@@ -43,6 +43,29 @@ export class SpellModel extends foundry.abstract.DataModel {
       prepared:    new fields.BooleanField({ required: true, initial: false }),
 
       /**
+       * Whether a Vance has learned this spell by their own method.
+       *
+       * "Vances may wish to learn other spells and use them in their Vancian
+       * spell method, storing them in their mind for later. This requires twice
+       * the amount of time to learn the spell in the first place, but no
+       * additional Acumen" (The Way, p57). Twice the time, so it is a thing
+       * done rather than a thing true — and once done the spell behaves in
+       * every way like one of the tradition's own: it occupies the mind, it is
+       * prepared, it casts free and costs Sorcery to keep.
+       *
+       * Recorded here rather than by rewriting `spellType`, which says which
+       * deck the spell was printed in and stays true whatever a character does
+       * with their copy. The two are different questions and the Kind column
+       * answers both: "Spell, Vancian".
+       *
+       * A property of the character's copy, not of the spell. Two Vances may
+       * hold the same general spell and only one of them have converted it, and
+       * the compendium entry is neither. `ISUNItem._preCreate` is what sets it,
+       * because that is the moment a spell arrives on somebody.
+       */
+      converted:   new fields.BooleanField({ required: true, initial: false }),
+
+      /**
        * Whether this spell has been reduced to half its usual footprint — "we
        * can reduce the occupying space of two of the spells we know to half
        * their original size" (The Key, Vance 2nd degree, and again at the 4th

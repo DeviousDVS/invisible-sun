@@ -72,6 +72,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
        * mean "use this", and all reach the same handler. */
       "toggle-prepared":    this.prototype._onTogglePrepared,
       "toggle-halved":      this.prototype._onToggleHalved,
+      "toggle-converted":   this.prototype._onToggleConverted,
       "roll-depletion":     this.prototype._onRollDepletion,
       "roll-spell":         this.prototype._onItemRoll,
       "roll-incantation":   this.prototype._onItemRoll,
@@ -286,14 +287,34 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
    *
    * Separated from `practice()` because it is the only part of a row that
    * depends on the character rather than on the item, and because it answers
-   * three different things — whether the column applies at all, whether the
-   * box is ticked, and why it cannot be — that read better named than inline.
+   * four different things — whether the column applies at all, whether the box
+   * is ticked, why it cannot be, and whether this is a spell the Vance could
+   * learn their way but has not — that read better named than inline.
    */
   #preparation(item, mind) {
-    if (!mind || !vance.isVancian(item)) return { vancian: false };
+    if (!mind) return { vancian: false };
+    /* A spell this Vance has not learned their way. The column is where they
+     * do it — the offer has to appear somewhere, and it belongs beside the
+     * mind it would take room in rather than on a menu.
+     *
+     * The class is worked out here so the offer can name it: "learn this as a
+     * beta" is an answerable question and "learn this" is not. */
+    if (!vance.isVancian(item)) {
+      if (!vance.canConvert(item)) return { vancian: false };
+      const spellClass = vance.classForLevel(item.system?.level);
+      return {
+        vancian: false,
+        canConvert: true,
+        convertClass: game.i18n.localize(
+          CONFIG.ISUN.spellClasses[spellClass]?.label ?? spellClass)
+      };
+    }
     const { allowed, reason } = vance.canPrepare(item, mind);
     return {
       vancian: true,
+      /* Native to the tradition, or learned into it. Only the second can be
+       * given back — a Vance spell is Vancian by being a Vance spell. */
+      converted: !!item.system.converted,
       prepared: !!item.system.prepared,
       halved: !!item.system.halved,
       footprint: vance.footprint(item),
@@ -1178,6 +1199,32 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       return;
     }
     await item.update({ "system.halved": !item.system.halved });
+  }
+
+  /**
+   * Learn a spell the Vancian way, or give it back to ordinary casting.
+   *
+   * "Vances may wish to learn other spells and use them in their Vancian spell
+   * method… This requires twice the amount of time to learn the spell in the
+   * first place, but no additional Acumen" (The Way, p57). Twice the time, and
+   * time is the table's to spend: this records the decision, as preparing a
+   * spell records the hour it took.
+   *
+   * A spell arriving on a Vance is converted already — `ISUNItem._preCreate`
+   * does it — so in practice this is mostly the other direction: a player who
+   * would rather pay Sorcery for a general spell than give up room in mind.
+   * Both are one control, because they are one decision seen from two sides.
+   *
+   * Refused for a spell of the Vance deck itself. Casting one of those out of
+   * Sorcery is a conversion the book also allows, at twice the time again, but
+   * it is a different act with a different price and it is not this button.
+   */
+  async _onToggleConverted(event, target) {
+    event.preventDefault();
+    const item = this.document.items.get(target.closest(".item")?.dataset.itemId);
+    if (!item || item.type !== "Spell" || item.system.spellType === "vance") return;
+
+    await item.update(vance.conversion(item, !item.system.converted));
   }
 
   /**

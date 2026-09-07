@@ -17,10 +17,10 @@ after(() => unstubFoundry());
 /** A spell, described by only what a case needs. */
 let n = 0;
 const spell = ({ spellClass = "alpha", prepared = false, halved = false,
-                 spellType = "vance", name } = {}) => ({
+                 spellType = "vance", converted = false, level = 1, name } = {}) => ({
   type: "Spell",
   name: name ?? `Spell ${++n}`,
-  system: { spellClass, prepared, halved, spellType, level: 1 }
+  system: { spellClass, prepared, halved, spellType, converted, level }
 });
 
 describe("how much room a spell takes", () => {
@@ -130,8 +130,10 @@ describe("what the mind is holding", () => {
   });
 
   test("a general spell is not counted, prepared or not", () => {
-    // A Vance may hold spells outside their grimoire. Those are not prepared,
-    // take up no room, and must not appear against the limit.
+    // A Vance may hold spells outside their grimoire and cast them the ordinary
+    // way. Those are not prepared, take up no room, and must not appear against
+    // the limit — unless the Vance has learned them their way, which is the
+    // case below.
     const held = [
       spell({ spellClass: "omega", spellType: "general", prepared: true }),
       spell({ spellClass: "alpha", prepared: true })
@@ -139,6 +141,26 @@ describe("what the mind is holding", () => {
     const mind = vance.mindState(3, held);
     assert.equal(mind.used, 2);
     assert.equal(mind.known, 1);
+  });
+
+  test("a general spell learned the Vancian way is counted like any other", () => {
+    // "Vances may wish to learn other spells and use them in their Vancian
+    // spell method, storing them in their mind for later" (The Way, p57).
+    const held = [
+      spell({ spellClass: "beta", spellType: "general", converted: true, prepared: true }),
+      spell({ spellClass: "alpha", prepared: true })
+    ];
+    const mind = vance.mindState(3, held);
+    assert.equal(mind.used, 6);
+    assert.equal(mind.known, 2);
+  });
+
+  test("a converted spell counts against the halving allowance too", () => {
+    // The allowance is over "the spells we know", and a converted spell is one
+    // of them: nothing in the reduction rule turns on which deck it came from.
+    const held = [spell({ spellClass: "gamma", spellType: "general",
+                          converted: true, halved: true })];
+    assert.equal(vance.mindState(2, held).reductions.used, 1);
   });
 
   test("over capacity is reported, never blocked", () => {
@@ -337,4 +359,118 @@ describe("area is the same test as arrangement", () => {
         "these fit by area but cannot be laid out, so the area shortcut is unsound");
     });
   }
+});
+
+describe("learning a spell that is not a Vance's own", () => {
+
+  // "A spell can be placed within a Vancian spell class using these
+  // guidelines: Level 1–3 alpha class, Level 4–5 beta class, Level 6–7 gamma
+  // class, Level 8–10 omega class" (The Way, p57).
+  test("each band takes the class the book gives it", () => {
+    const expected = {
+      1: "alpha", 2: "alpha", 3: "alpha",
+      4: "beta",  5: "beta",
+      6: "gamma", 7: "gamma",
+      8: "omega", 9: "omega", 10: "omega"
+    };
+    for (const [level, cls] of Object.entries(expected)) {
+      assert.equal(vance.classForLevel(Number(level)), cls, `level ${level}`);
+    }
+  });
+
+  test("the bands are three, two, two, three and not four fours", () => {
+    // The one thing a formula would get wrong. Written out so that a table
+    // edited into even bands fails here rather than quietly misplacing every
+    // spell of level 4 and up.
+    assert.equal(vance.classForLevel(3), "alpha");
+    assert.equal(vance.classForLevel(4), "beta");
+    assert.equal(vance.classForLevel(5), "beta");
+    assert.equal(vance.classForLevel(6), "gamma");
+    assert.equal(vance.classForLevel(7), "gamma");
+    assert.equal(vance.classForLevel(8), "omega");
+  });
+
+  test("a level off the end of the table still lands somewhere", () => {
+    // The deck runs 1 to 10, so neither happens in play. A spell with no class
+    // would count as no room at all, which is the one answer the rules
+    // certainly do not give.
+    assert.equal(vance.classForLevel(0), "alpha");
+    assert.equal(vance.classForLevel(99), "omega");
+    assert.equal(vance.classForLevel(undefined), "alpha");
+  });
+
+  test("every band names a class that exists", () => {
+    // The table is a GM's to edit, and a class the config does not define would
+    // give a footprint of zero — a spell carried for nothing.
+    for (const band of CONFIG.ISUN.vancianConversion) {
+      assert.ok(CONFIG.ISUN.spellClasses[band.spellClass],
+        `${band.spellClass} is not a spell class`);
+    }
+  });
+
+  test("the bands ascend, so the first match is the right one", () => {
+    // classForLevel takes the first band the level fits. Out of order, a
+    // level-9 spell would be placed in whichever band happened to come first.
+    const tops = CONFIG.ISUN.vancianConversion.map(b => b.upTo);
+    assert.deepEqual(tops, [...tops].sort((a, b) => a - b));
+  });
+
+  test("a converted spell is one the Vancian rules apply to", () => {
+    assert.equal(vance.isVancian(spell({ spellType: "general" })), false);
+    assert.equal(vance.isVancian(spell({ spellType: "general", converted: true })), true);
+    assert.equal(vance.isVancian(spell({ spellType: "vance" })), true);
+    assert.equal(vance.isVancian({ type: "Incantation", system: { converted: true } }), false);
+  });
+
+  test("only a spell that is not already Vancian is offered the conversion", () => {
+    assert.equal(vance.canConvert(spell({ spellType: "general" })), true);
+    assert.equal(vance.canConvert(spell({ spellType: "weaver" })), true);
+    assert.equal(vance.canConvert(spell({ spellType: "vance" })), false,
+      "one of their own is Vancian by being what it is");
+    assert.equal(vance.canConvert(spell({ spellType: "general", converted: true })), false);
+    assert.equal(vance.canConvert({ type: "Gear", system: {} }), false);
+  });
+
+  test("learning fixes the class from the level and puts nothing in mind", () => {
+    // Preparation "takes about an hour" and is its own act, made against
+    // whatever room is free at the time.
+    const { system } = vance.conversion(spell({ spellType: "general", level: 6 }), true);
+    assert.equal(system.converted, true);
+    assert.equal(system.spellClass, "gamma");
+    assert.equal(system.prepared, false);
+    assert.equal(system.halved, false);
+  });
+
+  test("releasing takes back the class as well as the conversion", () => {
+    // A spell cast out of Sorcery has no footprint. Clearing the class rather
+    // than keeping it means a spell learned again after a change of level is
+    // placed by the band it is in now.
+    const held = spell({ spellType: "general", spellClass: "omega",
+                         converted: true, prepared: true, halved: true, level: 9 });
+    const { system } = vance.conversion(held, false);
+    assert.equal(system.converted, false);
+    assert.equal(system.spellClass, "");
+    assert.equal(system.prepared, false);
+    assert.equal(system.halved, false);
+  });
+
+  test("a released spell leaves the mind it was taking up", () => {
+    // The whole point of the release: the room comes back.
+    const learned = spell({ spellType: "general", spellClass: "beta",
+                            converted: true, prepared: true });
+    assert.equal(vance.mindState(1, [learned]).used, 4);
+
+    const { system } = vance.conversion(learned, false);
+    Object.assign(learned.system, system);
+    assert.equal(vance.mindState(1, [learned]).used, 0);
+  });
+
+  test("a converted spell can be prepared, and is refused the same way", () => {
+    const learned = spell({ spellType: "general", spellClass: "beta", converted: true });
+    assert.equal(vance.canPrepare(learned, vance.mindState(1, [])).allowed, true);
+
+    // A 3 x 3 mind holds 4; a beta is 4 and an alpha will not follow it in.
+    const full = vance.mindState(1, [spell({ spellClass: "beta", prepared: true })]);
+    assert.equal(vance.canPrepare(learned, full).reason, "ISUN.MindNoRoom");
+  });
 });

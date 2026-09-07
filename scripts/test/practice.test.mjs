@@ -16,6 +16,8 @@ after(() => unstubFoundry());
 const spell = (system = {}) => ({ type: "Spell", name: "A spell",
   system: { level: 3, spellType: "general", ...system } });
 const vancian = (system = {}) => spell({ spellType: "vance", ...system });
+/** A general spell a Vance has learned their own way (The Way, p57). */
+const learned = (system = {}) => spell({ converted: true, ...system });
 const ability = (system = {}) => ({ type: "ForteAbility", name: "An ability",
   system: { level: 2, bonusDice: 0, ...system } });
 
@@ -43,10 +45,20 @@ describe("what a practice costs", () => {
     assert.equal(practice.costOf(vancian({ level: 4 })), 0);
   });
 
+  test("nothing to cast a spell a Vance learned their way either", () => {
+    // "Vances may wish to learn other spells and use them in their Vancian
+    // spell method" (The Way, p57) — their way, so on their terms: it is held
+    // in mind and it casts free. A spell that took up room and still cost
+    // Sorcery would be paying twice for one conversion.
+    assert.equal(practice.costOf(learned({ level: 4 })), 0);
+    assert.equal(practice.costOf(spell({ level: 4 })), 4, "and not before it is learned");
+  });
+
   test("but its level to keep one", () => {
     // "if we want to retain the ability to cast that spell again… there is a
     // Sorcery cost involved equal to the spell's level".
     assert.equal(practice.retainCost(vancian({ level: 4 })), 4);
+    assert.equal(practice.retainCost(learned({ level: 4 })), 4, "a converted spell is kept the same way");
     assert.equal(practice.retainCost(spell({ level: 4 })), 0, "nothing else is retained");
   });
 
@@ -117,6 +129,40 @@ describe("whether it can be used at all", () => {
 
   test("a no-cost forte ability is usable on an empty pool", () => {
     assert.equal(practice.canCast(caster(0), ability({ level: 7, noCost: true })).allowed, true);
+  });
+
+  test("a converted spell has to be in mind, like any other spell in a mind", () => {
+    // The trap the conversion sets: a spell that casts free but is not in mind
+    // would be castable by anyone, at will, for nothing.
+    const answer = practice.canCast(caster(9), learned({ level: 4, prepared: false }));
+    assert.equal(answer.allowed, false);
+    assert.equal(answer.reason, "ISUN.CastNotPrepared");
+
+    assert.equal(practice.canCast(caster(0), learned({ level: 4, prepared: true })).allowed, true);
+  });
+});
+
+describe("what a practice is called", () => {
+
+  test("a spell of a tradition names it; a general spell does not", () => {
+    // "General" is the absence of a tradition rather than a fifth one.
+    assert.equal(practice.kindLabelFor(spell()), "Spell");
+    assert.equal(practice.kindLabelFor(vancian()), "Vance Spell");
+  });
+
+  test("a spell learned the Vancian way says so on top of what it is", () => {
+    // Both facts, because both are true: the deck it was printed in, and the
+    // way this character holds it. A row that said only the first would have a
+    // general spell casting free with nothing to explain it.
+    assert.equal(practice.kindLabelFor(learned()), "Spell, Vancian");
+    assert.equal(practice.kindLabelFor(learned({ spellType: "weaver" })), "Weaver Spell, Vancian");
+  });
+
+  test("nothing but a spell is ever called Vancian", () => {
+    // `converted` is a field on the spell model alone, but the label is
+    // composed for four kinds of practice and only one of them has it.
+    assert.equal(practice.kindLabelFor({ type: "Incantation", system: { converted: true } }),
+      "Incantation");
   });
 });
 

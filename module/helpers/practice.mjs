@@ -20,10 +20,14 @@
 /** Practices whose Sorcery cost is their level. */
 const COSTS_ITS_LEVEL = new Set(["Spell", "Incantation", "ForteAbility", "MinorMagic"]);
 
-/** A Vancian spell — the one practice that is free to cast. */
-export function isVancian(item) {
-  return item?.type === "Spell" && item.system?.spellType === "vance";
-}
+/* A Vancian spell — the one practice that is free to cast — and the same
+ * question the mind asks when it works out what it is holding. It was answered
+ * twice, once here and once there, and then the answer changed: a Vance may
+ * learn a general spell their way, and a spell that occupied the mind but still
+ * cost Sorcery to cast would have been the result of the two disagreeing.
+ * Helpers may import each other, so now there is one of it. */
+import { isVancian } from "./vance.mjs";
+export { isVancian };
 
 /**
  * What using this costs in Sorcery.
@@ -131,8 +135,12 @@ export function depletionRange(depletion) {
  *
  * A spell names its tradition, because the four are not interchangeable and one
  * list mixes them: a Vance may hold general spells beside the ones in their
- * grimoire, and only the Vancian ones are prepared and cast free. "General" is
- * not printed — it is the absence of a tradition rather than a fifth one.
+ * grimoire. "General" is not printed — it is the absence of a tradition rather
+ * than a fifth one.
+ *
+ * What is printed on top of that is whether the spell has been learned the
+ * Vancian way, because that decides how it is held and what it costs, and a
+ * general spell that casts free would otherwise be unexplained on the row.
  *
  * Here rather than in the sheet because the chat card names a practice too, and
  * the table and the card should not disagree about what a thing is.
@@ -145,12 +153,20 @@ export function kindLabelFor(item, kind = "") {
   if (!key) return "";
 
   const tradition = key === "spell" ? (item?.system?.spellType ?? "general") : "";
-  if (tradition && tradition !== "general") {
-    return game.i18n.format("ISUN.KindSpellOf", {
-      tradition: game.i18n.localize(CONFIG.ISUN.spellTypes[tradition] ?? tradition)
-    });
-  }
-  return game.i18n.localize(`ISUN.Kind${key.charAt(0).toUpperCase()}${key.slice(1)}`);
+  const named = (tradition && tradition !== "general")
+    ? game.i18n.format("ISUN.KindSpellOf", {
+        tradition: game.i18n.localize(CONFIG.ISUN.spellTypes[tradition] ?? tradition)
+      })
+    : game.i18n.localize(`ISUN.Kind${key.charAt(0).toUpperCase()}${key.slice(1)}`);
+
+  /* A spell a Vance has learned their way is still a spell of whatever
+   * tradition wrote it — the column says which — but it is held and cast as a
+   * Vance spell, and that is the more surprising of the two facts. Composed
+   * rather than a fifth label, because the spell converted may have come from
+   * any of the four decks. */
+  return (key === "spell" && item?.system?.converted)
+    ? game.i18n.format("ISUN.KindSpellConverted", { kind: named })
+    : named;
 }
 
 /**
