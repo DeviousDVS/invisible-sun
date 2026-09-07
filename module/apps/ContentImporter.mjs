@@ -28,7 +28,7 @@ import * as deck from "../importers/pdf-deck.mjs";
 import { SOURCES, NOT_YET, openingText, guessFromName, identifyFromText, isSupported }
   from "../importers/sources.mjs";
 
-const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+const { ApplicationV2, DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /** Where card art goes, relative to Foundry's data folder. */
 const ASSET_ROOT = "invisible-sun/cards";
@@ -44,7 +44,10 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
     tag: "div",
     position: { width: 620, height: "auto" },
     window: { title: "ISUN.ImportTitle", icon: "fa-solid fa-file-import" },
-    actions: { run: ContentImporter.#onRun }
+    actions: {
+      run: ContentImporter.#onRun,
+      empty: ContentImporter.#onEmpty
+    }
   };
 
   static PARTS = {
@@ -93,6 +96,178 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
       this.#busy = false;
       this.render();
     }
+  }
+
+  /**
+   * Empty the compendia, so the next import is the only thing in them.
+   *
+   * ── Why this is needed at all ──
+   * An import matches by name and updates; it never deletes. That is right for
+   * the ordinary case — a GM who corrected an entry keeps the correction, and
+   * re-reading one deck does not throw away the other fifty-nine — but it means
+   * an entry that should not be there cannot be got rid of by importing again.
+   * Anything written under a name the books do not use simply stays, and the
+   * next import writes the right entry alongside it.
+   *
+   * That is not hypothetical. A retired build script once filled the spell
+   * compendium with the Vance deck under names in capitals; re-importing the
+   * spell deck fixed the three hundred and fifty-five it recognised and left
+   * the other sixty sitting there, because nothing names them any more. The
+   * only way back to what the books actually say is to start from nothing.
+   *
+   * ── Why it asks ──
+   * This throws away work that took a long time to make and that git is not
+   * keeping: the compendia are the only copy of an import. So it counts what it
+   * would delete, names it a pack at a time, and puts the number on the button
+   * — and the button it opens on is Cancel.
+   *
+   * The card art is not touched. It lives outside the system folder, takes
+   * about a minute a deck to cut again, and the next import links it straight
+   * back up.
+   */
+  static async #onEmpty(event, target) {
+    if (this.#busy) return;
+    if (!game.user.isGM) return ui.notifications.warn(game.i18n.localize("ISUN.EmptyGMOnly"));
+
+    const packs = [];
+    for (const pack of this.constructor.systemPacks()) {
+      packs.push({ pack, name: pack.metadata.name, label: pack.title,
+                   count: (await pack.getIndex()).size });
+    }
+
+    const held = packs.filter(p => p.count);
+    if (!held.length) return ui.notifications.info(game.i18n.localize("ISUN.EmptyNothing"));
+
+    const chosen = await this.constructor.#confirmEmpty(held);
+    if (!chosen?.length) return;
+
+    this.#busy = true;
+    this.#log = [];
+    this.render();
+    try {
+      await this.#emptyPacks(packs.filter(p => chosen.includes(p.name)));
+    } catch (err) {
+      this.#say(`✖ ${err.message}`, true);
+      console.error("invisible-sun | emptying failed", err);
+    } finally {
+      this.#busy = false;
+      this.render();
+    }
+  }
+
+  /**
+   * Which packs are this system's own.
+   *
+   * By what declares them rather than by a list here: a pack added to the
+   * manifest is one this should offer, and a module's pack — or a world's — is
+   * never ours to empty however much it looks like one of ours.
+   */
+  static systemPacks() {
+    return game.packs.filter(p => p.metadata.packageType === "system"
+      && p.metadata.packageName === game.system.id);
+  }
+
+  /**
+   * Name what would go, and let the reader take packs out of it.
+   *
+   * All ticked, because "start again" is the reason this exists and wanting all
+   * of it is the common case. Untickable, because the other reason is a single
+   * deck that went in wrong, and re-reading every book to fix one is an hour
+   * nobody needs to spend.
+   *
+   * @returns {Promise<string[]|null>} the pack names to empty
+   */
+  static async #confirmEmpty(held) {
+    const esc = foundry.utils.escapeHTML;
+    const total = held.reduce((n, p) => n + p.count, 0);
+
+    const rows = held.map(p => `
+      <label class="empty-row">
+        <input type="checkbox" name="pack" value="${esc(p.name)}" checked />
+        <span class="empty-name">${esc(p.label)}</span>
+        <span class="empty-count">${p.count}</span>
+      </label>`).join("");
+
+    return DialogV2.wait({
+      window: { title: game.i18n.localize("ISUN.EmptyTitle"), icon: "fa-solid fa-trash" },
+      classes: ["invisible-sun", "empty-packs"],
+      position: { width: 420 },
+      content: `<p class="notes warning">${game.i18n.localize("ISUN.EmptyWarning")}</p>
+        <div class="empty-rows">${rows}</div>
+        <p class="empty-total">${game.i18n.format("ISUN.EmptyTotal",
+          { count: total, packs: held.length })}</p>
+        <p class="hint">${game.i18n.localize("ISUN.EmptyArtKept")}</p>`,
+      buttons: [
+        /* Cancel first and default. The other button deletes hours of work and
+         * a return key should not be able to reach it by accident. */
+        { action: "cancel", label: game.i18n.localize("ISUN.Cancel"),
+          icon: "fa-solid fa-xmark", default: true },
+        { action: "empty", icon: "fa-solid fa-trash",
+          label: game.i18n.localize("ISUN.EmptyConfirm"),
+          class: "isun-destructive",
+          callback: (event, button) =>
+            [...button.form.querySelectorAll("input[name=pack]:checked")].map(i => i.value) }
+      ],
+      /* The count follows the ticks. Stated beside the list rather than on the
+       * button: unticking fifteen packs has to change the number somewhere, and
+       * rewriting a button's label means reaching past the icon core put in it. */
+      render: (event, dialog) => {
+        const root = dialog.element;
+        const go = root.querySelector('button[data-action="empty"]');
+        const total = root.querySelector(".empty-total");
+        const sync = () => {
+          const ticked = [...root.querySelectorAll("input[name=pack]:checked")]
+            .map(i => held.find(p => p.name === i.value)?.count ?? 0);
+          const n = ticked.reduce((a, b) => a + b, 0);
+          go.disabled = !n;
+          total.textContent = game.i18n.format("ISUN.EmptyTotal",
+            { count: n, packs: ticked.length });
+        };
+        root.addEventListener("change", sync);
+        sync();
+      },
+      rejectClose: false
+    });
+  }
+
+  /**
+   * Delete every document in each named pack.
+   *
+   * A pack at a time, and a failure in one is reported and does not stop the
+   * rest: the packs are independent, and a run that gave up halfway would leave
+   * the reader with no idea which of them had been cleared.
+   *
+   * System packs are locked by default, which is a guard against editing them
+   * by accident rather than a statement that they may never change — the
+   * importer unlocks them the same way to write. Each is put back as it was
+   * found, including when the delete throws.
+   */
+  async #emptyPacks(packs) {
+    this.#say(game.i18n.localize("ISUN.EmptyStarting"));
+    let gone = 0;
+
+    for (const { pack, label } of packs) {
+      const wasLocked = pack.locked;
+      if (wasLocked) await pack.configure({ locked: false });
+      try {
+        const ids = [...(await pack.getIndex())].map(e => e._id);
+        if (ids.length) {
+          const Cls = foundry.utils.getDocumentClass(pack.documentName);
+          await Cls.deleteDocuments(ids, { pack: pack.collection });
+        }
+        gone += ids.length;
+        this.#say(game.i18n.format("ISUN.EmptyDidPack", { pack: label, count: ids.length }));
+      } catch (err) {
+        this.#say(game.i18n.format("ISUN.EmptyFailedPack",
+          { pack: label, error: err.message }), true);
+      } finally {
+        if (wasLocked) await pack.configure({ locked: true });
+      }
+    }
+
+    this.#say(game.i18n.format("ISUN.EmptyDone", { count: gone, packs: packs.length }));
+    ui.notifications.info(game.i18n.format("ISUN.EmptyDone",
+      { count: gone, packs: packs.length }));
   }
 
   /** Work out what is in the folder, then import everything that can be. */

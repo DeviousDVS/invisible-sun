@@ -35,6 +35,16 @@
       <i class="fa-solid {{#if busy}}fa-spinner fa-spin{{else}}fa-file-import{{/if}}"></i>
       {{#if busy}}{{localize "ISUN.ImportWorking"}}{{else}}{{localize "ISUN.ImportStart"}}{{/if}}
     </button>
+    {{!-- Beside the import rather than anywhere else, because emptying is
+          something you do immediately before one: an import updates what it
+          recognises and never deletes, so anything written under a name the
+          books do not use can only be got rid of here. Quiet, and asks before
+          it does anything. --}}
+    <button type="button" class="isun-destructive" data-action="empty"
+            {{#if busy}}disabled{{/if}}
+            data-tooltip="{{localize 'ISUN.EmptyHint'}}">
+      <i class="fa-solid fa-trash"></i> {{localize "ISUN.EmptyButton"}}
+    </button>
   </footer>
 
   {{#if log}}

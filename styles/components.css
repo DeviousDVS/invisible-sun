@@ -2601,6 +2601,75 @@ a.sentence-part:hover + .sentence-part.affix {
 /* A failure is the one line worth finding in a wall of progress. */
 .content-importer .import-log li.failed { color: var(--isun-danger, #e74c3c); font-weight: 600; }
 
+/* Emptying the compendia, and the dialog that asks first.
+ *
+ * The button sits beside Import and must not look like it. Nothing but its
+ * outline until the pointer is on it, and then the wound colour — enough to
+ * read as the destructive one of the two without shouting from a dialog whose
+ * whole purpose is the other button. */
+.isun-destructive {
+  border-color: rgb(192 57 43 / 45%);
+  color: var(--isun-text-secondary);
+}
+
+.isun-destructive:hover:not(:disabled) {
+  background: var(--isun-wound);
+  border-color: var(--isun-wound);
+  color: var(--isun-bg-primary);
+}
+
+/* Nothing ticked is nothing to delete. Core dims a disabled button only
+ * slightly, which on the one button in this dialog that does something
+ * irreversible is not enough to say "this will not fire". */
+.isun-destructive:disabled {
+  border-color: var(--isun-border);
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.empty-packs .notes.warning {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--isun-wound);
+}
+
+/* One row a compendium: a tick, what it is called, and how much is in it. The
+ * count is what the reader is actually weighing, so it is the part set apart. */
+.empty-packs .empty-rows {
+  max-height: 18rem;
+  overflow-y: auto;
+  border: 1px solid var(--isun-border);
+  border-radius: 3px;
+  background: rgb(0 0 0 / 18%);
+}
+
+.empty-packs .empty-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+}
+
+.empty-packs .empty-row:hover { background: rgb(255 255 255 / 4%); }
+.empty-packs .empty-name { flex: 1; }
+
+.empty-packs .empty-count {
+  color: var(--isun-text-secondary);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85em;
+}
+
+/* The running total, which follows the ticks. On its own line rather than on
+ * the button, so that unticking a pack visibly changes the number without
+ * anything having to reach inside a button core drew. */
+.empty-packs .empty-total {
+  margin: 0.5rem 0 0.25rem;
+  font-weight: 600;
+  text-align: right;
+}
+
 .isun-import-btn { margin-top: 0.25rem; }
 
 /* ── The Path of Suns ──────────────────────────────────────────────

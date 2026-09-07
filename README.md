@@ -199,6 +199,16 @@ Running it twice is safe — entries are matched by name and updated, not
 duplicated — and a book only ever writes the fields it actually states, so
 anything you have edited by hand survives a re-import.
 
+**Starting over.** Because an import updates and never deletes, an entry
+written under a name the books do not use cannot be got rid of by importing
+again: the next run writes the right entry alongside it. **Empty the
+compendia**, beside the import button, is the way back to nothing — it counts
+what it would delete, names it a compendium at a time, and lets you clear one
+deck rather than all eighteen. It asks first, and it opens on Cancel. The card
+art is kept; the next import links it straight back up.
+
+The compendia are the only copy of an import. `npm run data:backup` is what
+stands between a mistake here and doing the whole thing again.
 
 ### Generating the content
 
