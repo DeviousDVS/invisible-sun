@@ -216,13 +216,14 @@ Hooks.once("init", () => {
           name: "magicalFlux",
           order: 2,
           title: "ISUN.FluxButton",
-          /* Two classes: the mark, and the box it needs here. Core writes the
-           * string onto the button verbatim, and on a scene control the mark is
-           * the button rather than a glyph sitting inside one. */
-          icon: "isun-flux-icon isun-tool-icon",
+          /* The scene-control form of the mark, which draws it in the
+           * button's ::before and so leaves the button its own background to
+           * be styled with. See .isun-flux-tool. */
+          icon: "isun-flux-tool",
           button: true,
           visible: game.user.isGM,
           onChange: () => flux.promptShift()
+
         }
       }
     };

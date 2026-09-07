@@ -270,14 +270,33 @@
   vertical-align: -0.125em;
   background-color: currentColor;
   -webkit-mask: var(--isun-flux-mark) center / 165% no-repeat;
-  mask: var(--isun-flux-mark) center / 165% no-repeat;
+  mask: var(--isun-flux-mark) center / 200% no-repeat;
 }
 
-/* The same mark as a scene-control tool, where it is the button rather than a
-   glyph inside one — so it takes the whole box. Without this it stands 1.5em
-   wide in a column of 2em tools, and its hover target is narrower than it
-   looks. */
-.isun-tool-icon { width: 100%; height: 100%; vertical-align: unset; }
+/* The same mark as a scene-control tool — on the button's ::before, never on
+   the button.
+
+   A mask cuts its shape out of a painted background, so wearing one means
+   painting the element in currentColor, and a scene-control button's background
+   *is* its styling: the dark ground it shares with every other tool, and the
+   colour it takes when hovered or held. Putting the mask on the button spent
+   that background on the mark and left the button with no chrome at all — it
+   did not light up on hover, because there was nothing left to light. Core's
+   own tools carry their glyph in ::before for the same reason.
+
+   The pseudo-element fills the button, which also settles the size: as the
+   button it stood 1.5em wide in a column of 2em tools and 4px taller than its
+   neighbour, because an inline-block with a height was sizing the control
+   rather than sitting inside it. */
+.isun-flux-tool::before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: currentColor;
+  -webkit-mask: var(--isun-flux-mark) center / 165% no-repeat;
+  mask: var(--isun-flux-mark) center / 300% no-repeat;
+}
 
 /* A magic die reading 0 has fluxed, and the 0 says nothing else: dice are only
    thrown when the target is 1 or more, so a 0 face can never score. The mark
@@ -882,17 +901,6 @@ a.sentence-part:hover + .sentence-part.affix {
   margin-top: 0;
 }
 
-/* The soul is secret; mark it so it reads as privileged at a glance. */
-.narrative-section.secret {
-  border-left: 3px solid var(--isun-sun-indigo);
-  padding-left: var(--isun-space-md);
-}
-
-.narrative-section.secret > h3 {
-  color: var(--isun-sun-indigo);
-  border-bottom-color: var(--isun-sun-indigo);
-}
-
 .entry-list-header {
   display: flex;
   align-items: center;
@@ -975,7 +983,7 @@ a.sentence-part:hover + .sentence-part.affix {
   font-size: 0.6em;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  padding: 2px 8px;
+  padding: 6px 8px 0px 8px;
   border-radius: 10px;
   border: 1px solid var(--isun-border);
   color: var(--isun-text-secondary);
@@ -2088,6 +2096,32 @@ a.sentence-part:hover + .sentence-part.affix {
    .invisible-sun.sheet scope, so it inherits Foundry's chat palette instead —
    which rendered the name in near-black on our dark card and the buttons as
    rgb(17,17,17) on rgba(0,0,0,0.1): an unreadable black box. */
+/* ── Introducing a flux ────────────────────────────────── */
+/* Caption beside its dropdown rather than over it. Stacked, two words were
+   taking a line each in a window 260px wide; beside them the whole form is two
+   rows instead of four. The captions share a fixed column so the two dropdowns
+   start at the same place and read as a pair. */
+.flux-shift-dialog .form-group {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+/* Wide enough for "Intensity", which is the longer of the two. A flex item
+   will not go below its own content whatever basis it is given, so a column
+   too narrow for the longer caption does not clip it — it quietly widens that
+   one row and starts its dropdown 9px right of the other's. */
+.flux-shift-dialog .form-group > label {
+  flex: 0 0 5.5rem;
+  text-align: left;
+}
+/* min-width: 0 because a flex item will not shrink below its content, and a
+   select's content is its longest option — a vislae with a long name would
+   otherwise push the window wider than it was told to be. */
+.flux-shift-dialog .form-group select {
+  flex: 1;
+  min-width: 0;
+}
+
 /* ── Negating a Wound ──────────────────────────────────── */
 /* Built like the challenge card, because it is the same kind of thing: a card
    that is a control for one person and a record for everybody else. */
@@ -3203,11 +3237,34 @@ a.sentence-part:hover + .sentence-part.affix {
   cursor: pointer;
 }
 
-.flux-picker .flux-row:last-child { border-bottom: none; }
+/* Scoped to the list. It is here so the last chart row does not double up with
+   the list's own bottom border — and the custom line below is a .flux-row and
+   the last child of the body, so unscoped it was stripping that line's bottom
+   edge too and leaving its dashed frame open along the bottom. */
+.flux-picker .flux-rows .flux-row:last-child { border-bottom: none; }
 .flux-picker .flux-row:hover { background: var(--isun-bg-elevated); }
 .flux-picker .flux-row.hidden { display: none; }
-.flux-picker .flux-row input { flex: 0 0 auto; margin: 0; }
+/* The radio, specifically. Written when a row held nothing else, and a bare
+   `input` here outranked the custom line's own rule — so the free-text field
+   refused to shrink, took its natural 568px, and pushed the intensity select
+   clean off the edge of the window. */
+.flux-picker .flux-row input[type="radio"] { flex: 0 0 auto; margin: 0; }
 .flux-picker .flux-text { flex: 1; }
+
+/* The hundred-and-first line, under the list rather than in it. Framed as its
+   own thing — a dashed edge, the way the Crux readout is set apart from the
+   holdings above it — because it is an option rather than an entry. */
+.flux-picker .flux-custom {
+  margin-top: var(--isun-space-sm);
+  border: 1px dashed var(--isun-border-accent);
+  border-radius: 4px;
+  align-items: center;
+  cursor: default;
+}
+.flux-picker .flux-custom:hover { background: none; }
+.flux-picker .flux-custom-text { flex: 1; min-width: 0; }
+/* Fixed, so the field beside it does not change width with the word in it. */
+.flux-picker .flux-custom-intensity { flex: 0 0 8rem; }
 
 .flux-picker .flux-chart {
   flex: 0 0 auto;
@@ -3280,7 +3337,6 @@ a.sentence-part:hover + .sentence-part.affix {
   white-space: nowrap;
 }
 
-.mind-size { color: var(--isun-text-secondary); white-space: nowrap; }
 
 .mind-bar {
   flex: 1;

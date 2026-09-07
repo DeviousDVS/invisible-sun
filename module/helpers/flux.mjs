@@ -437,6 +437,11 @@ export async function promptShift() {
   const chosen = await DialogV2.wait({
     window: { title: game.i18n.localize("ISUN.FluxShiftTitle"), icon: "isun-flux-icon" },
     classes: ["invisible-sun", "flux-shift-dialog"],
+    /* Two dropdowns and a sentence. Left to size itself the window came out
+     * 730px wide, because a dialog with nothing to constrain it takes the width
+     * its longest line of prose asks for — and that put two select boxes nearly
+     * 700px across to hold a name and the word "Minor flux". */
+    position: { width: 260 },
     content: `<div class="flux-shift-form">
         <p class="hint">${game.i18n.localize("ISUN.FluxShiftHint")}</p>
         <div class="form-group">
