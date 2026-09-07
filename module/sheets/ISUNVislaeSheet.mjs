@@ -3,6 +3,7 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 
 import { ActorSheetMixin } from "./SheetMixin.mjs";
 import { VentureDialog } from "../apps/VentureDialog.mjs";
+import { DepletionTracker } from "../apps/DepletionTracker.mjs";
 import { ApplyIdentity } from "../apps/ApplyIdentity.mjs";
 import { HeartSkills } from "../apps/HeartSkills.mjs";
 import * as vance from "../helpers/vance.mjs";
@@ -73,6 +74,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       "toggle-prepared":    this.prototype._onTogglePrepared,
       "toggle-halved":      this.prototype._onToggleHalved,
       "learn-vancian":      this.prototype._onLearnVancian,
+      "track-item":         this.prototype._onTrackItem,
       "roll-depletion":     this.prototype._onRollDepletion,
       "roll-spell":         this.prototype._onItemRoll,
       "roll-incantation":   this.prototype._onItemRoll,
@@ -219,6 +221,25 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     for (const item of context.actor.items) {
       const bucket = ISUNVislaeSheet.ITEM_BUCKETS[item.type];
       if (bucket) context[bucket].push(item);
+    }
+
+    /* Which items have a depletion that can actually be thrown for.
+     *
+     * A lookup rather than a flag on each item, because these buckets hold the
+     * Items themselves and adding a field to a document to suit a template is
+     * how a view ends up in the data. 370 of the 541 entries across the packs
+     * begin with a number and are rolled; the other 171 end on a sunrise or a
+     * condition, and offering to track one of those gives a row that can never
+     * come off by itself.
+     *
+     * Only the inventory needs it: the practices list works this out per row
+     * already, in #preparePractices, where it also decides the Depletion
+     * column. */
+    context.rollableDepletion = {};
+    for (const item of [...context.ephemera, ...context.objectsOfPower]) {
+      if (practiceRules.depletionRange(item.system?.depletion)) {
+        context.rollableDepletion[item.id] = true;
+      }
     }
 
     // Connections are one type distinguished by bondType, so the sheet groups
@@ -1231,6 +1252,29 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   }
 
   /**
+   * Put an ephemera or an object of power on the board of ongoing effects.
+   *
+   * A practice reaches the board by being cast, which is a flow that already
+   * exists. These two have none: the inventory can edit them and delete them
+   * and nothing else, so there is no moment at which a system could notice one
+   * being used.
+   *
+   * So this says "it is running now" and no more. It spends nothing, rolls
+   * nothing and asks nothing, because what using an ephemera costs is written
+   * on the card in prose and is the table's to read. What it does do is put the
+   * depletion where the player will be reminded of it, which is the whole of
+   * what the rule asks for.
+   */
+  async _onTrackItem(event, target) {
+    event.preventDefault();
+    const item = this.document.items.get(target.closest(".item")?.dataset.itemId);
+    if (!item) return;
+
+    const started = await DepletionTracker.start(this.document, item);
+    if (started) ui.notifications?.info(game.i18n.format("ISUN.TrackerStarted", { name: item.name }));
+  }
+
+  /**
    * Use a practice: pay for it, roll for it, and see what it costs to keep.
    *
    * This was a stub that rolled challenge 0 against venture 0 with one magic
@@ -1297,6 +1341,14 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
      * table is the control that throws it. See _onRollDepletion. */
 
     await this.constructor.#offerRetain(doc, item);
+
+    /* And onto the board, if there is anything to check. "It is the
+     * responsibility of the player to keep track of spells they cast and
+     * ongoing effects that require depletion rolls" (The Way, p11) — so the
+     * moment it is cast is the moment to record it, rather than asking the
+     * player to remember to. Silently skipped for the 176 entries in 541 that
+     * end on a sunrise or a condition and are never rolled at all. */
+    await DepletionTracker.start(doc, item);
   }
 
   /**

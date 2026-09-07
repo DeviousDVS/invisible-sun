@@ -144,6 +144,44 @@ export function depletionRange(depletion) {
 }
 
 /**
+ * When this depletion is checked, as a key the tracker can group by.
+ *
+ * The number in a depletion is what a die is thrown against; the parenthesis
+ * beside it says when to throw one — "0 (check each round)", "0–4 (check each
+ * hour)". `depletionRange` reads the first. This reads the second.
+ *
+ * Read out of the whole string rather than only the bracket, because a handful
+ * write the moment without one. Anything that names no moment this knows, and
+ * anything that names one written once in the whole of the books, comes back as
+ * `event`: the moment is a sentence rather than a period, and a tracker showing
+ * the sentence says more than a tracker guessing at a bucket.
+ *
+ * Empty for a depletion with no roll in it at all — 176 of the 541 entries end
+ * on a condition and are never checked, so there is no moment to name.
+ */
+export function depletionCadence(depletion) {
+  if (!depletionRange(depletion)) return "";
+  const text = String(depletion ?? "");
+  return (CONFIG.ISUN.depletionCadences ?? []).find(c => c.match.test(text))?.key ?? "event";
+}
+
+/**
+ * What the card says about when to check, without the number.
+ *
+ * "0–2 (check each time the boots prevent a step)" is a moment no bucket can
+ * hold, and the forty entries like it are the reason a row carries this as well
+ * as its cadence. Returned bare so a tracker can print it: the parenthesis if
+ * there is one, and whatever follows the range if there is not.
+ */
+export function depletionMoment(depletion) {
+  const text = String(depletion ?? "").trim();
+  const bracketed = text.match(/\(([^)]*)\)\s*$/);
+  if (bracketed) return bracketed[1].trim();
+  /* No bracket: whatever the string says after the number it opens with. */
+  return text.replace(/^\s*\d+\s*(?:[-–—]\s*\d+)?\s*[,;:]?\s*/, "").trim();
+}
+
+/**
  * What to call this kind of practice.
  *
  * A spell names its tradition, because the four are not interchangeable and one

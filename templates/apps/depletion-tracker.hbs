@@ -1,0 +1,59 @@
+{{!-- What is still running at this table, under the moment each card asks to
+      be checked. Empty most of the time, which is the point: a board with
+      nothing on it is a table with nothing to remember. --}}
+<div class="depletion-board flexcol">
+
+  {{#if groups.length}}
+    {{#each groups as |g|}}
+      <section class="cadence-group" data-cadence="{{g.key}}">
+        <h3 class="cadence-name">{{g.label}} <span class="count">{{g.rows.length}}</span></h3>
+
+        {{#each g.rows as |r|}}
+          <div class="tracked{{#unless r.mine}} theirs{{/unless}}" data-row-id="{{r.id}}">
+            <img class="tracked-img" src="{{r.img}}" alt="" />
+            <div class="tracked-what">
+              <a class="tracked-name" data-action="open-row">{{r.name}}</a>
+              <span class="tracked-who">{{r.actorName}}</span>
+              {{!-- Only where the heading does not already say it: forty cards
+                    name a moment written once, and the sentence is the only
+                    thing that makes such a row legible. --}}
+              {{#if r.moment}}<span class="tracked-moment">{{r.moment}}</span>{{/if}}
+            </div>
+
+            {{!-- The number the die is thrown against. --}}
+            <span class="tracked-range" data-tooltip="{{r.depletion}}">{{r.range}}</span>
+
+            {{!-- Both controls are the owner's or the GM's. A row belonging to
+                  somebody else is shown, because the GM needs to see the table
+                  at once, but it is not theirs to roll. --}}
+            {{#if r.mine}}
+              <a class="tracked-roll" data-action="roll-row"
+                 data-tooltip="{{localize 'ISUN.TrackerRollHint'}}">
+                <i class="fa-solid fa-dice-d20"></i>
+              </a>
+              <a class="tracked-end" data-action="end-row"
+                 data-tooltip="{{localize 'ISUN.TrackerEndHint'}}">
+                <i class="fa-solid fa-wind"></i>
+              </a>
+            {{/if}}
+          </div>
+        {{/each}}
+      </section>
+    {{/each}}
+
+    {{#if isGM}}
+      <footer class="board-footer flexrow">
+        <span class="hint">{{localize "ISUN.TrackerTotal" count=total}}</span>
+        <a class="isun-destructive board-clear" data-action="clear-all"
+           data-tooltip="{{localize 'ISUN.TrackerClearHint'}}">
+          <i class="fa-solid fa-broom"></i> {{localize "ISUN.TrackerClear"}}
+        </a>
+      </footer>
+    {{/if}}
+  {{else}}
+    {{!-- Said rather than left blank. An empty board and a board that failed to
+          load look the same, and only one of them is good news. --}}
+    <p class="empty-state">{{localize "ISUN.TrackerEmpty"}}</p>
+    <p class="hint">{{localize "ISUN.TrackerEmptyHint"}}</p>
+  {{/if}}
+</div>

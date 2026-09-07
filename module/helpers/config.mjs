@@ -518,6 +518,58 @@ export const ISUN = Object.freeze({
    * EPHEMERA TYPES
    * ────────────────────────────────────────────── */
 
+  /* ──────────────────────────────────────────────
+   * WHEN A DEPLETION IS CHECKED
+   * ────────────────────────────────────────────── */
+
+  /**
+   * How often an ongoing effect is checked, read out of what the card says.
+   *
+   * A depletion prints as a number and a moment: "0 (check each round)",
+   * "0–1 (check each use)", "0–4 (check each hour)". helpers/practice.mjs reads
+   * the number, which is what a die is thrown against. This reads the moment,
+   * which is what a table needs to group by — "the end of your turn" is a
+   * question with an answer, and "your depletions" is not.
+   *
+   * Across the packs: 168 entries check each round, 106 each hour, 80 each use,
+   * 15 each day, and then a long tail of about forty phrasings written once —
+   * "check each bird created", "check each time the boots prevent a step",
+   * "check each Wound use". Those fall through to `event`, which is honest: the
+   * moment is a sentence, and the sentence is shown beside the row.
+   *
+   * ── Order is the whole rule ──
+   * First match wins, and several entries name two moments. "Check at the end
+   * of each combat in which it is used" is a combat cadence that says "used",
+   * so combat has to be tried first; "check each use, but never more than once
+   * each day" is a use cadence that says "day", so use has to come before day.
+   * `scripts/test/depletion.test.mjs` holds those two in place.
+   */
+  depletionCadences: [
+    { key: "round",       match: /\bround/i },
+    { key: "combat",      match: /\bcombat/i },
+    { key: "interaction", match: /\binteraction/i },
+    { key: "use",         match: /\b(use|used|using|activation|activated)\b/i },
+    { key: "minute",      match: /\bminute/i },
+    { key: "hour",        match: /\bhour/i },
+    { key: "day",         match: /\bday/i },
+    { key: "sunrise",     match: /\bsunrise/i },
+    { key: "sunset",      match: /\bsunset/i },
+  ],
+
+  /** What to call each moment on the tracker, in the order they are shown. */
+  depletionCadenceLabels: {
+    round:       "ISUN.CadenceRound",
+    use:         "ISUN.CadenceUse",
+    minute:      "ISUN.CadenceMinute",
+    hour:        "ISUN.CadenceHour",
+    day:         "ISUN.CadenceDay",
+    combat:      "ISUN.CadenceCombat",
+    interaction: "ISUN.CadenceInteraction",
+    sunrise:     "ISUN.CadenceSunrise",
+    sunset:      "ISUN.CadenceSunset",
+    event:       "ISUN.CadenceEvent",
+  },
+
   ephemeraTypes: {
     conflux: "ISUN.EphemeraConflux",
     charm: "ISUN.EphemeraCharm",

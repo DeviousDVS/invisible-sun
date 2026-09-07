@@ -44,6 +44,8 @@ import { registerDiceSoNice } from "./module/helpers/dice-so-nice.mjs";
 import { CompendiumBrowser } from "./module/apps/CompendiumBrowser.mjs";
 import { ContentImporter } from "./module/apps/ContentImporter.mjs";
 import { PathOfSuns } from "./module/apps/PathOfSuns.mjs";
+import { DepletionTracker, SETTING as TRACKER_SETTING, EMPTY as TRACKER_EMPTY }
+  from "./module/apps/DepletionTracker.mjs";
 import * as flux from "./module/helpers/flux.mjs";
 import { FluxPicker } from "./module/apps/FluxPicker.mjs";
 import { DEFAULT_STATE as PATH_OF_SUNS } from "./module/helpers/sooth.mjs";
@@ -111,7 +113,8 @@ Hooks.once("init", () => {
     NegationCard,
     NewDay,
     ChallengeDeclaration,
-    PathOfSuns
+    PathOfSuns,
+    DepletionTracker
   };
 
   // The stylesheet draws the flux mark too — on the chat card and on Foundry's
@@ -232,9 +235,23 @@ Hooks.once("init", () => {
          * opening four sheets to press it. GM only, for the reason the sheet's
          * own is: a new day is the table moving on rather than one player
          * deciding it has. */
+        /* What has not finished yet. "It is the responsibility of the player to
+         * keep track of spells they cast and ongoing effects that require
+         * depletion rolls" (The Way, p11) — a responsibility with a penalty
+         * attached, so it is worth a board rather than a memory. Everyone sees
+         * it: a player needs their own rows and the GM needs all of them. */
+        ongoingEffects: {
+          name: "ongoingEffects",
+          order: 3,
+          title: "ISUN.TrackerButton",
+          icon: "fa-solid fa-hourglass-half",
+          button: true,
+          onChange: () => DepletionTracker.open()
+        },
+
         newDay: {
           name: "newDay",
-          order: 3,
+          order: 4,
           title: "ISUN.NewDayButton",
           icon: "fa-solid fa-bed",
           button: true,
@@ -401,6 +418,17 @@ Hooks.once("init", () => {
     default: foundry.utils.deepClone(PATH_OF_SUNS)
   });
 
+  /* What is running at this table, and when each of it is checked. A world
+   * setting for the same reason the Path of Suns is one: it is the table's
+   * state rather than any character's, the GM has to see all of it at once,
+   * and a GM writing it reaches every other client as a document update. */
+  game.settings.register("invisible-sun", TRACKER_SETTING, {
+    scope: "world",
+    config: false,
+    type: Object,
+    default: foundry.utils.deepClone(TRACKER_EMPTY)
+  });
+
   // ── Migrations ───────────────────────────────────────
   // Registered in init because the ready hook reads it.
   registerMigrationSetting();
@@ -438,6 +466,7 @@ Hooks.once("ready", async () => {
   /* A GM turning a card writes the world setting; this is what makes every
    * other open board redraw when they do. */
   PathOfSuns.listen();
+  DepletionTracker.listen();
 
   /* A flux "immediately turns a new Sooth card" (The Way, p13). The roller may
    * be a player and the board is a world setting, so the roll flags its message

@@ -2670,6 +2670,129 @@ a.sentence-part:hover + .sentence-part.affix {
   text-align: right;
 }
 
+/* ── The board of ongoing effects ──────────────────────────────────────────
+ *
+ * Grouped by the moment each card asks to be checked, because "what do I roll
+ * at the end of my turn" is a question with an answer and "your depletions" is
+ * not. A heading per group, and a row that fits on one line. */
+.depletion-tracker .depletion-board { gap: 0.75rem; padding: 0.25rem; }
+
+.depletion-tracker .cadence-name {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0 0 0.3rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid var(--isun-border);
+  font-size: 0.8rem;
+  font-variant: small-caps;
+  letter-spacing: 0.06em;
+  color: var(--isun-text-accent);
+}
+
+.depletion-tracker .cadence-name .count {
+  color: var(--isun-text-secondary);
+  font-size: 0.85em;
+  font-variant: normal;
+}
+
+.depletion-tracker .tracked {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.35rem;
+  border-radius: 3px;
+}
+
+.depletion-tracker .tracked:hover { background: rgb(255 255 255 / 4%); }
+
+.depletion-tracker .tracked-img {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.depletion-tracker .tracked-what {
+  flex: 1;
+  min-width: 0;                       /* or a long name pushes the die off */
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.depletion-tracker .tracked-name { font-size: 0.9rem; cursor: pointer; }
+.depletion-tracker .tracked-name:hover { color: var(--isun-text-accent); }
+
+.depletion-tracker .tracked-who {
+  color: var(--isun-text-secondary);
+  font-size: 0.75rem;
+}
+
+/* The sentence a one-off cadence prints. Wrapped rather than truncated: it is
+ * the only thing that says when such a row is checked. */
+.depletion-tracker .tracked-moment {
+  color: var(--isun-text-secondary);
+  font-size: 0.72rem;
+  font-style: italic;
+}
+
+/* The number the die is thrown against, set apart because it is the one figure
+ * on the row that is acted on. */
+.depletion-tracker .tracked-range {
+  flex: 0 0 auto;
+  min-width: 26px;
+  padding: 1px 4px;
+  border: 1px solid var(--isun-border);
+  border-radius: 3px;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--isun-text-secondary);
+}
+
+.depletion-tracker .tracked-roll,
+.depletion-tracker .tracked-end {
+  flex: 0 0 auto;
+  padding: 2px 3px;
+  font-size: 0.85rem;
+  color: var(--isun-text-secondary);
+  cursor: pointer;
+}
+
+.depletion-tracker .tracked-roll:hover { color: var(--isun-text-accent); }
+.depletion-tracker .tracked-end:hover { color: var(--isun-wound); }
+
+/* Somebody else's row. Shown, because the GM has to see the table at once, but
+ * plainly not theirs to throw a die for. */
+.depletion-tracker .tracked.theirs { opacity: 0.6; }
+
+.depletion-tracker .board-footer {
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--isun-border);
+}
+
+.depletion-tracker .board-clear {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border: 1px solid rgb(192 57 43 / 45%);
+  border-radius: 3px;
+  font-size: 0.78rem;
+}
+
+.depletion-tracker .empty-state { margin: 0.5rem 0 0.25rem; }
+
+/* Putting something on the board from the inventory, where there is no casting
+ * flow to notice it being used. Quiet, beside edit and delete. */
+.inventory .item-track { color: var(--isun-text-secondary); }
+.inventory .item-track:hover { color: var(--isun-text-accent); }
+
 .isun-import-btn { margin-top: 0.25rem; }
 
 /* ── The Path of Suns ──────────────────────────────────────────────
