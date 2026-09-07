@@ -901,6 +901,12 @@ a.sentence-part:hover + .sentence-part.affix {
   margin-top: 0;
 }
 
+.secret-soul input {
+  min-height: 44px;
+  font-family: var(--isun-font-heading);
+  font-size: 14px;
+}
+
 .entry-list-header {
   display: flex;
   align-items: center;
@@ -933,6 +939,22 @@ a.sentence-part:hover + .sentence-part.affix {
 
 .titled-entry .entry-title { flex: 0 0 30%; }
 .titled-entry .entry-desc  { flex: 1; min-width: 0; }
+
+/* The soul panel. Shaped like every other section on the Magic tab — that is
+   .isun-panel doing the work — and coloured like nothing else on it, because
+   an owner should be able to tell at a glance which part of the page the rest
+   of the table is not reading. */
+.secret-soul { border-color: var(--isun-sun-indigo); }
+/* Scoped through the sheet because that is what it has to outrank: every h3 on
+   a sheet is gold with a grey rule under it, and a bare `.secret-soul h3` lost
+   to it on specificity and left the heading gold in an indigo frame. */
+.invisible-sun.sheet .secret-soul h3 {
+  color: var(--isun-sun-indigo);
+  border-bottom-color: var(--isun-sun-indigo);
+}
+/* The eye, at the size the heading's own font would draw it rather than the
+   size a display face draws a glyph it has no design for. */
+.secret-soul h3 i { font-size: 0.8em; margin-right: 0.35rem; }
 
 /* ════════════════════════════════════════════════════════
  * CHARACTER ARCS

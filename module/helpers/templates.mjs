@@ -168,6 +168,7 @@ export async function preloadHandlebarsTemplates() {
     "systems/invisible-sun/templates/partials/secrets.hbs",
     "systems/invisible-sun/templates/partials/connections.hbs",
     "systems/invisible-sun/templates/partials/narrative.hbs",
+    "systems/invisible-sun/templates/partials/secret-soul.hbs",
     "systems/invisible-sun/templates/partials/entry-list.hbs",
   ]);
 }
