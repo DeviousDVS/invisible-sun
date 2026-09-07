@@ -73,8 +73,9 @@ const BULLET_INDENT = 14;
  * Read here rather than when a character is prepared, and the model says why
  * at length: derivation at runtime failed silently when a sentence was
  * reworded, dropping a character's caps to the base with nothing said. These
- * are the same three patterns scripts/build_compendia.js uses, run once
- * against the English they were written for.
+ * run once against the English they were written for. A second copy of them
+ * lives in OrderModel's migration, for an Order dragged in before the field
+ * existed; nothing else derives these.
  */
 const NUMBERS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 };
 const word = (match) => NUMBERS[match?.[1]?.toLowerCase()] ?? 0;

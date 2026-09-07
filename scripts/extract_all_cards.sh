@@ -79,4 +79,6 @@ echo "== aggregates"
   "$CARDS/Weaver Aggregates-Self Print-2019-02-13.pdf" "$DATA/aggregates.json" | head -1
 
 echo
-echo "Now run: node scripts/build_compendia.js"
+echo "Note: this JSON no longer builds anything. The compendia are filled by"
+echo "the Content Importer inside Foundry, reading these same PDFs directly."
+echo "This extraction is a cross-check, not a stage of the pipeline."

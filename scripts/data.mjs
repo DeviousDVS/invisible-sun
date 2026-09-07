@@ -25,10 +25,9 @@
  *
  * ── The compendia, and why Foundry has to be stopped ──
  * The compendia are captured too, as JSON rather than as the LevelDB they live
- * in. They have to be: since the in-Foundry importer arrived they are the only
- * copy of a great deal — the Vance spells and the goods lists never went
- * through packs/_source at all, and neither does anything a GM edits in a
- * compendium by hand.
+ * in. They have to be: they are the only copy there is. The importer reads the
+ * books and writes the packs, and nothing else builds them — so a compendium
+ * lost is a re-import, and anything a GM edited there by hand is simply gone.
  *
  * LevelDB permits one writer, so this cannot read them while a world is open.
  * A backup taken with Foundry running captures everything else and says, in
@@ -47,7 +46,7 @@
  * Any subcommand takes an explicit archive path as its last argument.
  *
  * ISUN_BACKUP_DIR chooses where archives live (default ~/invisible-sun-backups).
- * ISUN_ASSETS finds the card art, matching scripts/build_compendia.js.
+ * ISUN_ASSETS finds the card art, matching where the importer writes it.
  *
  * Requires the `tar` binary, as dist.mjs already requires `zip`.
  */
@@ -83,7 +82,6 @@ const SETS = [
   { name: "data",        into: "repo/source/data",             from: path.join(ROOT, "source/data") },
   { name: "forte-trees", into: "repo/source/forte-trees",      from: path.join(ROOT, "source/forte-trees") },
   { name: "isdata",      into: "repo/source/isdata_2026.json", from: path.join(ROOT, "source/isdata_2026.json") },
-  { name: "packs",       into: "repo/packs/_source",           from: path.join(ROOT, "packs/_source") },
   { name: "card-art",    into: "assets/cards",                 from: ASSETS },
   /* The compendia themselves, which are not a directory to be copied — see
    * extractCompendia. `from` is here only so that restore can name what it
@@ -101,16 +99,13 @@ const SETS = [
  * day to the next — and `verify --disk`, whose whole job is to say what moved,
  * would report every pack as changed every time.
  *
- * So they are extracted to JSON, one file per document, in the same shape
- * packs/_source holds. That is stable, diffable, restorable, and readable by
- * anything.
+ * So they are extracted to JSON, one file per document. That is stable,
+ * diffable, restorable, and readable by anything.
  *
- * Both are kept, and they are not the same thing. packs/_source is what the
- * build produces out of source/data — the Python pipeline's output. The
- * compendia are what is actually in the world, which since the in-Foundry
- * importer arrived is the larger set: the Vance spells and the goods lists
- * were never built through _source at all, and neither is anything a GM has
- * edited in a compendium by hand.
+ * This used to sit beside a second copy — packs/_source, what the retired
+ * Python build produced out of source/data. Keeping both invited the question
+ * of which was authoritative, and answering it wrongly is what reverted five
+ * packs to a months-old extraction. There is one copy now, and it is this one.
  */
 
 /** The packs this system declares, by name and directory. */
@@ -124,11 +119,10 @@ function declaredPacks() {
 /**
  * Which packs something else has open.
  *
- * The same reasoning as scripts/compile_packs.js, and the same authority:
- * looking for a Foundry process is guesswork — it can be running under any
- * name, and an absent process is no proof that nothing holds the files —
- * whereas LevelDB permits exactly one writer. If a pack opens here, nothing
- * else has it.
+ * The lock is the authority, not the process list: Foundry can be running
+ * under any name, and an absent process is no proof that nothing holds the
+ * files — whereas LevelDB permits exactly one writer. If a pack opens here,
+ * nothing else has it. `scripts/audit_packs.mjs` leans on the same fact.
  */
 async function packsHeldOpen(packs) {
   const held = [];
@@ -170,8 +164,10 @@ async function extractCompendia(dest) {
  * Compile the JSON back into the packs Foundry reads.
  *
  * Written into a scratch directory first and moved into place only once every
- * pack has built, for the reason compile_packs.js gives: moving deletes the
- * live pack first, so a pack that failed halfway would be replaced by nothing.
+ * pack has built. Moving deletes the live pack before it writes the new one, so
+ * a restore that failed halfway would leave nothing where a compendium was —
+ * and since the packs are the only copy of an import, nothing is what it would
+ * stay.
  */
 async function installCompendia(source) {
   const names = readdirSync(source, { withFileTypes: true })

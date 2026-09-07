@@ -588,11 +588,12 @@ export class ISUNActor extends Actor {
    * hardcoding a table means an order whose degrees a GM has edited is followed
    * instead of overridden.
    *
-   * The numbers come from `ability.grants`, extracted once at build time. They
-   * used to be read here, by regexes run over the description on every data
-   * preparation — which worked, and would have failed silently the first time
-   * anyone reworded a sentence or translated the compendium: the caps would
-   * simply drop back to the base with nothing said. See build_compendia.js.
+   * The numbers come from `ability.grants`, extracted once at import time.
+   * They used to be read here, by regexes run over the description on every
+   * data preparation — which worked, and would have failed silently the first
+   * time anyone reworded a sentence or translated the compendium: the caps
+   * would simply drop back to the base with nothing said. See
+   * `module/importers/orders.mjs`.
    *
    * An Apostate still gets nothing from this, because they have no degrees.
    * Their starting "Ephemera Use" and purchasable "Incantation" carry real

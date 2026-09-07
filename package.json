@@ -13,10 +13,7 @@
     "data:verify": "node scripts/data.mjs verify",
     "data:restore": "node scripts/data.mjs restore",
     "dist": "node scripts/dist.mjs",
-    "packs:build": "node scripts/build_compendia.js",
-    "packs:compile": "node scripts/compile_packs.js",
-    "packs:verify": "node scripts/verify_packs.js",
-    "packs": "npm run packs:build && npm run packs:compile && npm run packs:verify",
+    "packs:audit": "node scripts/audit_packs.mjs",
     "shot": "node scripts/shoot.mjs"
   },
   "keywords": [],
@@ -25,6 +22,7 @@
   "type": "commonjs",
   "devDependencies": {
     "@foundryvtt/foundryvtt-cli": "^3.0.4",
+    "classic-level": "^3.0.0",
     "eslint": "^9.39.5",
     "playwright": "^1.62.1"
   }

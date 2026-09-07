@@ -132,7 +132,7 @@ export function verifyNames(cards, faces) {
 export const slug = (name) =>
   name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 
-/** The item a card becomes, matching what build_compendia.js writes. */
+/** The item a card becomes. */
 export function toItem(card, img) {
   return {
     name: card.name,

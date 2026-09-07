@@ -16,16 +16,17 @@ assets/
 cards/*/*.jpg
 cards/*/index.json
 
-# The compendia, at both stages. packs/_source used to be tracked, on the
-# reasoning that the JSON it holds is worth reviewing — but what it holds is
-# Monte Cook Games' text, extracted from books you own, and reviewable is not
-# the same as distributable. It is generated on your machine by
-# scripts/build_compendia.js and stays there; scripts/data.mjs is what keeps
-# it safe now that git does not.
+# The compendia. They used to be tracked, on the reasoning that the entries are
+# worth reviewing — but what they hold is Monte Cook Games' text, read out of
+# books you own, and reviewable is not the same as distributable. They are
+# written on your machine by the Content Importer and stay there; scripts/data.mjs
+# is what keeps them safe now that git does not, and they are the only copy.
 packs/
 
 # The extracted game data, and the reference dump the extractors read. Same
-# reasoning: this is the book text itself, one stage before the compendia.
+# reasoning: this is the book text itself. Nothing builds a compendium from it
+# any more — the importer reads the PDFs — but the quirks list still comes from
+# source/data/quirks.json, and the card extractors write here.
 source/data/
 source/forte-trees/
 source/isdata_2026.json
@@ -36,8 +37,8 @@ module/helpers/quirks.local.mjs
 
 __pycache__/
 
-# Built by scripts/dist.mjs. The archive is assembled from the manifest and
-# the compiled packs, neither of which is worth versioning.
+# Built by scripts/dist.mjs. The archive is assembled from the manifest, and
+# carries no compendium content at all.
 dist/
 
 # Data backups written by scripts/data.mjs. They belong outside the repository

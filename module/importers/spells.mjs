@@ -508,7 +508,7 @@ export async function readDeck(doc, { classes = false, onProgress } = {}) {
   };
 }
 
-/** The item a spell becomes, matching what build_compendia.js writes. */
+/** The item a spell becomes. */
 export function toItem(spell, img, spellType = "general") {
   return {
     name: spell.name,

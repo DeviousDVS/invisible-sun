@@ -21,9 +21,16 @@
  *
  * ── What ships is what is committed ──
  * The working tree must be clean, so the archive is the tagged state rather
- * than whatever happens to be lying around. Compiled packs are the exception:
- * they are gitignored build artifacts and can only come from disk, so they are
- * checked for freshness instead.
+ * than whatever happens to be lying around.
+ *
+ * ── Why the compendia are not in it ──
+ * They hold Monte Cook Games' books and cards, read out of PDFs somebody paid
+ * for. Shipping them would put that text in a public download, which is the
+ * one thing the allowlist above exists to prevent — and the packs were slipping
+ * past it, because they are named by the manifest and the manifest is the
+ * allowlist. So the archive declares eighteen compendia and carries none of
+ * their contents: a table fills them by reading their own copies of the books
+ * through the Content Importer.
  *
  * Usage:
  *   npm run dist                 build from the current HEAD
@@ -153,16 +160,14 @@ for (const rel of [...declared, ...courtesy]) {
   if (!existsSync(path.join(ROOT, rel))) fail(`system.json declares "${rel}", which does not exist`);
 }
 
-/* ── 4. Compiled packs, which git does not carry ── */
+/* ── 4. The compendia are declared and left empty ──
+ *
+ * Nothing to check for freshness, because nothing of theirs is copied. Foundry
+ * creates the database the first time a world opens a pack that has none, so an
+ * archive with eighteen declarations and no data installs to eighteen empty
+ * compendia waiting for an import.
+ */
 const packDirs = (manifest.packs ?? []).map(p => p.path);
-for (const rel of packDirs) {
-  const dir = path.join(ROOT, rel);
-  if (!existsSync(dir) || !readdirSync(dir).length) {
-    fail(`pack "${rel}" is missing or empty.\n`
-       + `    Compiled packs are build artifacts and are not in git — run:\n`
-       + `      npm run packs        (Foundry must be stopped)`);
-  }
-}
 
 if (problems.length) {
   console.error(`\n${problems.length} problem${problems.length === 1 ? "" : "s"}:\n`);
@@ -175,22 +180,14 @@ if (problems.length) {
 rmSync(DIST, { recursive: true, force: true });
 mkdirSync(STAGE, { recursive: true });
 
-/* LevelDB leaves working files beside the data. LOCK is a lock, and LOG and
- * LOG.old are its debug output, timestamped from whichever machine built the
- * packs. None of it means anything to somebody who unzips this. */
-const PACK_NOISE = new Set(["LOCK", "LOG", "LOG.old"]);
-
 const copy = (rel) => {
   const dest = path.join(STAGE, rel);
   mkdirSync(path.dirname(dest), { recursive: true });
-  cpSync(path.join(ROOT, rel), dest, {
-    recursive: true,
-    filter: (src) => !PACK_NOISE.has(path.basename(src))
-  });
+  cpSync(path.join(ROOT, rel), dest, { recursive: true });
 };
 
 for (const rel of [...declared.filter(f => f !== "system.json"), ...courtesy]) copy(rel);
-for (const rel of [...wholeDirectories, ...packDirs]) copy(rel);
+for (const rel of wholeDirectories) copy(rel);
 
 /* The shipped manifest is not quite the developed one. hotReload makes a
  * player's client watch files it will never edit; it is a convenience for
@@ -219,7 +216,7 @@ writeFileSync(path.join(DIST, "system.json"), JSON.stringify(shipped, null, 2) +
  * deletes. It refuses pictures sitting in a card directory, which is what the
  * extractor produces and nothing else does. */
 const FORBIDDEN = [/^source[/\\]/, /^scripts[/\\]/, /^node_modules[/\\]/, /^\.git[/\\]/,
-                   /^packs[/\\]_source[/\\]/, /\.pdf$/i,
+                   /^packs[/\\]/, /\.pdf$/i,
                    /^assets[/\\]/, /(^|[/\\])cards[/\\].*\.(jpe?g|png|webp)$/i];
 const staged = [];
 (function walk(dir) {
@@ -255,19 +252,9 @@ const mb = (size / 1024 / 1024).toFixed(1);
 say(`\n${id} ${version}\n`);
 say(`  ${moduleFiles.length} modules reached from ${manifest.esmodules.join(", ")}`);
 say(`  ${(manifest.styles ?? []).length} stylesheets, ${(manifest.languages ?? []).length} language(s), `
-  + `${packDirs.length} packs`);
+  + `${packDirs.length} compendia declared and shipped empty`);
 say(`  ${staged.length} files, ${mb} MB`);
 
-/* A pack carries its write-ahead log as well as its compacted data, and the
- * log grows every time Foundry opens the world. Both are needed and the
- * archive is correct either way — but a pack compiled and then played against
- * ships the same rows twice, so it is worth saying when a rebuild would help. */
-const wal = staged.filter(f => f.startsWith("packs") && f.endsWith(".log"));
-if (wal.length) {
-  say(`\n  note: ${wal.length} pack(s) carry a write-ahead log, which grows every`);
-  say(`        time Foundry opens the world. Re-running npm run packs with`);
-  say(`        Foundry stopped produces a smaller archive.`);
-}
 if (orphans.length) {
   say(`\n  ${orphans.length} module(s) on disk that nothing imports, left out:`);
   for (const o of orphans) say(`    ${o}`);

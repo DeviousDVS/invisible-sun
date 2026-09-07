@@ -56,7 +56,11 @@ export class ForteAbilityModel extends foundry.abstract.DataModel {
 
   /**
    * Parse a compound level string into its parts.
-   * Mirrored in scripts/build_compendia.js — keep the two in step.
+   *
+   * The importer reads the same strings out of the books, so this and
+   * `module/importers/fortes.mjs` have to agree about what "4 (+1 die, no
+   * cost)" means. There is one reader now — there used to be a second in the
+   * retired build script, which is what this note used to warn about.
    */
   static parseLevel(raw) {
     const out = { level: 1, bonusDice: 0, noCost: false, condition: "", levelText: String(raw ?? "").trim() };

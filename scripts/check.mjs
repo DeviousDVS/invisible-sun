@@ -3,9 +3,9 @@
  *
  * Not a test suite. It is what `npm test` can honestly do today: confirm the
  * shipped sources parse, and that the manifest does not contradict the tree it
- * describes. It needs neither Foundry nor a compiled pack, so it is safe to run
- * at any time — unlike verify_packs.js, which opens the LevelDB and therefore
- * requires Foundry to be stopped.
+ * describes. It needs neither Foundry nor a populated pack, so it is safe to
+ * run at any time — unlike `npm run packs:audit`, which opens the LevelDB and
+ * therefore requires Foundry to be stopped.
  *
  * The version check is the one that earns its place. system.json's `download`
  * URL names a release tag, and `version` names the release. If they drift,

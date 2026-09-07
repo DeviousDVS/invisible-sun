@@ -20,8 +20,8 @@ export class OrderModel extends foundry.abstract.DataModel {
   /**
    * Fill in `grants` for an Order dragged in before the field existed.
    *
-   * The same three patterns build_compendia.js uses, and the only place they
-   * still run against live text. That is tolerable here and was not tolerable
+   * The same three patterns `module/importers/orders.mjs` uses, and the only
+   * place they still run against live text. That is tolerable here and was not tolerable
    * in ISUNActor: this runs once, against source that predates the change and
    * is therefore known to be the original English, whereas derivation ran on
    * every preparation against whatever the text had since become.
@@ -82,10 +82,11 @@ export class OrderModel extends foundry.abstract.DataModel {
        * silently: reword the sentence, or translate the compendium, and a
        * character's caps quietly drop to the base with nothing said.
        *
-       * They are extracted once now, at build time, by scripts/build_compendia.js
-       * — where the text is known to be the English the regexes were written
-       * against, and where a mismatch can be caught before anyone plays. Zero
-       * means "grants nothing", which is true of most abilities.
+       * They are extracted once now, at import time, by
+       * `module/importers/orders.mjs` — where the text is known to be the
+       * English the regexes were written against, and where a mismatch can be
+       * caught before anyone plays. Zero means "grants nothing", which is true
+       * of most abilities.
        */
       grants: new fields.SchemaField({
         /** How many ephemera the holder may bear (The Key, p36). A total, not a bonus. */
