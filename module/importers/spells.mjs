@@ -144,6 +144,38 @@ export function findColumns(items, width, height) {
 }
 
 /**
+ * Why a sheet yielded nothing, in the terms the reader actually uses.
+ *
+ * Every deck-text reader finds its grid the same way: it looks for a label set
+ * hard against a card's left margin — "Level:", "Form:", "Depletion:" — and
+ * takes the spacing between those as the column pitch. No labels means no grid,
+ * no grid means no cards, and the reader has nothing to say about which of the
+ * several possible reasons it was.
+ *
+ * The reasons are worth telling apart, because they call for different things.
+ * A file with no text at all is a scan or a flattened re-export, and no amount
+ * of re-running will help. A file with plenty of text but no exact labels has
+ * been produced by a different tool, which chunks the text layer differently —
+ * "Level:" arriving as "Level" and ":", or as "Level: 4" — and that is a bug
+ * here rather than a problem with the file. The loose count is what separates
+ * them: it matches a label however the chunking fell.
+ *
+ * The sample is the useful part when neither explains it. Twelve pieces of text
+ * as the page actually hands them over says more about an unfamiliar PDF than
+ * any count.
+ */
+export function anchorReport(items, height) {
+  const words = placed(items, height);
+  const loose = /^(Level|Form|Type|Depletion|Colou?r|Default Duration|Default Range)\b/i;
+  return {
+    words: words.length,
+    exact: words.filter(w => ANCHOR_RE.test(w.text)).length,
+    loose: words.filter(w => loose.test(w.text)).length,
+    sample: words.slice(0, 12).map(w => w.text)
+  };
+}
+
+/**
  * One column's text, as lines — with where each line begins.
  *
  * The left edge matters to anything reading these cards. The decks tell a

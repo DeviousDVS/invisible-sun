@@ -25,6 +25,7 @@
  * and a mismatch abandons that file rather than writing subtly wrong items.
  */
 import * as deck from "../importers/pdf-deck.mjs";
+import { anchorReport } from "../importers/spells.mjs";
 import { SOURCES, NOT_YET, openingText, guessFromName, identifyFromText, isSupported }
   from "../importers/sources.mjs";
 
@@ -480,6 +481,66 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
+   * Say what a deck's pages held, when they held no cards.
+   *
+   * The reader finds its columns by the labels printed against each card's left
+   * margin, so no labels is no grid is no cards. That can mean the file has no
+   * text layer to read — a scan, or a flattened re-export — or it can mean the
+   * text is all there but arrives in different pieces, because a PDF produced
+   * by a different tool may hand over "Level" and ":" separately, or "Level: 4"
+   * as one. The first is nothing this can fix; the second is a rule here that
+   * is too strict for a file somebody legitimately owns.
+   *
+   * ── Which pages to look at ──
+   * Not the first few. A deck opens with a page of printing instructions, a
+   * blank, and a sheet of card backs carrying nothing but the copyright line —
+   * three pages with no card label on them in a deck that reads perfectly. A
+   * report on those would describe pages nobody expected cards from and call a
+   * working file broken.
+   *
+   * So it samples across the whole document and speaks for the page that held
+   * the most, which is the one most likely to be a sheet of cards.
+   */
+  async #sayWhyNothing(doc) {
+    const take = Math.min(6, doc.numPages);
+    const picks = [...new Set(Array.from({ length: take },
+      (unused, i) => 1 + Math.floor((i + 0.5) * doc.numPages / take)))]
+      .filter(n => n >= 1 && n <= doc.numPages);
+
+    const seen = [];
+    for (const n of picks) {
+      const page = await doc.getPage(n);
+      const view = page.getViewport({ scale: 1 });
+      const content = await page.getTextContent();
+      seen.push({ n, ...anchorReport(content.items, view.height) });
+    }
+
+    this.#say(game.i18n.format("ISUN.ImportNothingPages",
+      { pages: doc.numPages, sampled: seen.length }), true);
+    for (const p of seen) {
+      this.#say(game.i18n.format("ISUN.ImportNothingPage",
+        { page: p.n, words: p.words, exact: p.exact, loose: p.loose }), true);
+    }
+
+    /* The fullest page speaks for the file. A sheet of cards holds far more
+     * text than a blank or a page of backs, so whichever held the most is the
+     * one worth drawing a conclusion from. */
+    const best = seen.reduce((a, b) => (b.words > a.words ? b : a), seen[0] ?? { words: 0 });
+    if (!best.words) {
+      this.#say(game.i18n.localize("ISUN.ImportNothingNoText"), true);
+    } else if (!best.exact && best.loose) {
+      /* The interesting one: the labels are there, but not as whole pieces of
+       * text. Worth saying outright, because it is the case where the file is
+       * fine and this is not. */
+      this.#say(game.i18n.localize("ISUN.ImportNothingSplit"), true);
+    }
+    if (best.sample?.length) {
+      this.#say(game.i18n.format("ISUN.ImportNothingSample",
+        { page: best.n, sample: best.sample.map(t => JSON.stringify(t)).join(" ") }), true);
+    }
+  }
+
+  /**
    * Import a deck that is read rather than looked at.
    *
    * No grid is measured and no card is cut: the text layer carries the whole
@@ -498,6 +559,11 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
     });
     this.#say(game.i18n.format("ISUN.ImportFoundCards",
       { count: cards.length, sheets, columns: grid?.columns.length ?? 0 }));
+
+    /* Nothing at all is a different failure from too few, and it used to be
+     * reported as the same one — "is this the right PDF?", asked of a file that
+     * was the right PDF. So it says what it actually saw before it gives up. */
+    if (!cards.length) await this.#sayWhyNothing(doc);
 
     if (spec.expected && cards.length !== spec.expected) {
       throw new Error(game.i18n.format("ISUN.ImportWrongCount",
