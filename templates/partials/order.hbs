@@ -60,72 +60,84 @@
         </div>
       {{/if}}
 
-      {{!-- An Apostate has no ladder, but their abilities are the same kind of
-            reference — read when spending Crux, in the way at every other time.
-            So they take the ladder's place in the header and collapse with it,
-            rather than sitting in a panel of their own below. --}}
-      {{#if isApostate}}
-        <div class="degree-ladder apostate-abilities{{#if ladderOpen}} open{{/if}}">
+    </div>
+
+    {{!-- An Apostate's abilities, in a panel of their own.
+          They used to sit inside the order header, taking the degree ladder's
+          place and collapsing with it, on the reading that they were the same
+          kind of reference: read when spending Crux and in the way the rest of
+          the time. Half of that stopped being true when the open list became a
+          record — a thing ticked on and off rather than consulted — and a
+          record two clicks inside a header is not a record anybody keeps.
+
+          So the two lists are split by what they are for. The starting package
+          is granted entire and is only ever read, so it collapses to a line.
+          The open list is the record, and it is simply there. --}}
+    {{#if isApostate}}
+      <div class="isun-panel apostate-abilities">
+        <div class="apostate-head">
+          <h3>{{localize "ISUN.ApostateAbilities"}}</h3>
+          <span class="apostate-nodegrees">{{localize "ISUN.ApostateNoDegrees"}}</span>
+        </div>
+        <p class="hint">{{localize "ISUN.ApostateHint"}}</p>
+
+        <div class="apostate-group degree-ladder{{#if ladderOpen}} open{{/if}}">
           <a class="ladder-toggle" data-action="toggle-ladder">
             <i class="fa-solid fa-caret-{{#if ladderOpen}}down{{else}}right{{/if}}"></i>
-            {{localize "ISUN.ApostateAbilities"}}
-            <span class="ladder-here">{{localize "ISUN.ApostateNoDegrees"}}</span>
+            {{localize "ISUN.ApostateStarting"}}
+            <span class="degree-count">{{apostateStarting.length}}</span>
           </a>
           <div class="ladder-body">
-            <p class="hint">{{localize "ISUN.ApostateHint"}}</p>
-
-            <div class="apostate-group">
-              <h4>{{localize "ISUN.ApostateStarting"}}
-                <span class="degree-count">{{apostateStarting.length}}</span></h4>
-              {{#if apostateStartingNote}}
-                <div class="group-note">{{{apostateStartingNote}}}</div>
-              {{/if}}
-              <ul class="degree-abilities">
-                {{#each apostateStarting as |a|}}
-                  <li><span class="ability-name">{{a.name}}</span>{{{a.description}}}</li>
-                {{/each}}
-              </ul>
-            </div>
-
-            {{!-- The open list is a record rather than a reference: which of
-                  these the character has actually taken is the thing an
-                  Apostate sheet has to say, having no degree to say it with.
-                  So every row can be turned on and off, and the untaken ones
-                  stay dimmed the way the whole list used to be. --}}
-            <div class="apostate-group">
-              <h4>{{localize "ISUN.ApostatePurchasable"}}
-                <span class="degree-count">{{apostateTaken}} / {{apostatePurchasable.length}}</span></h4>
-
-              <div class="apostate-tally">
-                {{#if apostateFreeLeft}}
-                  <span class="tally-free">{{localize "ISUN.ApostateFreeLeft" n=apostateFreeLeft}}</span>
-                {{/if}}
-                {{#if apostateCrux}}
-                  <span class="tally-crux" data-tooltip="{{localize 'ISUN.ApostateCruxHint'}}">
-                    {{apostateCrux}} <i class="fa-solid fa-star"></i>
-                  </span>
-                {{/if}}
-              </div>
-
-              {{#if apostatePurchasableNote}}
-                <div class="group-note">{{{apostatePurchasableNote}}}</div>
-              {{/if}}
-              <ul class="degree-abilities apostate-open">
-                {{#each apostatePurchasable as |a|}}
-                  <li class="{{#if a.taken}}taken{{else}}untaken{{/if}}">
-                    <a class="ability-take" data-action="toggle-apostate" data-ability="{{a.name}}"
-                       data-tooltip="{{#if a.taken}}{{localize 'ISUN.ApostateDropHint'}}{{else}}{{localize 'ISUN.ApostateTakeHint'}}{{/if}}">
-                      <i class="fa-{{#if a.taken}}solid fa-square-check{{else}}regular fa-square{{/if}}"></i>
-                    </a>
-                    <span class="ability-name">{{a.name}}</span>{{{a.description}}}
-                  </li>
-                {{/each}}
-              </ul>
-            </div>
+            {{#if apostateStartingNote}}
+              <div class="group-note">{{{apostateStartingNote}}}</div>
+            {{/if}}
+            <ul class="degree-abilities">
+              {{#each apostateStarting as |a|}}
+                <li><span class="ability-name">{{a.name}}</span>{{{a.description}}}</li>
+              {{/each}}
+            </ul>
           </div>
         </div>
-      {{/if}}
-    </div>
+
+        {{!-- The open list is a record rather than a reference: which of these
+              the character has actually taken is the thing an Apostate sheet
+              has to say, having no degree to say it with. So every row can be
+              turned on and off, and the untaken ones stay dimmed the way the
+              whole list used to be. --}}
+        <div class="apostate-group">
+          {{!-- What the list has come to sits in its own heading, beside the
+                count: how many free selections are left, and what the ones past
+                them have cost. Both are read while choosing. --}}
+          <h4>{{localize "ISUN.ApostatePurchasable"}}
+            <span class="apostate-tally">
+              {{#if apostateFreeLeft}}
+                <span class="tally-free">{{localize "ISUN.ApostateFreeLeft" n=apostateFreeLeft}}</span>
+              {{/if}}
+              {{#if apostateCrux}}
+                <span class="tally-crux" data-tooltip="{{localize 'ISUN.ApostateCruxHint'}}">
+                  {{apostateCrux}} <i class="fa-solid fa-star"></i>
+                </span>
+              {{/if}}
+            </span>
+            <span class="degree-count">{{apostateTaken}} / {{apostatePurchasable.length}}</span></h4>
+
+          {{#if apostatePurchasableNote}}
+            <div class="group-note">{{{apostatePurchasableNote}}}</div>
+          {{/if}}
+          <ul class="degree-abilities apostate-open">
+            {{#each apostatePurchasable as |a|}}
+              <li class="{{#if a.taken}}taken{{else}}untaken{{/if}}">
+                <a class="ability-take" data-action="toggle-apostate" data-ability="{{a.name}}"
+                   data-tooltip="{{#if a.taken}}{{localize 'ISUN.ApostateDropHint'}}{{else}}{{localize 'ISUN.ApostateTakeHint'}}{{/if}}">
+                  <i class="fa-{{#if a.taken}}solid fa-square-check{{else}}regular fa-square{{/if}}"></i>
+                </a>
+                <span class="ability-name">{{a.name}}</span>{{{a.description}}}
+              </li>
+            {{/each}}
+          </ul>
+        </div>
+      </div>
+    {{/if}}
   {{else}}
     <div class="empty-state">{{localize "ISUN.NoOrder"}}</div>
   {{/if}}
