@@ -243,6 +243,23 @@ export class VislaeModel extends foundry.abstract.DataModel {
       orderType:   new fields.StringField({ required: false, initial: "" }),
 
       /**
+       * Which of the Apostate's open abilities this character has taken.
+       *
+       * An Apostate has no degree to read entitlements against — "Apostates
+       * have no degrees, but all starting Apostate characters begin with the
+       * following abilities" (The Key, p62), and everything past that package
+       * is picked off one list, two free and the rest at 1 Crux each. So the
+       * picks are the record, and this is where they live.
+       *
+       * Names rather than indices. The Order item is shared by every Apostate
+       * in the world and may be re-imported, reordered or edited by a GM; a
+       * name survives all three and a position in an array survives none.
+       *
+       * Empty for every other order, which have a ladder to read instead.
+       */
+      apostateAbilities: new fields.ArrayField(new fields.StringField({ required: true })),
+
+      /**
        * Which day of play this is, counted from 1 and advanced by newDay().
        *
        * Several incantation rules are worded in days — no more received in a

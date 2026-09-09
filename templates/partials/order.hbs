@@ -87,15 +87,38 @@
               </ul>
             </div>
 
+            {{!-- The open list is a record rather than a reference: which of
+                  these the character has actually taken is the thing an
+                  Apostate sheet has to say, having no degree to say it with.
+                  So every row can be turned on and off, and the untaken ones
+                  stay dimmed the way the whole list used to be. --}}
             <div class="apostate-group">
               <h4>{{localize "ISUN.ApostatePurchasable"}}
-                <span class="degree-count">{{apostatePurchasable.length}}</span></h4>
+                <span class="degree-count">{{apostateTaken}} / {{apostatePurchasable.length}}</span></h4>
+
+              <div class="apostate-tally">
+                {{#if apostateFreeLeft}}
+                  <span class="tally-free">{{localize "ISUN.ApostateFreeLeft" n=apostateFreeLeft}}</span>
+                {{/if}}
+                {{#if apostateCrux}}
+                  <span class="tally-crux" data-tooltip="{{localize 'ISUN.ApostateCruxHint'}}">
+                    {{apostateCrux}} <i class="fa-solid fa-star"></i>
+                  </span>
+                {{/if}}
+              </div>
+
               {{#if apostatePurchasableNote}}
                 <div class="group-note">{{{apostatePurchasableNote}}}</div>
               {{/if}}
-              <ul class="degree-abilities muted">
+              <ul class="degree-abilities apostate-open">
                 {{#each apostatePurchasable as |a|}}
-                  <li><span class="ability-name">{{a.name}}</span>{{{a.description}}}</li>
+                  <li class="{{#if a.taken}}taken{{else}}untaken{{/if}}">
+                    <a class="ability-take" data-action="toggle-apostate" data-ability="{{a.name}}"
+                       data-tooltip="{{#if a.taken}}{{localize 'ISUN.ApostateDropHint'}}{{else}}{{localize 'ISUN.ApostateTakeHint'}}{{/if}}">
+                      <i class="fa-{{#if a.taken}}solid fa-square-check{{else}}regular fa-square{{/if}}"></i>
+                    </a>
+                    <span class="ability-name">{{a.name}}</span>{{{a.description}}}
+                  </li>
                 {{/each}}
               </ul>
             </div>

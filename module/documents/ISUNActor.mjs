@@ -4,6 +4,7 @@
 import * as pools from "../helpers/pools.mjs";
 import * as vance from "../helpers/vance.mjs";
 import * as matrix from "../helpers/matrix.mjs";
+import * as apostate from "../helpers/apostate.mjs";
 
 export class ISUNActor extends Actor {
   
@@ -596,16 +597,20 @@ export class ISUNActor extends Actor {
    * would simply drop back to the base with nothing said. See
    * `module/importers/orders.mjs`.
    *
-   * An Apostate still gets nothing from this, because they have no degrees.
-   * Their starting "Ephemera Use" and purchasable "Incantation" carry real
-   * entitlements and the extractor now records them, but nothing yet tracks
-   * which apostate abilities a character has taken, so there is nothing to read
-   * them against.
+   * An Apostate has no ladder, so theirs are read off the two lists instead —
+   * the starting package, which is granted entire, and whichever of the open
+   * list they have taken. That is the same question with a different index, so
+   * it answers here rather than anywhere else: "Ephemera Use" and "Incantation"
+   * carry real entitlements and both must reach the limits.
    */
   degreeEntitlements() {
     const order = this.items.find(i => i.type === "Order");
     const held = this.system.meta?.orderDegree ?? 0;
     const out = { ephemera: 0, incantations: 0, conation: 0 };
+
+    if (this.orderKey === "apostate") {
+      return apostate.entitlements(order, this.system.meta?.apostateAbilities ?? []);
+    }
 
     for (const degree of order?.system?.degrees ?? []) {
       if ((degree.degree ?? 0) > held) continue;

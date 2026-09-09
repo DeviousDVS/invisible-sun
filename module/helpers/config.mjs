@@ -287,6 +287,21 @@ export const ISUN = Object.freeze({
     arcs: 3,
   },
 
+  /**
+   * What an Apostate gets for nothing, and what the rest cost.
+   *
+   * "Apostate Abilities: We gain two selections from the list of abilities for
+   * which we meet the prerequisites" — and then "once an Apostate begins play,
+   * we can select a new ability for which we meet the prerequisites for a cost
+   * of 1 Crux" (The Key, p62).
+   *
+   * Here rather than read out of the order item's own note, because the note is
+   * the book's sentence and this is the number in it. A table that houses-rules
+   * a third free pick should not have to rewrite English to do it.
+   */
+  apostateFreePicks: 2,
+  apostateAbilityCost: 1,
+
   /* ──────────────────────────────────────────────
    * ADVANCEMENT
    * ────────────────────────────────────────────── */

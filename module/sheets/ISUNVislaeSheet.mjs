@@ -13,6 +13,7 @@ import { ForteAbilityPicker } from "../apps/ForteAbilityPicker.mjs";
 import { CompendiumPicker } from "../apps/CompendiumPicker.mjs";
 import { IncantationGrant } from "../apps/IncantationGrant.mjs";
 import * as sooth from "../helpers/sooth.mjs";
+import * as apostate from "../helpers/apostate.mjs";
 
 /**
  * Invisible Sun — the vislae sheet
@@ -61,6 +62,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       "roll-skill":         this.prototype._onRollSkill,
       "open-item":          this.prototype._onOpenItem,
       "toggle-ladder":      this.prototype._onToggleLadder,
+      "toggle-apostate":    this.prototype._onToggleApostateAbility,
       "toggle-degree":      this.prototype._onToggleDegree,
       "pick-forte-ability": this.prototype._onPickForteAbility,
       "pick-thread":        this.prototype._onPickThread,
@@ -295,10 +297,23 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     context.nextDegree = context.degreeLadder.find(d => d.degree === held + 1) ?? null;
 
     /* An Apostate has no ladder at all: a fixed set to begin with, and the
-     * rest bought one at a time for 1 Crux each (The Key, p5535). */
+     * rest picked off one list — two free, and 1 Crux each after (The Key,
+     * p62). The starting set is granted entire and so is only shown; the open
+     * list is a record of what this character has actually taken, so every row
+     * of it can be turned on and off. */
     context.isApostate = context.orderKey === "apostate";
     context.apostateStarting = context.order?.system?.startingAbilities ?? [];
-    context.apostatePurchasable = context.order?.system?.apostateAbilities ?? [];
+
+    const taken = this.document.system.meta?.apostateAbilities ?? [];
+    context.apostatePurchasable = (context.order?.system?.apostateAbilities ?? [])
+      .map(a => ({ ...a, taken: taken.includes(a.name) }));
+    /* Counted off the order's own list rather than off the stored names, so an
+     * ability a GM has since removed from the order stops being counted the
+     * moment it stops being offered. */
+    context.apostateTaken = context.apostatePurchasable.filter(a => a.taken).length;
+    context.apostateFreeLeft = apostate.freeLeft(taken);
+    context.apostateCrux = apostate.cruxSpent(taken);
+
     // How many of each list a character gets, and what the second one costs.
     // Both are rules about the list rather than about any one ability.
     context.apostateStartingNote = context.order?.system?.startingNote ?? "";
@@ -773,6 +788,29 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   }
 
   /** Expand one degree, closing whichever was open. */
+  /**
+   * Take one of the Apostate's open abilities, or give it up.
+   *
+   * Recorded, not enforced. Several of them carry prerequisites — "we cannot
+   * select this ability again until we have gained at least two other Apostate
+   * abilities", "we cannot select this ability at all as a beginning Apostate"
+   * — and the sheet does not police them, the same way it reports a limit
+   * exceeded rather than refusing the entry. What it does is keep the count,
+   * which is what those prerequisites are actually counted against.
+   */
+  async _onToggleApostateAbility(event, target) {
+    event.preventDefault();
+    if (!this.isEditable) return;
+
+    const name = target.dataset.ability;
+    const order = this.document.items.find(i => i.type === "Order");
+    const taken = this.document.system.meta?.apostateAbilities ?? [];
+    const next = apostate.toggle(order, taken, name);
+    if (next.length === taken.length) return;
+
+    return this.document.update({ "system.meta.apostateAbilities": next });
+  }
+
   _onToggleDegree(event, target) {
     event.preventDefault();
     const degree = Number(target.dataset.degree);

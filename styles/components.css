@@ -1984,7 +1984,36 @@ a.sentence-part:hover + .sentence-part.affix {
   margin-left: auto; letter-spacing: normal; opacity: 1;
   color: var(--isun-text-accent); font-size: 1.05em;
 }
-.apostate-abilities .degree-abilities.muted { opacity: 0.6; }
+/* The whole open list used to be dimmed, because none of it was the
+   character's. Now some of it is, so the dimming moves onto the rows that are
+   still only on offer and the taken ones read at full strength. */
+.apostate-abilities .degree-abilities.apostate-open > li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+.apostate-abilities .apostate-open > li.untaken { opacity: 0.55; }
+
+.apostate-abilities .ability-take {
+  flex: 0 0 auto;
+  cursor: pointer;
+  color: var(--isun-text-secondary);
+}
+.apostate-abilities .apostate-open > li.taken .ability-take { color: var(--isun-text-accent); }
+.apostate-abilities .ability-take:hover { color: var(--isun-border-accent); }
+
+/* What the list has come to: how many free picks are left, and what the rest
+   have cost. Beside the count in the heading rather than under the list,
+   because it is read while choosing. */
+.apostate-abilities .apostate-tally {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  font-size: 0.8em;
+  color: var(--isun-text-secondary);
+  margin: 0.25rem 0 0.1rem;
+}
+.apostate-abilities .apostate-tally .tally-crux { color: var(--isun-text-accent); }
 .apostate-abilities .group-note {
   font-size: 0.85em; font-style: italic; color: var(--isun-text-secondary);
   margin: 0.3rem 0 0.1rem;
