@@ -66,11 +66,23 @@
       <li class="bad"><span class="cost-n">{{bench.failures}}</span> {{localize "ISUN.BenchFailures"}}</li>
     {{/if}}
     {{#if bench.sideEffects.length}}
-      <li class="bad" data-tooltip="{{localize 'ISUN.BenchFlawsHint'}}">
+      {{!-- What the flaws are, not only how many: the count says the item is
+            worth less and the tooltip says what is wrong with it. --}}
+      <li class="bad" data-tooltip="{{localize 'ISUN.BenchFlawsHint'}}{{#if bench.flawText}} — {{bench.flawText}}{{/if}}">
         <span class="cost-n">{{bench.sideEffects.length}}</span> {{localize bench.flawsLabel}}
       </li>
     {{/if}}
   </ul>
+
+  {{!-- What a finished work came to, where a table said it: the mishap, or the
+        effect of an item nobody chose. Rolled once when the process ended, so
+        this and the chat card say the same thing however often it is read. --}}
+  {{#if bench.outcome}}
+    <p class="bench-outcome">
+      <span class="bench-outcome-label">{{localize "ISUN.BenchOutcome"}}</span>
+      {{bench.outcome}}
+    </p>
+  {{/if}}
 
   {{!-- Quitting is the Maker's right at any point in the process. What they get
         for it depends on where they stopped, and the Matrix decides that — so

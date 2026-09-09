@@ -341,6 +341,21 @@ export function effectsReader() {
  * ────────────────────────────────────────────── */
 
 /**
+ * Where a table records what the Matrix should use it for.
+ *
+ * `flags["invisible-sun"].matrixTable` holds `{role, level}` or
+ * `{role, severity}` — the role being one of "effects", "sideEffects" or
+ * "mishaps". Read back by module/apps/MakerMatrix.mjs, which is the only other
+ * place this string may appear.
+ *
+ * A flag rather than the table's own name. "Effects by Level — 5" is a label,
+ * and a GM who renames it to something they prefer, or a translator who
+ * translates it, should not thereby make the level 5 effects unfindable. What
+ * the table is for is data about the table, so it goes where data goes.
+ */
+export const TABLE_FLAG = "matrixTable";
+
+/**
  * A roll table, from a list of one-line entries.
  *
  * Every entry weighs the same and the formula spans them, so a table of twenty
@@ -348,13 +363,14 @@ export function effectsReader() {
  * the books support: they print these as lists to choose from or roll on, with
  * no weighting of any kind.
  */
-function tableOf(name, description, texts) {
+function tableOf(name, description, texts, marks) {
   return {
     name,
     description,
     formula: `1d${Math.max(1, texts.length)}`,
     replacement: true,
     displayRoll: true,
+    flags: { "invisible-sun": { [TABLE_FLAG]: marks } },
     results: texts.map((text, i) => ({
       type: "text",
       /* `name` is what a text result shows, and `description` is the HTML under
@@ -386,7 +402,8 @@ export function effectTables(entries) {
     .map(([level, texts]) => tableOf(
       `Effects by Level — ${level}`,
       `<p>Effects of level ${level}, from the Effects by Level table in The Way.</p>`,
-      texts));
+      texts,
+      { role: "effects", level }));
 }
 
 /** The two side-effect lists, as two tables. */
@@ -398,7 +415,8 @@ export function sideEffectTables(entries) {
       `${severity === "minor" ? "Minor" : "Major"} Side Effects`,
       `<p>${severity === "minor" ? "Minor" : "Major"} side effects, worked into an item by an `
       + `error in the Maker's Matrix — or accepted in advance to make the work easier.</p>`,
-      texts));
+      texts,
+      { role: "sideEffects", severity }));
 }
 
 /** The mishaps, as one table. */
@@ -406,5 +424,6 @@ export function mishapTables(entries) {
   return [tableOf("Mishaps",
     "<p>What happens when the Maker's Matrix goes wrong: the item is ruined, and "
     + "something befalls the Maker.</p>",
-    entries.map(e => e.text))];
+    entries.map(e => e.text),
+    { role: "mishaps" })];
 }

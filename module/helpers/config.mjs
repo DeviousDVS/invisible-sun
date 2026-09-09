@@ -609,11 +609,13 @@ export const ISUN = Object.freeze({
    * function. Each entry is one box: what it needs from the table, and where
    * each answer leads.
    *
-   *   needs   "roll" a challenge, "add" a component, "choose" to go on, or
-   *           nothing at all for a box the process just passes through.
-   *   at      how the challenge number is worked out, where there is one.
-   *   level   what level the component must be, where there is one.
-   *   next    where each answer goes.
+   *   needs     "roll" a challenge, "add" a component, "choose" to go on,
+   *             "sideEffect" to find out what flaw the work just took, or
+   *             nothing at all for a box the process just passes through.
+   *   at        how the challenge number is worked out, where there is one.
+   *   level     what level the component must be, where there is one.
+   *   inflicts  the severity of the flaw a box works into the item.
+   *   next      where each answer goes.
    *
    * `bumps` marks the boxes that raise the working level. The chart writes that
    * inside the box as "(x now = x + 1)" and it happens on the way in, before
@@ -634,10 +636,10 @@ export const ISUN = Object.freeze({
     finalChallenge:     { needs: "roll",   at: "x+1",        next: { success: "created", failure: "mishap" } },
     catalyst:           { needs: "add",    level: "x", bumps: true, next: { added: "catalystChallenge" } },
     catalystChallenge:  { needs: "roll",   at: "x+1",        next: { success: "minorSideEffect", failure: "stabilizer" } },
-    minorSideEffect:    { needs: "add",    next: { added: "ingredient" } },
+    minorSideEffect:    { needs: "sideEffect", inflicts: "minor", next: { taken: "ingredient" } },
     stabilizer:         { needs: "add",    level: "x", bumps: true, next: { added: "stabilizerChallenge" } },
     stabilizerChallenge:{ needs: "roll",   at: "x+1",        next: { success: "majorSideEffect", failure: "mishap" } },
-    majorSideEffect:    { needs: "add",    next: { added: "ingredient" } },
+    majorSideEffect:    { needs: "sideEffect", inflicts: "major", next: { taken: "ingredient" } },
 
     created:            { ends: "created" },
     randomEffect:       { ends: "randomEffect" },

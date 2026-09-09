@@ -135,11 +135,13 @@ export function begin({ level = 1, inProcess = null, shaved = 0 } = {}) {
  * What the process is waiting for, and what it needs to be told.
  *
  * Everything a caller needs to draw one step: whether it wants a roll, a
- * component or a decision, the challenge to roll against, and the level the
- * component has to be. Terminal boxes report how it ended and want nothing.
+ * component, a decision or a flaw, the challenge to roll against, the level the
+ * component has to be, and how bad the flaw is. Terminal boxes report how it
+ * ended and want nothing.
  *
  * @returns {{node: string, needs: string|null, ends: string|null,
- *            challenge: number|null, componentLevel: number|null}}
+ *            challenge: number|null, componentLevel: number|null,
+ *            inflicts: string|null}}
  */
 export function step(state) {
   const box = chart()[state?.node] ?? {};
@@ -148,7 +150,8 @@ export function step(state) {
     needs: box.ends ? null : (box.needs ?? null),
     ends: box.ends ?? null,
     challenge: box.at ? challengeFor(state, box.at) : null,
-    componentLevel: box.level ? componentLevelFor(state, box.level) : null
+    componentLevel: box.level ? componentLevelFor(state, box.level) : null,
+    inflicts: box.inflicts ?? null
   };
 }
 
@@ -172,14 +175,20 @@ function componentLevelFor(state, level) {
  * Take one step through the chart.
  *
  * `answer` is whatever the current box wants: "success" or "failure" from a
- * roll, "added" once a component is in, "yes" or "no" from the Maker. An answer
- * the box does not recognise leaves the state untouched, so a mis-wired caller
- * stalls in place rather than skipping a step nobody performed.
+ * roll, "added" once a component is in, "taken" once a flaw has been, "yes" or
+ * "no" from the Maker. An answer the box does not recognise leaves the state
+ * untouched, so a mis-wired caller stalls in place rather than skipping a step
+ * nobody performed.
+ *
+ * `detail` is what the answer turned out to say, where it says anything: the
+ * flaw a side-effect box worked into the item. It is carried rather than
+ * decided here — this owns the shape of the process and not what is written on
+ * the tables the process sends a Maker to.
  *
  * Returns a new state; the one passed in is not modified, which is what lets a
  * caller keep the previous step to undo to.
  */
-export function advance(state, answer) {
+export function advance(state, answer, detail = "") {
   const box = chart()[state?.node];
   if (!box || box.ends) return state;
 
@@ -193,8 +202,10 @@ export function advance(state, answer) {
   };
 
   if (answer === "failure") moved.failures += 1;
-  if (state.node === "minorSideEffect") moved.sideEffects.push("minor");
-  if (state.node === "majorSideEffect") moved.sideEffects.push("major");
+  /* Which boxes work a flaw in is the chart's to say, not this function's:
+   * a house rule that moves the minor side effect somewhere else should not
+   * have to come here to make it still count as one. */
+  if (box.inflicts) moved.sideEffects.push({ severity: box.inflicts, text: String(detail ?? "") });
 
   moved.node = next;
 

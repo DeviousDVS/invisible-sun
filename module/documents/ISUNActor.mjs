@@ -915,6 +915,11 @@ export class ISUNActor extends Actor {
        * flaw" without a helper that exists for this one line. */
       flawsLabel: (making.sideEffects ?? []).length === 1
         ? "ISUN.BenchFlawOne" : "ISUN.BenchFlaws",
+      /* What the flaws actually are, for the tooltip on the count. A count on
+       * its own tells a Maker the item is worth less and not what is wrong
+       * with it. Empty where the side-effect tables have not been imported,
+       * and the tooltip then says only what it said before. */
+      flawText: (making.sideEffects ?? []).map(f => f.text).filter(Boolean).join("; "),
       /* How far the working level has climbed towards what it is aiming at.
        * Capped, because a failure can carry it past the target. */
       percent: making.target ? Math.min(100, Math.round((making.x / making.target) * 100)) : 0,
@@ -923,7 +928,11 @@ export class ISUNActor extends Actor {
       days: matrix.daysFor({ level: making.level, failures: making.failures }).days,
       onBench: Math.max(0, (system.meta?.day ?? 0) - (making.startedDay ?? 0)),
       stepLabel: CONFIG.ISUN.makerNodeLabels?.[at.node] ?? at.node,
-      finished: matrix.ended(making)
+      finished: matrix.ended(making),
+      /* What a finished work turned out to be — the mishap, or the effect of an
+       * item nobody chose. Rolled once when the process ended and kept, so the
+       * bench and the chat card say the same thing. */
+      outcome: making.outcome ?? ""
     };
   }
 

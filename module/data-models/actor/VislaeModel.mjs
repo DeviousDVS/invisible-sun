@@ -89,6 +89,18 @@ export class VislaeModel extends foundry.abstract.DataModel {
     }
     if (source?.advancement) delete source.advancement.crux;
 
+    /* The Maker's flaws were "minor" and "major" and nothing else, from before
+     * the side-effect tables were read out of The Way. They are now a severity
+     * and the line the table gave. Migrated rather than dropped: a flaw is one
+     * of the few things a half-finished work carries that cannot be worked out
+     * again from anywhere else, and a string here fails validation and would
+     * take the whole array with it. */
+    const flaws = source?.making?.sideEffects;
+    if (Array.isArray(flaws) && flaws.some(f => typeof f === "string")) {
+      source.making.sideEffects = flaws.map(f =>
+        typeof f === "string" ? { severity: f, text: "" } : f);
+    }
+
     const inj = source?.status?.injuries;
     if (inj && !Array.isArray(inj) && typeof inj === "object") {
       const physical = Number(inj.physical) || 0;
@@ -353,8 +365,13 @@ export class VislaeModel extends foundry.abstract.DataModel {
       x:          new fields.NumberField({ required: true, initial: 1, integer: true, min: 0 }),
       /** Challenges failed, because a day is owed for each of them. */
       failures:   new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
-      /** "minor" and "major", in the order the process inflicted them. */
-      sideEffects: new fields.ArrayField(new fields.StringField({ required: true })),
+      /** The flaws the item carries, in the order the process inflicted them:
+       *  how bad each one is, and what the side-effect table said it was. The
+       *  text is empty only where the table has not been imported. */
+      sideEffects: new fields.ArrayField(new fields.SchemaField({
+        severity: new fields.StringField({ required: true, initial: "minor" }),
+        text:     new fields.StringField({ required: false, initial: "" }),
+      })),
       /** Every box the work has passed through and the answer it took, so a
        *  process picked up weeks later can say how it got where it is. */
       history: new fields.ArrayField(new fields.SchemaField({
@@ -370,6 +387,12 @@ export class VislaeModel extends foundry.abstract.DataModel {
        *  sitting on the bench is not re-announced every time somebody presses
        *  the button to see what happened. */
       announced: new fields.StringField({ required: false, initial: "" }),
+
+      /** What the ending turned out to be, where an ending is rolled for: the
+       *  mishap that befell the Maker, or the effect of an item nobody chose.
+       *  Stored for the same reason `announced` is — asking again how the work
+       *  ended must give the same answer as the first time. */
+      outcome: new fields.StringField({ required: false, initial: "" }),
     });
 
     /* ── Limit overrides ──

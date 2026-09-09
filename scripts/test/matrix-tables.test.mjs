@@ -18,7 +18,7 @@ import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 
 import { stubFoundry, unstubFoundry } from "./foundry-stub.mjs";
-import { effectsReader, effectTables, sideEffectTables, mishapTables }
+import { effectsReader, effectTables, sideEffectTables, mishapTables, TABLE_FLAG }
   from "../../module/importers/matrix-tables.mjs";
 
 before(() => stubFoundry());
@@ -259,6 +259,28 @@ describe("what the entries become", () => {
     // Better an absent table than one that rolls on nothing.
     assert.deepEqual(sideEffectTables([]), []);
     assert.deepEqual(effectTables([]), []);
+  });
+
+  test("every table says what the Matrix should use it for", () => {
+    // The Matrix finds these by flag rather than by name, so that a GM may
+    // rename or translate a table without hiding it from the process that
+    // consults it. Written wrong, the runner silently finds nothing and every
+    // flaw and mishap comes out blank.
+    const mark = (table) => table.flags["invisible-sun"][TABLE_FLAG];
+
+    assert.deepEqual(mark(effectTables([{ level: 5, text: "a" }])[0]),
+      { role: "effects", level: 5 });
+    assert.deepEqual(mark(sideEffectTables([{ severity: "major", text: "a" }])[0]),
+      { role: "sideEffects", severity: "major" });
+    assert.deepEqual(mark(mishapTables([{ text: "a" }])[0]), { role: "mishaps" });
+  });
+
+  test("nothing is drawn twice out of the pack", () => {
+    // The tables live in a compendium that is normally locked, and a draw
+    // without replacement writes each result back as drawn. These are lists to
+    // roll on repeatedly, so replacement is the right reading anyway.
+    assert.equal(mishapTables([{ text: "a" }])[0].replacement, true);
+    assert.equal(effectTables([{ level: 1, text: "a" }])[0].replacement, true);
   });
 
   test("every entry is equally likely", () => {

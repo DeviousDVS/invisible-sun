@@ -202,20 +202,43 @@ describe("when a challenge is failed", () => {
     // than a dead end, and matches "must be added to continue the process".
     let s = walk(begin({ level: 5 }), ["added", "failure", "added", "success"]);
     assert.equal(step(s).node, "minorSideEffect");
+    assert.equal(step(s).inflicts, "minor", "and the box says how bad the flaw is");
 
-    s = advance(s, "added");
+    s = advance(s, "taken");
     assert.equal(step(s).node, "ingredient", "back into the main process");
-    assert.deepEqual(s.sideEffects, ["minor"], "carrying the flaw it cost");
+    assert.deepEqual(s.sideEffects, [{ severity: "minor", text: "" }],
+      "carrying the flaw it cost");
   });
 
   test("a major side effect rejoins there too", () => {
     let s = walk(begin({ level: 5 }),
       ["added", "failure", "added", "failure", "added", "success"]);
     assert.equal(step(s).node, "majorSideEffect");
+    assert.equal(step(s).inflicts, "major");
 
-    s = advance(s, "added");
+    s = advance(s, "taken");
     assert.equal(step(s).node, "ingredient");
-    assert.deepEqual(s.sideEffects, ["major"]);
+    assert.deepEqual(s.sideEffects, [{ severity: "major", text: "" }]);
+  });
+
+  test("the flaw keeps the words the table gave it", () => {
+    // The chart says a flaw happens; the side-effect table says what it is. The
+    // walk carries the second without knowing anything about it, which is what
+    // lets the tables be imported later without this changing.
+    let s = walk(begin({ level: 5 }), ["added", "failure", "added", "success"]);
+    s = advance(s, "taken", "It hums audibly whenever it is used.");
+    assert.deepEqual(s.sideEffects,
+      [{ severity: "minor", text: "It hums audibly whenever it is used." }]);
+  });
+
+  test("a flaw with no table behind it is still a flaw", () => {
+    // A world that has not imported The Way has no side-effect table to roll on.
+    // The chart still says the item takes a flaw, so it takes one, with no words
+    // to it — rather than the process quietly not counting it.
+    let s = walk(begin({ level: 5 }), ["added", "failure", "added", "success"]);
+    s = advance(s, "taken");
+    assert.equal(s.sideEffects.length, 1);
+    assert.equal(s.sideEffects[0].text, "");
   });
 
   test("failing the stabilizer's challenge is a mishap", () => {
@@ -247,7 +270,7 @@ describe("the working level, when failures push it past the target", () => {
     s = walk(s, ["yes", "failure", "added", "failure", "added"]);
     assert.equal(s.x, 5, "clean past the target of 4");
 
-    s = walk(s, ["success", "added"]);          // major side effect, back to ingredient
+    s = walk(s, ["success", "taken"]);          // major side effect, back to ingredient
     assert.equal(step(s).node, "ingredient");
     s = advance(s, "added");
     assert.equal(step(s).node, "continue");

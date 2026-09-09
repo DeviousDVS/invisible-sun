@@ -22,17 +22,25 @@
  * change the item from a one-use ephemera to something constant and the level
  * climbs four, the Sorcery with it, and the days double.
  *
- * ── What this does not do ──
- * It does not look the effect up. The Effects by Level table is Monte Cook
- * Games' text and is not in the system until somebody imports their own copy,
- * so the level is typed and the table is consulted on paper. Phase 4 of the
- * plan replaces the number with a picker; nothing else here changes when it
- * does.
+ * ── The three tables the process sends a Maker to ──
+ * Effects by Level, the side effects and the mishaps are Monte Cook Games' text
+ * and reach a world only by being imported from The Way, into the
+ * `matrix-tables` pack. So every use of them here asks first and copes with the
+ * answer being no: the setup dialog offers the effects to pick from when they
+ * are there and asks for the level by hand when they are not, and a flaw or a
+ * mishap with no table behind it is named by its severity rather than invented.
+ *
+ * A table says what it is for in a flag rather than by its name — see
+ * `TABLE_FLAG` — so a GM may rename or translate one without hiding it.
  */
 import * as matrix from "../helpers/matrix.mjs";
+import { TABLE_FLAG } from "../importers/matrix-tables.mjs";
 import { VentureDialog } from "./VentureDialog.mjs";
 
 const { DialogV2 } = foundry.applications.api;
+
+/** Where the three tables live once The Way has been read. */
+const TABLE_PACK = "invisible-sun.matrix-tables";
 
 export class MakerMatrix {
 
@@ -51,17 +59,30 @@ export class MakerMatrix {
       return null;
     }
 
+    /* Asked for once, here, rather than by the dialog: whether The Way has been
+     * imported decides both what the form looks like and how wide it needs to
+     * be, and neither of those is a question the form can answer about itself. */
+    const effects = await this.#effects();
+
     const chosen = await DialogV2.wait({
       window: { title: game.i18n.format("ISUN.MakerBeginTitle", { name: actor.name }),
                 icon: "fa-solid fa-hammer" },
       classes: ["invisible-sun", "maker-setup"],
-      position: { width: 460 },
-      content: this.#content(),
+      position: { width: effects.length ? 600 : 460 },
+      content: this.#content(effects),
       buttons: [
         { action: "begin", default: true, icon: "fa-solid fa-hammer",
           label: game.i18n.localize("ISUN.MakerBeginStart"),
-          callback: (event, button) =>
-            new foundry.applications.ux.FormDataExtended(button.form).object },
+          callback: (event, button) => {
+            const form = new foundry.applications.ux.FormDataExtended(button.form).object;
+            /* The line the Maker picked off the table, which no form data
+             * carries: the radio's value is the level, because the level is
+             * what the arithmetic below needs, and the words are what the
+             * bench will show. */
+            form.pickedText = button.form
+              .querySelector('input[name="effectPick"]:checked')?.dataset.text ?? "";
+            return form;
+          } },
         { action: "cancel", label: game.i18n.localize("ISUN.Cancel"), icon: "fa-solid fa-xmark" }
       ],
       render: (event, dialog) => this.#live(dialog.element),
@@ -91,13 +112,17 @@ export class MakerMatrix {
     const at = matrix.step(making);
     if (at.ends) return this.#finish(actor, making, at.ends);
 
-    let answer = null;
-    if (at.needs === "roll") answer = await this.#challenge(actor, making, at);
-    else if (at.needs === "add") answer = await this.#component(actor, at);
-    else if (at.needs === "choose") answer = await this.#continue(actor, making);
-    if (!answer) return null;
+    /* Every box answers the same shape: what the chart is to be told, and
+     * whatever the answer turned out to say — which for a side effect is the
+     * line the table gave, and for everything else is nothing. */
+    let taken = null;
+    if (at.needs === "roll") taken = await this.#challenge(actor, making, at);
+    else if (at.needs === "add") taken = await this.#component(actor, at);
+    else if (at.needs === "choose") taken = await this.#continue(actor, making);
+    else if (at.needs === "sideEffect") taken = await this.#sideEffect(actor, at);
+    if (!taken) return null;
 
-    const moved = matrix.advance(making, answer);
+    const moved = matrix.advance(making, taken.answer, taken.detail);
     await actor.update({ system: { making: moved } });
 
     /* A step can walk straight into an ending — a failed last challenge, or a
@@ -129,7 +154,7 @@ export class MakerMatrix {
     /* Dismissed rather than rolled. Nothing happened, so the process has not
      * moved and no day has been spent on it. */
     if (!result) return null;
-    return result.success ? "success" : "failure";
+    return { answer: result.success ? "success" : "failure" };
   }
 
   /**
@@ -167,7 +192,7 @@ export class MakerMatrix {
         + listed,
       rejectClose: false
     });
-    return yes ? "added" : null;
+    return yes ? { answer: "added" } : null;
   }
 
   /**
@@ -214,20 +239,112 @@ export class MakerMatrix {
       ],
       rejectClose: false
     });
-    return chosen === "yes" || chosen === "no" ? chosen : null;
+    return chosen === "yes" || chosen === "no" ? { answer: chosen } : null;
+  }
+
+  /**
+   * Find out what the process just did to the item.
+   *
+   * "Catalysts or even stabilizers must be added to continue the process" — and
+   * what it costs to continue is a flaw the item then keeps. Nothing is decided
+   * here: the box has already happened, the press that got here was the
+   * consent, and this is the finding out. So it rolls, says so at the table
+   * through the table's own card, and moves on.
+   *
+   * With no side-effect table imported there is still a flaw — the chart says
+   * so — and it is recorded with its severity and no words. Inventing a
+   * plausible-sounding one would be worse than saying nothing.
+   */
+  static async #sideEffect(actor, at) {
+    const text = await this.#roll({ role: "sideEffects", severity: at.inflicts });
+    return { answer: "taken", detail: text };
+  }
+
+  /**
+   * The Matrix's own tables, as The Way was read into them.
+   *
+   * Empty rather than an error when the pack is missing or unimported: a world
+   * that has not imported the book is the ordinary state of a fresh install,
+   * and every caller here is written to cope with the answer being nothing.
+   */
+  static async #tables() {
+    const pack = game.packs.get(TABLE_PACK);
+    if (!pack) return [];
+    return pack.getDocuments();
+  }
+
+  /** The one table marked with all of these, or null. */
+  static async #tableFor(match) {
+    const wanted = Object.entries(match);
+    return (await this.#tables()).find(table => {
+      const mark = table.getFlag("invisible-sun", TABLE_FLAG);
+      return mark && wanted.every(([key, value]) => mark[key] === value);
+    }) ?? null;
+  }
+
+  /**
+   * Roll one of them, and give back the line it landed on.
+   *
+   * The table posts its own card, so the roll is public and the result is
+   * something the table watched happen rather than a sentence this reported
+   * afterwards. `replacement` is set on every table the importer builds, so
+   * drawing writes nothing back — which matters, because these live in a pack
+   * that is normally locked.
+   */
+  static async #roll(match) {
+    const table = await this.#tableFor(match);
+    if (!table) return "";
+    const { results } = await table.draw({ displayChat: true });
+    return results?.[0]?.name ?? results?.[0]?.text ?? "";
+  }
+
+  /**
+   * Every effect the book lists, with the level it sits at.
+   *
+   * One flat list rather than seventeen, because a Maker searching it is
+   * looking for what they want to make and the level is the answer, not the
+   * question. Sorted by level and then alphabetically, so the list reads as the
+   * table does and the cheap effects are at the top where a new Maker will be
+   * looking.
+   */
+  static async #effects() {
+    const found = [];
+    for (const table of await this.#tables()) {
+      const mark = table.getFlag("invisible-sun", TABLE_FLAG);
+      if (mark?.role !== "effects") continue;
+      for (const result of table.results) {
+        const text = result.name ?? result.text ?? "";
+        if (text) found.push({ level: Number(mark.level) || 0, text });
+      }
+    }
+    return found.sort((a, b) => a.level - b.level || a.text.localeCompare(b.text));
   }
 
   /**
    * Say how it ended.
    *
    * The bench keeps showing the finished work until somebody puts it down: what
-   * a mishap does to a Maker, and what a random effect turned out to be, are
-   * both the table's to settle, and clearing the bench automatically would take
-   * the conversation away before it happened.
+   * a mishap does to a Maker is a scene, and clearing the bench automatically
+   * would take the conversation away before it happened.
+   *
+   * Two of the three endings send the Maker to a table, so two of them are
+   * rolled — once, and kept. Pressing "How did it end?" a second time must give
+   * the same answer as the first, which is the same reason `announced` exists:
+   * a mishap that changed every time it was read would not be a mishap.
    */
   static async #finish(actor, making, ending) {
     const already = making.announced === ending;
     if (already) return making;
+
+    /* The random effect is rolled at the working level the process actually
+     * reached — "if they do so after successfully adding an ingredient, they
+     * get an item with a random effect", and the item is the level it got to,
+     * not the level it was aiming at. */
+    let outcome = making.outcome ?? "";
+    if (!outcome && ending === "mishap") outcome = await this.#roll({ role: "mishaps" });
+    if (!outcome && ending === "randomEffect") {
+      outcome = await this.#roll({ role: "effects", level: making.x });
+    }
 
     /* The flaw count is its own sentence rather than a slot in the main one:
      * "1 flaws worked in" is the kind of thing a table reads once and stops
@@ -245,8 +362,12 @@ export class MakerMatrix {
               level: ending === "randomEffect" ? making.x : making.level,
               days: matrix.daysFor({ level: making.level, failures: making.failures }).days
             })}${carries}</p>`
+        /* The table said this, so it is set apart from what the system worked
+         * out. Absent, not empty, where no table has been imported to say it. */
+        + (outcome
+            ? `<p class="maker-outcome">${foundry.utils.escapeHTML(outcome)}</p>` : "")
     });
-    await actor.update({ "system.making.announced": ending });
+    await actor.update({ "system.making.announced": ending, "system.making.outcome": outcome });
     return making;
   }
 
@@ -257,7 +378,7 @@ export class MakerMatrix {
    * the Maker choosing to make the work easier or faster at a price, and they
    * default to not doing so.
    */
-  static #content() {
+  static #content(effects) {
     const kinds = CONFIG.ISUN.makerItemKinds ?? {};
     const options = Object.entries(kinds).map(([key, spec]) =>
       `<option value="${key}"${key === "object0to4" ? " selected" : ""}>`
@@ -272,11 +393,7 @@ export class MakerMatrix {
                placeholder="${game.i18n.localize("ISUN.MakerEffectPlaceholder")}" />
       </div>
 
-      <div class="form-group">
-        <label for="isun-maker-level">${game.i18n.localize("ISUN.MakerEffectLevel")}</label>
-        <input type="number" id="isun-maker-level" name="effectLevel" value="1" min="1" max="10" />
-      </div>
-      <p class="hint">${game.i18n.localize("ISUN.MakerEffectLevelHint")}</p>
+      ${this.#effectField(effects)}
 
       <div class="form-group">
         <label for="isun-maker-kind">${game.i18n.localize("ISUN.MakerKind")}</label>
@@ -324,6 +441,60 @@ export class MakerMatrix {
   }
 
   /**
+   * Where the effect's level comes from.
+   *
+   * Two shapes, and which one appears is not a preference — it is whether The
+   * Way has been read into this world. With the table imported the Maker picks
+   * the effect and the level comes with it, which is the order the book puts
+   * them in: "the effect dictates the level required". Without it there is
+   * nothing to pick from and the level is typed, as it was before the tables
+   * existed.
+   *
+   * Either way one control is named `effectLevel` and one may be named
+   * `effectPick`, and `#start` reads whichever it is given — so nothing
+   * downstream has to know which shape was drawn.
+   */
+  static #effectField(effects) {
+    const esc = foundry.utils.escapeHTML;
+
+    if (!effects.length) {
+      return `<div class="form-group">
+        <label for="isun-maker-level">${game.i18n.localize("ISUN.MakerEffectLevel")}</label>
+        <input type="number" id="isun-maker-level" name="effectLevel" value="1" min="1" />
+      </div>
+      <p class="hint">${game.i18n.localize("ISUN.MakerEffectsMissing")}</p>`;
+    }
+
+    /* The level rides on the radio because the level is what the arithmetic
+     * wants; the words ride in a data attribute because the bench wants those.
+     * Both come off the one row, so they cannot disagree. */
+    const rows = effects.map((e, i) => `
+      <label class="effect-row">
+        <input type="radio" name="effectPick" value="${e.level}" data-text="${esc(e.text)}"
+               id="isun-maker-effect-${i}" />
+        <span class="effect-level">${e.level}</span>
+        <span class="effect-text">${esc(e.text)}</span>
+      </label>`).join("");
+
+    return `<div class="maker-effects">
+      <p class="hint">${game.i18n.localize("ISUN.MakerEffectLevelHint")}</p>
+      <input type="search" class="effect-search"
+             placeholder="${game.i18n.localize("ISUN.Search")}" />
+      <div class="effect-rows">${rows}</div>
+
+      <!-- Outside the list, because it is not one of the book's effects and no
+           search should ever take it away. The books say the lists are examples
+           and a table that wants an effect nobody printed should not be stopped
+           by this dialog. -->
+      <div class="effect-row effect-custom">
+        <input type="radio" name="effectPick" value="custom" id="isun-maker-effect-custom" />
+        <label for="isun-maker-effect-custom">${game.i18n.localize("ISUN.MakerEffectNotListed")}</label>
+        <input type="number" name="effectLevel" value="1" min="1" />
+      </div>
+    </div>`;
+  }
+
+  /**
    * Keep the four numbers honest while the form is being filled in.
    *
    * Read from the form every time rather than tracked alongside it: the arithmetic
@@ -336,9 +507,19 @@ export class MakerMatrix {
       if (el) el.textContent = value;
     };
 
+    /* Whichever control the form was drawn with. A picked row carries its own
+     * level; the line at the foot of the list, and the bare field a world
+     * without the table gets, carry the typed one. */
+    const effectLevel = () => {
+      const picked = root.querySelector('input[name="effectPick"]:checked');
+      return picked && picked.value !== "custom" ? Number(picked.value) || 0 : num("effectLevel");
+    };
+
+    this.#filter(root);
+
     const update = () => {
       const spec = {
-        effectLevel: num("effectLevel"),
+        effectLevel: effectLevel(),
         kind: root.querySelector('[name="kind"]')?.value ?? "object0to4",
         minor: num("minor"),
         major: num("major")
@@ -373,16 +554,55 @@ export class MakerMatrix {
   }
 
   /**
+   * Searching the effects, done in place.
+   *
+   * Rows are hidden rather than rebuilt so a picked effect survives a change of
+   * filter — the same reason the flux picker does it that way, and the same
+   * mistake it would be to lose somebody's choice because they went looking for
+   * something else and came back.
+   */
+  static #filter(root) {
+    const search = root.querySelector(".effect-search");
+    if (!search) return;
+
+    /* Scoped to the list: the line at the foot is an .effect-row too, and is
+     * never what a search is searching. */
+    const rows = [...root.querySelectorAll(".effect-rows .effect-row")];
+    search.addEventListener("input", () => {
+      const needle = search.value.trim().toLowerCase();
+      for (const row of rows) {
+        row.classList.toggle("hidden", !!needle && !row.textContent.toLowerCase().includes(needle));
+      }
+    });
+
+    /* Typing a level into the last line is choosing it. Anything else would
+     * have a Maker set the number and wonder why the reckoning ignored them. */
+    const custom = root.querySelector('.effect-custom input[name="effectLevel"]');
+    const pick = root.querySelector('input[name="effectPick"][value="custom"]');
+    custom?.addEventListener("input", () => { if (pick) pick.checked = true; });
+  }
+
+  /**
    * Put the work on the bench.
    *
    * The deliberate flaws are seeded onto the work as flaws, because that is what
    * they are: "side effects can affect the final value of an item (almost
    * certainly lowering it), but they do not change its final level". Agreeing to
    * one in advance buys an easier process, not a cleaner item.
+   *
+   * And they are rolled here rather than left as a number, because a price
+   * agreed in advance should be a price the Maker can see. Two minor flaws is a
+   * quantity; "it hums audibly whenever it is used" is a decision.
    */
   static async #start(actor, form) {
+    /* Either control the form was drawn with. A row picked off the table
+     * carries its own level; the line at the foot of the list, and the bare
+     * field in a world without the table, carry the typed one. */
+    const picked = form.effectPick && form.effectPick !== "custom"
+      ? Number(form.effectPick) : Number(form.effectLevel);
+
     const spec = {
-      effectLevel: Math.max(1, Number(form.effectLevel) || 1),
+      effectLevel: Math.max(1, picked || 1),
       kind: form.kind || "object0to4",
       minor: Math.max(0, Number(form.minor) || 0),
       major: Math.max(0, Number(form.major) || 0)
@@ -392,16 +612,23 @@ export class MakerMatrix {
       level, inProcess, shaved: Math.max(0, Number(form.shaved) || 0)
     });
 
+    /* One at a time and awaited, because each posts its own card and two rolled
+     * at once would reach the log in whichever order they finished. */
+    const sideEffects = [];
+    for (const severity of [...Array(spec.minor).fill("minor"),
+                            ...Array(spec.major).fill("major")]) {
+      sideEffects.push({ severity, text: await this.#roll({ role: "sideEffects", severity }) });
+    }
+
     const making = {
       ...state,
-      effect: String(form.effect ?? "").trim(),
+      /* The Maker's own words for it, or the line they picked off the table
+       * when they did not trouble to write their own. */
+      effect: String(form.effect ?? "").trim() || String(form.pickedText ?? "").trim(),
       effectLevel: spec.effectLevel,
       kind: spec.kind,
       startedDay: actor.system?.meta?.day ?? 0,
-      sideEffects: [
-        ...Array(spec.minor).fill("minor"),
-        ...Array(spec.major).fill("major")
-      ]
+      sideEffects
     };
 
     await actor.update({ system: { making } });

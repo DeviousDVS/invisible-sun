@@ -2803,6 +2803,71 @@ a.sentence-part:hover + .sentence-part.affix {
  * conversation rather than an automatic result. */
 .makers-bench.finished { border-left-color: var(--isun-text-accent); }
 
+/* A finished work's own line. Set apart from the costs above it because it is
+   not a cost — it is what the process turned out to have made. */
+.makers-bench .bench-outcome {
+  margin: var(--isun-space-xs) 0 0;
+  font-size: 0.85em;
+  line-height: 1.45;
+}
+.makers-bench .bench-outcome-label {
+  font-family: var(--isun-font-smallcaps);
+  font-size: 0.85em;
+  color: var(--isun-text-secondary);
+  margin-right: var(--isun-space-xs);
+}
+
+/* Picking the effect off the table. A hundred and eighty entries, so the list
+   scrolls and the row is compact — the flux picker's shape, for the same reason
+   it has it. */
+.maker-effects { margin-bottom: var(--isun-space-sm); }
+.maker-effects .effect-search { width: 100%; margin-bottom: var(--isun-space-xs); }
+
+.maker-effects .effect-rows {
+  max-height: 16rem;
+  overflow-y: auto;
+  border: 1px solid var(--isun-border);
+  border-radius: 4px;
+}
+
+.maker-effects .effect-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--isun-space-xs);
+  padding: 3px var(--isun-space-sm);
+  border-bottom: 1px solid var(--isun-border);
+  cursor: pointer;
+}
+
+/* Scoped to the list, so the last entry does not double its edge up with the
+   list's own — and so the line below the list keeps its own bottom border. */
+.maker-effects .effect-rows .effect-row:last-child { border-bottom: none; }
+.maker-effects .effect-row:hover { background: var(--isun-bg-elevated); }
+.maker-effects .effect-row.hidden { display: none; }
+.maker-effects .effect-row input[type="radio"] { flex: 0 0 auto; margin: 0; }
+
+/* Fixed, so the effects all start at the same place however wide the number. */
+.maker-effects .effect-level {
+  flex: 0 0 1.5rem;
+  text-align: right;
+  font-family: var(--isun-font-smallcaps);
+  color: var(--isun-text-secondary);
+}
+.maker-effects .effect-text { flex: 1; }
+
+/* The hundred-and-eighty-first line, under the list rather than in it: an
+   option rather than an entry, so it is framed as its own thing. */
+.maker-effects .effect-custom {
+  margin-top: var(--isun-space-sm);
+  border: 1px dashed var(--isun-border-accent);
+  border-radius: 4px;
+  align-items: center;
+  cursor: default;
+}
+.maker-effects .effect-custom:hover { background: none; }
+.maker-effects .effect-custom label { flex: 1; cursor: pointer; }
+.maker-effects .effect-custom input[type="number"] { flex: 0 0 4.5rem; }
+
 /* Setting a work up. The form is ordinary; the reckoning under it is not — those
  * four numbers are what the Maker is actually choosing between, so they are set
  * apart from the fields that produce them. */
