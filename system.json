@@ -144,6 +144,17 @@
       "label": "Flux Effects",
       "path": "packs/flux",
       "type": "Item"
+    },
+    {
+      "name": "matrix-tables",
+      "label": "Maker's Matrix Tables",
+      "path": "packs/matrix-tables",
+      "type": "RollTable",
+      "system": "invisible-sun",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
     }
   ],
   "socket": true,

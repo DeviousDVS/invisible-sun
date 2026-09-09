@@ -35,6 +35,7 @@
  * points where the charts are set at ten.
  */
 import { columnAnchors, columnLines, isHeading, pageWords } from "./book-page.mjs";
+import { sideEffectsReader, mishapsReader, effectsReader } from "./matrix-tables.mjs";
 
 /** "MINOR FLUX CHART ( )" — the glyphs in the parentheses do not extract. */
 const CHART_RE = /^(MINOR|MAJOR|GRAND)\s+FLUX\s+CHART/i;
@@ -181,20 +182,45 @@ export function reader() {
         }
       }
     },
+    /** How many so far, for the progress line. */
+    count() { return found.length; },
     done() { return found; }
   };
 }
 
 /** Every flux effect in the book. */
 export async function readEntries(doc, { onProgress } = {}) {
-  const read = reader();
+  /* Everything this book has to give, in one walk of it.
+   *
+   * The flux charts were the first thing read out of The Way and for a while
+   * the only one. The Maker's Matrix wants three more lists off it -- the
+   * Effects by Level table and the two lists a bad roll sends a Maker to -- and
+   * they arrive here rather than as a source of their own, because a file is
+   * identified once and a book cannot be two sources at the same time.
+   *
+   * One pass rather than four. Laying out a page's text is nearly the whole
+   * cost of reading it, so every reader is handed the same page and each takes
+   * what it recognises. */
+  const readers = [
+    reader(),
+    sideEffectsReader(),
+    mishapsReader(),
+    effectsReader()
+  ];
+
   for (let n = 1; n <= doc.numPages; n++) {
     const page = await doc.getPage(n);
     const { height } = page.getViewport({ scale: 1 });
-    read.page(pageWords((await page.getTextContent()).items, height), n);
-    onProgress?.({ done: n, total: doc.numPages });
+    const words = pageWords((await page.getTextContent()).items, height);
+    for (const read of readers) read.page(words, n);
+    /* `found` is what the importer's progress line reports; without it the
+     * reader said "undefined found" once a page in twenty-four. Counted across
+     * every reader, because they are all filling the same book's buckets. */
+    onProgress?.({ done: n, total: doc.numPages,
+                   found: readers.reduce((n2, r) => n2 + r.count(), 0) });
   }
-  return read.done();
+
+  return readers.flatMap(read => read.done());
 }
 
 /**
@@ -266,8 +292,14 @@ export function effectsIn(text) {
   return [];
 }
 
-/** Which chart an entry sorts into, for the importer's buckets. */
-export const sort = () => "flux";
+/**
+ * Which bucket an entry sorts into.
+ *
+ * Every reader tags what it found, because this book now yields four different
+ * kinds of thing and they go to two different packs. A flux entry is an Item in
+ * the flux compendium; the three tables are RollTables.
+ */
+export const sort = (entry) => entry.kind ?? "flux";
 
 /**
  * One flux effect.

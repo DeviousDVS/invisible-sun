@@ -795,7 +795,12 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
               this.#say(game.i18n.format("ISUN.ImportImages", { done, total }))
           }), target.folder)
         : new Map();
-      const part = await this.#writePack(list, images, target);
+      /* Two kinds of bucket now. Most are Items and go through #writePack; a
+       * bucket naming `toTables` is a list to roll on rather than a collection
+       * of things, and is written as RollTables instead. */
+      const part = target.toTables
+        ? await this.#writeTables(list, target)
+        : await this.#writePack(list, images, target);
       report.created += part.created;
       report.updated += part.updated;
       report.images += images.size;
@@ -894,6 +899,51 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
    * of everything this does not set, and re-running after fixing one card does
    * not throw away the other fifty-nine.
    */
+  /**
+   * Write a bucket out as roll tables.
+   *
+   * The same contract #writePack keeps: matched by name, updated where one is
+   * already there, created where it is not — so a re-import of a book a table
+   * came from refreshes it rather than leaving a second copy beside the first.
+   *
+   * A table is replaced wholesale rather than merged. Its results are one list
+   * read off one page, and there is no sense in which the third result of a
+   * re-read is "the same" result as the third of the last one — reconciling
+   * them individually would be inventing an identity the book does not give.
+   * A GM's own additions to a shipped table are the cost, and it is the same
+   * cost the packs have always had.
+   */
+  async #writeTables(entries, spec) {
+    const pack = game.packs.get(spec.pack);
+    if (!pack) throw new Error(game.i18n.format("ISUN.ImportNoPack", { pack: spec.pack }));
+
+    const wasLocked = pack.locked;
+    if (wasLocked) await pack.configure({ locked: false });
+
+    try {
+      const wanted = spec.toTables(entries);
+      const index = await pack.getIndex();
+      const byName = new Map([...index].map(e => [e.name, e._id]));
+
+      const create = [], update = [];
+      for (const table of wanted) {
+        const id = byName.get(table.name);
+        if (id) update.push({ _id: id, ...table });
+        else create.push(table);
+      }
+
+      const Cls = foundry.utils.getDocumentClass("RollTable");
+      if (create.length) await Cls.createDocuments(create, { pack: spec.pack });
+      /* recursive, so the results inside each table are replaced rather than
+       * left as they were — the whole point of a re-read. */
+      if (update.length) await Cls.updateDocuments(update, { pack: spec.pack, recursive: false });
+
+      return { created: create.length, updated: update.length, missing: 0 };
+    } finally {
+      if (wasLocked) await pack.configure({ locked: true });
+    }
+  }
+
   async #writePack(cards, images, spec) {
     const pack = game.packs.get(spec.pack);
     if (!pack) throw new Error(game.i18n.format("ISUN.ImportNoPack", { pack: spec.pack }));

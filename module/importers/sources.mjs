@@ -40,6 +40,7 @@ import * as arcs from "./arcs.mjs";
 import * as skills from "./skills.mjs";
 import * as orders from "./orders.mjs";
 import * as way from "./way.mjs";
+import * as matrixTables from "./matrix-tables.mjs";
 import * as secrets from "./secrets.mjs";
 import * as threshold from "./threshold.mjs";
 
@@ -360,7 +361,25 @@ export const SOURCES = [
     read: way.readEntries,
     sort: way.sort,
     buckets: {
-      flux: { pack: "invisible-sun.flux", toItem: way.toItem, uniqueBy: ["system.intensity"] }
+      flux: { pack: "invisible-sun.flux", toItem: way.toItem, uniqueBy: ["system.intensity"] },
+
+      /* The three lists the Maker's Matrix consults. RollTables rather than
+       * Items: they are lists to roll on or read down, the books weight nothing
+       * in them, and a GM who wants to add a mishap of their own should be able
+       * to without a data model standing in the way. `toTables` in place of
+       * `toItem` is what tells the importer which it is looking at. */
+      effects: {
+        pack: "invisible-sun.matrix-tables",
+        toTables: matrixTables.effectTables
+      },
+      sideEffects: {
+        pack: "invisible-sun.matrix-tables",
+        toTables: matrixTables.sideEffectTables
+      },
+      mishaps: {
+        pack: "invisible-sun.matrix-tables",
+        toTables: matrixTables.mishapTables
+      }
     }
   },
   {

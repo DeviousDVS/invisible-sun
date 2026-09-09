@@ -147,9 +147,16 @@ const shouting = (name) =>
 /** Art the importer cut out of the decks, as opposed to a Foundry stock icon. */
 const ownArt = (img) => /^invisible-sun\/cards\//.test(img ?? "");
 
-/** Only top-level items; sub-documents are stored under compound keys. */
+/**
+ * Only top-level documents; sub-documents are stored under compound keys.
+ *
+ * Three prefixes, because the packs are no longer all Items: the Sooth deck is
+ * cards and the Maker's Matrix tables are roll tables, whose results live under
+ * `!tables!<id>.<result>` and must not be counted as tables of their own.
+ */
 const isItemKey = (key) =>
-  (key.startsWith("!items!") || key.startsWith("!cards!")) && key.split("!").length === 3;
+  (key.startsWith("!items!") || key.startsWith("!cards!") || key.startsWith("!tables!"))
+  && key.split("!").length === 3 && !key.includes(".");
 
 async function readPack(dir) {
   const db = new ClassicLevel(dir, { valueEncoding: "json", createIfMissing: false });
