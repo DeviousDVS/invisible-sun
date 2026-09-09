@@ -636,6 +636,11 @@ export class MakerMatrix {
         <label for="isun-maker-major">${game.i18n.localize("ISUN.MakerMajorFlaws")}</label>
         <input type="number" id="isun-maker-major" name="major" value="0" min="0" max="3" />
 
+        <!-- The two prices are not the same kind of price: a flaw is paid by
+             the item and a shaved day by every challenge after it. The rule
+             says so without a second legend. -->
+        <hr />
+
         <label for="isun-maker-shaved">${game.i18n.localize("ISUN.MakerShaved")}</label>
         <input type="number" id="isun-maker-shaved" name="shaved" value="0" min="0" />
         <p class="hint">${game.i18n.localize("ISUN.MakerShavedHint")}</p>

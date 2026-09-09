@@ -521,7 +521,7 @@
     "BenchClear": "The bench is clear.",
     "MakerBeginTitle": "{name} begins a work",
     "MakerBeginStart": "Set to work",
-    "MakerBeginIntro": "What is being made, and how long its magic should last. The level of the effect comes off the Effects by Level table in The Way; everything below the line is worked out from it.",
+    "MakerBeginIntro": "What is being made, and how long its magic should last.",
     "MakerEffect": "The effect",
     "MakerEffectPlaceholder": "A stone that becomes a bridge",
     "MakerEffectLevel": "Effect level",

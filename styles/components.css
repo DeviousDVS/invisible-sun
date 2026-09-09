@@ -2995,6 +2995,17 @@ a.sentence-part:hover + .sentence-part.affix {
 /* One explanation for the two flaw rows, held beside both of them. */
 .maker-setup .maker-tradeoffs > .hint.spans-flaws { grid-row: span 2; }
 
+/* Between the flaws and the hurrying. Faint on purpose: it separates two kinds
+   of price inside one fieldset, and anything heavier would read as a second
+   fieldset that had lost its legend. */
+.maker-setup .maker-tradeoffs > hr {
+  grid-column: 1 / -1;
+  margin: 0.15rem 0;
+  border: none;
+  border-top: 1px solid var(--isun-border);
+  opacity: 0.55;
+}
+
 .maker-setup .maker-tradeoffs legend {
   padding: 0 0.4rem;
   color: var(--isun-text-secondary);
