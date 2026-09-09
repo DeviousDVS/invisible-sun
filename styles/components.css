@@ -2803,6 +2803,131 @@ a.sentence-part:hover + .sentence-part.affix {
  * conversation rather than an automatic result. */
 .makers-bench.finished { border-left-color: var(--isun-text-accent); }
 
+/* Setting a work up. The form is ordinary; the reckoning under it is not — those
+ * four numbers are what the Maker is actually choosing between, so they are set
+ * apart from the fields that produce them. */
+.maker-setup .maker-setup-body { display: flex; flex-direction: column; }
+
+/* Label beside control, not above it. The dialog asks for one short answer per
+ * row — a name, a level, a count — and the sheet's stacked form-group turns
+ * each of those into a centred caption over a full-width box, which is three
+ * times the height for no more information and pushes the reckoning off the
+ * bottom of the screen. */
+.maker-setup .form-group {
+  display: flex;
+  /* Stated, not assumed. The sheet's own .form-group is a column, and a rule
+   * that only says `display: flex` inherits that direction — which sizes the
+   * label's flex-basis as a height and leaves the row looking untouched. */
+  flex-direction: row;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 0.4rem;
+}
+
+.maker-setup .form-group > label {
+  flex: 0 0 8rem;
+  margin: 0;
+  text-align: left;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+}
+
+.maker-setup .form-group > input,
+.maker-setup .form-group > select { flex: 1; min-width: 0; }
+
+/* A level, a count of flaws, a number of days: none of them wants an inch of
+ * field. The effect's name is the one answer that does. */
+.maker-setup .form-group > input[type="number"] { flex: 0 0 4.5rem; }
+.maker-setup .notes { margin: 0 0 0.75rem; font-size: 0.85rem; line-height: 1.45; opacity: 0.85; }
+.maker-setup .hint { margin: -0.35rem 0 0.6rem; font-size: 0.78rem; opacity: 0.7; }
+
+.maker-setup .maker-tradeoffs {
+  margin: 0.35rem 0 0.75rem;
+  padding: 0.5rem 0.75rem 0.25rem;
+  border: 1px solid var(--isun-border);
+  border-radius: 3px;
+}
+
+.maker-setup .maker-tradeoffs legend {
+  padding: 0 0.4rem;
+  color: var(--isun-text-secondary);
+  font-size: 0.75rem;
+  font-variant: small-caps;
+  letter-spacing: 0.05em;
+}
+
+.maker-setup .maker-reckoning {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+  margin: 0.25rem 0 0.5rem;
+  padding: 0.55rem 0.75rem;
+  list-style: none;
+  border: 1px solid var(--isun-border);
+  border-left: 2px solid var(--isun-border-accent);
+  border-radius: 3px;
+  background: rgb(0 0 0 / 18%);
+  color: var(--isun-text-secondary);
+  font-size: 0.82rem;
+}
+
+.maker-setup .reckon-n {
+  color: var(--isun-text-accent);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* What hurrying costs, and what a level above ten really means. Neither is a
+ * refusal — both are things better known before the first roll than after it. */
+.maker-setup .notes.warning {
+  margin: 0;
+  color: var(--isun-wound);
+  font-size: 0.8rem;
+}
+
+/* The goods lists at the level the work wants. Offered, not required — the
+ * books call these examples, and a Maker using something they never named
+ * simply says it is in. */
+.maker-component .maker-materials {
+  max-height: 11rem;
+  overflow-y: auto;
+  margin: 0.5rem 0 0;
+  padding: 0.35rem 0.5rem;
+  list-style: none;
+  border: 1px solid var(--isun-border);
+  border-radius: 3px;
+  background: rgb(0 0 0 / 18%);
+  font-size: 0.82rem;
+}
+
+.maker-component .maker-materials li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1px 0;
+}
+
+.maker-component .mat-cost { color: var(--isun-text-secondary); white-space: nowrap; }
+
+.makers-bench .bench-work-on {
+  margin-right: auto;                 /* the two actions sit at opposite ends */
+  color: var(--isun-text-accent);
+  font-size: 0.85em;
+  cursor: pointer;
+}
+.makers-bench .bench-work-on:hover { color: var(--isun-border-accent); }
+
+/* A bench with nothing on it. Quieter than a bench with work, because it is a
+ * standing offer rather than a thing needing attention. */
+.makers-bench.clear { border-left-color: var(--isun-border); }
+.makers-bench .bench-begin {
+  color: var(--isun-text-secondary);
+  font-size: 0.85em;
+  cursor: pointer;
+}
+.makers-bench .bench-begin:hover { color: var(--isun-text-accent); }
+.makers-bench .bench-clear { margin: 0; font-size: 0.85em; }
+
 /* ── The board of ongoing effects ──────────────────────────────────────────
  *
  * Grouped by the moment each card asks to be checked, because "what do I roll

@@ -66,7 +66,7 @@ export class VentureDialog {
    */
   static async open(actor, { skill = null, challenge = 0, label = "", magicDice = 0,
                              base = 0, baseLabel = "", practice = null,
-                             pool = "" } = {}) {
+                             pool = "", allowSortilege = true } = {}) {
     /* Empty against a declared pool, which is what withdraws the picker: the
      * template guards on the length, and #live and #roll can then find no level
      * to add for a skill that was never offered. One decision, three places
@@ -92,8 +92,14 @@ export class VentureDialog {
      * declining a conditional die should give Sortilege back, and adding one
      * should take it away.
      */
-    const sortWhenPlain = poolRules.sortilegeCap(actor, { enhanced: false });
-    const sortWhenEnhanced = poolRules.sortilegeCap(actor, { enhanced: true });
+    /* Withheld outright where the rules say the action cannot draw on it —
+     * "Makers cannot use Sortilege while crafting items" (The Way, p59). Zeroed
+     * rather than hidden by the caller, so the one place that knows what
+     * Sortilege costs is still the one place that decides there is none. */
+    const sortWhenPlain = allowSortilege
+      ? poolRules.sortilegeCap(actor, { enhanced: false }) : 0;
+    const sortWhenEnhanced = allowSortilege
+      ? poolRules.sortilegeCap(actor, { enhanced: true }) : 0;
     /* Drawn for the most that could ever be allowed; the live ceiling dims what
      * is not allowed now, which is how a row says "not onto this" rather than
      * disappearing. */

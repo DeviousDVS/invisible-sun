@@ -4,6 +4,7 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 import { ActorSheetMixin } from "./SheetMixin.mjs";
 import { VentureDialog } from "../apps/VentureDialog.mjs";
 import { DepletionTracker } from "../apps/DepletionTracker.mjs";
+import { MakerMatrix } from "../apps/MakerMatrix.mjs";
 import { ApplyIdentity } from "../apps/ApplyIdentity.mjs";
 import { HeartSkills } from "../apps/HeartSkills.mjs";
 import * as vance from "../helpers/vance.mjs";
@@ -75,6 +76,8 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       "toggle-halved":      this.prototype._onToggleHalved,
       "learn-vancian":      this.prototype._onLearnVancian,
       "track-item":         this.prototype._onTrackItem,
+      "making-begin":       this.prototype._onBeginWork,
+      "making-continue":    this.prototype._onWorkOn,
       "making-abandon":     this.prototype._onAbandonWork,
       "roll-depletion":     this.prototype._onRollDepletion,
       "roll-spell":         this.prototype._onItemRoll,
@@ -360,9 +363,11 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     }
     context.mind = mind;
 
-    /* And what is on the bench, on the same footing as the mind above it:
-     * derived on the actor, and null both for the wrong order and for an empty
-     * bench, so the panel draws nothing rather than an empty workshop. */
+    /* And what is on the bench. `bench` is derived on the actor and is null
+     * both for the wrong order and for an empty bench, so the panel needs the
+     * order asked separately: a Maker between commissions still gets the panel,
+     * with the way to begin one in it. */
+    context.isMaker = this.document.orderKey === "maker";
     context.bench = context.actor.system.bench ?? null;
     // Spells, incantations, forte abilities and minor magics share a shape —
     // level, colour, cost, dice, depletion — because the rules treat them the
@@ -1255,6 +1260,30 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     if (!item || !vance.canConvert(item)) return;
 
     await item.update(vance.conversion(item, true));
+  }
+
+  /**
+   * Begin a work.
+   *
+   * Everything the Maker decides before starting is the dialog's; what comes
+   * back is already on the bench, so this only has to redraw.
+   */
+  async _onBeginWork(event, target) {
+    event.preventDefault();
+    if (await MakerMatrix.begin(this.document)) this.render();
+  }
+
+  /**
+   * Do the next thing the work is waiting for.
+   *
+   * What that is depends on the box the process is resting on, which the Matrix
+   * decides rather than this. Redrawn afterwards because the bench is what
+   * shows the result.
+   */
+  async _onWorkOn(event, target) {
+    event.preventDefault();
+    await MakerMatrix.step(this.document);
+    this.render();
   }
 
   /**

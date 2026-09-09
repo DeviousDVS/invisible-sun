@@ -46,6 +46,7 @@ import { ContentImporter } from "./module/apps/ContentImporter.mjs";
 import { PathOfSuns } from "./module/apps/PathOfSuns.mjs";
 import { DepletionTracker, SETTING as TRACKER_SETTING, EMPTY as TRACKER_EMPTY }
   from "./module/apps/DepletionTracker.mjs";
+import { MakerMatrix } from "./module/apps/MakerMatrix.mjs";
 import * as flux from "./module/helpers/flux.mjs";
 import { FluxPicker } from "./module/apps/FluxPicker.mjs";
 import { DEFAULT_STATE as PATH_OF_SUNS } from "./module/helpers/sooth.mjs";
@@ -114,7 +115,8 @@ Hooks.once("init", () => {
     NewDay,
     ChallengeDeclaration,
     PathOfSuns,
-    DepletionTracker
+    DepletionTracker,
+    MakerMatrix
   };
 
   // The stylesheet draws the flux mark too — on the chat card and on Foundry's

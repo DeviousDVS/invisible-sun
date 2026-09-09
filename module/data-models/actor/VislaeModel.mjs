@@ -366,6 +366,10 @@ export class VislaeModel extends foundry.abstract.DataModel {
        *  long it has been on the bench rather than only how long it needs. */
       startedDay: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
 
+      /** Which ending has already been announced in chat, so a finished work
+       *  sitting on the bench is not re-announced every time somebody presses
+       *  the button to see what happened. */
+      announced: new fields.StringField({ required: false, initial: "" }),
     });
 
     /* ── Limit overrides ──

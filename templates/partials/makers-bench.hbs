@@ -7,16 +7,24 @@
 
       A Maker between commissions gets the panel with nothing in it but the way
       to begin one; taking the next step arrives with the runner. --}}
-{{#if bench}}
-<div class="makers-bench{{#if bench.finished}} finished{{/if}}">
+{{#if isMaker}}
+<div class="makers-bench{{#if bench.finished}} finished{{/if}}{{#unless bench}} clear{{/unless}}">
 
   <div class="bench-head">
     <h3>{{localize "ISUN.BenchTitle"}}</h3>
-    <span class="bench-what">
+    {{#if bench}}
+      <span class="bench-what">
         <span class="bench-effect">{{bench.effect}}</span>
         <span class="bench-level">{{localize "ISUN.BenchLevelN" level=bench.level}}</span>
-    </span>
+      </span>
+    {{else}}
+      <a class="bench-begin" data-action="making-begin">
+        <i class="fa-solid fa-hammer"></i> {{localize "ISUN.BenchBegin"}}
+      </a>
+    {{/if}}
   </div>
+
+  {{#if bench}}
 
   {{!-- How far the working level has climbed towards what it is aiming at. Not
         a share of the days: the process is a ladder of challenges, and the rung
@@ -68,10 +76,21 @@
         for it depends on where they stopped, and the Matrix decides that — so
         this clears the bench and gives the Sorcery back, and nothing else. --}}
   <div class="bench-actions">
+    {{!-- One press, one box of the chart. A finished work has nothing left to
+          do, so it offers to say again how it ended instead. --}}
+    <a class="bench-work-on" data-action="making-continue">
+      <i class="fa-solid fa-hammer"></i>
+      {{#if bench.finished}}{{localize "ISUN.BenchSayAgain"}}{{else}}{{localize "ISUN.BenchWorkOn"}}{{/if}}
+    </a>
     <a class="bench-abandon" data-action="making-abandon"
        data-tooltip="{{localize 'ISUN.BenchAbandonHint'}}">
       <i class="fa-solid fa-xmark"></i> {{localize "ISUN.BenchAbandon"}}
     </a>
   </div>
+  {{else}}
+    {{!-- A Maker between commissions. Said rather than left blank: an empty
+          bench and a bench that failed to render look the same otherwise. --}}
+    <p class="hint bench-clear">{{localize "ISUN.BenchClear"}}</p>
+  {{/if}}
 </div>
 {{/if}}
