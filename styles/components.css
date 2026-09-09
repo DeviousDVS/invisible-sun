@@ -2682,7 +2682,7 @@ a.sentence-part:hover + .sentence-part.affix {
   border: 1px solid var(--isun-border);
   border-left: 2px solid var(--isun-border-accent);
   border-radius: 3px;
-  background: rgb(0 0 0 / 15%);
+  background: var(--isun-bg-surface);
 }
 
 .makers-bench .bench-head {
@@ -2875,7 +2875,7 @@ a.sentence-part:hover + .sentence-part.affix {
 .maker-effects .effect-search { width: 100%; margin-bottom: var(--isun-space-xs); }
 
 .maker-effects .effect-rows {
-  max-height: 12rem;
+  max-height: 8rem;
   overflow-y: auto;
   border: 1px solid var(--isun-border);
   border-radius: 4px;
