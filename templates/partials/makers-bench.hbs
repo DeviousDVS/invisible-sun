@@ -1,0 +1,77 @@
+{{!-- What a Maker has on the bench.
+      Only a Maker has one, so `bench` is null for every other order and this
+      whole block is absent rather than empty — the same rule the Vance's mind
+      follows a few sections up. Null too when the bench is clear, which is the
+      commoner case: the panel appears when there is work and goes when the work
+      is done, rather than standing about as an empty workshop.
+
+      A Maker between commissions gets the panel with nothing in it but the way
+      to begin one; taking the next step arrives with the runner. --}}
+{{#if bench}}
+<div class="makers-bench{{#if bench.finished}} finished{{/if}}">
+
+  <div class="bench-head">
+    <h3>{{localize "ISUN.BenchTitle"}}</h3>
+    <span class="bench-what">
+        <span class="bench-effect">{{bench.effect}}</span>
+        <span class="bench-level">{{localize "ISUN.BenchLevelN" level=bench.level}}</span>
+    </span>
+  </div>
+
+  {{!-- How far the working level has climbed towards what it is aiming at. Not
+        a share of the days: the process is a ladder of challenges, and the rung
+        it is on is what a Maker is actually counting. --}}
+  <div class="bench-progress">
+    <span class="bench-bar" data-tooltip="{{localize 'ISUN.BenchBarHint'
+            x=bench.x target=bench.target}}">
+      <span class="bench-fill" style="width: {{bench.percent}}%"></span>
+    </span>
+    <span class="bench-count">{{bench.x}} / {{bench.target}}</span>
+  </div>
+
+  {{!-- Where the process is resting, which is the first thing somebody picking
+        the work up again needs to be told. --}}
+  <div class="bench-step">
+    <span class="bench-node">{{localize bench.stepLabel}}</span>
+    {{#if bench.challenge}}
+      <span class="bench-challenge" data-tooltip="{{localize 'ISUN.BenchChallengeHint'}}">
+        {{localize "ISUN.BenchChallengeN" n=bench.challenge}}
+      </span>
+    {{/if}}
+    {{#if bench.componentLevel}}
+      <span class="bench-component" data-tooltip="{{localize 'ISUN.BenchComponentHint'}}">
+        {{localize "ISUN.BenchComponentN" level=bench.componentLevel}}
+      </span>
+    {{/if}}
+  </div>
+
+  {{!-- What the work has cost so far. The Sorcery is held rather than spent:
+        it comes back when the work ends, however it ends. --}}
+  <ul class="bench-costs">
+    <li data-tooltip="{{localize 'ISUN.BenchSorceryHint'}}">
+      <span class="cost-n">{{bench.sorceryHeld}}</span> {{localize "ISUN.BenchSorceryHeld"}}
+    </li>
+    <li data-tooltip="{{localize 'ISUN.BenchDaysHint'}}">
+      <span class="cost-n">{{bench.onBench}} / {{bench.days}}</span> {{localize "ISUN.BenchDays"}}
+    </li>
+    {{#if bench.failures}}
+      <li class="bad"><span class="cost-n">{{bench.failures}}</span> {{localize "ISUN.BenchFailures"}}</li>
+    {{/if}}
+    {{#if bench.sideEffects.length}}
+      <li class="bad" data-tooltip="{{localize 'ISUN.BenchFlawsHint'}}">
+        <span class="cost-n">{{bench.sideEffects.length}}</span> {{localize bench.flawsLabel}}
+      </li>
+    {{/if}}
+  </ul>
+
+  {{!-- Quitting is the Maker's right at any point in the process. What they get
+        for it depends on where they stopped, and the Matrix decides that — so
+        this clears the bench and gives the Sorcery back, and nothing else. --}}
+  <div class="bench-actions">
+    <a class="bench-abandon" data-action="making-abandon"
+       data-tooltip="{{localize 'ISUN.BenchAbandonHint'}}">
+      <i class="fa-solid fa-xmark"></i> {{localize "ISUN.BenchAbandon"}}
+    </a>
+  </div>
+</div>
+{{/if}}

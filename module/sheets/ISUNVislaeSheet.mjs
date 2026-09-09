@@ -75,6 +75,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       "toggle-halved":      this.prototype._onToggleHalved,
       "learn-vancian":      this.prototype._onLearnVancian,
       "track-item":         this.prototype._onTrackItem,
+      "making-abandon":     this.prototype._onAbandonWork,
       "roll-depletion":     this.prototype._onRollDepletion,
       "roll-spell":         this.prototype._onItemRoll,
       "roll-incantation":   this.prototype._onItemRoll,
@@ -358,6 +359,11 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
         : game.i18n.localize("ISUN.Mind");
     }
     context.mind = mind;
+
+    /* And what is on the bench, on the same footing as the mind above it:
+     * derived on the actor, and null both for the wrong order and for an empty
+     * bench, so the panel draws nothing rather than an empty workshop. */
+    context.bench = context.actor.system.bench ?? null;
     // Spells, incantations, forte abilities and minor magics share a shape —
     // level, colour, cost, dice, depletion — because the rules treat them the
     // same way: a forte ability "unless stated otherwise, costs Sorcery to use,
@@ -1249,6 +1255,40 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     if (!item || !vance.canConvert(item)) return;
 
     await item.update(vance.conversion(item, true));
+  }
+
+  /**
+   * Put down whatever is on the Maker's bench.
+   *
+   * "At any point in the process, the Maker can opt to quit" (The Way, p60) —
+   * and what they are left holding depends on where they stopped, which the
+   * Matrix decides rather than this. So this clears the bench and no more: the
+   * Sorcery the work was holding comes back with it, because it was never
+   * spent, only tied up.
+   *
+   * Asked first. A commission runs for weeks of game time and several sessions,
+   * and there is no undo for throwing one away.
+   */
+  async _onAbandonWork(event, target) {
+    event.preventDefault();
+    const bench = this.document.system.bench;
+    if (!bench) return;
+
+    const yes = await foundry.applications.api.DialogV2.confirm({
+      window: { title: game.i18n.localize("ISUN.BenchAbandonTitle") },
+      classes: ["invisible-sun"],
+      content: `<p>${game.i18n.format("ISUN.BenchAbandonAsk",
+        { effect: bench.effect || game.i18n.localize("ISUN.BenchUnnamed"),
+          sorcery: bench.sorceryHeld })}</p>`,
+      rejectClose: false
+    });
+    if (!yes) return;
+
+    /* The node is the whole of "is there work", so clearing it is enough to
+     * clear the bench. The rest is left as it lies rather than reset field by
+     * field: the next work overwrites it, and a half-written reset is how a
+     * stale failure count ends up charged to somebody else's commission. */
+    await this.document.update({ "system.making.node": "" });
   }
 
   /**

@@ -313,6 +313,61 @@ export class VislaeModel extends foundry.abstract.DataModel {
       hourUsed:   new fields.NumberField({ required: true, initial: 0, integer: true, min: 0, max: 1 }),
     });
 
+    /* ── The Maker's work ──
+     * What is on the bench, if anything. A Maker works one thing at a time and
+     * a commission runs for weeks of game time, so this is state that has to
+     * survive being put down and picked up again.
+     *
+     * Kept on the character rather than as an item of its own. A half-finished
+     * work is not a thing a vislae owns — it is something they are in the
+     * middle of, like an unhealed Wound or a spell held in mind, and those live
+     * here too. It also means the Magic tab can show the state of the bench
+     * beside everything else a Maker would consult, which is where somebody
+     * with time and materials goes looking for it.
+     *
+     * `node` is the whole of "is there work": it names the box of the Matrix the
+     * process is resting on, and is empty when the bench is clear. Every other
+     * field is meaningless without it.
+     */
+    const making = new fields.SchemaField({
+      /** What is being made, in the Maker's own words. */
+      effect:     new fields.StringField({ required: false, initial: "" }),
+      /** Off the Effects by Level table, before the item kind modifies it. */
+      effectLevel: new fields.NumberField({ required: true, initial: 1, integer: true, min: 0 }),
+      /** A key of CONFIG.ISUN.makerItemKinds — what is being made, and so how
+       *  long its magic lasts, which is what the modifier turns on. */
+      kind:       new fields.StringField({ required: false, initial: "" }),
+
+      /** What the item ends up being: the Sorcery invested, and the level the
+       *  material must match. */
+      level:      new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+      /** What the challenges actually climb towards, which is lower than the
+       *  level when a side effect was accepted in advance to make it easier. */
+      target:     new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+      /** Paid for by hurrying: every day shaved raises every challenge by one. */
+      challengeBonus: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+
+      /** Where in the Matrix the work is resting. Empty means a clear bench. */
+      node:       new fields.StringField({ required: false, initial: "" }),
+      /** The chart's working level, which climbs as components go in. */
+      x:          new fields.NumberField({ required: true, initial: 1, integer: true, min: 0 }),
+      /** Challenges failed, because a day is owed for each of them. */
+      failures:   new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+      /** "minor" and "major", in the order the process inflicted them. */
+      sideEffects: new fields.ArrayField(new fields.StringField({ required: true })),
+      /** Every box the work has passed through and the answer it took, so a
+       *  process picked up weeks later can say how it got where it is. */
+      history: new fields.ArrayField(new fields.SchemaField({
+        node:   new fields.StringField({ required: false, initial: "" }),
+        answer: new fields.StringField({ required: false, initial: "" }),
+        x:      new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+      })),
+      /** The day the work began, against `meta.day`, so the sheet can say how
+       *  long it has been on the bench rather than only how long it needs. */
+      startedDay: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+
+    });
+
     /* ── Limit overrides ──
      * The effective cap is derived (base + item contributions + override).
      * These are the GM's manual escape hatch for entitlements the system does
@@ -356,6 +411,6 @@ export class VislaeModel extends foundry.abstract.DataModel {
     const biography = new fields.HTMLField({ required: false, initial: "" });
 
     return { stats, status, advancement, meta, economy, house, rests, limitOverrides,
-             incantations, narrative, player, biography };
+             making, incantations, narrative, player, biography };
   }
 }

@@ -2670,6 +2670,139 @@ a.sentence-part:hover + .sentence-part.affix {
   text-align: right;
 }
 
+/* ── The Maker's bench ─────────────────────────────────────────────────────
+ *
+ * The Vance's mind a few rules up is the model for this: one order's panel, on
+ * the Magic tab, absent entirely for everybody else. It carries more, because a
+ * mind is a number and a commission is a process — where it has got to, what it
+ * has cost, and what it is waiting for. */
+.makers-bench {
+  margin: 0.75rem 0 1rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--isun-border);
+  border-left: 2px solid var(--isun-border-accent);
+  border-radius: 3px;
+  background: rgb(0 0 0 / 15%);
+}
+
+.makers-bench .bench-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.makers-bench .bench-head h3 { margin: 0; }
+
+.makers-bench .bench-what {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  flex: 1;
+  min-width: 0;                       /* or a long name pushes the level out */
+}
+
+.makers-bench .bench-effect {
+  color: var(--isun-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.makers-bench .bench-level {
+  flex: 0 0 auto;
+  color: var(--isun-text-secondary);
+  font-size: 0.85em;
+}
+
+/* The rung the process is on, drawn like the mind's bar so the two panels read
+ * as siblings rather than as two different ideas about progress. */
+.makers-bench .bench-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.makers-bench .bench-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgb(255 255 255 / 8%);
+  overflow: hidden;
+}
+
+.makers-bench .bench-fill {
+  display: block;
+  height: 100%;
+  background: var(--isun-border-accent);
+}
+
+.makers-bench .bench-count {
+  flex: 0 0 auto;
+  color: var(--isun-text-secondary);
+  font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* What the work is waiting for. The one line somebody picking a commission up
+ * after three sessions actually needs, so it is set apart from the tallies. */
+.makers-bench .bench-step {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.makers-bench .bench-node { color: var(--isun-text-accent); }
+
+.makers-bench .bench-challenge,
+.makers-bench .bench-component {
+  padding: 1px 6px;
+  border: 1px solid var(--isun-border);
+  border-radius: 3px;
+  color: var(--isun-text-secondary);
+  font-size: 0.8em;
+  font-variant-numeric: tabular-nums;
+}
+
+.makers-bench .bench-costs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  list-style: none;
+  color: var(--isun-text-secondary);
+  font-size: 0.82em;
+}
+
+.makers-bench .bench-costs .cost-n {
+  color: var(--isun-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Failures and flaws are what the process has taken out of the work, so they
+ * are the one thing here allowed to be the wound colour. */
+.makers-bench .bench-costs .bad .cost-n { color: var(--isun-wound); }
+
+.makers-bench .bench-actions { display: flex; justify-content: flex-end; }
+
+.makers-bench .bench-abandon {
+  color: var(--isun-text-secondary);
+  font-size: 0.82em;
+  cursor: pointer;
+}
+
+.makers-bench .bench-abandon:hover { color: var(--isun-wound); }
+
+/* A process that has run to one of its three ends. It stays on the bench until
+ * somebody clears it, because what a finished work leaves behind is a
+ * conversation rather than an automatic result. */
+.makers-bench.finished { border-left-color: var(--isun-text-accent); }
+
 /* ── The board of ongoing effects ──────────────────────────────────────────
  *
  * Grouped by the moment each card asks to be checked, because "what do I roll

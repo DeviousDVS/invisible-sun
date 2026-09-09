@@ -3,6 +3,7 @@
  */
 import * as pools from "../helpers/pools.mjs";
 import * as vance from "../helpers/vance.mjs";
+import * as matrix from "../helpers/matrix.mjs";
 
 export class ISUNActor extends Actor {
   
@@ -876,11 +877,62 @@ export class ISUNActor extends Actor {
       : null;
   }
 
+  /**
+   * What is on a Maker's bench, worked out for the sheet to show.
+   *
+   * The same shape as the Vance's mind, and for the same reason: only one order
+   * has it, so `system.bench` is null for everybody else and the Magic tab draws
+   * nothing rather than an empty workshop. A Weaver shown "0 of 4 components"
+   * would be told a process that is not theirs.
+   *
+   * Null too for a Maker whose bench is clear, which is the commoner case — the
+   * panel appears when there is work and goes away when the work is done.
+   *
+   * The Sorcery the work holds is reported rather than deducted. "For the
+   * duration of the process, the Maker's Sorcery pool faces this deduction"
+   * (The Way, p59) — but a scourge lowers a pool too, and this system has always
+   * shown that beside the pool rather than rewriting its maximum. Reported keeps
+   * it reversible, which matters for something that sits open across weeks of
+   * game time and several sessions.
+   */
+  _prepareMakersBench(system) {
+    const making = system.making ?? {};
+    if (this.orderKey !== "maker" || !making.node) {
+      system.bench = null;
+      return;
+    }
+
+    const at = matrix.step(making);
+    system.bench = {
+      ...at,
+      effect: making.effect,
+      level: making.level,
+      target: making.target,
+      x: making.x,
+      failures: making.failures,
+      sideEffects: [...(making.sideEffects ?? [])],
+      /* Chosen here rather than in the template, which has no way to say "one
+       * flaw" without a helper that exists for this one line. */
+      flawsLabel: (making.sideEffects ?? []).length === 1
+        ? "ISUN.BenchFlawOne" : "ISUN.BenchFlaws",
+      /* How far the working level has climbed towards what it is aiming at.
+       * Capped, because a failure can carry it past the target. */
+      percent: making.target ? Math.min(100, Math.round((making.x / making.target) * 100)) : 0,
+      /* Held, not spent — see above. */
+      sorceryHeld: making.level,
+      days: matrix.daysFor({ level: making.level, failures: making.failures }).days,
+      onBench: Math.max(0, (system.meta?.day ?? 0) - (making.startedDay ?? 0)),
+      stepLabel: CONFIG.ISUN.makerNodeLabels?.[at.node] ?? at.node,
+      finished: matrix.ended(making)
+    };
+  }
+
   _prepareVislaeData(system) {
     this._prepareStatAllocation(system);
     this._prepareLimits(system);
     this._prepareEconomy(system);
     this._prepareAdvancement(system);
     this._prepareVancianMind(system);
+    this._prepareMakersBench(system);
   }
 }

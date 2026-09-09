@@ -519,6 +519,132 @@ export const ISUN = Object.freeze({
    * ────────────────────────────────────────────── */
 
   /* ──────────────────────────────────────────────
+   * THE MAKER'S MATRIX
+   * ────────────────────────────────────────────── */
+
+  /**
+   * What a Maker is making, and what that does to the level.
+   *
+   * "The effect dictates the level required, as found on the Effects by Level
+   * table. This is then modified by the kind of item being made — specifically,
+   * how often it can be used before the magic depletes (minimum, level 1)"
+   * (The Way, p59).
+   *
+   * So the modifier is not a property of the object but of how long its magic
+   * lasts: an ephemera spends itself in one use and is a level easier, and an
+   * object that never depletes at all is four levels harder. The keys name the
+   * depletion band rather than the fiction, because that is what the table is
+   * actually indexed by, and it is what a Maker chooses when they decide how
+   * durable the thing should be.
+   */
+  makerItemKinds: {
+    ephemera:       { label: "ISUN.MakerKindEphemera",   modifier: -1, depletion: "" },
+    object0to4:     { label: "ISUN.MakerKindObject0to4", modifier:  0, depletion: "0–4" },
+    object0to2:     { label: "ISUN.MakerKindObject0to2", modifier:  1, depletion: "0–2" },
+    object0to1:     { label: "ISUN.MakerKindObject0to1", modifier:  2, depletion: "0–1" },
+    object0:        { label: "ISUN.MakerKindObject0",    modifier:  3, depletion: "0" },
+    objectConstant: { label: "ISUN.MakerKindConstant",   modifier:  4, depletion: "" },
+  },
+
+  /**
+   * What a side effect taken on purpose is worth.
+   *
+   * "A Maker could intentionally attempt to work a side effect into an item to
+   * lower its in-process level. This is different from its final level, which
+   * does not change… In general, a minor side effect lowers the level by 1, and
+   * a major side effect lowers it by 2" (The Way, p60).
+   *
+   * In-process only, and only for side effects declared before the work starts.
+   * The ones a bad roll inflicts later buy nothing.
+   */
+  makerSideEffectRelief: { minor: 1, major: 2 },
+
+  /** Two days an item level, and a day for every challenge failed (The Way, p58). */
+  makerDaysPerLevel: 2,
+
+  /**
+   * How many emotion or concept leaves stand in for one component.
+   *
+   * "Makers can substitute an appropriate emotion or concept leaf for an
+   * ingredient, stabilizer, or catalyst of any level if the emotion or concept
+   * is appropriate… if the level needed is 6 or 7, two leaves are needed. If the
+   * level is 8, five leaves are needed. At level 9, ten leaves are needed, and
+   * at level 10, fifteen leaves are required" (The Way, p62).
+   *
+   * One leaf up to level 5, which the book states by omission: it names a count
+   * only where the count is more than one.
+   */
+  makerLeafCosts: { 6: 2, 7: 2, 8: 5, 9: 10, 10: 15 },
+
+  /**
+   * What to call each box, for a sheet that has to say where the work is.
+   *
+   * Apart from `makerMatrix` on purpose: that table is the shape of the process
+   * and this is what the process is called, and a house rule that reroutes an
+   * arrow should not have to restate every name to do it.
+   */
+  makerNodeLabels: {
+    material:            "ISUN.MakerNodeMaterial",
+    challenge:           "ISUN.MakerNodeChallenge",
+    ingredient:          "ISUN.MakerNodeIngredient",
+    continue:            "ISUN.MakerNodeContinue",
+    powerSource:         "ISUN.MakerNodePowerSource",
+    finalChallenge:      "ISUN.MakerNodeFinalChallenge",
+    catalyst:            "ISUN.MakerNodeCatalyst",
+    catalystChallenge:   "ISUN.MakerNodeCatalystChallenge",
+    minorSideEffect:     "ISUN.MakerNodeMinorSideEffect",
+    stabilizer:          "ISUN.MakerNodeStabilizer",
+    stabilizerChallenge: "ISUN.MakerNodeStabilizerChallenge",
+    majorSideEffect:     "ISUN.MakerNodeMajorSideEffect",
+    created:             "ISUN.MakerNodeCreated",
+    randomEffect:        "ISUN.MakerNodeRandomEffect",
+    mishap:              "ISUN.MakerNodeMishap",
+  },
+
+  /**
+   * The Matrix itself, as the chart on The Way p62 draws it.
+   *
+   * A table rather than a switch, so the shape of the process is something a GM
+   * can read, and something a house rule can change, without going through a
+   * function. Each entry is one box: what it needs from the table, and where
+   * each answer leads.
+   *
+   *   needs   "roll" a challenge, "add" a component, "choose" to go on, or
+   *           nothing at all for a box the process just passes through.
+   *   at      how the challenge number is worked out, where there is one.
+   *   level   what level the component must be, where there is one.
+   *   next    where each answer goes.
+   *
+   * `bumps` marks the boxes that raise the working level. The chart writes that
+   * inside the box as "(x now = x + 1)" and it happens on the way in, before
+   * the component's level is read — which is what makes the book's own worked
+   * example come out: succeed at challenge 1, add a *level 2* ingredient, then
+   * attempt a *level 2* challenge (The Way, p59). Incrementing on the way out
+   * instead gives a level 1 ingredient and contradicts the text.
+   */
+  makerMatrix: {
+    material:           { needs: "add",    level: "final",   next: { added: "challenge" } },
+    challenge:          { needs: "roll",   at: "x",          next: { success: "ingredient", failure: "catalyst" } },
+    ingredient:         { needs: "add",    level: "x", bumps: true, next: { added: "continue" } },
+    continue:           { needs: "choose", next: { yes: "challenge", no: "atLevel" } },
+    /* The chart's diamond. Passed through rather than asked about: it is a test
+     * on the working level, not a decision anybody makes. */
+    atLevel:            { next: { yes: "powerSource", no: "randomEffect" } },
+    powerSource:        { needs: "add",    level: "x",       next: { added: "finalChallenge" } },
+    finalChallenge:     { needs: "roll",   at: "x+1",        next: { success: "created", failure: "mishap" } },
+    catalyst:           { needs: "add",    level: "x", bumps: true, next: { added: "catalystChallenge" } },
+    catalystChallenge:  { needs: "roll",   at: "x+1",        next: { success: "minorSideEffect", failure: "stabilizer" } },
+    minorSideEffect:    { needs: "add",    next: { added: "ingredient" } },
+    stabilizer:         { needs: "add",    level: "x", bumps: true, next: { added: "stabilizerChallenge" } },
+    stabilizerChallenge:{ needs: "roll",   at: "x+1",        next: { success: "majorSideEffect", failure: "mishap" } },
+    majorSideEffect:    { needs: "add",    next: { added: "ingredient" } },
+
+    created:            { ends: "created" },
+    randomEffect:       { ends: "randomEffect" },
+    mishap:             { ends: "mishap" },
+  },
+
+  /* ──────────────────────────────────────────────
    * WHEN A DEPLETION IS CHECKED
    * ────────────────────────────────────────────── */
 
