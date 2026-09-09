@@ -622,23 +622,22 @@ export class MakerMatrix {
 
       <!-- The two prices a Maker can agree to in advance. Both make the work
            easier or shorter and both cost something the item keeps. -->
+      <!-- Label, control and explanation on one line each, rather than a
+           paragraph underneath: what a price costs is what the Maker is reading
+           while they set the number, so it belongs beside the number. The flaw
+           hint covers both flaw rows and spans them. -->
       <fieldset class="maker-tradeoffs">
         <legend>${game.i18n.localize("ISUN.MakerTradeoffs")}</legend>
 
-        <div class="form-group">
-          <label for="isun-maker-minor">${game.i18n.localize("ISUN.MakerMinorFlaws")}</label>
-          <input type="number" id="isun-maker-minor" name="minor" value="0" min="0" max="3" />
-        </div>
-        <div class="form-group">
-          <label for="isun-maker-major">${game.i18n.localize("ISUN.MakerMajorFlaws")}</label>
-          <input type="number" id="isun-maker-major" name="major" value="0" min="0" max="3" />
-        </div>
-        <p class="hint">${game.i18n.localize("ISUN.MakerFlawsHint")}</p>
+        <label for="isun-maker-minor">${game.i18n.localize("ISUN.MakerMinorFlaws")}</label>
+        <input type="number" id="isun-maker-minor" name="minor" value="0" min="0" max="3" />
+        <p class="hint spans-flaws">${game.i18n.localize("ISUN.MakerFlawsHint")}</p>
 
-        <div class="form-group">
-          <label for="isun-maker-shaved">${game.i18n.localize("ISUN.MakerShaved")}</label>
-          <input type="number" id="isun-maker-shaved" name="shaved" value="0" min="0" />
-        </div>
+        <label for="isun-maker-major">${game.i18n.localize("ISUN.MakerMajorFlaws")}</label>
+        <input type="number" id="isun-maker-major" name="major" value="0" min="0" max="3" />
+
+        <label for="isun-maker-shaved">${game.i18n.localize("ISUN.MakerShaved")}</label>
+        <input type="number" id="isun-maker-shaved" name="shaved" value="0" min="0" />
         <p class="hint">${game.i18n.localize("ISUN.MakerShavedHint")}</p>
       </fieldset>
 

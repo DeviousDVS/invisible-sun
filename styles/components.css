@@ -2875,7 +2875,7 @@ a.sentence-part:hover + .sentence-part.affix {
 .maker-effects .effect-search { width: 100%; margin-bottom: var(--isun-space-xs); }
 
 .maker-effects .effect-rows {
-  max-height: 16rem;
+  max-height: 12rem;
   overflow-y: auto;
   border: 1px solid var(--isun-border);
   border-radius: 4px;
@@ -2957,12 +2957,43 @@ a.sentence-part:hover + .sentence-part.affix {
 .maker-setup .notes { margin: 0 0 0.75rem; font-size: 0.85rem; line-height: 1.45; opacity: 0.85; }
 .maker-setup .hint { margin: -0.35rem 0 0.6rem; font-size: 0.78rem; opacity: 0.7; }
 
+/* Three columns: what the price is called, the number, and what it costs. The
+   explanation reads beside the control it explains rather than under the pair
+   of them, which is where a Maker is looking while they set the number.
+
+   A grid rather than a row of flex groups, because the three rows have to line
+   their columns up with each other and one hint has to span two of them. */
 .maker-setup .maker-tradeoffs {
   margin: 0.35rem 0 0.75rem;
-  padding: 0.5rem 0.75rem 0.25rem;
+  padding: 0.5rem 0.75rem;
   border: 1px solid var(--isun-border);
   border-radius: 3px;
+  display: grid;
+  grid-template-columns: auto 4.5rem 1fr;
+  align-items: center;
+  gap: 0.35rem 0.6rem;
 }
+
+/* The legend sits outside the grid flow, so it is spanned across it rather than
+   taking a cell — otherwise the first label lands in the second column. */
+.maker-setup .maker-tradeoffs legend { grid-column: 1 / -1; }
+
+/* The same treatment the form-group labels above get. Written out rather than
+   shared, because these are not in a form-group any more: the row is the grid
+   and the label is a cell of it. */
+.maker-setup .maker-tradeoffs > label {
+  margin: 0;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+}
+
+.maker-setup .maker-tradeoffs > input[type="number"] { width: 100%; }
+
+/* Reset the block spacing these carry outside the grid; the gap does it now. */
+.maker-setup .maker-tradeoffs > .hint { margin: 0; }
+
+/* One explanation for the two flaw rows, held beside both of them. */
+.maker-setup .maker-tradeoffs > .hint.spans-flaws { grid-row: span 2; }
 
 .maker-setup .maker-tradeoffs legend {
   padding: 0 0.4rem;
