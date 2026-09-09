@@ -2817,6 +2817,57 @@ a.sentence-part:hover + .sentence-part.affix {
   margin-right: var(--isun-space-xs);
 }
 
+/* The finished thing, offered rather than announced. Loud, because it is the
+   payoff of six weeks of game time and the reason the panel exists. */
+.makers-bench .bench-take {
+  margin-right: auto;
+  font-size: 0.85em;
+  color: var(--isun-text-accent);
+  cursor: pointer;
+}
+.makers-bench .bench-take:hover { color: var(--isun-border-accent); }
+/* Once there is something to take, saying again how it ended is the quiet
+   option — so the two swap emphasis rather than competing. */
+.makers-bench .bench-take ~ .bench-abandon,
+.makers-bench .bench-take { flex: 0 0 auto; }
+.makers-bench.finished .bench-work-on { color: var(--isun-text-secondary); }
+
+/* Taking it off the bench. Two fields and a reckoning, the setup dialog's shape
+   — the difference being that here the numbers are settled and only shown. */
+.maker-take .maker-take-body { display: flex; flex-direction: column; }
+.maker-take .form-group {
+  display: flex;
+  /* Stated, not assumed — the sheet's own .form-group is a column, and a rule
+     that only sets `display: flex` leaves the label sizing its own height. */
+  flex-direction: row;
+  align-items: center;
+  gap: var(--isun-space-sm);
+  margin-bottom: var(--isun-space-sm);
+}
+.maker-take .form-group > label { flex: 0 0 7rem; }
+.maker-take .form-group > input { flex: 1; min-width: 0; }
+.maker-take .notes { margin: 0 0 0.75rem; font-size: 0.85rem; line-height: 1.45; opacity: 0.85; }
+.maker-take .hint { margin: -0.35rem 0 0.6rem; font-size: 0.78rem; opacity: 0.7; }
+
+.maker-take .maker-take-reckoning {
+  margin: var(--isun-space-xs) 0 var(--isun-space-sm);
+  padding: var(--isun-space-sm);
+  border: 1px solid var(--isun-border);
+  border-radius: 4px;
+}
+.maker-take .take-line {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--isun-space-sm);
+  font-size: 0.88em;
+  padding: 2px 0;
+}
+.maker-take .take-term {
+  font-family: var(--isun-font-smallcaps);
+  color: var(--isun-text-secondary);
+}
+.maker-take .take-value { text-align: right; }
+
 /* Picking the effect off the table. A hundred and eighty entries, so the list
    scrolls and the row is compact — the flux picker's shape, for the same reason
    it has it. */

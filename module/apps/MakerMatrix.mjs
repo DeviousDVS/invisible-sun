@@ -134,6 +134,225 @@ export class MakerMatrix {
   }
 
   /**
+   * Take the finished thing off the bench.
+   *
+   * "Success means that the item is created" — and the item is a real one: an
+   * object of power or an ephemera on the Maker's own sheet, at the level the
+   * work was for, carrying the depletion its kind implies and every flaw the
+   * process worked into it.
+   *
+   * Two questions are asked because two things are genuinely the Maker's and
+   * nothing here can know them. The name is theirs, and for a work that stopped
+   * short the effect is not the one they set out to make. The form is theirs
+   * too — "material appropriate to the item (metal for a knife, leather for
+   * shoes)" is chosen at the bench, and every card in the books states one.
+   *
+   * Everything else is already settled and is shown rather than asked.
+   *
+   * The bench is cleared by the same act, which is what gives the Sorcery back:
+   * "for the duration of the process, the Maker's Sorcery pool faces this
+   * deduction… until it is completed" (The Way, p60). Held, never spent, and
+   * the holding ends here.
+   */
+  static async take(actor) {
+    const making = actor?.system?.making;
+    const ending = making ? matrix.ended(making) : null;
+    if (ending !== "created" && ending !== "randomEffect") return null;
+
+    /* An item nobody chose is the level the work actually reached, not the one
+     * it was aiming at — it stopped short, and that is the whole difference
+     * between the two endings. */
+    const level = ending === "randomEffect" ? making.x : making.level;
+    const kind = CONFIG.ISUN.makerItemKinds?.[making.kind] ?? {};
+    const effect = ending === "randomEffect" && making.outcome
+      ? making.outcome : (making.effect || "");
+
+    const chosen = await DialogV2.wait({
+      window: { title: game.i18n.format("ISUN.MakerTakeTitle",
+                  { effect: making.effect || game.i18n.localize("ISUN.BenchUnnamed") }),
+                icon: "fa-solid fa-gem" },
+      classes: ["invisible-sun", "maker-take"],
+      position: { width: 460 },
+      content: this.#takeContent(making, { ending, level, kind, effect }),
+      buttons: [
+        { action: "take", default: true, icon: "fa-solid fa-gem",
+          label: game.i18n.localize("ISUN.MakerTakeIt"),
+          callback: (event, button) =>
+            new foundry.applications.ux.FormDataExtended(button.form).object },
+        { action: "cancel", label: game.i18n.localize("ISUN.Cancel"), icon: "fa-solid fa-xmark" }
+      ],
+      rejectClose: false
+    });
+    if (!chosen || chosen === "cancel") return null;
+
+    const name = String(chosen.name ?? "").trim()
+      || effect || game.i18n.localize("ISUN.BenchUnnamed");
+    const [item] = await actor.createEmbeddedDocuments("Item", [{
+      name,
+      type: kind.type ?? "ObjectOfPower",
+      system: {
+        level,
+        form: String(chosen.form ?? "").trim(),
+        depletion: kind.depletion ?? "",
+        description: this.#writeUp(effect, making.sideEffects ?? [])
+      }
+    }]);
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `<p>${game.i18n.format("ISUN.MakerTookIt", {
+        name: foundry.utils.escapeHTML(name),
+        level,
+        kind: game.i18n.localize(`TYPES.Item.${kind.type ?? "ObjectOfPower"}`)
+      })}</p>`
+    });
+
+    /* Cleared by the same act. The node is the whole of "is there work", and
+     * the rest is left as it lies for the reason the abandon handler gives. */
+    await actor.update({ "system.making.node": "" });
+    /* Opened, because two of the things a made item wants — what it looks like,
+     * and how the effect is worded on it — are the Maker's to write and this is
+     * the moment they are thinking about them. */
+    item?.sheet?.render(true);
+    return item;
+  }
+
+  /**
+   * Put the work down before it is finished.
+   *
+   * "At any point in the process, the Maker can opt to quit. If they do so
+   * after successfully adding an ingredient, they get an item with a random
+   * effect. If the Maker quits at any other time in the process, a mishap
+   * occurs" (The Way, p60).
+   *
+   * The first of those is the chart's own Continue? diamond and is not this.
+   * This is quitting anywhere else, and the book is unambiguous about what it
+   * costs — so a mishap is what the button offers, and it rolls one.
+   *
+   * The plain clearing stays beside it, because a bench can also hold a work
+   * begun by mistake, or one from a session everybody has agreed to forget, and
+   * a rule about a Maker quitting is not a rule about a GM tidying up.
+   */
+  static async abandon(actor) {
+    const bench = actor?.system?.bench;
+    if (!bench) return null;
+
+    const effect = bench.effect || game.i18n.localize("ISUN.BenchUnnamed");
+
+    /* A work that has already ended has nothing left to quit — the process is
+     * over and what it came to is sitting on the bench. So this is only the
+     * clearing, with a word about what clearing it throws away where there is
+     * still something on it to keep. */
+    if (bench.finished) {
+      const yes = await DialogV2.confirm({
+        window: { title: game.i18n.localize("ISUN.BenchAbandonTitle"),
+                  icon: "fa-solid fa-xmark" },
+        classes: ["invisible-sun"],
+        content: `<p>${game.i18n.format("ISUN.BenchClearAsk",
+            { effect, sorcery: bench.sorceryHeld })}</p>`
+          + (bench.takeable
+              ? `<p class="notes">${game.i18n.localize("ISUN.BenchClearLosesItem")}</p>` : ""),
+        rejectClose: false
+      });
+      if (!yes) return null;
+      await actor.update({ "system.making.node": "" });
+      return "clear";
+    }
+
+    const chosen = await DialogV2.wait({
+      window: { title: game.i18n.localize("ISUN.BenchAbandonTitle"),
+                icon: "fa-solid fa-xmark" },
+      classes: ["invisible-sun"],
+      position: { width: 440 },
+      content: `<p>${game.i18n.format("ISUN.BenchAbandonAsk",
+          { effect, sorcery: bench.sorceryHeld })}</p>`
+        + `<p class="notes">${game.i18n.localize("ISUN.BenchAbandonRule")}</p>`,
+      buttons: [
+        { action: "mishap", default: true, icon: "fa-solid fa-burst",
+          label: game.i18n.localize("ISUN.BenchAbandonMishap"), callback: () => "mishap" },
+        { action: "clear", icon: "fa-solid fa-broom",
+          label: game.i18n.localize("ISUN.BenchAbandonClear"), callback: () => "clear" },
+        { action: "cancel", label: game.i18n.localize("ISUN.Cancel"), icon: "fa-solid fa-reply" }
+      ],
+      rejectClose: false
+    });
+    if (chosen !== "mishap" && chosen !== "clear") return null;
+
+    /* Through the chart rather than around it: a mishap is a box of the Matrix,
+     * so the work is moved onto it and finished from there. That is what makes
+     * the card, the rolled mishap and the bench all say the same thing they
+     * would have said had the process failed its way there. */
+    if (chosen === "mishap") {
+      const making = { ...actor.system.making, node: "mishap", announced: "", outcome: "" };
+      await actor.update({ system: { making } });
+      await this.#finish(actor, actor.system.making, "mishap");
+      return "mishap";
+    }
+
+    await actor.update({ "system.making.node": "" });
+    return "clear";
+  }
+
+  /**
+   * What the finished item says about itself.
+   *
+   * The effect, and then what the process did to it. Side effects are written
+   * onto the item rather than left in the chat log because they are part of
+   * what it is now — "side effects can affect the final value of an item
+   * (almost certainly lowering it), but they do not change its final level".
+   */
+  static #writeUp(effect, flaws) {
+    const esc = foundry.utils.escapeHTML;
+    const body = effect ? `<p>${esc(effect)}</p>` : "";
+    if (!flaws.length) return body;
+
+    const lines = flaws.map(f => `<li>${esc(f.text
+      || game.i18n.localize(f.severity === "major"
+        ? "ISUN.MakerFlawMajor" : "ISUN.MakerFlawMinor"))}</li>`).join("");
+    return `${body}<p><strong>${game.i18n.localize("ISUN.MakerSideEffects")}</strong></p>`
+      + `<ul>${lines}</ul>`;
+  }
+
+  /** The two questions, and everything the process has already settled. */
+  static #takeContent(making, { ending, level, kind, effect }) {
+    const esc = foundry.utils.escapeHTML;
+    const flaws = making.sideEffects ?? [];
+
+    const reckon = [
+      [game.i18n.localize("ISUN.MakerTakeItIs"),
+       game.i18n.localize(`TYPES.Item.${kind.type ?? "ObjectOfPower"}`)],
+      [game.i18n.localize("ISUN.MakerTakeLevel"), String(level)],
+      [game.i18n.localize("ISUN.MakerTakeDepletion"),
+       kind.depletion || game.i18n.localize("ISUN.MakerTakeNoDepletion")],
+      [game.i18n.localize("ISUN.MakerTakeFlaws"),
+       flaws.length ? String(flaws.length) : game.i18n.localize("ISUN.MakerTakeNoFlaws")]
+    ].map(([term, value]) =>
+      `<div class="take-line"><span class="take-term">${esc(term)}</span>`
+      + `<span class="take-value">${esc(value)}</span></div>`).join("");
+
+    return `<div class="maker-take-body">
+      <p class="notes">${game.i18n.localize(ending === "randomEffect"
+        ? "ISUN.MakerTakeRandomIntro" : "ISUN.MakerTakeIntro")}</p>
+
+      <div class="form-group">
+        <label for="isun-take-name">${game.i18n.localize("ISUN.MakerTakeName")}</label>
+        <input type="text" id="isun-take-name" name="name" value="${esc(effect)}" />
+      </div>
+
+      <div class="form-group">
+        <label for="isun-take-form">${game.i18n.localize("ISUN.MakerTakeForm")}</label>
+        <input type="text" id="isun-take-form" name="form"
+               placeholder="${game.i18n.localize("ISUN.MakerTakeFormPlaceholder")}" />
+      </div>
+      <p class="hint">${game.i18n.localize("ISUN.MakerTakeFormHint")}</p>
+
+      <div class="maker-take-reckoning">${reckon}</div>
+      <p class="hint">${game.i18n.format("ISUN.MakerTakeSorceryBack",
+        { n: making.level })}</p>
+    </div>`;
+  }
+
+  /**
    * Throw a challenge.
    *
    * The venture roll the system already has, with two things said about it:

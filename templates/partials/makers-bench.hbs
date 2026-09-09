@@ -94,6 +94,15 @@
       <i class="fa-solid fa-hammer"></i>
       {{#if bench.finished}}{{localize "ISUN.BenchSayAgain"}}{{else}}{{localize "ISUN.BenchWorkOn"}}{{/if}}
     </a>
+    {{!-- A finished work has something to pick up, unless it ended in wreckage.
+          Taking it is what gives the Sorcery back, so it is the loud action
+          once it appears — putting it down is not. --}}
+    {{#if bench.takeable}}
+      <a class="bench-take" data-action="making-take"
+         data-tooltip="{{localize 'ISUN.BenchTakeHint'}}">
+        <i class="fa-solid fa-gem"></i> {{localize "ISUN.BenchTake"}}
+      </a>
+    {{/if}}
     <a class="bench-abandon" data-action="making-abandon"
        data-tooltip="{{localize 'ISUN.BenchAbandonHint'}}">
       <i class="fa-solid fa-xmark"></i> {{localize "ISUN.BenchAbandon"}}

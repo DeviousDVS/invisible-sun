@@ -78,6 +78,7 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       "track-item":         this.prototype._onTrackItem,
       "making-begin":       this.prototype._onBeginWork,
       "making-continue":    this.prototype._onWorkOn,
+      "making-take":        this.prototype._onTakeWork,
       "making-abandon":     this.prototype._onAbandonWork,
       "roll-depletion":     this.prototype._onRollDepletion,
       "roll-spell":         this.prototype._onItemRoll,
@@ -1287,37 +1288,30 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
   }
 
   /**
+   * Take the finished thing off the bench.
+   *
+   * What it becomes, and what it carries, is the Matrix's; this presses the
+   * button and redraws, because clearing the bench is what the panel shows.
+   */
+  async _onTakeWork(event, target) {
+    event.preventDefault();
+    await MakerMatrix.take(this.document);
+    this.render();
+  }
+
+  /**
    * Put down whatever is on the Maker's bench.
    *
-   * "At any point in the process, the Maker can opt to quit" (The Way, p60) —
-   * and what they are left holding depends on where they stopped, which the
-   * Matrix decides rather than this. So this clears the bench and no more: the
-   * Sorcery the work was holding comes back with it, because it was never
-   * spent, only tied up.
-   *
-   * Asked first. A commission runs for weeks of game time and several sessions,
-   * and there is no undo for throwing one away.
+   * "At any point in the process, the Maker can opt to quit" (The Way, p60),
+   * and what that costs is a rule rather than a courtesy — so the Matrix owns
+   * it, the same as every other step. Asked first, either way: a commission
+   * runs for weeks of game time and several sessions, and there is no undo for
+   * throwing one away.
    */
   async _onAbandonWork(event, target) {
     event.preventDefault();
-    const bench = this.document.system.bench;
-    if (!bench) return;
-
-    const yes = await foundry.applications.api.DialogV2.confirm({
-      window: { title: game.i18n.localize("ISUN.BenchAbandonTitle") },
-      classes: ["invisible-sun"],
-      content: `<p>${game.i18n.format("ISUN.BenchAbandonAsk",
-        { effect: bench.effect || game.i18n.localize("ISUN.BenchUnnamed"),
-          sorcery: bench.sorceryHeld })}</p>`,
-      rejectClose: false
-    });
-    if (!yes) return;
-
-    /* The node is the whole of "is there work", so clearing it is enough to
-     * clear the bench. The rest is left as it lies rather than reset field by
-     * field: the next work overwrites it, and a half-written reset is how a
-     * stale failure count ends up charged to somebody else's commission. */
-    await this.document.update({ "system.making.node": "" });
+    await MakerMatrix.abandon(this.document);
+    this.render();
   }
 
   /**

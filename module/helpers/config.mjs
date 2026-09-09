@@ -536,14 +536,36 @@ export const ISUN = Object.freeze({
    * depletion band rather than the fiction, because that is what the table is
    * actually indexed by, and it is what a Maker chooses when they decide how
    * durable the thing should be.
+   *
+   * ── What comes off the bench ──
+   * `type` is the item the finished work becomes, and `depletion` is what gets
+   * written on it — the same sentence the cards carry, because a made item
+   * should be indistinguishable from a printed one on the sheet and on the
+   * board of ongoing effects.
+   *
+   * The moment is "each use" and the book does not say so in those words: the
+   * table's own axis is "how often it can be used before the magic depletes",
+   * which is a use cadence stated as a heading. It matters because
+   * `depletionCadences` reads the moment out of the sentence, and a depletion
+   * with no moment in it falls through to `event` and is grouped on the tracker
+   * under its own text rather than with everything else checked on use.
+   *
+   * Kindled items are absent on purpose: "in the case of kindled items, don't
+   * use the Maker's Matrix" (The Way, p59). Nothing this process makes is one.
    */
   makerItemKinds: {
-    ephemera:       { label: "ISUN.MakerKindEphemera",   modifier: -1, depletion: "" },
-    object0to4:     { label: "ISUN.MakerKindObject0to4", modifier:  0, depletion: "0–4" },
-    object0to2:     { label: "ISUN.MakerKindObject0to2", modifier:  1, depletion: "0–2" },
-    object0to1:     { label: "ISUN.MakerKindObject0to1", modifier:  2, depletion: "0–1" },
-    object0:        { label: "ISUN.MakerKindObject0",    modifier:  3, depletion: "0" },
-    objectConstant: { label: "ISUN.MakerKindConstant",   modifier:  4, depletion: "" },
+    ephemera:       { label: "ISUN.MakerKindEphemera",   modifier: -1,
+                      type: "Ephemera",      depletion: "" },
+    object0to4:     { label: "ISUN.MakerKindObject0to4", modifier:  0,
+                      type: "ObjectOfPower", depletion: "0–4 (check each use)" },
+    object0to2:     { label: "ISUN.MakerKindObject0to2", modifier:  1,
+                      type: "ObjectOfPower", depletion: "0–2 (check each use)" },
+    object0to1:     { label: "ISUN.MakerKindObject0to1", modifier:  2,
+                      type: "ObjectOfPower", depletion: "0–1 (check each use)" },
+    object0:        { label: "ISUN.MakerKindObject0",    modifier:  3,
+                      type: "ObjectOfPower", depletion: "0 (check each use)" },
+    objectConstant: { label: "ISUN.MakerKindConstant",   modifier:  4,
+                      type: "ObjectOfPower", depletion: "" },
   },
 
   /**

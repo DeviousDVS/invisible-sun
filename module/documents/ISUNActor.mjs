@@ -929,6 +929,10 @@ export class ISUNActor extends Actor {
       onBench: Math.max(0, (system.meta?.day ?? 0) - (making.startedDay ?? 0)),
       stepLabel: CONFIG.ISUN.makerNodeLabels?.[at.node] ?? at.node,
       finished: matrix.ended(making),
+      /* Whether there is something to pick up. Two of the three endings leave
+       * an item and one leaves wreckage, so a mishap offers nothing to take —
+       * the bench is only cleared. */
+      takeable: ["created", "randomEffect"].includes(matrix.ended(making)),
       /* What a finished work turned out to be — the mishap, or the effect of an
        * item nobody chose. Rolled once when the process ended and kept, so the
        * bench and the chat card say the same thing. */
