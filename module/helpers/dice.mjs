@@ -40,16 +40,24 @@ export async function rollVenture({challenge = 0, venture = 0, magicDice = 0, so
 
   /* Nothing to roll against, or nothing left to decide. `routine` is the
    * challenge being none; `assured` is the venture having covered it. Both
-   * succeed without dice and the card says which. */
+   * succeed without dice and the card says which.
+   *
+   * `success` is stated on every path out of this function, including the ones
+   * that never touch a die. It used to be absent here, which read as false to
+   * anything that asked the plain question — and the Maker's Matrix asked it,
+   * so a first challenge the Maker's venture already covered was recorded as a
+   * failure and sent the work down the catalyst path. A result that means
+   * "succeeded without rolling" must not be able to answer "did it succeed?"
+   * with silence. */
   if (kind === "routine" || kind === "assured") {
     return postResult({ label, challenge, venture, target: Math.max(0, target),
-                        autoSuccess: true, routine: kind === "routine",
+                        success: true, autoSuccess: true, routine: kind === "routine",
                         actor, sources, practice });
   }
 
   if (kind === "impossible") {
-    return postResult({ label, challenge, venture, target, impossible: true,
-                        actor, sources, practice });
+    return postResult({ label, challenge, venture, target, success: false,
+                        impossible: true, actor, sources, practice });
   }
   
   // Build dice pool. The experimental dice are a separate term because they
