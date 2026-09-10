@@ -1966,77 +1966,83 @@ a.sentence-part:hover + .sentence-part.affix {
 .degree-ladder .degree-abilities li { margin-bottom: 0.35rem; font-size: 0.9em; }
 .degree-ladder .ability-name { font-weight: 600; color: var(--isun-text-accent); margin-right: 0.35rem; }
 
-/* An Apostate's abilities use the ladder's shell, so the list, the toggle and
-   the ability names are already styled above. Only the two groups differ: there
-   is no rank column to align to, and what is not yet bought recedes the way an
-   unattained degree does. */
-/* Its own panel now rather than a section of the order header, so it carries
-   its own heading — and the list styling the ladder used to lend it. */
+/* ── The order's own package, in the header ──────────────────────
+   What an Apostate gets for being one, sitting where every other order's ladder
+   sits and using its shell — so the list, the toggle and the ability names are
+   already styled above. Description, not record: it collapses the same way and
+   is read the same number of times. */
+.apostate-starting .hint { margin: 0 0 0.5rem; }
+.apostate-starting .group-note {
+  font-size: 0.85em; font-style: italic; color: var(--isun-text-secondary);
+  margin: 0.3rem 0 0.1rem;
+}
+.apostate-starting .group-note p { margin: 0; }
+
+/* ── What the character chose, as its own list ────────────────────
+   Built on the practices panel it sits under, because it is the same kind of
+   thing: what this vislae can bring to bear, with the way to take another at
+   the foot of it. */
+.apostate-abilities { margin-top: var(--isun-space-md); }
+
 .apostate-abilities .apostate-head {
   display: flex;
   align-items: baseline;
-  gap: 0.5rem;
-  margin-bottom: 0.35rem;
+  gap: var(--isun-space-md);
+  flex-wrap: wrap;
 }
-.apostate-abilities .apostate-head h3 { margin: 0; }
-.apostate-abilities .apostate-nodegrees {
-  font-size: 0.85em;
-  opacity: 0.65;
-}
+.apostate-abilities .apostate-head h3 { margin: 0; border: none; flex: 0 0 auto; }
 
-.apostate-abilities .degree-abilities { margin: 0.3rem 0 0; padding: 0; list-style: none; }
-.apostate-abilities .degree-abilities li { margin-bottom: 0.35rem; font-size: 0.9em; }
-.apostate-abilities .ability-name {
-  font-weight: 600; color: var(--isun-text-accent); margin-right: 0.35rem;
+/* What the list has come to: free picks left, Crux paid, and how many of the
+   order's twelve are held. Pushed to the far end, where the practice filters
+   sit on the panel above. */
+.apostate-abilities .apostate-tally {
+  display: flex;
+  gap: var(--isun-space-md);
+  align-items: baseline;
+  margin-left: auto;
+  font-size: 0.82em;
+  color: var(--isun-text-secondary);
 }
+.apostate-abilities .tally-crux { color: var(--isun-text-accent); white-space: nowrap; }
+.apostate-abilities .tally-count { white-space: nowrap; opacity: 0.7; }
 
-.apostate-abilities .hint { margin: 0 0 0.5rem; }
-.apostate-abilities .apostate-group + .apostate-group { margin-top: 0.6rem; }
-.apostate-abilities .apostate-group h4 {
-  display: flex; align-items: baseline; gap: 0.4rem; margin: 0;
-  /* The ability names below are gold too, so size alone will not separate the
-     two groups. A rule does the dividing; the label itself stays quiet. */
-  font-size: 0.85em; font-weight: 600; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--isun-text-secondary);
-  border: none; border-bottom: 1px solid var(--isun-border); padding-bottom: 0.25rem;
+/* A row is a name and what it does. No level, colour, cost or depletion — an
+   Apostate ability has none of them, so the practices' own columns would be
+   seven empty cells and one full one. */
+.apostate-list .item.apostate-ability {
+  display: grid;
+  grid-template-columns: 10rem 1fr 1.5rem;
+  align-items: baseline;
+  gap: var(--isun-space-sm);
 }
-.apostate-abilities .apostate-group h4 .degree-count {
-  margin-left: auto; letter-spacing: normal; opacity: 1;
-  color: var(--isun-text-accent); font-size: 1.05em;
+.apostate-list .item.apostate-ability .name {
+  font-weight: 600;
+  color: var(--isun-text-accent);
 }
-/* The panel lists what the character has, so a row is an ability and the only
-   control on it is the one that gives it up. That sits at the end of the line
-   and stays quiet until the row is under the pointer: it is the destructive
-   one, and nobody is looking for it. */
-.apostate-abilities .apostate-open > li { padding-right: 1.2rem; position: relative; }
-.apostate-abilities .apostate-open > li.none-yet {
-  opacity: 0.6; font-style: italic; padding-right: 0;
-}
+.apostate-list .item.apostate-ability .ability-text { font-size: 0.9em; min-width: 0; }
+.apostate-list .item.apostate-ability .ability-text p { margin: 0; }
 
-.apostate-abilities .ability-drop {
-  position: absolute;
-  right: 0;
-  top: 0;
+/* Quiet until the row is under the pointer: it is the destructive control and
+   nobody is looking for it. */
+.apostate-list .item.apostate-ability .actions { text-align: right; }
+.apostate-list .item.apostate-ability .item-delete {
   opacity: 0;
   cursor: pointer;
   color: var(--isun-text-secondary);
   transition: opacity 0.12s ease;
 }
-.apostate-abilities .apostate-open > li:hover .ability-drop { opacity: 0.7; }
-.apostate-abilities .ability-drop:hover { opacity: 1; color: var(--isun-wound); }
+.apostate-list .item.apostate-ability:hover .item-delete { opacity: 0.7; }
+.apostate-list .item.apostate-ability .item-delete:hover { opacity: 1; color: var(--isun-wound); }
 
-/* Taking another. The one thing on this panel that is an action rather than a
-   record, so it is the one thing that reads as a control. */
-.apostate-abilities .apostate-add {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  margin-top: 0.45rem;
-  font-size: 0.85em;
-  color: var(--isun-text-accent);
-  cursor: pointer;
+/* The row of links the practices end with, in the same shape. */
+.apostate-add {
+  display: flex;
+  gap: var(--isun-space-md);
+  margin-top: var(--isun-space-sm);
+  font-size: 0.82em;
 }
-.apostate-abilities .apostate-add:hover { color: var(--isun-border-accent); }
+.apostate-add a { color: var(--isun-text-secondary); cursor: pointer; }
+.apostate-add a:hover { color: var(--isun-text-accent); }
 
 /* ── Picking one ─────────────────────────────────────────────────
    The forte tree's sibling, and deliberately its near-twin: a vislae spending
@@ -2098,30 +2104,6 @@ a.sentence-part:hover + .sentence-part.affix {
 }
 .apostate-picker .ap-state { flex: 0 0 auto; color: var(--isun-text-accent); }
 
-/* What the list has come to, in the heading beside the count: how many free
-   picks are left, and what the rest have cost. Both letter-spacing and case are
-   reset out of the heading, which is set in wide uppercase and would otherwise
-   shout a sentence. */
-.apostate-abilities .apostate-tally {
-  display: flex;
-  gap: 0.6rem;
-  align-items: baseline;
-  /* Out of the heading's face as well as its case and spacing. The label above
-     is set in the small-caps display font, which at this size reads as small
-     caps whatever text-transform says — so the tally takes the UI face and
-     stops looking like a shouted heading of its own. */
-  font-family: var(--isun-font-ui);
-  font-size: 0.95em;
-  font-weight: 400;
-  letter-spacing: normal;
-  text-transform: none;
-}
-.apostate-abilities .apostate-tally .tally-crux { color: var(--isun-text-accent); }
-.apostate-abilities .group-note {
-  font-size: 0.85em; font-style: italic; color: var(--isun-text-secondary);
-  margin: 0.3rem 0 0.1rem;
-}
-.apostate-abilities .group-note p { margin: 0; }
 
 .order-degree { display: flex; gap: 0.4rem; align-items: baseline; }
 .order-degree .degree-title { font-variant: small-caps; opacity: 0.85; }

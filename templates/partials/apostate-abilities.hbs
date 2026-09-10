@@ -1,0 +1,57 @@
+{{!-- What an Apostate has chosen, as its own list.
+
+      Only an Apostate has one, so this whole block is absent for every other
+      order rather than empty — the same rule the Vance's mind and the Maker's
+      bench follow on this tab.
+
+      Shaped like the practices above it because it is the same kind of thing: a
+      list of what this character can bring to bear, with the way to add another
+      at the foot of it. The order's own package is not here — that is what
+      being an Apostate gives you rather than what you chose, and it reads in
+      the order header with every other order's description. --}}
+{{#if isApostate}}
+<div class="apostate-abilities">
+
+  <div class="apostate-head">
+    <h3>{{localize "ISUN.ApostateAbilities"}}</h3>
+    <div class="apostate-tally">
+      {{#if apostateFreeLeft}}
+        <span class="tally-free">{{localize "ISUN.ApostateFreeLeft" n=apostateFreeLeft}}</span>
+      {{/if}}
+      {{#if apostateCrux}}
+        <span class="tally-crux" data-tooltip="{{localize 'ISUN.ApostateCruxHint'}}">
+          {{localize "ISUN.ApostateSpent" n=apostateCrux}} <i class="fa-solid fa-star"></i>
+        </span>
+      {{/if}}
+      <span class="tally-count">{{apostateTaken}} / {{apostateOffered}}</span>
+    </div>
+  </div>
+
+  <div class="item-list apostate-list">
+    {{#each apostateTakenList as |a|}}
+      <div class="item apostate-ability">
+        <div class="name">{{a.name}}</div>
+        <div class="ability-text">{{{a.description}}}</div>
+        <div class="actions">
+          {{!-- No edit: an ability is the order's text, not the character's.
+                Giving it up is the only thing to do to one. --}}
+          <a class="item-delete" data-action="apostate-drop" data-ability="{{a.name}}"
+             data-tooltip="{{localize 'ISUN.ApostateDropHint'}}">
+            <i class="fa-solid fa-xmark"></i>
+          </a>
+        </div>
+      </div>
+    {{else}}
+      <div class="empty-state">{{localize "ISUN.ApostateNoneTaken"}}</div>
+    {{/each}}
+  </div>
+
+  {{!-- A picker, not a create: the twelve are the order's own list, and two of
+        them come free before any Crux is spent. --}}
+  <div class="apostate-add">
+    <a data-action="apostate-add" data-tooltip="{{localize 'ISUN.ApostateAddHint'}}">
+      <i class="fa-solid fa-plus"></i> {{localize "ISUN.ApostateAdd"}}
+    </a>
+  </div>
+</div>
+{{/if}}

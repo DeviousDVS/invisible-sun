@@ -165,6 +165,7 @@ export async function preloadHandlebarsTemplates() {
     "systems/invisible-sun/templates/partials/inventory-list.hbs",
     "systems/invisible-sun/templates/partials/cap-badge.hbs",
     "systems/invisible-sun/templates/partials/order.hbs",
+    "systems/invisible-sun/templates/partials/apostate-abilities.hbs",
     "systems/invisible-sun/templates/partials/practices.hbs",
     "systems/invisible-sun/templates/partials/makers-bench.hbs",
     "systems/invisible-sun/templates/partials/secrets.hbs",
