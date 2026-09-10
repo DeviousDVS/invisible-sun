@@ -101,6 +101,16 @@ export class VislaeModel extends foundry.abstract.DataModel {
         typeof f === "string" ? { severity: f, text: "" } : f);
     }
 
+    /* An Apostate's picks were bare names, from before the Crux they cost was
+     * charged rather than worked out. Nothing was paid through the system then,
+     * so they migrate at nothing — which is the honest reading of a record that
+     * never recorded a price. */
+    const picks = source?.meta?.apostateAbilities;
+    if (Array.isArray(picks) && picks.some(p => typeof p === "string")) {
+      source.meta.apostateAbilities = picks.map(p =>
+        typeof p === "string" ? { name: p, crux: 0 } : p);
+    }
+
     const inj = source?.status?.injuries;
     if (inj && !Array.isArray(inj) && typeof inj === "object") {
       const physical = Number(inj.physical) || 0;
@@ -243,7 +253,8 @@ export class VislaeModel extends foundry.abstract.DataModel {
       orderType:   new fields.StringField({ required: false, initial: "" }),
 
       /**
-       * Which of the Apostate's open abilities this character has taken.
+       * Which of the Apostate's open abilities this character has taken, and
+       * what each one cost when they took it.
        *
        * An Apostate has no degree to read entitlements against — "Apostates
        * have no degrees, but all starting Apostate characters begin with the
@@ -255,9 +266,17 @@ export class VislaeModel extends foundry.abstract.DataModel {
        * in the world and may be re-imported, reordered or edited by a GM; a
        * name survives all three and a position in an array survives none.
        *
+       * `crux` is what was actually paid rather than what the rule would charge
+       * now. The two can honestly differ: a character written up with five
+       * abilities already has spent nothing at this table, and a total worked
+       * out from the count would charge them three Crux they never paid.
+       *
        * Empty for every other order, which have a ladder to read instead.
        */
-      apostateAbilities: new fields.ArrayField(new fields.StringField({ required: true })),
+      apostateAbilities: new fields.ArrayField(new fields.SchemaField({
+        name: new fields.StringField({ required: true }),
+        crux: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+      })),
 
       /**
        * Which day of play this is, counted from 1 and advanced by newDay().

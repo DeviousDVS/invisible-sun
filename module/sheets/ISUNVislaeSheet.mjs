@@ -14,6 +14,7 @@ import { CompendiumPicker } from "../apps/CompendiumPicker.mjs";
 import { IncantationGrant } from "../apps/IncantationGrant.mjs";
 import * as sooth from "../helpers/sooth.mjs";
 import * as apostate from "../helpers/apostate.mjs";
+import { ApostateAbilityPicker } from "../apps/ApostateAbilityPicker.mjs";
 
 /**
  * Invisible Sun — the vislae sheet
@@ -62,7 +63,8 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
       "roll-skill":         this.prototype._onRollSkill,
       "open-item":          this.prototype._onOpenItem,
       "toggle-ladder":      this.prototype._onToggleLadder,
-      "toggle-apostate":    this.prototype._onToggleApostateAbility,
+      "apostate-add":       this.prototype._onAddApostateAbility,
+      "apostate-drop":      this.prototype._onDropApostateAbility,
       "toggle-degree":      this.prototype._onToggleDegree,
       "pick-forte-ability": this.prototype._onPickForteAbility,
       "pick-thread":        this.prototype._onPickThread,
@@ -304,15 +306,18 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     context.isApostate = context.orderKey === "apostate";
     context.apostateStarting = context.order?.system?.startingAbilities ?? [];
 
+    /* Only what this character has. The twelve on offer are a list read a
+     * handful of times across a life, so they open in the picker rather than
+     * standing on the sheet — and are driven off the order's own list, so one
+     * a GM has since removed stops appearing the moment it stops being
+     * offered. */
     const taken = this.document.system.meta?.apostateAbilities ?? [];
-    context.apostatePurchasable = (context.order?.system?.apostateAbilities ?? [])
-      .map(a => ({ ...a, taken: taken.includes(a.name) }));
-    /* Counted off the order's own list rather than off the stored names, so an
-     * ability a GM has since removed from the order stops being counted the
-     * moment it stops being offered. */
-    context.apostateTaken = context.apostatePurchasable.filter(a => a.taken).length;
+    context.apostateTakenList = apostate.takenAbilities(context.order, taken);
+    context.apostateTaken = context.apostateTakenList.length;
+    context.apostateOffered = (context.order?.system?.apostateAbilities ?? []).length;
     context.apostateFreeLeft = apostate.freeLeft(taken);
     context.apostateCrux = apostate.cruxSpent(taken);
+    context.apostateNextCost = apostate.costOf(taken);
 
     // How many of each list a character gets, and what the second one costs.
     // Both are rules about the list rather than about any one ability.
@@ -789,26 +794,51 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
 
   /** Expand one degree, closing whichever was open. */
   /**
-   * Take one of the Apostate's open abilities, or give it up.
+   * Take another of the Apostate's open abilities.
    *
-   * Recorded, not enforced. Several of them carry prerequisites — "we cannot
-   * select this ability again until we have gained at least two other Apostate
-   * abilities", "we cannot select this ability at all as a beginning Apostate"
-   * — and the sheet does not police them, the same way it reports a limit
-   * exceeded rather than refusing the entry. What it does is keep the count,
-   * which is what those prerequisites are actually counted against.
+   * The list, the price and the charging are the picker's; this opens it. Same
+   * division as the forte tree a few methods down, and for the same reason —
+   * spending Crux is a moment, not a control.
    */
-  async _onToggleApostateAbility(event, target) {
+  async _onAddApostateAbility(event, target) {
+    event.preventDefault();
+    if (!this.isEditable) return;
+
+    const order = this.document.items.find(i => i.type === "Order");
+    if (!order) {
+      ui.notifications?.warn(game.i18n.localize("ISUN.NoOrder"));
+      return;
+    }
+    await ApostateAbilityPicker.open(this.document, order);
+    this.render();
+  }
+
+  /**
+   * Give one up.
+   *
+   * Asked first, and the Crux does not come back. A Joy and a Despair spent are
+   * spent, and refunding them silently would let an afternoon of taking and
+   * untaking mint advancement out of nothing; putting them back is a decision
+   * with the GM's own controls for it.
+   */
+  async _onDropApostateAbility(event, target) {
     event.preventDefault();
     if (!this.isEditable) return;
 
     const name = target.dataset.ability;
-    const order = this.document.items.find(i => i.type === "Order");
     const taken = this.document.system.meta?.apostateAbilities ?? [];
-    const next = apostate.toggle(order, taken, name);
-    if (next.length === taken.length) return;
+    if (!taken.some(t => t.name === name)) return;
 
-    return this.document.update({ "system.meta.apostateAbilities": next });
+    const yes = await foundry.applications.api.DialogV2.confirm({
+      window: { title: game.i18n.localize("ISUN.ApostateDropTitle"), icon: "fa-solid fa-xmark" },
+      classes: ["invisible-sun"],
+      content: `<p>${game.i18n.format("ISUN.ApostateDropAsk", { name })}</p>`,
+      rejectClose: false
+    });
+    if (!yes) return;
+
+    return this.document.update({
+      "system.meta.apostateAbilities": apostate.drop(taken, name) });
   }
 
   _onToggleDegree(event, target) {

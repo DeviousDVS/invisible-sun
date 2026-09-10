@@ -2004,23 +2004,99 @@ a.sentence-part:hover + .sentence-part.affix {
   margin-left: auto; letter-spacing: normal; opacity: 1;
   color: var(--isun-text-accent); font-size: 1.05em;
 }
-/* The whole open list used to be dimmed, because none of it was the
-   character's. Now some of it is, so the dimming moves onto the rows that are
-   still only on offer and the taken ones read at full strength. */
-.apostate-abilities .degree-abilities.apostate-open > li {
-  display: flex;
-  align-items: baseline;
-  gap: 0.4rem;
+/* The panel lists what the character has, so a row is an ability and the only
+   control on it is the one that gives it up. That sits at the end of the line
+   and stays quiet until the row is under the pointer: it is the destructive
+   one, and nobody is looking for it. */
+.apostate-abilities .apostate-open > li { padding-right: 1.2rem; position: relative; }
+.apostate-abilities .apostate-open > li.none-yet {
+  opacity: 0.6; font-style: italic; padding-right: 0;
 }
-.apostate-abilities .apostate-open > li.untaken { opacity: 0.55; }
 
-.apostate-abilities .ability-take {
-  flex: 0 0 auto;
+.apostate-abilities .ability-drop {
+  position: absolute;
+  right: 0;
+  top: 0;
+  opacity: 0;
   cursor: pointer;
   color: var(--isun-text-secondary);
+  transition: opacity 0.12s ease;
 }
-.apostate-abilities .apostate-open > li.taken .ability-take { color: var(--isun-text-accent); }
-.apostate-abilities .ability-take:hover { color: var(--isun-border-accent); }
+.apostate-abilities .apostate-open > li:hover .ability-drop { opacity: 0.7; }
+.apostate-abilities .ability-drop:hover { opacity: 1; color: var(--isun-wound); }
+
+/* Taking another. The one thing on this panel that is an action rather than a
+   record, so it is the one thing that reads as a control. */
+.apostate-abilities .apostate-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.45rem;
+  font-size: 0.85em;
+  color: var(--isun-text-accent);
+  cursor: pointer;
+}
+.apostate-abilities .apostate-add:hover { color: var(--isun-border-accent); }
+
+/* ── Picking one ─────────────────────────────────────────────────
+   The forte tree's sibling, and deliberately its near-twin: a vislae spending
+   Crux should meet the same window whichever list they are spending it on. */
+.apostate-picker { display: flex; flex-direction: column; height: 100%; }
+
+.apostate-picker .ap-crux {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--isun-space-sm);
+  margin: 0 0 var(--isun-space-sm);
+  font-size: 0.9em;
+}
+.apostate-picker .ap-standing { color: var(--isun-text-secondary); }
+.apostate-picker .ap-have { color: var(--isun-text-accent); white-space: nowrap; }
+
+.apostate-picker .ap-rows { overflow-y: auto; flex: 1; }
+
+.apostate-picker .ap-row {
+  border: 1px solid var(--isun-border);
+  border-radius: 3px;
+  padding: 0.4rem 0.6rem;
+  margin-bottom: 0.4rem;
+}
+/* One already held. Dimmed rather than dropped: the list is also what a player
+   is choosing against, and a hole in it is harder to read than a grey line. */
+.apostate-picker .ap-row.owned { opacity: 0.5; }
+
+.apostate-picker .ap-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--isun-space-sm);
+}
+.apostate-picker .ap-name {
+  flex: 1;
+  font-weight: 600;
+  color: var(--isun-text-accent);
+}
+.apostate-picker .ap-desc { font-size: 0.9em; margin-top: 0.15rem; }
+.apostate-picker .ap-desc p { margin: 0; }
+
+.apostate-picker .ap-take {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--isun-border-accent);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.85em;
+}
+.apostate-picker .ap-take:hover { background: var(--isun-bg-elevated); }
+.apostate-picker .ap-take.free { color: var(--isun-text-accent); }
+/* Shown and refused rather than hidden: what it costs is the thing a player
+   short of Crux most wants to see. */
+.apostate-picker .ap-take.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: var(--isun-border);
+}
+.apostate-picker .ap-state { flex: 0 0 auto; color: var(--isun-text-accent); }
 
 /* What the list has come to, in the heading beside the count: how many free
    picks are left, and what the rest have cost. Both letter-spacing and case are
@@ -2030,7 +2106,12 @@ a.sentence-part:hover + .sentence-part.affix {
   display: flex;
   gap: 0.6rem;
   align-items: baseline;
-  font-size: 0.9em;
+  /* Out of the heading's face as well as its case and spacing. The label above
+     is set in the small-caps display font, which at this size reads as small
+     caps whatever text-transform says — so the tally takes the UI face and
+     stops looking like a shouted heading of its own. */
+  font-family: var(--isun-font-ui);
+  font-size: 0.95em;
   font-weight: 400;
   letter-spacing: normal;
   text-transform: none;
