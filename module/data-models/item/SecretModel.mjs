@@ -19,6 +19,30 @@ export class SecretModel extends foundry.abstract.DataModel {
       /** Dice a secret adds to the action it applies to, where it adds any. */
       bonusDice:   new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
 
+      /**
+       * Whether using this secret makes the casting experimental.
+       *
+       * Experimental magic "is inherently unstable and will always be risky.
+       * This instability or risk is reflected in flux, and the increased chance
+       * for flux with experimental magic is represented in the requirement of
+       * the Experimental Die" (The Nightside, p512). That die has nine blank
+       * faces, so it never contributes to a success — it only ever adds the
+       * chance of flux, and of worse flux.
+       *
+       * Every one of the eight things the books label "(EXPERIMENTAL EFFECT)"
+       * is a secret, and none is experimental in itself: each makes some
+       * *other* practice experimental when it is used. Experimental Spell
+       * raises a spell's level for free "but you must roll an Experimental Die
+       * when you cast it"; Wanton Casting spares one person from an area spell
+       * and "you must roll an Experimental Die when attempting it".
+       *
+       * So this marks the secret, not the roll. Which practice it applies to,
+       * and under what circumstance, is stated only in the description — which
+       * is why nothing reads it at roll time yet, and why it sits beside
+       * bonusDice rather than anywhere nearer the dice.
+       */
+      experimental: new fields.BooleanField({ required: true, initial: false }),
+
       description: new fields.HTMLField({ required: false, initial: "" }),
       secretType:  new fields.StringField({ required: true, initial: "character", choices: CONFIG.ISUN.secretTypes }),
 

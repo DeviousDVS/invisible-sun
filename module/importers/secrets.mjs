@@ -129,6 +129,10 @@ export function reader() {
               kind: "secret",
               secretType: kind,
               name: titleCase(level.name.replace(EXPERIMENTAL_RE, "").replace(/\s+/g, " ").trim()),
+              /* The bracket is the only place the books say a secret is
+               * experimental, and the line above strips it because it
+               * classifies rather than names. Read it before it goes. */
+              experimental: EXPERIMENTAL_RE.test(level.name),
               level: level.level,
               bonusDice: level.bonusDice,
               body: [],
@@ -213,6 +217,7 @@ export function toItem(entry) {
        * 1 per level of the secret" (The Way, p84). */
       cost: `${entry.level} Acumen`,
       bonusDice: entry.bonusDice,
+      experimental: !!entry.experimental,
       description: entry.description ? `<p>${entry.description}</p>` : "",
       secretType: entry.secretType,
       changeRequired: entry.changeRequired,
