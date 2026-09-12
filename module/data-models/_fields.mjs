@@ -66,6 +66,16 @@ export function baseNonPlayerSchema(defaultWoundMax = 1) {
   return {
     level: new fields.NumberField({ required: true, initial: 1, integer: true, min: 0 }),
     armor: new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
+    /**
+     * When the armour applies, where the book qualifies it.
+     *
+     * Rare — a handful of entries across 307 — but the qualification is the
+     * whole of the rule where it appears: "Armor: 4 (while dancing)" is not an
+     * armour of 4. The importer has always read it and had nowhere to put it,
+     * so it printed as a bare number that was wrong for everyone who was not
+     * dancing.
+     */
+    armorNote: new fields.StringField({ required: false, initial: "" }),
     ward:  new fields.NumberField({ required: true, initial: 0, integer: true, min: 0 }),
     health: new fields.SchemaField({
       /** For an NPC a scourge is -1 to their level rather than to a pool. */

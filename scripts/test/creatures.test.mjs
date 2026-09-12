@@ -14,12 +14,36 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
-import { parseBlock, startsBlock, describe as describeOf, isName, toItem }
+import { parseBlock, startsBlock, describe as describeOf, isName, toItem,
+         collect, continuesName }
   from "../../module/importers/creatures.mjs";
+import { titleCase } from "../../module/importers/fortes.mjs";
 
 const COLUMN = 72;
 const at = (text, x = COLUMN) => ({ text, x });
 const lines = (...texts) => texts.map(t => at(t));
+
+/**
+ * A run of lines down one column, as the page hands them over.
+ *
+ * `collect` reads heights and y positions as well as text, so a fixture for it
+ * has to carry them. Each entry is `[text]`, `[text, height]`, or
+ * `[text, height, leading]` — the gap above that line rather than below it,
+ * because that is the measurement the wrapped-name rule makes. Body is 10pt on
+ * 12, a name 12 on 13, a section heading 15 on 26; those are the books' own
+ * numbers, taken off Teratology.
+ */
+const column = (...rows) => {
+  let y = 0;
+  return rows.map(([text, h = 10, leading = h === 15 ? 26 : h + 1]) => {
+    y += leading;
+    return { text, x: COLUMN, y, h, page: 1, col: 0 };
+  });
+};
+
+/** The three lines every stat block opens with. */
+const BLOCK = [["Level: 4"], ["Injuries:"], ["Wounds:"], ["Anguish:"],
+               ["Traits: Timid."]];
 
 describe("telling a stat block from everything else with a level", () => {
 
@@ -233,5 +257,150 @@ describe("what reaches the compendium", () => {
     assert.equal(item.system.armor, 0);
     assert.deepEqual(item.system.defenses, []);
     assert.equal(item.system.description, "");
+  });
+});
+
+
+describe("finding the name above a block", () => {
+
+  test("the nearest line in capitals above the block", () => {
+    const found = collect(column(["ALLEGORN", 12], ["Book collector."], ...BLOCK));
+    assert.equal(found.length, 1);
+    assert.equal(found[0].name, "Allegorn");
+    assert.equal(found[0].description, "Book collector.");
+  });
+
+  /* Teratology sets "MAJOR CREATURES AND ENTITIES" across two lines at 15pt,
+   * and the lower half is capitals, short, and directly above an entry. One
+   * creature reached the compendium called "And Entities" because of it. */
+  test("a section heading is not a name, either half of it", () => {
+    const found = collect(column(["MAJOR CREATURES", 15], ["AND ENTITIES", 15],
+                                 ["ALLEGORN", 12], ["Book collector."], ...BLOCK));
+    assert.equal(found[0].name, "Allegorn");
+  });
+
+  test("and an entry whose own name the heading hides is dropped, not misnamed", () => {
+    // No name of its own between the heading and the block: better nothing than
+    // "And Entities".
+    assert.deepEqual(collect(column(["MAJOR CREATURES", 15], ["AND ENTITIES", 15],
+                                    ...BLOCK)), []);
+  });
+
+  /* Ten of the 307 entries are set across two lines. Four of those read
+   * perfectly well as names on their own, so the wrong name was invisible. */
+  test("a name that wraps is taken whole", () => {
+    const found = collect(column(["GATIVA VAIL, SECRAMAL DANCER", 12],
+                                 ["OF THE THIRD CRIME", 12],
+                                 ["A dancer."], ...BLOCK));
+    assert.equal(found[0].name, "Gativa Vail, Secramal Dancer of the Third Crime");
+  });
+
+  /* The description starts under the last line of the name, not under the
+   * first. Reaching back for the rest of a name and then reading downwards
+   * from where the reach ended puts the second half of the name at the front
+   * of the description — which is a quiet kind of wrong, since it reads as a
+   * sentence fragment and nothing counts it. */
+  test("and its second line does not turn up again in the description", () => {
+    const found = collect(column(["GATIVA VAIL, SECRAMAL DANCER", 12],
+                                 ["OF THE THIRD CRIME", 12],
+                                 ["A dancer."], ...BLOCK));
+    assert.equal(found[0].description, "A dancer.");
+  });
+
+  test("the half above is not swallowed when it is a heading, however short", () => {
+    // Same shape as a wrap — capitals directly above capitals — and the only
+    // thing telling them apart is that a heading is set larger and further off.
+    const found = collect(column(["AND ENTITIES", 15], ["THE PLIGHTED TROTH", 12],
+                                 ["A troth."], ...BLOCK));
+    assert.equal(found[0].name, "The Plighted Troth");
+  });
+
+  test("a name does not reach back past the previous entry", () => {
+    const found = collect(column(["ALLEGORN", 12], ["Book collector."], ...BLOCK,
+                                 ["Some trailing prose."], ...BLOCK));
+    // The second block has no name of its own, and must not borrow Allegorn's.
+    assert.equal(found.length, 1);
+    assert.equal(found[0].name, "Allegorn");
+  });
+});
+
+describe("telling a wrapped name from the heading above it", () => {
+
+  const line = (text, h, y) => ({ text, h, y, page: 1, col: 0 });
+
+  test("one line's leading, at the same size, is a wrap", () => {
+    // Teratology's own numbers: 12pt names, 13 apart.
+    assert.equal(continuesName(line("TALYACTRIS OF", 12, 100), line("THE VANCIAN ORDER", 12, 113)), true);
+  });
+
+  test("The Nightside sets the same thing a little looser, and it still is", () => {
+    assert.equal(continuesName(line("MASTER ACCIPITRARY SEJNUS", 12, 100),
+                               line("KADASHMAN-TURGU", 12, 115)), true);
+  });
+
+  test("a section heading is further off, and larger", () => {
+    assert.equal(continuesName(line("AND ENTITIES", 15, 100), line("ALLEGORN", 12, 126)), false);
+  });
+
+  test("the same size but two lines up is not a wrap", () => {
+    assert.equal(continuesName(line("SOMETHING ELSE", 12, 100), line("ALLEGORN", 12, 126)), false);
+  });
+
+  test("a line in another column is never one, however the numbers fall", () => {
+    const above = { text: "TALYACTRIS OF", h: 12, y: 100, page: 1, col: 0 };
+    const below = { text: "THE VANCIAN ORDER", h: 12, y: 113, page: 1, col: 1 };
+    assert.equal(continuesName(above, below), false);
+  });
+
+  test("nor a line on the page before", () => {
+    const above = { text: "TALYACTRIS OF", h: 12, y: 100, page: 1, col: 0 };
+    const below = { text: "THE VANCIAN ORDER", h: 12, y: 113, page: 2, col: 0 };
+    assert.equal(continuesName(above, below), false);
+  });
+
+  test("prose above a name is not part of it", () => {
+    assert.equal(continuesName(line("was never seen again.", 10, 100), line("ALLEGORN", 12, 111)), false);
+  });
+});
+
+
+/* titleCase is shared with the forte and secret importers, but it is the
+ * creature names that exercise its edges: the books set every one of them in
+ * capitals, and 307 of them turn up more shapes than anything else does. */
+describe("turning a name set in capitals into a name", () => {
+
+  test("the ordinary case", () => {
+    assert.equal(titleCase("ALLEGORN"), "Allegorn");
+    assert.equal(titleCase("THE BALEFIRE SEXTET"), "The Balefire Sextet");
+  });
+
+  test("small words stay small in the middle and not at the ends", () => {
+    assert.equal(titleCase("THE GARDENER OF BITTERSWEET MALLOW"),
+                 "The Gardener of Bittersweet Mallow");
+    // Last word, so it keeps its capital even though "of" is in the small set.
+    assert.equal(titleCase("NIQUEE CRIENE OF"), "Niquee Criene Of");
+  });
+
+  test("both halves of a hyphenated name", () => {
+    assert.equal(titleCase("DARK-EYED MANFRED"), "Dark-Eyed Manfred");
+    assert.equal(titleCase("KADASHMAN-TURGU"), "Kadashman-Turgu");
+    assert.equal(titleCase("Y-H-M OF THE BORNLESS"), "Y-H-M of the Bornless");
+  });
+
+  test("a word that opens with punctuation is still capitalised", () => {
+    // Upper-casing an opening bracket changes nothing, so this came back as
+    // "(demon)" — the one word on the sheet in lower case.
+    assert.equal(titleCase("TEUDRAN (DEMON)"), "Teudran (Demon)");
+    assert.equal(titleCase("VIDDISHIN (ADULT-SIZED)"), "Viddishin (Adult-Sized)");
+  });
+
+  test("initials keep their points and their capitals", () => {
+    assert.equal(titleCase("J.C. NEDRICK, ESQUIRE"), "J.C. Nedrick, Esquire");
+  });
+
+  test("text that is not in capitals is left exactly as it was", () => {
+    // The guard that keeps this off the gear and flux names, which the books
+    // set as ordinary sentences.
+    assert.equal(titleCase("Wine (bottle, fine)"), "Wine (bottle, fine)");
   });
 });

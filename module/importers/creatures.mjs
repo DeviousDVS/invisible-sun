@@ -20,6 +20,15 @@
  * the data model already declares are the right answer. Reading them as numbers
  * would give every creature zero of everything and look deliberate.
  *
+ * ── The entry with no name ──
+ * Teratology p.59 is a shapeshifter whose description opens "No one knows your
+ * real name. Or your real shape." The book takes it literally: where every
+ * other entry prints a name in capitals, this one prints a single glyph, which
+ * comes off the page as "(". There is nothing there to read, so the entry is
+ * dropped rather than named after the section heading above it — which is what
+ * it used to be, and it reached the compendium as "And Entities". It is one of
+ * the two Teratology is short of its 246.
+ *
  * ── What the layout does to a description ──
  * A description usually sits between the name and the level as ordinary body
  * text. Sometimes it does not: a few entries are set in a narrow margin column
@@ -40,6 +49,18 @@ import { titleCase, reader as forteReader, entries as forteEntries } from "./for
  * and never a name.
  */
 const SECTION_HEIGHT = 14;
+
+/**
+ * How far apart two lines of one wrapped name sit, as a multiple of their size.
+ *
+ * Measured rather than chosen. Across all three books there are 22 places where
+ * the line directly above a name is itself name-shaped, and they fall into two
+ * groups with nothing between them: ten are a name that wrapped, set at the same
+ * size as the line below with a ratio of 1.08 in Teratology and The Path and
+ * 1.25 in The Nightside; the other twelve are a section heading, set three
+ * points larger at a ratio of 2.17. Anything at 1.5 or under is a wrap.
+ */
+const NAME_LEADING = 1.5;
 
 /** The level line that opens a stat block. Its value is always on the line. */
 const LEVEL_RE = /^Level:\s*(\d+)/;
@@ -162,6 +183,27 @@ export function describe(lines) {
 }
 
 /**
+ * Is `above` the first line of the name whose second line is `line`?
+ *
+ * Exported for the tests: the whole of this is a judgement about two numbers,
+ * and a fixture is the only way to pin down which two.
+ */
+export function continuesName(above, line) {
+  if (!above || !line) return false;
+  // A wrap stays in its column. Across a column or page break the two y values
+  // are measured from different tops and their difference means nothing.
+  if (above.page !== line.page || above.col !== line.col) return false;
+
+  const h = line.h ?? 0;
+  if (!h || Math.abs((above.h ?? 0) - h) > 0.5) return false;
+
+  const gap = line.y - above.y;
+  if (!(gap > 0 && gap <= h * NAME_LEADING)) return false;
+
+  return isName(above.text.trim());
+}
+
+/**
  * Find every stat block in a book's lines, in reading order.
  *
  * Anchored on the block, not on the name. Names were tried first and are not
@@ -194,7 +236,7 @@ export function collect(all) {
     /* The name is the nearest capitals line above, and is not looked for past
      * the previous entry's block, so an entry whose name the layout put out of
      * reach borrows nothing from its neighbour. */
-    let name = null, nameAt = i;
+    let name = null, nameEnd = i;
     for (let j = i - 1; j > previous; j--) {
       /* Section headings are set larger than names — 15 against 12 — and wrap
        * across two lines, so the second half of "MAJOR CREATURES / AND
@@ -204,13 +246,35 @@ export function collect(all) {
        * shows up against the expected count, and a plausible wrong one does
        * not. */
       if ((all[j].h ?? 0) >= SECTION_HEIGHT) continue;
-      if (isName(all[j].text.trim())) { name = all[j].text.trim(); nameAt = j; break; }
+      if (isName(all[j].text.trim())) { name = all[j].text.trim(); nameEnd = j; break; }
     }
     if (!name) continue;
 
+    /* A name that did not fit on one line. Ten of the 307 are set across two —
+     * "GATIVA VAIL, SECRAMAL DANCER / OF THE THIRD CRIME", "DARK-EYED MANFRED /
+     * THE APOSTATE" — and the walk above stops at the lower half, which is the
+     * half nearest the block. Four of the ten read perfectly well on their own
+     * ("The Plighted Troth", "Bittersweet Mallow"), so they were in the
+     * compendium under a wrong name that nothing would ever have flagged.
+     *
+     * Taken while the line above is the same name still going: same column,
+     * same size, and one line's leading above. That last is what tells it from
+     * a section heading, which is the other thing set in capitals directly
+     * above a name — see NAME_LEADING for the measurement.
+     *
+     * Where the name reaches back to is tracked apart from where it ends,
+     * because the description begins under the *last* line of the name. Sharing
+     * one index would have fed the second half of every wrapped name back in as
+     * the opening words of its own description. */
+    let nameStart = nameEnd;
+    while (nameStart - 1 > previous && continuesName(all[nameStart - 1], all[nameStart])) {
+      nameStart -= 1;
+      name = `${all[nameStart].text.trim()} ${name}`;
+    }
+
     found.push({
       name: titleCase(name.replace(/\s+/g, " ").trim()),
-      description: describe(all.slice(nameAt + 1, i)),
+      description: describe(all.slice(nameEnd + 1, i)),
       ...parseBlock(all.slice(i, end)),
       level,
       page: all[i].page ?? null
@@ -241,7 +305,7 @@ export function reader({ book = "", npc = false } = {}) {
            * heading three above that, so isHeading is true of both. Dropping
            * them, which is what a reader of prose wants, took every name with
            * it and left 304 of the 310 entries nameless. */
-          all.push({ ...line, page: n });
+          all.push({ ...line, page: n, col: column });
         }
       }
     },
@@ -311,6 +375,7 @@ export function toItem(entry) {
     system: {
       level: entry.level,
       armor: entry.armor ?? 0,
+      armorNote: entry.armorNote ?? "",
       defenses: entry.defenses ?? [],
       modifications: entry.modifications ?? "",
       traits: entry.traits ?? "",

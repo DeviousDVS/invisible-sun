@@ -176,6 +176,22 @@ const SMALL = new Set(["a", "an", "the", "and", "but", "or", "nor", "for", "of",
                        "into", "upon", "over", "under", "than", "that"]);
 
 /**
+ * The first letter of a word, and of each half of a hyphenated one.
+ *
+ * `word.charAt(0).toUpperCase()` was what this did, and it is wrong twice over
+ * because it assumes the first character is a letter and that a word has only
+ * one. The books gave both back: "(DEMON)" became "(demon)", since upper-casing
+ * an opening bracket changes nothing, and "DARK-EYED MANFRED" became
+ * "Dark-eyed Manfred". "Y-H-M OF THE BORNLESS" lost two capitals of three.
+ *
+ * So: the first letter after the start of the word and after each hyphen,
+ * whatever punctuation sits in front of it.
+ */
+const capitalise = (word) =>
+  word.replace(/(^|-)([^a-z]*)([a-z])/g, (_, start, punctuation, letter) =>
+    start + punctuation + letter.toUpperCase());
+
+/**
  * Recase a name the book set in capitals.
  *
  * Only one the book set that way. The Key writes its ability names as they
@@ -197,8 +213,7 @@ export function titleCase(text) {
        * carries initials, but the rule costs nothing. */
       if (/^(?:[A-Z]\.)+$/.test(word)) return word;
       const lower = word.toLowerCase();
-      return (i > 0 && i < words.length - 1 && SMALL.has(lower))
-        ? lower : lower.charAt(0).toUpperCase() + lower.slice(1);
+      return (i > 0 && i < words.length - 1 && SMALL.has(lower)) ? lower : capitalise(lower);
     })
     .join(" ");
 }

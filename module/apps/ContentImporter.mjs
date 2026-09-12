@@ -705,9 +705,7 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const found = await spec.read(doc, byName, {
       onProgress: ({ done, total, found: n }) => {
-        if (done % 24 === 0 || done >= total) {
-          this.#say(game.i18n.format("ISUN.ImportReadingEntries", { done, total, found: n }));
-        }
+        if (done % 24 === 0 || done >= total) this.#sayProgress({ done, total, found: n });
       }
     });
 
@@ -745,6 +743,22 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
+   * A line of reading progress, with a running count only where there is one.
+   *
+   * Not every reader can give one. A listing that finds its entries as it goes
+   * counts them page by page; the creatures cannot, because a stat block's name
+   * may be in the column before its level and nothing is decided until the
+   * whole book has been gathered. Those readers report the page and no more,
+   * and the count in the message came out as the word "undefined" on every line
+   * of the log for all three books they read.
+   */
+  #sayProgress({ done, total, found }) {
+    this.#say(Number.isFinite(found)
+      ? game.i18n.format("ISUN.ImportReadingEntries", { done, total, found })
+      : game.i18n.format("ISUN.ImportReadingPages", { done, total }));
+  }
+
+  /**
    * Import a book that lists things rather than describing cards.
    *
    * The Gate's kind of book fills in entries a deck has already made. This
@@ -762,9 +776,7 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
       columns: spec.columns,
       book: spec.book,
       onProgress: ({ done, total, found }) => {
-        if (done % 24 === 0 || done >= total) {
-          this.#say(game.i18n.format("ISUN.ImportReadingEntries", { done, total, found }));
-        }
+        if (done % 24 === 0 || done >= total) this.#sayProgress({ done, total, found });
       }
     });
 
