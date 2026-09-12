@@ -1,31 +1,26 @@
+{{!-- An NPC carries the same printed stat block as a creature — The Nightside
+      and The Path lay theirs out exactly as Teratology does — so the two sheets
+      differ only in the prose beneath it: an NPC has notes the players do not
+      see, and no separate combat box. --}}
 <div class="{{cssClass}} flexcol" autocomplete="off">
   {{> "systems/invisible-sun/templates/partials/header-bar.hbs"}}
 
-  <section class="sheet-body single-page">
-    <div class="npc-stats">
-      <div class="health-tracker">
-        <label>{{localize "ISUN.Wounds"}}</label> <input type="number" name="system.health.wounds.value" value="{{system.health.wounds.value}}"> / {{system.health.wounds.max}}
-        <label>{{localize "ISUN.Anguish"}}</label> <input type="number" name="system.health.anguish.value" value="{{system.health.anguish.value}}"> / {{system.health.anguish.max}}
-      </div>
-      <div class="defenses">
-        <label>{{localize "ISUN.Armor"}}</label> <input type="number" name="system.armor" value="{{system.armor}}">
-        <label>{{localize "ISUN.Ward"}}</label> <input type="number" name="system.ward" value="{{system.ward}}">
-      </div>
-    </div>
+  <section class="sheet-body single-page npc-sheet-body">
+    {{> "systems/invisible-sun/templates/partials/non-player-health.hbs"}}
+    {{> "systems/invisible-sun/templates/partials/stat-block.hbs"}}
 
-    <div class="npc-modifications">
-      <h3>{{localize "ISUN.Modifications"}}</h3>
-      <input type="text" name="system.modifications" value="{{system.modifications}}">
-    </div>
-
-    <div class="npc-description">
+    <div class="prose-section">
       <h3>{{localize "ISUN.EntryDescription"}}</h3>
       {{isunEditor "system.description"}}
     </div>
-    
-    <div class="npc-notes">
-      <h3>{{localize "ISUN.GMNotes"}}</h3>
-      {{isunEditor "system.notes"}}
-    </div>
+
+    {{#if isGM}}
+      <div class="prose-section gm-only gm-jottings">
+        <h3><i class="fa-solid fa-eye-slash"></i> {{localize "ISUN.GMNotes"}}</h3>
+        {{isunEditor "system.notes"}}
+      </div>
+    {{/if}}
+
+    {{> "systems/invisible-sun/templates/partials/entry-source.hbs"}}
   </section>
 </div>

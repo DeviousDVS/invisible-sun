@@ -1,0 +1,111 @@
+{{!-- What a creature or an NPC brings to a fight and what the session has done
+      to it. The same three tracks a vislae has, drawn the same way, because a
+      GM reading a creature mid-combat should not have to learn a second set of
+      shapes — but bound to `system.health` rather than `system.status`, which
+      is where every non-player keeps them.
+
+      Numbers a book prints are inputs; numbers the system works out are not.
+      Effective level is the one derived thing here: an NPC has no pools for a
+      scourge to sit in, so a scourge takes a point off their level instead
+      (The Gate, p1972), and the GM rolls against what is shown rather than
+      doing that subtraction in their head every time. --}}
+<div class="health-tracking npc-health">
+  <div class="npc-stat-row">
+    <div class="npc-stat">
+      <label>{{localize "ISUN.Armor"}}</label>
+      <input type="number" name="system.armor" value="{{system.armor}}" min="0" />
+    </div>
+    {{!-- Only where the book qualifies it. "Armor: 4 (while dancing)" is not an
+          armour of 4, and a handful of entries say something of the sort; on
+          every other creature this would be an empty box asking to be filled
+          in with nothing. --}}
+    {{#if system.armorNote}}
+      <div class="npc-stat armor-note">
+        <label>{{localize "ISUN.ArmorWhen"}}</label>
+        <input type="text" name="system.armorNote" value="{{system.armorNote}}" />
+      </div>
+    {{/if}}
+    <div class="npc-stat">
+      <label>{{localize "ISUN.Ward"}}</label>
+      <input type="number" name="system.ward" value="{{system.ward}}" min="0" />
+    </div>
+    <div class="npc-stat">
+      <label>{{localize "ISUN.Scourge"}}</label>
+      <input type="number" name="system.health.scourge" value="{{system.health.scourge}}" min="0" />
+    </div>
+    {{!-- Only when it differs from the level in the header. Showing "7" beside
+          a "7" the reader can already see teaches them to stop reading it, and
+          then it is not there when it says 5. --}}
+    {{#if system.health.scourge}}
+      <div class="npc-stat derived">
+        <label>{{localize "ISUN.EffectiveLevel"}}</label>
+        <span class="derived-value" title="{{localize 'ISUN.EffectiveLevelHint'}}">{{system.health.effectiveLevel}}</span>
+      </div>
+    {{/if}}
+  </div>
+
+  <div class="health-row wounds-row">
+    <label>{{localize "ISUN.Wounds"}}</label>
+    <div class="health-pips">
+      {{#times (subtract system.health.wounds.max system.health.wounds.value)}}
+        <span class="wound-pip empty" {{#if @root.isGM}}data-action="add-wound"{{/if}}></span>
+      {{/times}}
+      {{#times system.health.wounds.value}}
+        <span class="wound-pip full" {{#if @root.isGM}}data-action="remove-wound"{{/if}}></span>
+      {{/times}}
+    </div>
+    {{#if system.health.dead}}
+      <span class="health-flag dead" title="{{localize 'ISUN.DeadHint'}}">
+        <i class="fa-solid fa-skull"></i> {{localize "ISUN.Dead"}}
+      </span>
+    {{/if}}
+  </div>
+
+  <div class="health-row anguish-row">
+    <label>{{localize "ISUN.Anguish"}}</label>
+    <div class="health-pips">
+      {{#times (subtract system.health.anguish.max system.health.anguish.value)}}
+        <span class="anguish-pip empty" {{#if @root.isGM}}data-action="add-anguish"{{/if}}></span>
+      {{/times}}
+      {{#times system.health.anguish.value}}
+        <span class="anguish-pip full" {{#if @root.isGM}}data-action="remove-anguish"{{/if}}></span>
+      {{/times}}
+    </div>
+    {{#if system.health.broken}}
+      <span class="health-flag broken" title="{{localize 'ISUN.BrokenHint'}}">
+        <i class="fa-solid fa-brain"></i> {{localize "ISUN.Broken"}}
+      </span>
+    {{/if}}
+  </div>
+
+  {{!-- The threshold is not three here. Teratology scales it by level — a
+        level 1 creature takes a Wound after two Injuries, a level 6 after five
+        — so the track is drawn at whatever length this creature's level makes
+        it, and the count beside it says so out loud. --}}
+  <div class="injuries-row">
+    <label>{{localize "ISUN.Injuries"}}</label>
+    <div class="injury-track">
+      {{#each system.health.injuries as |source i|}}
+        <span class="injury-pip full {{source}}"
+              {{#if @root.isGM}}data-action="remove-injury" data-index="{{i}}"{{/if}}
+              title="{{localize (concat "ISUN.Injury" (capitalize source))}}"></span>
+      {{/each}}
+      {{#times (subtract system.health.injuryProgress.threshold system.health.injuryProgress.count)}}
+        <span class="injury-pip empty"></span>
+      {{/times}}
+      {{#if @root.isGM}}
+        <span class="injury-add">
+          <a data-action="add-injury" data-source="physical" title="{{localize 'ISUN.AddPhysicalInjury'}}">
+            <i class="fa-solid fa-droplet"></i>
+          </a>
+          <a data-action="add-injury" data-source="mental" title="{{localize 'ISUN.AddMentalInjury'}}">
+            <i class="fa-solid fa-brain"></i>
+          </a>
+        </span>
+      {{/if}}
+    </div>
+    <span class="injury-threshold" title="{{localize 'ISUN.InjuryThresholdHint'}}">
+      {{system.health.injuryProgress.count}}/{{system.health.injuryProgress.threshold}}
+    </span>
+  </div>
+</div>

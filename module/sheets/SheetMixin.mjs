@@ -109,11 +109,100 @@ export const ActorSheetMixin = (Base) => class extends SheetMixin(Base) {
    * warning, and npm test refuses the commit. */
   static DEFAULT_OPTIONS = {
     actions: {
-      "item-create": this.prototype._onItemCreate,
-      "item-edit":   this.prototype._onItemEdit,
-      "item-delete": this.prototype._onItemDelete
+      "item-create":    this.prototype._onItemCreate,
+      "item-edit":      this.prototype._onItemEdit,
+      "item-delete":    this.prototype._onItemDelete,
+      "entry-add":      this.prototype._onEntryAdd,
+      "entry-delete":   this.prototype._onEntryDelete,
+      "add-wound":      this.prototype._onAddWound,
+      "remove-wound":   this.prototype._onRemoveWound,
+      "add-anguish":    this.prototype._onAddAnguish,
+      "remove-anguish": this.prototype._onRemoveAnguish,
+      "add-injury":     this.prototype._onAddInjury,
+      "remove-injury":  this.prototype._onRemoveInjury
     }
   };
+
+  /* ── The health track, for whoever has one ──
+   *
+   * These began on the vislae sheet, reaching into `system.status` by name.
+   * Creatures and NPCs keep the same three tracks under `system.health`, so the
+   * handlers moved here and ask the document where its health is rather than
+   * knowing. ISUNActor has answered that since the tracks were written —
+   * `healthPath` and `health` — and applyDamage and _preUpdate already use it,
+   * so this is the sheet layer catching up with the document layer rather than
+   * anything new.
+   *
+   * Two copies of a wound pip would have been the third time a control on these
+   * sheets was written twice and drifted.
+   *
+   * The pip that adds and the pip that removes are different elements with
+   * different actions, so which way they move is markup rather than argument. */
+  _onAddWound(event)      { return this._modifyHealth(event, "wounds", 1); }
+  _onRemoveWound(event)   { return this._modifyHealth(event, "wounds", -1); }
+  _onAddAnguish(event)    { return this._modifyHealth(event, "anguish", 1); }
+  _onRemoveAnguish(event) { return this._modifyHealth(event, "anguish", -1); }
+
+  async _modifyHealth(event, type, delta) {
+    event.preventDefault();
+    const doc = this.document;
+    const pool = doc.health?.[type];
+    if (!pool) return;
+    const value = Math.clamp(pool.value + delta, 0, pool.max);
+    if (value === pool.value) return;
+    return doc.update({ [`${doc.healthPath}.${type}.value`]: value });
+  }
+
+  /** Add one Injury of the given source; conversion happens in _preUpdate. */
+  async _onAddInjury(event, target) {
+    event.preventDefault();
+    const source = target.dataset.source === "mental" ? "mental" : "physical";
+    return this.document.applyDamage({ amount: 1, type: source, ignoreArmor: true });
+  }
+
+  /** Remove a single Injury from the track — healing, not negation. */
+  async _onRemoveInjury(event, target) {
+    event.preventDefault();
+    const idx = Number(target.dataset.index);
+    const track = [...(this.document.health?.injuries ?? [])];
+    if (!Number.isInteger(idx) || idx < 0 || idx >= track.length) return;
+    track.splice(idx, 1);
+    return this.document.update({ [`${this.document.healthPath}.injuries`]: track });
+  }
+
+  /**
+   * Add a row to a repeating list, and take one away.
+   *
+   * Here rather than on the vislae sheet, which is where they began, because a
+   * creature's defences and its named powers are the same shape of thing as a
+   * vislae's memories: a list of small records the sheet edits in place.
+   *
+   * What a blank row looks like is the caller's business — a narrative entry is
+   * a title and a description, a defence is a kind and its text — so the markup
+   * says, in data-blank. The default is the shape the narrative lists use, so
+   * those templates did not have to change.
+   */
+  async _onEntryAdd(event, target) {
+    event.preventDefault();
+    const path = target.dataset.path;
+    if (!path) return;
+    let blank = { title: "", description: "" };
+    if (target.dataset.blank) {
+      try { blank = JSON.parse(target.dataset.blank); }
+      catch (err) { console.warn("invisible-sun | unparseable data-blank", target.dataset.blank, err); }
+    }
+    const list = foundry.utils.getProperty(this.document, path) ?? [];
+    return this.document.update({ [path]: [...list, blank] });
+  }
+
+  async _onEntryDelete(event, target) {
+    event.preventDefault();
+    const { path, index } = target.dataset;
+    if (!path) return;
+    const list = [...(foundry.utils.getProperty(this.document, path) ?? [])];
+    list.splice(Number(index), 1);
+    return this.document.update({ [path]: list });
+  }
 
   async _onItemCreate(event, target) {
     event.preventDefault();

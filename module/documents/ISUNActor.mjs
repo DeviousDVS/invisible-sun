@@ -100,6 +100,17 @@ export class ISUNActor extends Actor {
       pending: track.length ? (track[track.length - 1] === "mental" ? "anguish" : "wounds") : null
     };
 
+    // Three Wounds is death. Three Anguish is a GM call among catatonia,
+    // madness, utter suggestibility or death, so it is only flagged.
+    //
+    // Above the split because it is true of anything with a Wound track, not
+    // of vislae alone — a creature at its maximum is as dead as a character is,
+    // and the sheet that could not say so was reading a number the reader then
+    // had to compare against a second number themselves. Derived, not applied:
+    // nothing yet turns either into a token status effect.
+    h.dead = h.wounds.value >= h.wounds.max;
+    h.broken = h.anguish.value >= h.anguish.max;
+
     if (this.type !== "Vislae") {
       // "If an NPC gains a bene or a vex, this is a +1 bonus or -1 penalty to
       // the NPC's level" (The Gate, p1972) — an NPC has no pools for a scourge
@@ -123,15 +134,6 @@ export class ISUNActor extends Actor {
     // The Gate's Goetic pact turns on holding three scourges at once, so the
     // heaviest-hit pool is worth surfacing rather than making players count.
     h.worstScourge = worst;
-
-    // Three Wounds is death. Three Anguish is a GM call among catatonia,
-    // madness, utter suggestibility or death, so it is only flagged.
-    //
-    // Derived, not applied: nothing yet turns either into a token status effect.
-    // These two flags are what such a thing would read, and are the reason a
-    // second death check does not belong anywhere else.
-    h.dead = h.wounds.value >= h.wounds.max;
-    h.broken = h.anguish.value >= h.anguish.max;
   }
 
   /* ──────────────────────────────────────────────

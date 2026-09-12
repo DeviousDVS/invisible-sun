@@ -49,14 +49,8 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     actions: {
       "refresh-pool":       this.prototype._onRefreshPool,
       "alloc-pool":         this.prototype._onAllocatePool,
-      "add-wound":          this.prototype._onAddWound,
-      "remove-wound":       this.prototype._onRemoveWound,
-      "add-anguish":        this.prototype._onAddAnguish,
-      "remove-anguish":     this.prototype._onRemoveAnguish,
       "add-vex":            this.prototype._onAddVex,
       "remove-vex":         this.prototype._onRemoveVex,
-      "add-injury":         this.prototype._onAddInjury,
-      "remove-injury":      this.prototype._onRemoveInjury,
       "apply-damage":       this.prototype._onApplyDamage,
       "rest-recover":       this.prototype._onRestRecover,
       "new-day":            this.prototype._onNewDay,
@@ -158,7 +152,6 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
      * vex, a Wound — is written onto the sheet as that, not as an item. */
     "Flux"
   ];
-
 
 
   // Application V2 Context prep
@@ -1051,40 +1044,6 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     item?.sheet?.render(true);
   }
 
-  /** Add one Injury of the given source; conversion happens in _preUpdate. */
-  async _onAddInjury(event, target) {
-    event.preventDefault();
-    const source = target.dataset.source === "mental" ? "mental" : "physical";
-    return this.document.applyDamage({ amount: 1, type: source, ignoreArmor: true });
-  }
-
-  /** Remove a single Injury from the track — healing, not negation. */
-  async _onRemoveInjury(event, target) {
-    event.preventDefault();
-    const idx = Number(target.dataset.index);
-    const track = [...(this.document.system.status.injuries ?? [])];
-    if (!Number.isInteger(idx) || idx < 0 || idx >= track.length) return;
-    track.splice(idx, 1);
-    return this.document.update({ "system.status.injuries": track });
-  }
-
-  async _onEntryAdd(event, target) {
-    event.preventDefault();
-    const path = target.dataset.path;
-    if (!path) return;
-    const list = foundry.utils.getProperty(this.document, path) ?? [];
-    return this.document.update({ [path]: [...list, { title: "", description: "" }] });
-  }
-
-  async _onEntryDelete(event, target) {
-    event.preventDefault();
-    const { path, index } = target.dataset;
-    if (!path) return;
-    const list = [...(foundry.utils.getProperty(this.document, path) ?? [])];
-    list.splice(Number(index), 1);
-    return this.document.update({ [path]: list });
-  }
-  
   /**
    * Place or clear a vex. The GM's to give: a vex comes from a kindled item or
    * a piece of weird magic, never from something the character chooses.
@@ -1235,25 +1194,6 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     event.preventDefault();
     await this.document.newDay();
     ui.notifications?.info(game.i18n.localize("ISUN.NewDayDone"));
-  }
-
-  /* The pip that adds and the pip that removes are different elements with
-   * different actions, so which way they move is markup rather than argument. */
-  _onAddWound(event, target)      { return this._onModifyHealth(event, "wounds", 1); }
-  _onRemoveWound(event, target)   { return this._onModifyHealth(event, "wounds", -1); }
-  _onAddAnguish(event, target)    { return this._onModifyHealth(event, "anguish", 1); }
-  _onRemoveAnguish(event, target) { return this._onModifyHealth(event, "anguish", -1); }
-
-  async _onModifyHealth(event, type, delta) {
-    event.preventDefault();
-    const doc = this.document;
-    const currentVal = doc.system.status[type].value;
-    const maxVal = doc.system.status[type].max;
-    
-    const newVal = Math.clamp(currentVal + delta, 0, maxVal);
-    if (newVal !== currentVal) {
-      await doc.update({ [`system.status.${type}.value`]: newVal });
-    }
   }
 
   /**

@@ -1,26 +1,31 @@
+{{!-- A creature, in the order a GM needs it: what it can take and what it can
+      do first, the prose that tells them how to play it underneath.
+
+      That is the reverse of the book, which opens every entry with a page of
+      second-person description and puts the numbers at the foot. The book is
+      read once, before the session; this is read during one, with a player
+      waiting. --}}
 <div class="{{cssClass}} flexcol" autocomplete="off">
   {{> "systems/invisible-sun/templates/partials/header-bar.hbs"}}
 
-  <section class="sheet-body single-page">
-    <div class="npc-stats">
-      <div class="health-tracker">
-        <label>{{localize "ISUN.Wounds"}}</label> <input type="number" name="system.health.wounds.value" value="{{system.health.wounds.value}}"> / {{system.health.wounds.max}}
-        <label>{{localize "ISUN.Anguish"}}</label> <input type="number" name="system.health.anguish.value" value="{{system.health.anguish.value}}"> / {{system.health.anguish.max}}
-      </div>
-      <div class="defenses">
-        <label>{{localize "ISUN.Armor"}}</label> <input type="number" name="system.armor" value="{{system.armor}}">
-        <label>{{localize "ISUN.Ward"}}</label> <input type="number" name="system.ward" value="{{system.ward}}">
-      </div>
+  <section class="sheet-body single-page creature-sheet-body">
+    {{> "systems/invisible-sun/templates/partials/non-player-health.hbs"}}
+    {{> "systems/invisible-sun/templates/partials/stat-block.hbs"}}
+
+    <div class="prose-section">
+      <h3>{{localize "ISUN.EntryDescription"}}</h3>
+      {{isunEditor "system.description"}}
     </div>
 
-    <div class="creature-combat">
+    {{!-- Kept beneath the description rather than beside the stat block. The
+          importer writes the book's prose to `description` and nothing to this,
+          so on an imported creature it is an empty box waiting for whatever the
+          GM works out at the table about how the thing actually fights. --}}
+    <div class="prose-section gm-jottings">
       <h3>{{localize "ISUN.Combat"}}</h3>
       {{isunEditor "system.combat"}}
     </div>
 
-    <div class="creature-description">
-      <h3>{{localize "ISUN.EntryDescription"}}</h3>
-      {{isunEditor "system.description"}}
-    </div>
+    {{> "systems/invisible-sun/templates/partials/entry-source.hbs"}}
   </section>
 </div>

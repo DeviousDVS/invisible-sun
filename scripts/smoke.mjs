@@ -144,11 +144,63 @@ try {
       a.sheet.render(true);
       return { id: a.id, sheetId: a.sheet.id };
     }, { type });
-    const shown = await page.locator(`#${one.sheetId}`)
-      .waitFor({ state: "visible", timeout: 15_000 }).then(() => true).catch(() => false);
+    const npcSheet = page.locator(`#${one.sheetId}`);
+    const shown = await npcSheet.waitFor({ state: "visible", timeout: 15_000 })
+      .then(() => true).catch(() => false);
     await page.waitForTimeout(300);
     ok(`the ${type} sheet opens`, shown && errors.length === before,
        !shown ? "never became visible" : (errors[errors.length - 1] ?? ""));
+
+    /* These two are one scrolling page rather than a set of tabs, so there is
+     * no tab walk to find their controls — but they carry the same repeating
+     * lists and the same Wound, Anguish and Injury pips the vislae does, and
+     * those are exactly the shape of control that has rendered and done nothing
+     * four times in this project. Each distinct action gets one click, and the
+     * lists are counted before and after rather than merely clicked: a row that
+     * does not appear is the failure this is looking for. */
+    if (shown) {
+      const rows = () => page.evaluate(id => {
+        const a = game.actors.get(id);
+        return { defenses: a.system.defenses.length, abilities: a.system.abilities.length,
+                 injuries: a.system.health.injuries.length };
+      }, one.id);
+      const rowsBefore = await rows();
+      const errsBefore = errors.length;
+
+      /* Keyed on the action *and* the list it targets, not on the action alone.
+       * Both add buttons here are `entry-add`; one clicked per name meant the
+       * Abilities button was never pressed at all, and the walk reported five
+       * actions exercised while covering four. Which is the same shape of miss
+       * this whole section exists to catch. */
+      const actions = await npcSheet.locator(".window-content [data-action]")
+        .evaluateAll(els => [...new Set(els.map(e => `${e.dataset.action}|${e.dataset.path ?? ""}`))]);
+      for (const key of actions) {
+        const [name, path] = key.split("|");
+        if (SKIP.has(name)) continue;
+        const selector = path
+          ? `.window-content [data-action="${name}"][data-path="${path}"]`
+          : `.window-content [data-action="${name}"]`;
+        const el = npcSheet.locator(selector).first();
+        if (!await el.isVisible().catch(() => false)) continue;
+        await el.click({ timeout: 4000 }).catch(() => {});
+        await page.waitForTimeout(250);
+      }
+      const rowsAfter = await rows();
+      /* An action with no handler is a console warning, not an error — the same
+       * thing the vislae walk looks for above, and the reason that check reads
+       * the warning list rather than this one. Both are checked here: a handler
+       * that throws shows up as an error instead. */
+      const unknownHere = warnings.filter(w => /unknown action|not a valid action/i.test(w));
+      ok(`every control on the ${type} sheet is one it knows`,
+         unknownHere.length === 0 && errors.length === errsBefore,
+         unknownHere[0] ?? errors[errors.length - 1] ?? `${actions.length} actions`);
+      ok(`the ${type} sheet's add buttons add a row`,
+         rowsAfter.defenses > rowsBefore.defenses
+         && rowsAfter.abilities > rowsBefore.abilities
+         && rowsAfter.injuries > rowsBefore.injuries,
+         JSON.stringify(rowsAfter));
+    }
+
     await page.evaluate(async ({ id }) => {
       game.actors.get(id)?.sheet?.close();
       await game.actors.get(id)?.delete();

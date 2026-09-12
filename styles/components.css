@@ -4314,3 +4314,262 @@ a.sentence-part:hover + .sentence-part.affix {
   flex-direction: inherit;
   gap: 4px;
 }
+
+/* ════════════════════════════════════════════════════════
+ * CREATURES AND NPCs
+ *
+ * Both sheets are one column of stacked blocks rather than a tabbed sheet: an
+ * imported entry is a page of a book, and a GM reading one mid-combat wants to
+ * scroll it, not go looking for which tab the Traits are on.
+ *
+ * The blocks are separated by rules rather than by boxes. Six bordered panels
+ * down a 600px column read as six things of equal weight, and they are not —
+ * the numbers at the top are glanced at constantly and the provenance at the
+ * foot perhaps once ever.
+ * ════════════════════════════════════════════════════════ */
+
+.creature-sheet-body,
+.npc-sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--isun-space-md);
+}
+
+/* ── The numbers ──
+   Armor, Ward and Scourge in a row, because they are read together and each is
+   a single digit. Captions above rather than beside: three pairs side by side
+   in one line ran into each other, which is the opposite problem the vislae's
+   two-field row has. */
+.npc-health {
+  padding-bottom: var(--isun-space-sm);
+  border-bottom: 1px solid var(--isun-border);
+}
+
+.npc-stat-row {
+  display: flex;
+  /* Top, not bottom. The derived cell has no input in it and is therefore
+     shorter, and bottom-aligning dropped its caption half a line below the
+     three beside it — four labels on two baselines, reading as two rows. */
+  align-items: flex-start;
+  gap: var(--isun-space-lg);
+  flex-wrap: wrap;
+}
+
+.npc-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.npc-stat > label {
+  font-family: var(--isun-font-heading);
+  font-size: 0.72em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--isun-text-secondary);
+}
+
+.npc-stat input {
+  width: 52px;
+  text-align: center;
+}
+
+/* The qualification beside the number it qualifies, and wide enough to read —
+   "while dancing" does not fit in the 52px a digit needs. */
+.npc-stat.armor-note input {
+  width: 11rem;
+  text-align: left;
+}
+
+/* Worked out rather than typed, so it is not drawn as a field. Same size and
+   baseline as the inputs beside it, so the row still reads as one line of
+   numbers — it simply has no box around it to invite a click that would do
+   nothing. */
+.npc-stat.derived .derived-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* The height a sibling input draws itself at, so the four numbers sit on one
+     line even though this one has no box. */
+  width: 52px;
+  min-height: 26px;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--isun-text-accent);
+  cursor: help;
+}
+
+/* How full the track is, in figures, at the end of the pips. The threshold is
+   not three here — Teratology scales it by level — so the pips alone do not
+   say how close the next Wound is unless you count them. */
+.injury-threshold {
+  margin-left: auto;
+  font-size: 0.78em;
+  color: var(--isun-text-secondary);
+  white-space: nowrap;
+  cursor: help;
+}
+
+/* ── The printed stat block ── */
+.stat-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--isun-space-sm);
+}
+
+/* A heading that leads a list gets air above it, but not the first one — that
+   one sits under the rule the health block already draws. */
+.stat-block .entry-list-header:not(:first-child) {
+  margin-top: var(--isun-space-sm);
+}
+
+/* Smaller than the display size an h3 takes elsewhere. These two headings label
+   the shortest sections on the sheet, and at the sheet's usual h3 they were set
+   larger than the creature's own name and drew the eye before anything they
+   were labelling. A heading here is a divider, not a title. */
+.stat-block .entry-list-header h3 {
+  font-size: 1em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* One label, one line. Modifications and Traits are each a single printed
+   sentence, so they take the width rather than sharing it. */
+.stat-field {
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-sm);
+}
+
+.stat-field > label {
+  flex: 0 0 100px;
+  font-family: var(--isun-font-heading);
+  font-size: 0.8em;
+  text-transform: uppercase;
+  color: var(--isun-text-secondary);
+}
+
+.stat-field input { flex: 1; min-width: 0; }
+
+/* The kind is "Physical" or "Spiritual" or nothing at all, and the text that
+   follows it is a clause. A narrower first column than a titled entry's 30%,
+   because the interesting half is the second one. */
+.defense-entry .entry-title { flex: 0 0 6.5rem; }
+
+/* ── Abilities ──
+   Two rows, not one: the name is short and the description can run to a
+   paragraph. Side by side, the longest imported ability would have been a
+   1700-character sentence in a box four words wide. */
+.ability-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--isun-space-xs) 0;
+  border-bottom: 1px solid var(--isun-border);
+}
+
+.ability-head {
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-sm);
+}
+
+.ability-name {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--isun-font-heading);
+  font-weight: 600;
+}
+
+/* Grows with what is in it rather than scrolling inside two lines, which is
+   what field-sizing gives us and what a stat block on paper does. The min-height
+   keeps an empty one from collapsing to a slot. */
+.ability-text {
+  width: 100%;
+  min-height: 2.6em;
+  resize: vertical;
+  field-sizing: content;
+  line-height: 1.35;
+}
+
+/* ── Prose ──
+   The same heading size as the stat block's, so the six sections down the
+   column read as six of one thing. At the sheet's usual h3 these two were set
+   larger than the creature's own name in the header, which made "Description"
+   the loudest word on a sheet about a creature. */
+.prose-section h3,
+.entry-source > label {
+  font-size: 1em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.prose-section h3 {
+  margin: 0 0 var(--isun-space-xs);
+}
+
+/* Taller than the 8rem a prose-mirror takes by default. An imported entry's
+   description is a page of the book — two thousand characters is ordinary —
+   and eight rem of it is four lines and a scrollbar. Set through core's own
+   --min-height rather than a min-height of our own, which the element ignores:
+   it lays its content out with `inset: 0` and reads the variable. */
+.prose-section prose-mirror {
+  --min-height: 12rem;
+}
+
+/* What the GM writes rather than what the book printed: a creature's combat
+   notes and an NPC's private ones. The importer fills neither, so on all 306
+   imported entries these open empty, and twelve rem of empty box twice over was
+   most of a screen of nothing between the traits and the source. Big enough to
+   write a few lines in, and it grows from there as any editor does. */
+.prose-section.gm-jottings prose-mirror {
+  --min-height: 6rem;
+}
+
+/* What the players do not see, marked so the GM can tell at a glance which
+   half of the sheet is theirs. The whole section is already behind an isGM
+   check; this says so rather than leaving it to be remembered. */
+.gm-only {
+  border-left: 2px solid var(--isun-text-accent);
+  padding-left: var(--isun-space-sm);
+}
+
+.gm-only h3 i {
+  font-size: 0.8em;
+  margin-right: 0.3rem;
+  opacity: 0.7;
+}
+
+/* ── Where it came from ──
+   Small, grey and last. It is the only thing on the sheet nobody needs while
+   the session is running. */
+.entry-source {
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-xs);
+  padding-top: var(--isun-space-sm);
+  border-top: 1px solid var(--isun-border);
+  font-size: 0.8em;
+  color: var(--isun-text-secondary);
+}
+
+.entry-source > label {
+  font-family: var(--isun-font-heading);
+  color: var(--isun-text-secondary);
+}
+
+.entry-source .source-book { flex: 1; min-width: 0; }
+.entry-source .source-page { width: 4rem; text-align: center; }
+.entry-source input { font-size: inherit; }
+
+/* The name, at a size a creature's name actually is.
+   `.charname input` is 1.5em of a display h1, which suits a vislae — players
+   name those themselves and keep them short. The books do not: "Sardonis of the
+   Mockery" and "Typical Medium Animal" ran off the right-hand edge of the
+   header and could not be read at all without clicking into the field and
+   arrowing along it. Fixed rather than em-based, because the point is that it no
+   longer inherits from a heading scale meant for something else. */
+.sheet.actor.creature .charname input[type="text"],
+.sheet.actor.npc .charname input[type="text"] {
+  font-size: 22px !important;
+}

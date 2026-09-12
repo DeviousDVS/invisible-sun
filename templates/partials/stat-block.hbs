@@ -1,0 +1,82 @@
+{{!-- The rest of what Teratology, The Path and The Nightside print under a
+      name: how it defends itself, what it is better at than its level says,
+      what it can do, and the three adjectives it closes on.
+
+      Laid out in the book's own order, because a GM who knows the page knows
+      where to look. None of it is arithmetic the system does — it is text the
+      table reads — so all of it is editable, and a homebrew creature is made
+      by typing in the same boxes the importer filled.
+
+      Defences and abilities are lists rather than fields. Forty of the 306
+      imported entries print two defence profiles, one for what the thing is in
+      the world and one for what it is out of it, and an entry may carry up to
+      eight named powers. A single box would have run them together into one
+      paragraph that could not be told apart again. --}}
+<div class="stat-block">
+
+  <div class="entry-list-header">
+    <h3>{{localize "ISUN.Defenses"}}</h3>
+    <a class="entry-add" data-path="system.defenses" data-blank='{"kind":"","text":""}'
+       title="{{localize 'ISUN.AddDefense'}}" data-action="entry-add">
+      <i class="fa-solid fa-plus"></i>
+    </a>
+  </div>
+  {{#each system.defenses as |defense i|}}
+    <div class="titled-entry defense-entry">
+      <input type="text" class="entry-title" name="system.defenses.{{i}}.kind"
+             value="{{defense.kind}}" placeholder="{{localize 'ISUN.DefenseKind'}}" />
+      <input type="text" class="entry-desc" name="system.defenses.{{i}}.text"
+             value="{{defense.text}}" placeholder="{{localize 'ISUN.DefenseText'}}" />
+      <a class="entry-delete" data-path="system.defenses" data-index="{{i}}"
+         title="{{localize 'ISUN.RemoveEntry'}}" data-action="entry-delete">
+        <i class="fa-solid fa-trash"></i>
+      </a>
+    </div>
+  {{else}}
+    <div class="empty-state">{{localize "ISUN.NoDefenses"}}</div>
+  {{/each}}
+
+  {{!-- One line, as printed: "+3 stealth; +3 remember books". A modification is
+        a bonus to a named task rather than to a stat, which is why it is prose
+        and not a number the system could add to anything. --}}
+  <div class="stat-field">
+    <label>{{localize "ISUN.Modifications"}}</label>
+    <input type="text" name="system.modifications" value="{{system.modifications}}"
+           placeholder="{{localize 'ISUN.ModificationsHint'}}" />
+  </div>
+
+  <div class="entry-list-header">
+    <h3>{{localize "ISUN.Abilities"}}</h3>
+    <a class="entry-add" data-path="system.abilities" data-blank='{"name":"","description":""}'
+       title="{{localize 'ISUN.AddAbility'}}" data-action="entry-add">
+      <i class="fa-solid fa-plus"></i>
+    </a>
+  </div>
+  {{!-- A textarea, not an input. The longest imported ability runs to seventeen
+        hundred characters, and in a one-line box that is a sentence with the
+        rest of itself hidden past the right-hand edge. --}}
+  {{#each system.abilities as |ability i|}}
+    <div class="ability-entry">
+      <div class="ability-head">
+        <input type="text" class="ability-name" name="system.abilities.{{i}}.name"
+               value="{{ability.name}}" placeholder="{{localize 'ISUN.AbilityName'}}" />
+        <a class="entry-delete" data-path="system.abilities" data-index="{{i}}"
+           title="{{localize 'ISUN.RemoveEntry'}}" data-action="entry-delete">
+          <i class="fa-solid fa-trash"></i>
+        </a>
+      </div>
+      <textarea class="ability-text" name="system.abilities.{{i}}.description"
+                rows="2" placeholder="{{localize 'ISUN.AbilityText'}}">{{ability.description}}</textarea>
+    </div>
+  {{else}}
+    <div class="empty-state">{{localize "ISUN.NoAbilities"}}</div>
+  {{/each}}
+
+  {{!-- "Organized. Bookish. Timid." Three adjectives for playing the thing,
+        and the last line of every printed entry. --}}
+  <div class="stat-field">
+    <label>{{localize "ISUN.Traits"}}</label>
+    <input type="text" name="system.traits" value="{{system.traits}}"
+           placeholder="{{localize 'ISUN.TraitsHint'}}" />
+  </div>
+</div>

@@ -1,0 +1,14 @@
+{{!-- Where this came from. The printed page, not the PDF's — the two differ by
+      the front matter, and a GM checking a ruling has the book in their hands.
+
+      At the foot and in small type, because it is the one thing here nobody
+      needs during play. Editable all the same: a creature written at the table
+      has a source too, even if it is the name of whoever wrote it. --}}
+<footer class="entry-source">
+  <label>{{localize "ISUN.Source"}}</label>
+  <input type="text" class="source-book" name="system.source" value="{{system.source}}"
+         placeholder="{{localize 'ISUN.SourceBook'}}" />
+  <label>{{localize "ISUN.Page"}}</label>
+  <input type="number" class="source-page" name="system.page" value="{{system.page}}"
+         placeholder="—" />
+</footer>
