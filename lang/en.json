@@ -852,6 +852,8 @@
     "ImportNoPack": "The compendium \"{pack}\" does not exist.",
     "ImportButton": "Import Content",
     "ImportUploading": "Saving card images… {done} of {total}",
+    "ImportArt": "Saving artwork… page {done} of {total}, {found} saved",
+    "ImportArtDone": "{count} new artwork file(s) in {dir}.",
     "ImportReadingPages": "Reading the pages… {done} of {total}",
     "ImportStep1": "Put the Invisible Sun PDFs you own in one folder. It will sort them out.",
     "ImportStep2": "Choose that folder below. Your browser will ask you to confirm. It only reads the files.",

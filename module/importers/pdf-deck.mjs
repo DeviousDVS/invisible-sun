@@ -168,6 +168,75 @@ export async function pageBoxes(page, { min = 5, max = 14 } = {}) {
   return boxes;
 }
 
+/**
+ * The pictures a page embeds, at the size they were drawn at.
+ *
+ * The books set their art as image XObjects, so this takes the original pixels
+ * rather than re-rendering the page and cutting a rectangle out of it: what
+ * comes back is what the artist supplied, not a photograph of the printed page
+ * with the body text sitting on top of it.
+ *
+ * Two things on a page are images and are not art. Teratology sets a couple of
+ * ornaments — a 17×19 glyph placed at eight points square — among 160 real
+ * illustrations whose shortest side is never below a hundred pixels. `minSide`
+ * is the gap between those two groups and nothing falls in it.
+ *
+ * `seen` is for a caller walking a whole book: a picture used on two pages is
+ * one picture, and pdf.js gives it the same id both times.
+ */
+export async function pageArt(page, { minSide = 64, quality = 0.9, seen } = {}) {
+  const lib = await loadPdfJs();
+  const ops = await page.getOperatorList();
+  const name = Object.fromEntries(Object.entries(lib.OPS).map(([k, v]) => [v, k]));
+  const out = [];
+
+  for (let i = 0; i < ops.fnArray.length; i++) {
+    if (name[ops.fnArray[i]] !== "paintImageXObject") continue;
+    const id = ops.argsArray[i][0];
+    if (typeof id !== "string" || seen?.has(id)) continue;
+
+    /* The object store throws rather than returning nothing for an image it
+     * could not decode, and one such picture should cost the page its others
+     * rather than the whole book its art. */
+    let image = null;
+    try { image = page.objs.get(id); } catch { continue; }
+
+    const { width, height, bitmap, data, kind } = image ?? {};
+    if (!width || !height || Math.min(width, height) < minSide) continue;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+
+    if (bitmap) {
+      context.drawImage(bitmap, 0, 0);
+    } else if (data && (kind === lib.ImageKind.RGB_24BPP || kind === lib.ImageKind.RGBA_32BPP)) {
+      /* The older shape, kept because a browser without createImageBitmap for
+       * this format falls back to it. Three bytes a pixel have to be spread
+       * into four, since ImageData has an alpha channel whether or not the
+       * picture did. */
+      const pixels = context.createImageData(width, height);
+      if (kind === lib.ImageKind.RGBA_32BPP) pixels.data.set(data.subarray(0, pixels.data.length));
+      else for (let at = 0, from = 0; at < pixels.data.length; at += 4, from += 3) {
+        pixels.data[at] = data[from];
+        pixels.data[at + 1] = data[from + 1];
+        pixels.data[at + 2] = data[from + 2];
+        pixels.data[at + 3] = 255;
+      }
+      context.putImageData(pixels, 0, 0);
+    } else {
+      continue;
+    }
+
+    seen?.add(id);
+    // Alpha either way: art cut out of its background is common here, and a
+    // JPEG would fill the cut-away part back in with white.
+    out.push({ id, width, height, ...(await encode(canvas, { alpha: true, quality })) });
+  }
+  return out;
+}
+
 /** Render a whole page to an offscreen canvas at the given resolution. */
 export async function renderPage(page, dpi) {
   const viewport = page.getViewport({ scale: dpi / 72 });

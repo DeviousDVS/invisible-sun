@@ -34,6 +34,16 @@ const { ApplicationV2, DialogV2, HandlebarsApplicationMixin } = foundry.applicat
 /** Where card art goes, relative to Foundry's data folder. */
 const ASSET_ROOT = "invisible-sun/cards";
 
+/**
+ * Where the books' own illustrations go.
+ *
+ * Under `assets/`, which is the folder Foundry itself sets aside for a user's
+ * own files and promises to leave alone across updates — the cards predate that
+ * advice and keep their own place rather than moving and orphaning every
+ * portrait already pointing at them.
+ */
+const ART_ROOT = "assets/invisible-sun";
+
 /** Uploads run several at a time; browsers cap connections per host anyway. */
 const UPLOADS_AT_ONCE = 6;
 
@@ -370,9 +380,81 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
     return plan;
   }
 
-  /** Import one recognised source. */
+  /**
+   * Import one recognised source, and keep its pictures.
+   *
+   * The art is taken from books rather than from decks. A deck's pictures are
+   * its card faces, which the card reader already cuts and names after the card
+   * they belong to; pulling the same images a second time out of the same file
+   * would write every card twice under a worse name.
+   */
   async #importOne(file, spec, size) {
     const doc = await deck.openPdf(file);
+    const art = spec.kind === "book" || spec.kind === "listing"
+      ? await this.#writeArt(doc, spec) : 0;
+    const report = await this.#importContent(doc, spec, size);
+    return { ...report, images: (report.images ?? 0) + art };
+  }
+
+  /**
+   * Save every picture a book embeds, under its own name in the assets folder.
+   *
+   * Named for where it was printed — `teratology/p128-1.webp` — rather than for
+   * whatever is on it. A picture near a creature's stat block is very often not
+   * that creature, and a wrong name on an image is the same trap a wrong name
+   * on an entry is: nothing ever flags it, and someone pins the flattering
+   * portrait of a bystander on a horror. A page number is a fact.
+   *
+   * A page whose art is already saved is skipped whole and never decoded, which
+   * is what keeps a second import of the same book cheap: re-running one is
+   * ordinary here, and decoding 160 illustrations to write none of them again
+   * would add minutes for nothing.
+   */
+  async #writeArt(doc, spec) {
+    const FP = foundry.applications.apps.FilePicker.implementation;
+    const dir = `${ART_ROOT}/${spec.key}`;
+    for (const part of [ART_ROOT.split("/")[0], ART_ROOT, dir]) {
+      try { await FP.createDirectory("data", part); } catch { /* already there */ }
+    }
+
+    /* Which pages have been done already, read off the names rather than kept
+     * in a manifest: the folder is the record, and a user who deletes a picture
+     * they did not want gets it back on the next import rather than silently
+     * never again. */
+    let done = new Set();
+    try {
+      const listing = await FP.browse("data", dir);
+      done = new Set(listing.files
+        .map(path => /\/p(\d+)-\d+\.\w+$/.exec(path)?.[1])
+        .filter(Boolean)
+        .map(Number));
+    } catch { /* nothing saved yet */ }
+
+    const seen = new Set();
+    let written = 0;
+    for (let n = 1; n <= doc.numPages; n++) {
+      if (!done.has(n)) {
+        const page = await doc.getPage(n);
+        const art = await deck.pageArt(page, { seen });
+        for (const [i, image] of art.entries()) {
+          const file = `p${String(n).padStart(3, "0")}-${i + 1}.${image.extension}`;
+          await FP.upload("data", dir,
+            new File([image.blob], file, { type: image.blob.type }), {}, { notify: false });
+          written++;
+        }
+      }
+      if (n % 24 === 0 || n === doc.numPages) {
+        this.#say(game.i18n.format("ISUN.ImportArt",
+          { done: n, total: doc.numPages, found: written }));
+      }
+    }
+
+    this.#say(game.i18n.format("ISUN.ImportArtDone", { count: written, dir }));
+    return written;
+  }
+
+  /** Which reader a source gets, by the kind its entry in SOURCES declares. */
+  async #importContent(doc, spec, size) {
     if (spec.kind === "book") return this.#importBook(doc, spec);
     if (spec.kind === "listing") return this.#importListing(doc, spec);
     if (spec.kind === "deck-text") return this.#importTextDeck(doc, spec, size);
