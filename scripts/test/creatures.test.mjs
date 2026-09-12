@@ -190,6 +190,22 @@ describe("names", () => {
     assert.ok(!isName("PROVENANCE. PURCHASE AT YOUR OWN RISK."));
   });
 
+  test("a name may carry initials", () => {
+    // J.C. NEDRICK, ESQUIRE — the full stop rule that keeps sidebar sentences
+    // out must not take the initials with it.
+    assert.ok(isName("J.C. NEDRICK, ESQUIRE"));
+  });
+
+  test("a name may carry quoted epithets", () => {
+    assert.ok(isName("EUSTORGIO \u201cTHE VARLET\u201d MAZELLA"));
+  });
+
+  test("a full stop after a whole word is still a sentence", () => {
+    // The distinction is the letter before the point: an initial is one letter.
+    assert.ok(!isName("PROVENANCE. PURCHASE AT YOUR OWN RISK."));
+    assert.ok(!isName("IT ENDS. NOTHING FOLLOWS"));
+  });
+
   test("names the books set at body size still count", () => {
     // The Path sets these at 10pt, the same as its prose; Teratology does the
     // same for the second half of a split entry. Testing on type size lost ten.

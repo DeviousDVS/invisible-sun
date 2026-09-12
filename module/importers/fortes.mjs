@@ -188,10 +188,18 @@ const SMALL = new Set(["a", "an", "the", "and", "but", "or", "nor", "for", "of",
  */
 export function titleCase(text) {
   if (text !== text.toUpperCase()) return text;
-  const words = text.toLowerCase().split(/\s+/);
+  const words = text.split(/\s+/);
   return words
-    .map((word, i) => (i > 0 && i < words.length - 1 && SMALL.has(word))
-      ? word : word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word, i) => {
+      /* An initialism keeps its points and its capitals: lowercasing the whole
+       * word and capitalising only the first letter turns "J.C." into "J.c.".
+       * Teratology has a J.C. Nedrick, Esquire; nothing else the books name
+       * carries initials, but the rule costs nothing. */
+      if (/^(?:[A-Z]\.)+$/.test(word)) return word;
+      const lower = word.toLowerCase();
+      return (i > 0 && i < words.length - 1 && SMALL.has(lower))
+        ? lower : lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
     .join(" ");
 }
 

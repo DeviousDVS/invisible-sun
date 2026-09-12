@@ -31,6 +31,16 @@
 import { columnAnchors, columnLines } from "./book-page.mjs";
 import { titleCase, reader as forteReader, entries as forteEntries } from "./fortes.mjs";
 
+/**
+ * Type sizes these books set a name and a section heading at.
+ *
+ * A name is two points above the body — 12 against 10 — and a section heading
+ * three above that. Names are not identified by height, because The Path sets
+ * some of them at body size, but a candidate this large is a section heading
+ * and never a name.
+ */
+const SECTION_HEIGHT = 14;
+
 /** The level line that opens a stat block. Its value is always on the line. */
 const LEVEL_RE = /^Level:\s*(\d+)/;
 
@@ -186,6 +196,14 @@ export function collect(all) {
      * reach borrows nothing from its neighbour. */
     let name = null, nameAt = i;
     for (let j = i - 1; j > previous; j--) {
+      /* Section headings are set larger than names — 15 against 12 — and wrap
+       * across two lines, so the second half of "MAJOR CREATURES / AND
+       * ENTITIES" is capitals, short, and directly above an entry whose own
+       * name is out of reach. One creature was called "And Entities" because
+       * of it, which is worse than having no name at all: a missing entry
+       * shows up against the expected count, and a plausible wrong one does
+       * not. */
+      if ((all[j].h ?? 0) >= SECTION_HEIGHT) continue;
       if (isName(all[j].text.trim())) { name = all[j].text.trim(); nameAt = j; break; }
     }
     if (!name) continue;
@@ -250,8 +268,16 @@ export function reader({ book = "", npc = false } = {}) {
  * "CYST SPAWN: SHIVERBLOAT" names a kind and then the particular thing.
  */
 export function isName(text) {
-  if (!/^[A-Z][A-Z0-9 ,:'’\-()/&]*$/.test(text)) return false;
+  if (!/^[A-Z][A-Z0-9 ,:.'’“”\-()/&]*$/.test(text)) return false;
   if (!/[A-Z]{2}/.test(text)) return false;
+  /* A full stop is allowed only as an initial — a single letter and a point,
+   * as in "J.C. NEDRICK, ESQUIRE". That keeps the sidebar sentences out, which
+   * is what the rule is for: "PROVENANCE. PURCHASE AT YOUR OWN RISK." stops a
+   * whole word, not a letter. */
+  for (const m of text.matchAll(/\./g)) {
+    const before = text.slice(0, m.index);
+    if (!/(^|[^A-Z])[A-Z]$/.test(before)) return false;
+  }
   return text.split(/\s+/).length <= 6 && text.length <= 48;
 }
 
