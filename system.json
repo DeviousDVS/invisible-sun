@@ -155,6 +155,12 @@
         "PLAYER": "OBSERVER",
         "ASSISTANT": "OWNER"
       }
+    },
+    {
+      "name": "creatures",
+      "label": "Creatures & NPCs",
+      "path": "packs/creatures",
+      "type": "Actor"
     }
   ],
   "socket": true,

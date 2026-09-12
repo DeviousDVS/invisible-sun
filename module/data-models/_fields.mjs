@@ -75,5 +75,52 @@ export function baseNonPlayerSchema(defaultWoundMax = 1) {
       wounds:  pool(0, defaultWoundMax),
       anguish: pool(0, defaultWoundMax),
     }),
+
+    /**
+     * The rest of a printed stat block.
+     *
+     * An entry in Teratology, The Path or The Nightside is a name, a
+     * description, a level, the blank Injuries/Wounds/Anguish boxes a GM ticks
+     * in play, and some subset of the fields below. `level`, `armor` and the
+     * tracks above carry the numbers; the rest is text the table reads, because
+     * none of it is arithmetic the system does.
+     *
+     * The boxes are deliberately not among these. All 310 entries print them
+     * empty — they are tick boxes, not values — so there is nothing to import
+     * and the blank tracks above are already the right answer.
+     */
+
+    /**
+     * How it defends itself, as printed.
+     *
+     * An array because an entry may print two profiles rather than one: many
+     * separate "Defenses (Spiritual)" from "Defenses (Physical)", being one
+     * thing in the world and another out of it. `kind` is what the bracket
+     * said, and is empty where there was no bracket.
+     */
+    defenses: new fields.ArrayField(new fields.SchemaField({
+      kind: new fields.StringField({ required: false, initial: "" }),
+      text: new fields.StringField({ required: false, initial: "" }),
+    })),
+
+    /** Skill and task modifiers, as printed: "+3 stealth; +3 remember books". */
+    modifications: new fields.StringField({ required: false, initial: "" }),
+
+    /** The adjectives an entry closes on: "Organized. Bookish. Timid." */
+    traits: new fields.StringField({ required: false, initial: "" }),
+
+    /**
+     * Named powers, each as the book heads it — "Claw Attack: 5 points of
+     * damage", "Fictional Genesis: Object, creature, or sometimes concept…".
+     * Anything between the stat lines and Traits carrying a label of its own.
+     */
+    abilities: new fields.ArrayField(new fields.SchemaField({
+      name:        new fields.StringField({ required: false, initial: "" }),
+      description: new fields.StringField({ required: false, initial: "" }),
+    })),
+
+    /** Which book prints it, and the printed page — not the PDF's. */
+    source: new fields.StringField({ required: false, initial: "" }),
+    page:   new fields.NumberField({ required: false, nullable: true, initial: null, integer: true }),
   };
 }

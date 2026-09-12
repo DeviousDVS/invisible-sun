@@ -951,6 +951,17 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
     const wasLocked = pack.locked;
     if (wasLocked) await pack.configure({ locked: false });
 
+    /* Whatever the pack holds, rather than always an Item. Every pack was one
+     * until the creatures arrived, which are Actors — and a hardcoded Item here
+     * does not fail loudly, it writes documents of the wrong type into a pack
+     * that will happily take them.
+     *
+     * Not merely equivalent for the packs that were already working: for an
+     * Item pack this resolves to ISUNItem, the class CONFIG names, rather than
+     * the bare global the line used to call. That is the class Foundry
+     * instantiates through in any case, so it is the more correct of the two. */
+    const Cls = foundry.utils.getDocumentClass(pack.documentName);
+
     try {
       /* What makes an entry the same entry as one already here.
        *
@@ -1004,8 +1015,8 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
         else create.push(data);
       }
 
-      if (create.length) await Item.createDocuments(create, { pack: spec.pack });
-      if (update.length) await Item.updateDocuments(update, { pack: spec.pack });
+      if (create.length) await Cls.createDocuments(create, { pack: spec.pack });
+      if (update.length) await Cls.updateDocuments(update, { pack: spec.pack });
 
       return { created: create.length, updated: update.length, images: images.size, missing };
     } finally {

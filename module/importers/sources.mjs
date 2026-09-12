@@ -43,6 +43,7 @@ import * as way from "./way.mjs";
 import * as matrixTables from "./matrix-tables.mjs";
 import * as secrets from "./secrets.mjs";
 import * as threshold from "./threshold.mjs";
+import * as creatures from "./creatures.mjs";
 
 /**
  * A book's title as it comes off its own cover.
@@ -404,12 +405,16 @@ export const SOURCES = [
     signature: coverTitle("THE NIGHTSIDE"),
     kind: "listing",
     book: "The Nightside",
-    read: fortes.readEntries,
+    /* Its sixteen named characters are read alongside its fortes, in a single
+     * walk of the book. They are people rather than beasts — the Dark Trinity,
+     * the King of the Oubliette — so they arrive as NPCs. */
+    read: (doc, opts) => creatures.readWithFortes(doc, { ...opts, npc: true }),
     sort: (entry) => entry.kind,
     buckets: {
       forte:        { pack: "invisible-sun.fortes", toItem: fortes.toForteItem },
       forteAbility: { pack: "invisible-sun.forte-abilities", toItem: fortes.toAbilityItem,
-                      uniqueBy: ["system.parentForte"] }
+                      uniqueBy: ["system.parentForte"] },
+      npc:          { pack: "invisible-sun.creatures", toItem: creatures.toItem }
     }
   },
   {
@@ -447,6 +452,40 @@ export const SOURCES = [
     }
   },
   {
+    /* The bestiary, and nothing in it but creatures: 246 of the 310 stat blocks
+     * the books print between them. */
+    key: "teratology",
+    label: "ISUN.SourceTeratology",
+    hint: /teratology/i,
+    signature: coverTitle("TERATOLOGY"),
+    kind: "listing",
+    book: "Teratology",
+    expected: 246,
+    read: creatures.readEntries,
+    sort: creatures.sort,
+    buckets: {
+      creature: { pack: "invisible-sun.creatures", toItem: creatures.toItem }
+    }
+  },
+  {
+    /* The creatures of the suns, and the half-dozen generic templates set
+     * beside them — a typical human, a typical large animal. Those are rules
+     * furniture rather than characters, and are imported all the same: a GM
+     * reaching for "a typical lacuna" wants one to be there. */
+    key: "path",
+    label: "ISUN.SourcePath",
+    hint: /^the.?path/i,
+    signature: coverTitle("THE PATH"),
+    kind: "listing",
+    book: "The Path",
+    expected: 48,
+    read: creatures.readEntries,
+    sort: creatures.sort,
+    buckets: {
+      creature: { pack: "invisible-sun.creatures", toItem: creatures.toItem }
+    }
+  },
+  {
     key: "silent-streets",
     label: "ISUN.SourceSilentStreets",
     hint: /silent.?streets/i,
@@ -469,7 +508,8 @@ export const SOURCES = [
  * of files it could not identify.
  */
 export const NOT_YET = [
-  { key: "path", label: "ISUN.SourcePath", hint: /^the.?path/i, signature: coverTitle("THE PATH") }
+  /* The Way is the last one unread, and most of it is prose rather than
+   * listings — the flux charts it does list have a source of their own above. */
 ];
 
 const ALL = [...SOURCES, ...NOT_YET];

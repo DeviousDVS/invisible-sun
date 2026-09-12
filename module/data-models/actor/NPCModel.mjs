@@ -9,7 +9,6 @@ export class NPCModel extends foundry.abstract.DataModel {
     
     return {
       ...baseNonPlayerSchema(1),
-      modifications: new fields.StringField({ required: false, initial: "" }),
       description:   new fields.HTMLField({ required: false, initial: "" }),
       notes:         new fields.HTMLField({ required: false, initial: "" }),
     };
