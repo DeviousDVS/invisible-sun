@@ -29,6 +29,8 @@ import { anchorReport } from "../importers/spells.mjs";
 import { SOURCES, NOT_YET, openingText, guessFromName, identifyFromText, isSupported }
   from "../importers/sources.mjs";
 
+import { portraitsFor } from "./PortraitMatcher.mjs";
+
 const { ApplicationV2, DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /** Where card art goes, relative to Foundry's data folder. */
@@ -880,15 +882,23 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
     const report = { created: 0, updated: 0, images: 0 };
     for (const [name, list] of buckets) {
       const target = spec.buckets[name];
-      /* Most listings are text alone. A bucket that has pictures on the page
-       * says how to cut them, and gets the same name-to-path map the decks
-       * hand to #writePack — so nothing below here has to know the difference. */
+      /* Where a bucket's pictures come from. Most listings have none. A bucket
+       * with `cutouts` has them on the page and says how to cut them; one with
+       * `portraits` has them already saved by a previous import, and which
+       * belongs to which is a person's judgement kept in a lookup table. Both
+       * arrive as the same name-to-path map, so nothing below here has to know
+       * the difference. */
       const images = target.cutouts
         ? await this.#writeCutouts(await target.cutouts(doc, list, {
             onProgress: ({ done, total }) =>
               this.#say(game.i18n.format("ISUN.ImportImages", { done, total }))
           }), target.folder)
+        : target.portraits ? portraitsFor(list)
         : new Map();
+      if (target.portraits && images.size) {
+        this.#say(game.i18n.format("ISUN.ImportPortraits",
+          { count: images.size, total: list.length }));
+      }
       /* Two kinds of bucket now. Most are Items and go through #writePack; a
        * bucket naming `toTables` is a list to roll on rather than a collection
        * of things, and is written as RollTables instead. */

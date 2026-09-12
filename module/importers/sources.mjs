@@ -414,7 +414,7 @@ export const SOURCES = [
       forte:        { pack: "invisible-sun.fortes", toItem: fortes.toForteItem },
       forteAbility: { pack: "invisible-sun.forte-abilities", toItem: fortes.toAbilityItem,
                       uniqueBy: ["system.parentForte"] },
-      npc:          { pack: "invisible-sun.creatures", toItem: creatures.toItem }
+      npc:          { pack: "invisible-sun.creatures", toItem: creatures.toItem, portraits: true }
     }
   },
   {
@@ -464,7 +464,7 @@ export const SOURCES = [
     read: creatures.readEntries,
     sort: creatures.sort,
     buckets: {
-      creature: { pack: "invisible-sun.creatures", toItem: creatures.toItem }
+      creature: { pack: "invisible-sun.creatures", toItem: creatures.toItem, portraits: true }
     }
   },
   {
@@ -482,7 +482,7 @@ export const SOURCES = [
     read: creatures.readEntries,
     sort: creatures.sort,
     buckets: {
-      creature: { pack: "invisible-sun.creatures", toItem: creatures.toItem }
+      creature: { pack: "invisible-sun.creatures", toItem: creatures.toItem, portraits: true }
     }
   },
   {

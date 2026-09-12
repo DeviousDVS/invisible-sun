@@ -4578,3 +4578,174 @@ a.sentence-part:hover + .sentence-part.affix {
 .sheet.actor.npc .charname input[type="text"] {
   font-size: 22px !important;
 }
+
+/* ════════════════════════════════════════════════════════
+ * MATCHING PICTURES TO CREATURES
+ *
+ * The window exists for one comparison made 307 times: this creature, and the
+ * pictures printed near it. So the list of creatures holds still on the left
+ * while the candidates change on the right, and both scroll on their own —
+ * working down the list is one long scroll rather than a hunt after every
+ * choice.
+ * ════════════════════════════════════════════════════════ */
+
+.portrait-matcher-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: var(--isun-space-sm);
+  padding: var(--isun-space-sm);
+}
+
+.matcher-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-sm);
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+}
+
+.matcher-bar input[type="search"] { flex: 1; min-width: 8rem; }
+.matcher-bar button { flex: 0 0 auto; white-space: nowrap; }
+
+/* How much is left, in figures. The bar is the only place that says it, and a
+   job of this length needs somewhere to look that proves it is shrinking. */
+.matcher-progress {
+  font-family: var(--isun-font-heading);
+  color: var(--isun-text-accent);
+  white-space: nowrap;
+  cursor: help;
+}
+
+.matcher-columns {
+  display: flex;
+  gap: var(--isun-space-md);
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── The creatures ── */
+.creature-list {
+  flex: 0 0 17rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--isun-border);
+  background: var(--isun-bg-secondary);
+}
+
+.creature-row {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr auto;
+  align-items: center;
+  gap: var(--isun-space-sm);
+  padding: 0.3rem 0.4rem;
+  border-bottom: 1px solid var(--isun-border);
+  cursor: pointer;
+}
+
+.creature-row:hover { background: var(--isun-bg-elevated); }
+.creature-row.selected {
+  background: var(--isun-bg-elevated);
+  box-shadow: inset 3px 0 0 var(--isun-text-accent);
+}
+
+/* The thumbnail is the status: a row with a picture is done, a row without is
+   the work left. No second tick to read, and no colour that has to be learned. */
+.row-thumb {
+  width: 2.2rem;
+  height: 2.2rem;
+  object-fit: cover;
+  border: 1px solid var(--isun-border);
+  background: var(--isun-bg-primary);
+}
+
+.row-thumb.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--isun-text-secondary);
+  font-size: 0.7em;
+  border-style: dashed;
+}
+
+.row-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-where {
+  font-size: 0.72em;
+  color: var(--isun-text-secondary);
+  white-space: nowrap;
+}
+
+/* ── The pictures ── */
+.candidate-pane {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--isun-space-sm);
+}
+
+.candidate-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--isun-space-sm);
+  flex: 0 0 auto;
+}
+
+.candidate-header h3 { margin: 0; }
+.candidate-header .hint { margin: 0; }
+
+.candidate-grid {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: var(--isun-space-sm);
+  align-content: start;
+}
+
+.candidate {
+  margin: 0;
+  cursor: pointer;
+  border: 2px solid transparent;
+  background: var(--isun-bg-secondary);
+  transition: border-color 0.15s ease;
+}
+
+.candidate:hover { border-color: var(--isun-border-accent); }
+
+/* The one that is chosen, said in the frame rather than with a tick in a
+   corner: at this size the picture is the control, so the picture is what
+   should look selected. */
+.candidate.chosen { border-color: var(--isun-text-accent); }
+
+/* Contained, not cropped. These are illustrations of wildly different shapes —
+   a full page, a half-page vertical, a small square — and cropping them to a
+   common box cuts the head off the tall ones, which is the part being
+   identified. */
+.candidate img {
+  display: block;
+  width: 100%;
+  height: 9rem;
+  object-fit: contain;
+  background: var(--isun-bg-primary);
+}
+
+.candidate figcaption {
+  padding: 0.25rem 0.4rem;
+  font-size: 0.72em;
+  color: var(--isun-text-secondary);
+  text-align: center;
+}
+
+.candidate-footer { flex: 0 0 auto; }

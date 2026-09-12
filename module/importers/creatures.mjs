@@ -445,8 +445,15 @@ const ICONS = {
   npc: "icons/svg/mystery-man.svg"
 };
 
-/** One creature or NPC, as an Actor. */
-export function toItem(entry) {
+/**
+ * One creature or NPC, as an Actor.
+ *
+ * `img` is the portrait the importer found for this entry in the lookup table,
+ * the same way a card is handed the face cut for it. Nothing here can work out
+ * which picture belongs to which creature — see apps/PortraitMatcher.mjs — so
+ * this takes what it is given and falls back to the type's icon.
+ */
+export function toItem(entry, img) {
   /* Only what the page actually printed. A row whose boxes were not read leaves
    * the model's own default alone rather than writing a zero, which would be a
    * creature that cannot be hurt and cannot be killed. */
@@ -458,7 +465,7 @@ export function toItem(entry) {
   return {
     name: entry.name,
     type: entry.kind === "npc" ? "NPC" : "Creature",
-    img: ICONS[entry.kind] ?? ICONS.creature,
+    img: img || ICONS[entry.kind] || ICONS.creature,
     system: {
       level: entry.level,
       armor: entry.armor ?? 0,

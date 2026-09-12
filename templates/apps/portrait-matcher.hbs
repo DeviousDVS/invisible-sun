@@ -1,0 +1,95 @@
+{{!-- Two columns, because the job is a comparison: which creature, and which
+      of the pictures printed near it. The list keeps its place while the grid
+      on the right changes, so working down 307 entries is one scroll rather
+      than a hunt after every choice. --}}
+<div class="portrait-matcher-body">
+
+  {{#if noArt}}
+    <p class="notes empty-state">{{localize "ISUN.PortraitsNoArt"}}</p>
+  {{/if}}
+
+  <header class="matcher-bar">
+    <input type="search" name="filter" value="{{filter}}"
+           placeholder="{{localize 'ISUN.PortraitsFilter'}}" autocomplete="off" />
+    <span class="matcher-progress"
+          title="{{localize 'ISUN.PortraitsProgressHint'}}">
+      {{progress.done}} / {{progress.total}}
+    </span>
+    <button type="button" data-action="next-unassigned">
+      <i class="fa-solid fa-forward"></i> {{localize "ISUN.PortraitsNext"}}
+    </button>
+    <button type="button" data-action="apply" data-tooltip="{{localize 'ISUN.PortraitsApplyHint'}}">
+      <i class="fa-solid fa-wand-magic-sparkles"></i> {{localize "ISUN.PortraitsApply"}}
+    </button>
+    <button type="button" data-action="export-table">
+      <i class="fa-solid fa-file-export"></i> {{localize "ISUN.PortraitsExport"}}
+    </button>
+    <button type="button" data-action="import-table">
+      <i class="fa-solid fa-file-import"></i> {{localize "ISUN.PortraitsImport"}}
+    </button>
+  </header>
+
+  <div class="matcher-columns">
+
+    {{!-- Every creature, with the picture it has so far. The thumbnail is the
+          status: a row with one is done, a row without is the work left. --}}
+    <ol class="creature-list">
+      {{#each rows as |row|}}
+        <li class="creature-row{{#if (eq row.id @root.current.id)}} selected{{/if}}
+                   {{#unless row.portrait}} unassigned{{/unless}}"
+            data-creature-id="{{row.id}}" data-action="select">
+          {{#if row.portrait}}
+            <img class="row-thumb" src="{{row.portrait}}" alt="" loading="lazy" />
+          {{else}}
+            <span class="row-thumb empty"><i class="fa-solid fa-question"></i></span>
+          {{/if}}
+          <span class="row-name">{{row.name}}</span>
+          <span class="row-where">{{row.source}} p{{row.page}}</span>
+        </li>
+      {{else}}
+        <li class="empty-state">{{localize "ISUN.PortraitsNoCreatures"}}</li>
+      {{/each}}
+    </ol>
+
+    <section class="candidate-pane">
+      {{#if current}}
+        <header class="candidate-header">
+          <div>
+            <h3>{{current.name}}</h3>
+            <p class="hint">{{current.source}}, page {{current.page}}</p>
+          </div>
+          {{#if current.portrait}}
+            <a data-action="clear" title="{{localize 'ISUN.PortraitsClear'}}">
+              <i class="fa-solid fa-trash"></i>
+            </a>
+          {{/if}}
+        </header>
+
+        {{!-- Nearest page first, and each says why it is here. A person
+              choosing between two pictures needs to know which was printed
+              beside the block and which is a guess from the facing page. --}}
+        <div class="candidate-grid">
+          {{#each candidates as |art|}}
+            <figure class="candidate{{#if art.chosen}} chosen{{/if}}"
+                    data-path="{{art.path}}" data-action="assign">
+              <img src="{{art.path}}" alt="" loading="lazy" />
+              <figcaption>{{art.why}}</figcaption>
+            </figure>
+          {{else}}
+            <p class="empty-state">{{localize "ISUN.PortraitsNothingNear"}}</p>
+          {{/each}}
+        </div>
+
+        <footer class="candidate-footer">
+          <button type="button" data-action="show-all">
+            <i class="fa-solid fa-images"></i>
+            {{#if showingAll}}{{localize "ISUN.PortraitsShowNear"}}
+            {{else}}{{localize "ISUN.PortraitsShowAll"}}{{/if}}
+          </button>
+        </footer>
+      {{else}}
+        <p class="empty-state">{{localize "ISUN.PortraitsPickOne"}}</p>
+      {{/if}}
+    </section>
+  </div>
+</div>

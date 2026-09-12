@@ -43,6 +43,7 @@ import { ExperimentalDie } from "./module/dice/ExperimentalDie.mjs";
 import { registerDiceSoNice } from "./module/helpers/dice-so-nice.mjs";
 import { CompendiumBrowser } from "./module/apps/CompendiumBrowser.mjs";
 import { ContentImporter } from "./module/apps/ContentImporter.mjs";
+import { PortraitMatcher, PORTRAIT_SETTING } from "./module/apps/PortraitMatcher.mjs";
 import { PathOfSuns } from "./module/apps/PathOfSuns.mjs";
 import { DepletionTracker, SETTING as TRACKER_SETTING, EMPTY as TRACKER_EMPTY }
   from "./module/apps/DepletionTracker.mjs";
@@ -110,6 +111,7 @@ Hooks.once("init", () => {
     ExperimentalDie,
     CompendiumBrowser,
     ContentImporter,
+    PortraitMatcher,
     ChallengeCard,
     NegationCard,
     NewDay,
@@ -169,6 +171,17 @@ Hooks.once("init", () => {
       + game.i18n.localize("ISUN.ImportButton");
     importer.addEventListener("click", () => new ContentImporter().render(true));
     footer.appendChild(importer);
+
+    /* And the portrait matcher beside it. It is the second half of importing:
+     * the books' pictures arrive with the books, and which one belongs to which
+     * creature is the one part of the job a person has to do. */
+    const portraits = document.createElement("button");
+    portraits.type = "button";
+    portraits.className = "isun-portraits-btn";
+    portraits.innerHTML = `<i class="fa-solid fa-image-portrait"></i> `
+      + game.i18n.localize("ISUN.PortraitsButton");
+    portraits.addEventListener("click", () => new PortraitMatcher().render(true));
+    footer.appendChild(portraits);
   });
 
   /* The system's own group on the scene controls.
@@ -413,6 +426,18 @@ Hooks.once("init", () => {
    * A world setting is the right home for it: one board for the table, written
    * by the GM and read by everyone, arriving on the other clients as a document
    * update without a socket of its own. */
+  /* Which picture belongs to which creature. A world setting rather than a file
+   * in the system, so choosing one takes effect without a release — and it is
+   * read while the actors are built, so a portrait survives the next import
+   * instead of being written over by the type's default icon. The window
+   * exports it to a file for keeping in the system or handing to somebody. */
+  game.settings.register("invisible-sun", PORTRAIT_SETTING, {
+    scope: "world",
+    config: false,
+    type: Object,
+    default: {}
+  });
+
   game.settings.register("invisible-sun", "pathOfSuns", {
     scope: "world",
     config: false,
