@@ -536,6 +536,11 @@ a.sentence-part:hover + .sentence-part.affix {
 .health-pips {
   display: flex;
   gap: 6px;
+  /* A vislae has two or three of these and a creature may have sixteen: the
+     books print the track's length per entry, and the Abdominous takes ten
+     Wounds. Sixteen pips overrun the row on a 640 sheet, and a row that does
+     not wrap simply loses the ones past the edge. */
+  flex-wrap: wrap;
 }
 
 /* The control that ends a row and acts on it — a heal, applying damage, a new

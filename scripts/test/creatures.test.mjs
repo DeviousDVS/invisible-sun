@@ -15,7 +15,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
 import { parseBlock, startsBlock, describe as describeOf, isName, toItem,
-         collect, continuesName }
+         collect, continuesName, countBoxes }
   from "../../module/importers/creatures.mjs";
 import { titleCase } from "../../module/importers/fortes.mjs";
 
@@ -402,5 +402,97 @@ describe("turning a name set in capitals into a name", () => {
     // The guard that keeps this off the gear and flux names, which the books
     // set as ordinary sentences.
     assert.equal(titleCase("Wine (bottle, fine)"), "Wine (bottle, fine)");
+  });
+});
+
+
+/* ── The three tick-box rows ──
+ *
+ * The books draw these rather than setting them, so the number is how many
+ * squares are on the page. Everything below the counting is ordinary, and the
+ * counting is two tolerances, which is what these pin down. The numbers are
+ * the Abdominous's, Teratology p.128: twelve, ten and eight, in 8.6pt boxes
+ * 11.65 apart on the label's own baseline. */
+describe("counting the boxes a label owns", () => {
+
+  const row = (y, n, from = 467) =>
+    Array.from({ length: n }, (_, i) => ({ x: from + i * 11.65, y, w: 8.6, h: 8.6 }));
+  const label = (y) => ({ x: 428.4, y });
+
+  // Three rows one line apart, as the page sets them.
+  const page = [...row(231, 12), ...row(244, 10, 468.8), ...row(257, 8, 469.7)];
+
+  test("each row is counted separately, on its own baseline", () => {
+    assert.equal(countBoxes(page, label(231)), 12);
+    assert.equal(countBoxes(page, label(244)), 10);
+    assert.equal(countBoxes(page, label(257)), 8);
+  });
+
+  test("a box sitting slightly off the baseline still counts", () => {
+    // A rectangle's y is its foot and a word's is its baseline, so they are
+    // near rather than equal.
+    assert.equal(countBoxes(row(231, 4), label(235)), 4);
+  });
+
+  test("a row a line away does not", () => {
+    assert.equal(countBoxes(row(231, 12), label(244)), 0);
+  });
+
+  test("nothing to the left of the label", () => {
+    // The other column's text sits at x 72 and its boxes, if it had any, with it.
+    assert.equal(countBoxes(row(231, 5, 72), label(428.4)), 0);
+  });
+
+  test("nor the far column on the same line", () => {
+    assert.equal(countBoxes(row(231, 5, 790), label(428.4)), 0);
+  });
+
+  test("a label with no boxes at all is nought, not a crash", () => {
+    assert.equal(countBoxes([], label(231)), 0);
+    assert.equal(countBoxes(undefined, label(231)), 0);
+  });
+});
+
+describe("what the boxes become", () => {
+
+  const block = (injuries, wounds, anguish) => parseBlock([
+    { text: "Injuries:", x: 428.4, y: 231, boxes: injuries },
+    { text: "Wounds:",   x: 428.4, y: 244, boxes: wounds },
+    { text: "Anguish:",  x: 428.4, y: 257, boxes: anguish },
+    { text: "Traits: Hungry.", x: 428.4, y: 270 }
+  ]);
+
+  test("the three counts come off the block", () => {
+    const out = block(12, 10, 8);
+    assert.equal(out.injuries, 12);
+    assert.equal(out.wounds, 10);
+    assert.equal(out.anguish, 8);
+    // And the labels are still not mistaken for named powers.
+    assert.deepEqual(out.abilities, []);
+    assert.equal(out.traits, "Hungry.");
+  });
+
+  test("a row that was never counted stays null", () => {
+    const out = parseBlock(lines("Injuries:", "Wounds:", "Anguish:", "Traits: Timid."));
+    assert.equal(out.injuries, null);
+    assert.equal(out.wounds, null);
+    assert.equal(out.anguish, null);
+  });
+
+  /* Teratology p11: "when Injuries are all checked, they become a Wound or
+   * Anguish, as appropriate (and then reset)" — so the Injuries row is the
+   * threshold a set converts at, and the other two are their tracks' capacity. */
+  test("injuries are the threshold, wounds and anguish the capacity", () => {
+    const item = toItem({ kind: "creature", name: "Abdominous", level: 12,
+                          ...block(12, 10, 8) });
+    assert.equal(item.system.health.injuryThreshold, 12);
+    assert.equal(item.system.health.wounds.max, 10);
+    assert.equal(item.system.health.anguish.max, 8);
+  });
+
+  test("an entry whose boxes were not read keeps the model's own defaults", () => {
+    // Writing zeroes here would be a creature that cannot be hurt or killed.
+    const item = toItem({ kind: "creature", name: "Orb", level: 1 });
+    assert.deepEqual(item.system.health, {});
   });
 });

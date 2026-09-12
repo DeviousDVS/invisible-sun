@@ -100,6 +100,74 @@ export async function openPdf(source) {
   return lib.getDocument(args).promise;
 }
 
+/**
+ * The small squares a page draws, in the same coordinates as `pageWords`.
+ *
+ * Teratology, The Path and The Nightside print a creature's Injuries, Wounds
+ * and Anguish as rows of empty tick boxes, and the boxes are drawn rather than
+ * typed: the text layer has the labels and nothing at all after them. How many
+ * there are is the number, so it has to be counted off the page itself.
+ *
+ * Walking the operator list is the only way to reach them. A rectangle arrives
+ * inside a `constructPath`, whose arguments are its own little op list and a
+ * flat run of numbers, and it is in the coordinates in force when it was
+ * issued — so the transform stack has to be kept as well, or every box on a
+ * page that used one lands somewhere else entirely.
+ *
+ * Only squares, and only small ones. The same pages draw a column rule, a
+ * drop-cap panel and a full-page background, and none of those is 8.6 points
+ * on a side.
+ */
+export async function pageBoxes(page, { min = 5, max = 14 } = {}) {
+  const lib = await loadPdfJs();
+  const ops = await page.getOperatorList();
+  const { height } = page.getViewport({ scale: 1 });
+  const name = Object.fromEntries(Object.entries(lib.OPS).map(([k, v]) => [v, k]));
+
+  /* How many numbers each path operator takes, so the run can be walked
+   * without knowing what any of them mean. */
+  const ARGS = { rectangle: 4, moveTo: 2, lineTo: 2, curveTo: 6, curveTo2: 4, curveTo3: 4 };
+
+  const boxes = [];
+  const stack = [];
+  let ctm = [1, 0, 0, 1, 0, 0];
+  const times = (a, b) => [
+    a[0] * b[0] + a[2] * b[1], a[1] * b[0] + a[3] * b[1],
+    a[0] * b[2] + a[2] * b[3], a[1] * b[2] + a[3] * b[3],
+    a[0] * b[4] + a[2] * b[5] + a[4], a[1] * b[4] + a[3] * b[5] + a[5]
+  ];
+
+  for (let i = 0; i < ops.fnArray.length; i++) {
+    const fn = name[ops.fnArray[i]];
+    const args = ops.argsArray[i];
+    if (fn === "save") stack.push(ctm);
+    else if (fn === "restore") ctm = stack.pop() ?? ctm;
+    else if (fn === "transform") ctm = times(ctm, args);
+    else if (fn === "constructPath") {
+      const [subOps, numbers] = args;
+      let at = 0;
+      for (const sub of subOps) {
+        const subName = name[sub];
+        if (subName === "rectangle") {
+          const [x, y, w, h] = numbers.slice(at, at + 4);
+          const width = Math.abs(ctm[0] * w);
+          const boxHeight = Math.abs(ctm[3] * h);
+          if (Math.abs(width - boxHeight) <= 1 && width >= min && width <= max) {
+            boxes.push({
+              x: ctm[0] * x + ctm[2] * y + ctm[4],
+              // Top-down, to match pageWords — everything downstream sorts that way.
+              y: height - (ctm[1] * x + ctm[3] * y + ctm[5]),
+              w: width, h: boxHeight
+            });
+          }
+        }
+        at += ARGS[subName] ?? 0;
+      }
+    }
+  }
+  return boxes;
+}
+
 /** Render a whole page to an offscreen canvas at the given resolution. */
 export async function renderPage(page, dpi) {
   const viewport = page.getViewport({ scale: dpi / 72 });

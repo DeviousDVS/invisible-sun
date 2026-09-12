@@ -14,11 +14,21 @@
  * directly under the level. That triple is the signature this reads for, and it
  * is why a spell's `Level: 4` is never mistaken for a creature's.
  *
- * ── The boxes are empty, and that is correct ──
- * All 310 print the three with nothing after them. They are tick boxes for a GM
- * to mark in play, not values, so there is nothing to import: the blank tracks
- * the data model already declares are the right answer. Reading them as numbers
- * would give every creature zero of everything and look deliberate.
+ * ── The boxes are drawn, not typed ──
+ * All 310 print the three labels with nothing after them in the text layer, and
+ * that used to be read as "these are blank tick boxes, so there is nothing to
+ * import". It is the opposite: how many boxes there are is the number, and the
+ * boxes are rectangles the page draws rather than characters it sets, so
+ * nothing but the operator list can see them. The Abdominous prints twelve
+ * Injuries, ten Wounds and eight Anguish, and got the model's own defaults —
+ * a threshold worked out from its level, and a track two long.
+ *
+ * What they mean is Teratology's own sentence, p11: "Just like with a PC, boxes
+ * represent damage sustained as Injuries, and when Injuries are all checked,
+ * they become a Wound or Anguish, as appropriate (and then reset)." So the
+ * Injuries row is the threshold a set converts at — which is exactly what
+ * `health.injuryThreshold` holds — and the other two are the capacity of their
+ * tracks.
  *
  * ── The entry with no name ──
  * Teratology p.59 is a shapeshifter whose description opens "No one knows your
@@ -62,11 +72,44 @@ const SECTION_HEIGHT = 14;
  */
 const NAME_LEADING = 1.5;
 
+/**
+ * How far a tick box may sit from the label that owns it.
+ *
+ * Down the page: half a line, because the boxes sit on their label's own
+ * baseline and nothing else is within six points of it.
+ *
+ * Across: a box is to the right of its label and inside the same column. The
+ * books set two columns 356 points apart and the longest row of boxes measured
+ * — the Abdominous's twelve Injuries — runs 137, so 300 is clear of the next
+ * column by a margin and clear of the longest row by one too.
+ */
+const BOX_BASELINE = 6;
+const BOX_REACH = 300;
+
 /** The level line that opens a stat block. Its value is always on the line. */
 const LEVEL_RE = /^Level:\s*(\d+)/;
 
 /** The three tick-box lines, which is what tells a stat block from a spell. */
 const BOXES = ["Injuries:", "Wounds:", "Anguish:"];
+
+/* Which field each of them fills, derived from the labels rather than written
+ * out again: the same three words in two lists is two lists to keep in step. */
+const TRACK = Object.fromEntries(BOXES.map(box => [box, box.slice(0, -1).toLowerCase()]));
+
+/**
+ * How many tick boxes belong to one label's line.
+ *
+ * Pure, and the half of this worth testing: the rectangles themselves come off
+ * the operator list mechanically, but which of them belongs to "Wounds:" rather
+ * than to "Injuries:" one line above is a judgement about two tolerances.
+ */
+export function countBoxes(boxes, line) {
+  if (!boxes?.length || !line) return 0;
+  return boxes.filter(box =>
+    Math.abs(box.y - line.y) <= BOX_BASELINE
+    && box.x > line.x
+    && box.x < line.x + BOX_REACH).length;
+}
 
 /** A labelled field inside the block: "Defenses (Physical): …", "Bite: …". */
 const LABEL_RE = /^([A-Z][A-Za-z][A-Za-z ()/'’-]{0,38}):\s*(.*)$/;
@@ -107,7 +150,12 @@ export function startsBlock(lines, i) {
  */
 export function parseBlock(lines) {
   const out = { armor: 0, armorNote: "", defenses: [], modifications: "",
-                traits: "", abilities: [] };
+                traits: "", abilities: [],
+                /* Null rather than zero where a row was not read at all, so
+                 * "this book prints no boxes here" stays distinguishable from
+                 * "it prints none", and toItem can leave the model's own
+                 * default in place rather than writing a track of length nil. */
+                injuries: null, wounds: null, anguish: null };
   let open = null;
 
   const put = (label, text) => {
@@ -129,7 +177,16 @@ export function parseBlock(lines) {
 
   for (const line of lines) {
     const text = line.text.trim();
-    if (!text || LEVEL_RE.test(text) || BOXES.some(b => text.startsWith(b))) continue;
+    if (!text || LEVEL_RE.test(text)) continue;
+
+    /* The three rows carry their number as boxes rather than as text, counted
+     * when the page was read. They are still skipped as labels — there is
+     * never anything after the colon to parse. */
+    const track = Object.entries(TRACK).find(([label]) => text.startsWith(label));
+    if (track) {
+      if (line.boxes) out[track[1]] = line.boxes;
+      continue;
+    }
 
     const m = LABEL_RE.exec(text);
     /* A label, unless it is a sentence that happens to contain a colon. The
@@ -295,7 +352,7 @@ export function reader({ book = "", npc = false } = {}) {
   const all = [];
 
   return {
-    page(words, n) {
+    page(words, n, boxes = []) {
       const columns = columnAnchors(words);
       if (!columns) return;
       for (let column = 0; column < columns.length; column++) {
@@ -305,7 +362,14 @@ export function reader({ book = "", npc = false } = {}) {
            * heading three above that, so isHeading is true of both. Dropping
            * them, which is what a reader of prose wants, took every name with
            * it and left 304 of the 310 entries nameless. */
-          all.push({ ...line, page: n, col: column });
+          /* Counted here rather than in `collect`, so that everything below
+           * works on lines alone and can still be tested with a fixture. Only
+           * the three labels can own boxes, and nothing else on these pages
+           * draws a small square, but asking for every line would be a count
+           * on nine hundred lines a page to find three. */
+          const owns = BOXES.some(box => line.text.startsWith(box));
+          all.push({ ...line, page: n, col: column,
+                     boxes: owns ? countBoxes(boxes, line) : 0 });
         }
       }
     },
@@ -352,10 +416,25 @@ export async function readEntries(doc, { book = "", npc = false, onProgress } = 
   for (let n = 1; n <= doc.numPages; n++) {
     const page = await doc.getPage(n);
     const { height } = page.getViewport({ scale: 1 });
-    read.page(pageWords((await page.getTextContent()).items, height), n);
+    const words = pageWords((await page.getTextContent()).items, height);
+    read.page(words, n, await boxesIfAny(page, words));
     onProgress?.({ done: n, total: doc.numPages });
   }
   return read.done();
+}
+
+/**
+ * The page's tick boxes, but only where there are any to want.
+ *
+ * Building an operator list is far dearer than reading the text layer, and
+ * fewer than half the pages of any of these books carry a stat block. The text
+ * is already in hand by the time this is asked, so the cheap question — does
+ * this page say "Injuries:" anywhere — is asked first.
+ */
+async function boxesIfAny(page, words) {
+  if (!words.some(word => word.text.startsWith(BOXES[0]))) return [];
+  const { pageBoxes } = await import("./pdf-deck.mjs");
+  return pageBoxes(page);
 }
 
 /** Which pack an entry belongs in. */
@@ -368,6 +447,14 @@ const ICONS = {
 
 /** One creature or NPC, as an Actor. */
 export function toItem(entry) {
+  /* Only what the page actually printed. A row whose boxes were not read leaves
+   * the model's own default alone rather than writing a zero, which would be a
+   * creature that cannot be hurt and cannot be killed. */
+  const health = {};
+  if (entry.injuries) health.injuryThreshold = entry.injuries;
+  if (entry.wounds) health.wounds = { max: entry.wounds };
+  if (entry.anguish) health.anguish = { max: entry.anguish };
+
   return {
     name: entry.name,
     type: entry.kind === "npc" ? "NPC" : "Creature",
@@ -376,6 +463,7 @@ export function toItem(entry) {
       level: entry.level,
       armor: entry.armor ?? 0,
       armorNote: entry.armorNote ?? "",
+      health,
       defenses: entry.defenses ?? [],
       modifications: entry.modifications ?? "",
       traits: entry.traits ?? "",
@@ -403,7 +491,7 @@ export async function readWithFortes(doc, { book = "", npc = false, onProgress }
     const page = await doc.getPage(n);
     const { height } = page.getViewport({ scale: 1 });
     const words = pageWords((await page.getTextContent()).items, height);
-    mine.page(words, n);
+    mine.page(words, n, await boxesIfAny(page, words));
     theirs.page(words, n);
     onProgress?.({ done: n, total: doc.numPages });
   }
