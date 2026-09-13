@@ -1,0 +1,35 @@
+{{!-- No turn controls. A round is not a sequence, so there is nothing to step
+      through — the only moves are beginning, turning the round over, and
+      dropping back into Narrative Mode. All three are the GM's: "the moment the
+      fight is won… the GM drops the game back into Narrative Mode", and a new
+      round is the table moving on rather than one player deciding it has. --}}
+<nav class="combat-controls isun-action-controls" data-tooltip-direction="UP">
+  {{#if hasCombat}}
+  {{#if user.isGM}}
+
+  {{#if combat.round}}
+  <button type="button" class="inline-control combat-control icon fa-solid fa-backward-step"
+          data-action="previousRound" data-tooltip
+          aria-label="{{localize "ISUN.ActionPreviousRound"}}"></button>
+
+  <button type="button" class="combat-control combat-control-lg isun-narrative" data-action="endCombat">
+    <i class="fa-solid fa-book-open" inert></i>
+    <span>{{localize "ISUN.ActionEnd"}}</span>
+  </button>
+
+  <button type="button" class="combat-control combat-control-lg isun-next-round{{#if roundComplete}} isun-ready{{/if}}"
+          data-action="nextRound">
+    <i class="fa-solid fa-forward-step" inert></i>
+    <span>{{localize "ISUN.ActionNextRound"}}</span>
+  </button>
+
+  {{else}}
+  <button type="button" class="combat-control combat-control-lg" data-action="startCombat">
+    <i class="fa-solid fa-bolt" inert></i>
+    <span>{{localize "ISUN.ActionBegin"}}</span>
+  </button>
+  {{/if}}
+
+  {{/if}}
+  {{/if}}
+</nav>

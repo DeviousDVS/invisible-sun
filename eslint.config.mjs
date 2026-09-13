@@ -38,6 +38,8 @@ const foundryGlobals = {
   RollTable: "readonly",
   ActiveEffect: "readonly",
   TokenDocument: "readonly",
+  Combat: "readonly",
+  Combatant: "readonly",
 
   // Dice and helpers
   Roll: "readonly",

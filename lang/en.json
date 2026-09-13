@@ -288,7 +288,6 @@
     "AbilityText": "What it does",
     "Traits": "Traits",
     "TraitsHint": "e.g. Organized. Bookish. Timid.",
-    "Scourge": "Scourge",
     "EffectiveLevel": "Effective",
     "EffectiveLevelHint": "Level less scourges — an NPC has no pools for a scourge to sit in, so it comes off their level instead.",
     "InjuryThresholdHint": "Injuries taken, and how many make a Wound or an Anguish at this level.",
@@ -952,7 +951,23 @@
     "ImportSorted": "Read {total} cards from {sheets} sheets: {kinds}.",
     "ImportUnplaced": "{count} card(s) could not be sorted by the back printed behind them.",
     "SourceVanceCardsTN": "Nightside Vance Spell Cards",
-    "Search": "Search"
+    "Search": "Search",
+    "ActionSidePlayers": "Players",
+    "ActionSideOpposition": "Opposition",
+    "ActionBegin": "Begin Action Mode",
+    "ActionEnd": "Return to Narrative",
+    "ActionNextRound": "Next Round",
+    "ActionPreviousRound": "Previous round",
+    "ActionTakeFloor": "Take the floor",
+    "ActionDone": "Done",
+    "ActionTakeBack": "Take the floor back",
+    "ActionActed": "Has acted",
+    "ActionMarkActed": "Mark as acted",
+    "ActionClearActed": "Mark as not yet acted",
+    "ActionHolding": "{name} has the floor",
+    "ActionWhoActs": "What do you do?",
+    "ActionRoundOver": "Everyone has acted",
+    "ActionNobody": "Drag tokens in, or add them from the token menu."
   },
   "TYPES": {
     "Actor": {

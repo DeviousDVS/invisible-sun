@@ -18,6 +18,7 @@ import {
 // ── Custom Documents ─────────────────────────────────────
 import { ISUNActor } from "./module/documents/ISUNActor.mjs";
 import { ISUNItem } from "./module/documents/ISUNItem.mjs";
+import { ISUNCombat } from "./module/documents/ISUNCombat.mjs";
 
 // ── Sheets ───────────────────────────────────────────────
 import { ISUNVislaeSheet } from "./module/sheets/ISUNVislaeSheet.mjs";
@@ -44,6 +45,7 @@ import { registerDiceSoNice } from "./module/helpers/dice-so-nice.mjs";
 import { CompendiumBrowser } from "./module/apps/CompendiumBrowser.mjs";
 import { ContentImporter } from "./module/apps/ContentImporter.mjs";
 import { PortraitMatcher, PORTRAIT_SETTING } from "./module/apps/PortraitMatcher.mjs";
+import { ActionTracker } from "./module/apps/ActionTracker.mjs";
 import { PathOfSuns } from "./module/apps/PathOfSuns.mjs";
 import { DepletionTracker, SETTING as TRACKER_SETTING, EMPTY as TRACKER_EMPTY }
   from "./module/apps/DepletionTracker.mjs";
@@ -106,6 +108,7 @@ Hooks.once("init", () => {
   game.invisibleSun = {
     ISUNActor,
     ISUNItem,
+    ISUNCombat,
     rollVenture,
     checkDepletion,
     ExperimentalDie,
@@ -116,6 +119,7 @@ Hooks.once("init", () => {
     NegationCard,
     NewDay,
     ChallengeDeclaration,
+    ActionTracker,
     PathOfSuns,
     DepletionTracker,
     MakerMatrix
@@ -347,6 +351,15 @@ Hooks.once("init", () => {
   // ── Custom Document Classes ──────────────────────────
   CONFIG.Actor.documentClass = ISUNActor;
   CONFIG.Item.documentClass = ISUNItem;
+
+  /* Action Mode. "Unlike many RPGs, you don't roll dice to determine who goes
+   * first" — so there is no initiative formula to configure and no roll button
+   * to offer. The d20 the tracker prints beside a combatant with no initiative
+   * is core's invitation to roll one; ISUNCombat writes none, and the tracker
+   * this system draws does not ask. */
+  CONFIG.Combat.documentClass = ISUNCombat;
+  CONFIG.Combat.initiative.formula = null;
+  CONFIG.ui.combat = ActionTracker;
 
   // ── Register Sheets ──────────────────────────────────
 

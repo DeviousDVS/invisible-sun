@@ -44,6 +44,16 @@ be. See [Content](#content) below.
   is put to; the player answers with skills, bene and Sortilege, and rolls. One
   chat card carries the whole exchange and stays as the record. A defence is the
   same card with another label, so combat needs no second mechanism.
+- **Action Mode.** A round is a checklist rather than a running order: nothing
+  rolls for initiative, and the tracker shows who is still due an action and who
+  has taken theirs, the players above what they are facing. Narrative control is
+  a floor — taken while it is free, given up with Done, and taken back by the GM
+  — and the round turns over when everyone who can act has. Defeated combatants
+  stay listed but get no action, and a combatant the players cannot see is in
+  nobody's tally, so the GM and the table read the same number. What a character
+  has done is stamped with the round it happened in, so stepping a round back
+  finds everyone exactly as they were.
+
 - **Scourge and vex reach the dice.** Both were modelled but unreachable until
   the pool an action draws on was declared: a scourge subtracts from every
   action drawing on its pool, and a vex is the lesser of the GM's ceiling and

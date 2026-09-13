@@ -1,0 +1,96 @@
+{{!-- A round as a checklist. The players first, then what they are facing,
+      because "the players' response is always the first thing that happens in
+      the round" — and each row says the only two things that matter about a
+      combatant in Action Mode: whether they have acted, and whether they are
+      the one talking.
+
+      One root element, because a render part must produce exactly one. --}}
+<div class="isun-action-round">
+
+{{#if started}}
+<div class="isun-round-state{{#if roundComplete}} isun-round-done{{/if}}">
+  <span class="isun-round-tally">{{tally.done}}<span class="isun-of">/</span>{{tally.total}}</span>
+  <span class="isun-round-note">{{isunState}}</span>
+</div>
+{{/if}}
+
+{{#each sides as |side|}}
+<section class="isun-side" data-side="{{side.key}}">
+  <h3 class="isun-side-name">{{localize side.label}}</h3>
+
+  <ol class="combat-tracker plain isun-rows">
+    {{#each side.turns as |t|}}
+    <li class="combatant isun-combatant {{t.css}}{{#if t.acted}} isun-acted{{/if}}{{#if t.hasFloor}} isun-holding{{/if}}"
+        data-combatant-id="{{t.id}}" data-action="activateCombatant">
+
+      <img class="token-image" src="{{t.img}}" alt="{{t.name}}" loading="lazy">
+
+      <div class="token-name">
+        <strong class="name">{{t.name}}</strong>
+        <div class="combatant-controls">
+          {{#if @root.user.isGM}}
+          <button type="button" class="inline-control combatant-control icon fa-solid fa-eye-slash {{#if t.hidden}}active{{/if}}"
+                  data-action="toggleHidden" data-tooltip
+                  aria-label="{{localize (ifThen t.hidden "COMBATANT.Show" "COMBATANT.Hide")}}"></button>
+          <button type="button" class="inline-control combatant-control icon fa-solid fa-skull {{#if t.isDefeated}}active{{/if}}"
+                  data-action="toggleDefeated" data-tooltip
+                  aria-label="{{localize (ifThen t.isDefeated "COMBATANT.UnmarkDefeated" "COMBATANT.MarkDefeated")}}"></button>
+          {{/if}}
+          {{#if t.canPing}}
+          <button type="button" class="inline-control combatant-control icon fa-solid fa-bullseye-arrow"
+                  data-action="pingCombatant" data-tooltip
+                  aria-label="{{localize "COMBATANT.Ping"}}"></button>
+          {{/if}}
+          <div class="token-effects" data-tooltip-html="{{t.effects.tooltip}}">
+            {{#each t.effects.icons}}
+            <img class="token-effect" src="{{img}}" alt="{{name}}">
+            {{/each}}
+          </div>
+        </div>
+      </div>
+
+      {{!-- Has acted. A tick for everyone; a button for the GM, because an
+            action taken away from the tracker still has to be recorded and a
+            mis-click still has to be undone. --}}
+      <div class="isun-acted-cell">
+        {{#if t.canTick}}
+        <button type="button" class="isun-tick{{#if t.acted}} on{{/if}}" data-action="toggle-acted"
+                data-tooltip aria-label="{{localize (ifThen t.acted "ISUN.ActionClearActed" "ISUN.ActionMarkActed")}}">
+          <i class="fa-solid {{#if t.acted}}fa-square-check{{else}}fa-square{{/if}}"></i>
+        </button>
+        {{else if t.acted}}
+        <i class="fa-solid fa-square-check isun-tick on" data-tooltip aria-label="{{localize "ISUN.ActionActed"}}"></i>
+        {{else}}
+        <i class="fa-regular fa-square isun-tick" aria-hidden="true"></i>
+        {{/if}}
+      </div>
+
+      {{!-- The floor. One button at a time: take it while it is free, give it
+            up when you are done. --}}
+      <div class="isun-floor-cell">
+        {{#if t.hasFloor}}
+          {{#if t.canFinish}}
+          <button type="button" class="isun-floor-btn isun-done" data-action="finish-turn">
+            <i class="fa-solid fa-check" inert></i> {{localize "ISUN.ActionDone"}}
+          </button>
+          {{/if}}
+          {{#if @root.user.isGM}}
+          <button type="button" class="isun-floor-btn isun-step-back icon fa-solid fa-rotate-left"
+                  data-action="release-floor" data-tooltip
+                  aria-label="{{localize "ISUN.ActionTakeBack"}}"></button>
+          {{/if}}
+        {{else if t.canTake}}
+        <button type="button" class="isun-floor-btn isun-take" data-action="take-floor">
+          <i class="fa-solid fa-hand" inert></i> {{localize "ISUN.ActionTakeFloor"}}
+        </button>
+        {{/if}}
+      </div>
+    </li>
+    {{/each}}
+  </ol>
+</section>
+{{else}}
+<p class="isun-empty">{{localize "ISUN.ActionNobody"}}</p>
+{{/each}}
+
+</div>

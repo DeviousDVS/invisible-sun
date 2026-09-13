@@ -236,7 +236,14 @@ if (existsSync(quirksLocal) && existsSync(quirksJson)) {
     // Provided by ApplicationV2 / DocumentSheetV2 / ActorSheetV2.
     "tab", "attach", "detach", "close", "submit",
     "configureSheet", "configureOwnership", "copyUuid", "editImage", "importDocument",
-    "configurePrototypeToken", "configureToken", "showPortraitArtwork", "showTokenArtwork"
+    "configurePrototypeToken", "configureToken", "showPortraitArtwork", "showTokenArtwork",
+    /* Provided by CombatTracker, which the action tracker extends and whose
+     * templates it replaces. Its own rows still reach for core's controls —
+     * hiding a combatant, marking one defeated, pinging a token — and those
+     * handlers live in Foundry rather than in this tree. */
+    "activateCombatant", "toggleHidden", "toggleDefeated", "pingCombatant",
+    "panToCombatant", "createCombat", "cycleCombat", "trackerSettings",
+    "startCombat", "endCombat", "nextRound", "previousRound"
   ]);
   // Chat cards bind their own listeners; they are not Application parts.
   const CHAT_TEMPLATES = /templates[\\/]chat[\\/]/;

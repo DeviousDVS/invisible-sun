@@ -4787,3 +4787,164 @@ a.sentence-part:hover + .sentence-part.affix {
 
 .brief-text p { margin: 0 0 0.5em; }
 .brief-text p:last-child { margin-bottom: 0; }
+
+/* ═══════════════════════════════════════════════════════════
+   ACTION MODE — the combat tracker
+   ═══════════════════════════════════════════════════════════
+
+   Every head here is isun-prefixed because the tracker is a sidebar tab: it
+   lives in Foundry's own furniture rather than inside a window carrying
+   .invisible-sun, so a bare class name would reach every other system's
+   tracker too. The one exception is the app root, which does carry the class,
+   and which is how the rules that have to reach core's markup are anchored. */
+
+/* Core's two bulk-roll buttons. Nothing rolls for initiative in this game, so
+   they would do nothing; hidden here rather than by reimplementing the whole
+   header part to leave everything else in it exactly as it was. */
+.isun-action-tracker .encounter-controls .control-buttons.left { visibility: hidden; }
+
+/* The part's single root. It has to carry the scrolling and the filling that
+   core's own <ol> did, since that is now one list per side rather than one. */
+.isun-action-round {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* The rows stop where they stop; the space under the last one belongs to the
+   list, so the panel reads as one surface rather than as a strip laid on the
+   scene. */
+.isun-side:last-of-type { flex: 1; }
+
+/* ── Where the round has got to ── */
+.isun-round-state {
+  display: flex;
+  align-items: baseline;
+  gap: var(--isun-space-sm);
+  padding: var(--isun-space-xs) var(--isun-space-sm);
+  border-bottom: 1px solid var(--isun-border);
+  background: var(--isun-bg-secondary);
+}
+
+.isun-round-tally {
+  font-family: var(--isun-font-heading);
+  font-size: 1.1em;
+  color: var(--isun-text-accent);
+  white-space: nowrap;
+}
+
+.isun-round-tally .isun-of {
+  margin: 0 2px;
+  color: var(--isun-text-secondary);
+}
+
+.isun-round-note {
+  font-size: 0.85em;
+  color: var(--isun-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.isun-round-done .isun-round-note { color: var(--isun-sun-green); }
+
+/* ── The two sides ── */
+.isun-side-name {
+  margin: 0;
+  padding: var(--isun-space-xs) var(--isun-space-sm) 2px;
+  border: none;
+  font-family: var(--isun-font-smallcaps);
+  font-size: 0.78em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--isun-text-secondary);
+}
+
+/* ── A row ── */
+.isun-combatant.isun-holding {
+  background: color-mix(in srgb, var(--isun-border-accent) 14%, transparent);
+  box-shadow: inset 2px 0 0 var(--isun-border-accent);
+}
+
+/* Acted, and therefore done with. Dimmed rather than moved: a list that
+   reordered itself as people acted would shift the row under the cursor of
+   whoever was about to click it. */
+.isun-combatant.isun-acted:not(.isun-holding) { opacity: 0.55; }
+
+.isun-acted-cell,
+.isun-floor-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--isun-space-xs);
+}
+
+.isun-floor-cell { min-width: 0; }
+
+.isun-tick {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 0.95em;
+  color: var(--isun-text-secondary);
+  cursor: default;
+}
+
+button.isun-tick { cursor: pointer; }
+.isun-tick.on { color: var(--isun-sun-green); }
+
+.isun-floor-btn {
+  flex: 0 0 auto;
+  padding: 1px var(--isun-space-xs);
+  border: 1px solid var(--isun-border);
+  border-radius: 3px;
+  background: var(--isun-bg-elevated);
+  font-family: var(--isun-font-smallcaps);
+  font-size: 0.72em;
+  letter-spacing: 0.05em;
+  line-height: 1.6;
+  white-space: nowrap;
+  color: var(--isun-text-primary);
+  cursor: pointer;
+}
+
+.isun-floor-btn:hover { border-color: var(--isun-border-accent); }
+
+.isun-done {
+  border-color: color-mix(in srgb, var(--isun-sun-green) 60%, var(--isun-border));
+  color: var(--isun-sun-green);
+}
+
+.isun-step-back { padding: 1px 5px; }
+
+/* ── The footer ── */
+
+/* Two long labels where core had one short one ("End"), so they are allowed to
+   shrink and, failing that, to wrap onto a second row rather than run outside
+   the buttons they belong to. */
+.isun-action-controls { flex-wrap: wrap; row-gap: var(--isun-space-xs); }
+
+.isun-action-controls .combat-control-lg {
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: var(--isun-space-xs);
+}
+
+.isun-action-controls .combat-control-lg span {
+  font-size: 0.85em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.isun-action-controls .isun-next-round.isun-ready {
+  border-color: var(--isun-border-accent);
+  color: var(--isun-text-accent);
+}
+
+.isun-empty {
+  padding: var(--isun-space-md);
+  font-size: 0.85em;
+  text-align: center;
+  color: var(--isun-text-secondary);
+}
