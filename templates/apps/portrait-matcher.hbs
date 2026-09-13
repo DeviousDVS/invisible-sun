@@ -56,7 +56,9 @@
         <header class="candidate-header">
           <div>
             <h3>{{current.name}}</h3>
-            <p class="hint">{{current.source}}, page {{current.page}}</p>
+            <p class="hint">
+              {{current.source}}, page {{current.page}}{{#if current.level}} · level {{current.level}}{{/if}}
+            </p>
           </div>
           {{#if current.portrait}}
             <a data-action="clear" title="{{localize 'ISUN.PortraitsClear'}}">
@@ -64,6 +66,22 @@
             </a>
           {{/if}}
         </header>
+
+        {{!-- What the book says, above the pictures rather than beside them.
+              This is the thing that actually decides the match: the art on a
+              creature's page is as often somebody else's, and the only way to
+              tell is to have read the entry. Its own scroll, capped, so a long
+              description cannot push the pictures off the bottom of the
+              window — the two have to be readable at once or the panel has
+              made the job slower rather than faster. --}}
+        {{#if current.description}}
+          <div class="creature-brief">
+            {{#if current.traits}}
+              <p class="brief-traits">{{current.traits}}</p>
+            {{/if}}
+            <div class="brief-text">{{{current.description}}}</div>
+          </div>
+        {{/if}}
 
         {{!-- Nearest page first, and each says why it is here. A person
               choosing between two pictures needs to know which was printed

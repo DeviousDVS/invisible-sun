@@ -4749,3 +4749,41 @@ a.sentence-part:hover + .sentence-part.affix {
 }
 
 .candidate-footer { flex: 0 0 auto; }
+
+/* ── What the book says about it ──
+   Above the pictures, because it is what decides the match: the art on a
+   creature's page is as often somebody else's, and the only way to tell is to
+   have read the entry.
+
+   Capped and scrolling on its own. A description runs to a couple of thousand
+   characters, and one allowed its full height would push every picture below
+   the fold — which would make the panel that exists to speed the job the reason
+   it got slower. Both have to be on screen at once. */
+.creature-brief {
+  flex: 0 1 auto;
+  max-height: 11rem;
+  overflow-y: auto;
+  padding: var(--isun-space-sm);
+  border: 1px solid var(--isun-border);
+  border-left: 2px solid var(--isun-border-accent);
+  background: var(--isun-bg-secondary);
+}
+
+/* The three adjectives the entry closes on, first rather than last. "Patient.
+   Content. Merciless." identifies a creature faster than a paragraph does, and
+   costs one line to read. */
+.brief-traits {
+  margin: 0 0 var(--isun-space-xs);
+  font-family: var(--isun-font-heading);
+  font-size: 0.82em;
+  letter-spacing: 0.03em;
+  color: var(--isun-text-accent);
+}
+
+.brief-text {
+  font-size: 0.88em;
+  line-height: 1.45;
+}
+
+.brief-text p { margin: 0 0 0.5em; }
+.brief-text p:last-child { margin-bottom: 0; }

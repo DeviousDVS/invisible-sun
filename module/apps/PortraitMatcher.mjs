@@ -151,6 +151,15 @@ export class PortraitMatcher extends HandlebarsApplicationMixin(ApplicationV2) {
   #art = null;
   #selected = null;
   #filter = "";
+  /**
+   * What the book says about the creature being looked at, kept once fetched.
+   *
+   * Not in the index. A description runs to a couple of thousand characters and
+   * there are 307 of them, so asking the index for all of it would be most of a
+   * megabyte read to show one paragraph. Only the creature actually selected is
+   * fetched, and only the first time it is.
+   */
+  #details = new Map();
   /** Whether the current creature is showing its whole book rather than its page. */
   #showAll = false;
 
@@ -217,6 +226,7 @@ export class PortraitMatcher extends HandlebarsApplicationMixin(ApplicationV2) {
     return {
       rows,
       current: current && { ...current,
+        ...(this.#details.get(current.id) ?? { description: "", traits: "", level: null }),
         portrait: table[tableKey(current)] ? resolve(table[tableKey(current)]) : null },
       candidates: candidates.map(c => ({ ...c,
         chosen: current ? resolve(table[tableKey(current)] ?? "") === c.path : false,
@@ -249,10 +259,33 @@ export class PortraitMatcher extends HandlebarsApplicationMixin(ApplicationV2) {
     this.render();
   }
 
-  static #onSelect(event, target) {
+  static async #onSelect(event, target) {
     this.#selected = target.closest("[data-creature-id]")?.dataset.creatureId ?? null;
     this.#showAll = false;
+    await this.#describe(this.#selected);
     this.render();
+  }
+
+  /**
+   * Fetch the entry's own words, once.
+   *
+   * A failure here is not worth stopping over: the window's job is choosing a
+   * picture, and it can still be done from the name and the page if the text
+   * will not come.
+   */
+  async #describe(id) {
+    if (!id || this.#details.has(id)) return;
+    try {
+      const doc = await game.packs.get("invisible-sun.creatures")?.getDocument(id);
+      this.#details.set(id, {
+        description: doc?.system?.description ?? "",
+        traits: doc?.system?.traits ?? "",
+        level: doc?.system?.level ?? null
+      });
+    } catch (err) {
+      console.warn("invisible-sun | could not read a creature's description", err);
+      this.#details.set(id, { description: "", traits: "", level: null });
+    }
   }
 
   static async #onAssign(event, target) {
@@ -277,7 +310,7 @@ export class PortraitMatcher extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /** Jump to the next creature with nothing chosen, from where we are now. */
-  static #onNextUnassigned() {
+  static async #onNextUnassigned() {
     const table = portraitTable();
     const at = this.#creatures.findIndex(c => c.id === this.#selected);
     const order = [...this.#creatures.slice(at + 1), ...this.#creatures.slice(0, at + 1)];
@@ -285,6 +318,7 @@ export class PortraitMatcher extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!next) return ui.notifications.info(game.i18n.localize("ISUN.PortraitsAllDone"));
     this.#selected = next.id;
     this.#showAll = false;
+    await this.#describe(next.id);
     this.render();
   }
 
