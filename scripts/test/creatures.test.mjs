@@ -252,6 +252,25 @@ describe("what reaches the compendium", () => {
     assert.equal(item.system.page, 24);
   });
 
+  /* Only `img` was set, so a creature looked right in the sidebar and like every
+   * other creature on the canvas — and since an import rewrites `img` each time,
+   * a token matched by hand was undone on the next run while the portrait
+   * beside it survived. */
+  test("the portrait the importer found goes on the token as well as the sheet", () => {
+    const item = toItem({ kind: "creature", name: "Talyactris", level: 6 },
+                        "assets/invisible-sun/path/p148-1.webp");
+    assert.equal(item.img, "assets/invisible-sun/path/p148-1.webp");
+    assert.equal(item.prototypeToken.texture.src, "assets/invisible-sun/path/p148-1.webp");
+  });
+
+  test("and so does the fallback icon, when the table has nothing", () => {
+    const creature = toItem({ kind: "creature", name: "Orb", level: 1 });
+    assert.equal(creature.prototypeToken.texture.src, creature.img);
+    const npc = toItem({ kind: "npc", name: "Viara", level: 6 });
+    assert.equal(npc.prototypeToken.texture.src, npc.img);
+    assert.notEqual(npc.img, creature.img);
+  });
+
   test("an entry with nothing but a level still makes a valid actor", () => {
     const item = toItem({ kind: "creature", name: "Orb", level: 1 });
     assert.equal(item.system.armor, 0);

@@ -462,10 +462,18 @@ export function toItem(entry, img) {
   if (entry.wounds) health.wounds = { max: entry.wounds };
   if (entry.anguish) health.anguish = { max: entry.anguish };
 
+  /* The token gets the same picture as the sheet. Setting only `img` left a
+   * creature looking right in the sidebar and like every other creature the
+   * moment it was dragged onto a scene — and because an import rewrites `img`
+   * every time, a token matched by hand was quietly undone on the next run
+   * while the portrait beside it survived. */
+  const picture = img || ICONS[entry.kind] || ICONS.creature;
+
   return {
     name: entry.name,
     type: entry.kind === "npc" ? "NPC" : "Creature",
-    img: img || ICONS[entry.kind] || ICONS.creature,
+    img: picture,
+    prototypeToken: { texture: { src: picture } },
     system: {
       level: entry.level,
       armor: entry.armor ?? 0,
