@@ -877,6 +877,7 @@
     "PortraitsAllDone": "Every creature has a picture.",
     "PortraitsImported": "{count} portrait(s) read from the file.",
     "PortraitsBadFile": "That file could not be read: {why}",
+    "PortraitsNoTable": "no mapping found in it",
     "PortraitsApplied": "{count} portrait(s) written to the compendium.",
     "ImportReadingPages": "Reading the pages… {done} of {total}",
     "ImportStep1": "Put the Invisible Sun PDFs you own in one folder. It will sort them out.",

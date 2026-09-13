@@ -893,7 +893,7 @@ export class ContentImporter extends HandlebarsApplicationMixin(ApplicationV2) {
             onProgress: ({ done, total }) =>
               this.#say(game.i18n.format("ISUN.ImportImages", { done, total }))
           }), target.folder)
-        : target.portraits ? portraitsFor(list)
+        : target.portraits ? await portraitsFor(list)
         : new Map();
       if (target.portraits && images.size) {
         this.#say(game.i18n.format("ISUN.ImportPortraits",
