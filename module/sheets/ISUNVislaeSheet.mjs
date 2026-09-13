@@ -3,6 +3,7 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 
 import { ActorSheetMixin } from "./SheetMixin.mjs";
 import { VentureDialog } from "../apps/VentureDialog.mjs";
+import { challengeForTargets } from "../helpers/target.mjs";
 import { DepletionTracker } from "../apps/DepletionTracker.mjs";
 import { MakerMatrix } from "../apps/MakerMatrix.mjs";
 import { ApplyIdentity } from "../apps/ApplyIdentity.mjs";
@@ -987,13 +988,26 @@ export class ISUNVislaeSheet extends ActorSheetMixin(HandlebarsApplicationMixin(
     this.render();
   }
 
-  /** Roll a skill: open the venture dialog with that skill already ticked. */
+  /**
+   * Roll a skill: open the venture dialog with that skill already ticked.
+   *
+   * If the player has targeted something, its level fills the challenge in.
+   * "Challenge is often very easy to determine because you can just use the
+   * level of the NPC, object, or whatever else is involved" (The Gate, p18) —
+   * so the player has already said what the number is by picking a target, and
+   * the field is theirs to correct either way.
+   */
   async _onRollSkill(event, target) {
     event.preventDefault();
     const li = target.closest(".item");
     const skill = this.document.items.get(li?.dataset.itemId);
     if (!skill) return;
-    return VentureDialog.open(this.document, { skill, label: skill.name });
+    const found = challengeForTargets();
+    return VentureDialog.open(this.document, {
+      skill, label: skill.name,
+      challenge: found?.challenge ?? 0,
+      target: found
+    });
   }
 
   /**

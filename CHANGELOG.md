@@ -54,6 +54,15 @@ be. See [Content](#content) below.
   has done is stamped with the round it happened in, so stepping a round back
   finds everyone exactly as they were.
 
+- **A target sets the challenge.** "Challenge is often very easy to determine
+  because you can just use the level of the NPC, object, or whatever else is
+  involved" (The Gate, p18), so a skill rolled with something targeted arrives
+  with the challenge already filled in, saying whose level it is. The hardest of
+  several targets, and what a scourge has left of a level rather than the number
+  printed on the sheet. Defences modify the challenge and are printed as prose
+  rather than as a number, so the defence line is shown beside the field instead
+  of being guessed at, and the field stays editable.
+
 - **Scourge and vex reach the dice.** Both were modelled but unreachable until
   the pool an action draws on was declared: a scourge subtracts from every
   action drawing on its pool, and a vex is the lesser of the GM's ceiling and

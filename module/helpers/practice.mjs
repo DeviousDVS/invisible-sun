@@ -29,6 +29,9 @@ const COSTS_ITS_LEVEL = new Set(["Spell", "Incantation", "ForteAbility", "MinorM
 import { isVancian, isVanceSpell, heldInMind } from "./vance.mjs";
 export { isVancian, isVanceSpell, heldInMind };
 
+/* The same reckoning a skill roll makes of the same targets. See challengeFor. */
+import { challengeForTargets } from "./target.mjs";
+
 /**
  * What using this costs in Sorcery.
  *
@@ -236,8 +239,19 @@ export function kindLabelFor(item, kind = "") {
  * Read from the targeting reticle rather than from selection: what a token is
  * doing and what it is aiming at are different questions, and only one of them
  * is asked by pressing T.
+ *
+ * ── One rule, one place ──
+ * The reckoning itself is helpers/target.mjs now, kept here as the name the
+ * practice flow already calls — the way ChallengeCard.groupOf is kept for
+ * pools.groupOf. A skill roll asks the same question of the same targets, and
+ * this had begun to answer it differently: the first target rather than the
+ * hardest of them, and the printed level rather than the one a scourge has
+ * left, so a scourged creature was offered at more than it is worth.
+ *
+ * A bare number, because the practice dialog wants exactly that. What the
+ * number came from is `challengeForTargets`, and the sheet passes that along
+ * beside it.
  */
 export function challengeFor(user = game.user) {
-  const target = [...(user?.targets ?? [])][0];
-  return Math.max(0, target?.actor?.system?.level ?? 0);
+  return challengeForTargets(user)?.challenge ?? 0;
 }

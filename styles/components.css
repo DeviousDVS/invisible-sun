@@ -1528,6 +1528,28 @@ a.sentence-part:hover + .sentence-part.affix {
 .venture-dialog .target-total.impossible { color: var(--isun-failure, #b3261e); }
 
 .venture-dialog .hint { font-size: 0.8em; opacity: 0.7; margin: 0 0 0.35rem; }
+
+/* Where a filled-in challenge came from, and what the books say still modifies
+   it. Quiet, because it is a note rather than a control — but the defence lines
+   are set apart, since a defence is the reason the number in the field may be
+   wrong. */
+.venture-dialog .venture-from {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.8em;
+  opacity: 0.85;
+}
+
+.venture-dialog .venture-from-line { color: var(--isun-text-accent); }
+
+.venture-dialog .venture-defence {
+  flex: 1 1 100%;
+  padding-left: 1.2em;
+  opacity: 0.8;
+}
 /* The chosen skills, and the link that opens the picker. Scoped to the system
  * class rather than to either dialog: both draw the same rows, and a third
  * caller should not have to add itself to a selector list to be styled. */

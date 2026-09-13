@@ -63,10 +63,13 @@ export class VentureDialog {
    *                                      action knows. Brings the pool's scourge
    *                                      and vex to the roll, and withdraws the
    *                                      skill and bene controls.
+   * @param {object} [options.target]     Where the challenge came from, as
+   *                                      helpers/target.mjs reads it. Shown
+   *                                      under the field, never enforced.
    */
   static async open(actor, { skill = null, challenge = 0, label = "", magicDice = 0,
                              base = 0, baseLabel = "", practice = null,
-                             pool = "", allowSortilege = true } = {}) {
+                             pool = "", allowSortilege = true, target = null } = {}) {
     /* Empty against a declared pool, which is what withdraws the picker: the
      * template guards on the length, and #live and #roll can then find no level
      * to add for a skill that was never offered. One decision, three places
@@ -114,6 +117,7 @@ export class VentureDialog {
     const content = await renderTemplate(
       "systems/invisible-sun/templates/apps/venture-dialog.hbs",
       { skills, pools, drain, challenge, magicDice, base, baseLabel,
+        target: this.#targetNote(target),
         beneHint: game.i18n.format("ISUN.BeneCapHint", { cap }),
         sortilegeHint: game.i18n.format("ISUN.SortilegeCapHint",
           { cap: sortWhenPlain, onEnhanced: sortWhenEnhanced }),
@@ -149,6 +153,28 @@ export class VentureDialog {
     return this.#roll(actor, skills, pools, result,
       { value: board.value + base, sources: base ? [...board.sources, baseLabel] : board.sources },
       practice, drain, { bene: cap, sortPlain: sortWhenPlain, sortEnhanced: sortWhenEnhanced });
+  }
+
+  /**
+   * What to say under the challenge field about where its number came from.
+   *
+   * A number that appears on its own is a number nobody can check, so this says
+   * whose level it is. The defence line goes with it because "the level is
+   * still the starting point, but… a level 4 NPC might have +3 defenses, so
+   * striking them in combat or affecting them with spells is challenge 7" (The
+   * Gate, p18) — the modification is real, and it is prose rather than a number
+   * anything could add for them. See helpers/target.mjs.
+   */
+  static #targetNote(found) {
+    if (!found) return null;
+    return {
+      line: found.others
+        ? game.i18n.format("ISUN.TargetHardest",
+            { name: found.name, level: found.challenge, count: found.others })
+        : game.i18n.format("ISUN.TargetLevel",
+            { name: found.name, level: found.challenge }),
+      defences: found.defences ?? []
+    };
   }
 
   /**

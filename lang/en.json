@@ -967,7 +967,9 @@
     "ActionHolding": "{name} has the floor",
     "ActionWhoActs": "What do you do?",
     "ActionRoundOver": "Everyone has acted",
-    "ActionNobody": "Drag tokens in, or add them from the token menu."
+    "ActionNobody": "Drag tokens in, or add them from the token menu.",
+    "TargetLevel": "Challenge from {name}, level {level}.",
+    "TargetHardest": "Challenge from {name}, level {level} — the hardest of {count} others targeted."
   },
   "TYPES": {
     "Actor": {

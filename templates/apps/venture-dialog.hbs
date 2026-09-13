@@ -23,6 +23,20 @@
     </div>
   </div>
 
+  {{!-- Where the challenge came from. A filled-in number that does not say
+        whose level it is cannot be checked by the person rolling against it,
+        and the defence line sits with it because a defence modifies the
+        challenge and is printed as prose rather than as a number. --}}
+  {{#if target}}
+  <p class="venture-from">
+    <i class="fa-solid fa-crosshairs" inert></i>
+    <span class="venture-from-line">{{target.line}}</span>
+    {{#each target.defences as |d|}}
+    <span class="venture-defence">{{#if d.kind}}<strong>{{d.kind}}:</strong> {{/if}}{{d.text}}</span>
+    {{/each}}
+  </p>
+  {{/if}}
+
   {{#if skills.length}}
     <fieldset class="venture-skills">
       <legend>{{localize "ISUN.Skills"}}</legend>
