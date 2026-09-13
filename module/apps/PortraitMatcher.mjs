@@ -29,6 +29,7 @@ import { tableKey, groupArt, candidatesFor, allArt, progress, effectiveTable,
          toFileShape, fromFileShape, relative, resolve, presentOnly, ART_ROOT }
   from "../helpers/portraits.mjs";
 import { SHIPPED_PORTRAITS } from "../importers/portraits-data.mjs";
+import { saveCaret, restoreCaret } from "../helpers/caret.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -174,6 +175,21 @@ export class PortraitMatcher extends HandlebarsApplicationMixin(ApplicationV2) {
       const el = priorElement.querySelector(selector);
       if (el?.scrollTop) state.scrollPositions.push([selector, el.scrollTop, 0]);
     }
+    saveCaret(priorElement, state);
+  }
+
+  /**
+   * Put the caret back where the typist left it.
+   *
+   * Filtering re-renders the window, and the window is one part, so the search
+   * field is rebuilt mid-word. Core puts the focus back but a new input starts
+   * with its caret at nought, and every letter after the first therefore landed
+   * in front of the ones already typed. The compendium browser had this and the
+   * fix is shared rather than copied — see helpers/caret.mjs.
+   */
+  _syncPartState(partId, newElement, priorElement, state) {
+    super._syncPartState(partId, newElement, priorElement, state);
+    restoreCaret(newElement, state);
   }
 
   /** Read the pack and the art folder, once per opening. */
@@ -243,15 +259,12 @@ export class PortraitMatcher extends HandlebarsApplicationMixin(ApplicationV2) {
     };
   }
 
-  _onRender(context, options) {
-    super._onRender(context, options);
-    // Typing filters the list; a re-render on every keystroke would lose focus,
-    // so the field is read here rather than being a form input the app submits.
-    const search = this.element.querySelector('input[name="filter"]');
-    search?.addEventListener("input", foundry.utils.debounce(event => {
-      this.#filter = event.target.value;
-      this.render();
-    }, 250));
+  _attachPartListeners(partId, el, options) {
+    super._attachPartListeners(partId, el, options);
+    // Typing filters the list, which re-renders; _syncPartState above is what
+    // keeps the caret from going back to the start between keystrokes.
+    el.querySelector('input[name="filter"]')?.addEventListener("input",
+      foundry.utils.debounce(event => { this.#filter = event.target.value; this.render(); }, 250));
   }
 
   async #write(table) {
