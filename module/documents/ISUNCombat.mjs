@@ -239,6 +239,7 @@ export class ISUNCombat extends Combat {
     const updateData = { round: 1, turn: null };
     Hooks.callAll("combatStart", this, updateData);
     await this.update(updateData);
+    await this.#resetMovement();
     return this;
   }
 
@@ -270,7 +271,28 @@ export class ISUNCombat extends Combat {
     const updateOptions = { direction };
     Hooks.callAll("combatRound", this, updateData, updateOptions);
     await this.update(updateData, updateOptions);
+    await this.#resetMovement();
     return this;
+  }
+
+  /**
+   * Forget how far everyone has walked.
+   *
+   * "A character can use their entire action to run a short distance" is one
+   * budget per round, and Foundry's movement history is what apps/ActionMovement
+   * measures it against — so the round turning over has to empty it, or the
+   * second round's first step is refused for distance covered in the first.
+   *
+   * One GM does it, because it writes every token in the fight.
+   */
+  async #resetMovement() {
+    if (!game.user.isActiveGM) return;
+    /* Only the ones that resolve to a token. Core throws on a combatant from
+     * another combat and quietly does nothing for one with no token to find —
+     * and a combatant with no token cannot have walked anywhere, so there is
+     * nothing of theirs to forget. */
+    const walked = this.combatants.filter(c => c.token);
+    if (walked.length) await this.clearMovementHistories(walked);
   }
 
   /* There are no turns to step through. Left as no-ops rather than deleted

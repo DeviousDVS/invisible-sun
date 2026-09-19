@@ -49,6 +49,7 @@ import { ActionTracker } from "./module/apps/ActionTracker.mjs";
 import { UseItem } from "./module/apps/UseItem.mjs";
 import { RangeOverlay, RANGE_SETTING } from "./module/apps/RangeOverlay.mjs";
 import { TakeAction } from "./module/apps/TakeAction.mjs";
+import { ActionMovement } from "./module/apps/ActionMovement.mjs";
 import { PathOfSuns } from "./module/apps/PathOfSuns.mjs";
 import { DepletionTracker, SETTING as TRACKER_SETTING, EMPTY as TRACKER_EMPTY }
   from "./module/apps/DepletionTracker.mjs";
@@ -126,6 +127,7 @@ Hooks.once("init", () => {
     ActionTracker,
     RangeOverlay,
     TakeAction,
+    ActionMovement,
     /* The one line the Take Action macro runs. Short and stable, because it is
      * written into a macro a player can open and read. */
     takeAction: () => TakeAction.run(),
@@ -599,6 +601,11 @@ Hooks.once("ready", async () => {
   /* The Take Action button hides itself once its macro is on the bar, so the
    * controls have to be rebuilt when the bar changes. */
   TakeAction.listen();
+
+  /* "In Action Mode, a normal character can move to any nearby location as an
+   * action. They can move to something close as part of another action" (The
+   * Gate, p26). Players only, and only while Action Mode is running. */
+  ActionMovement.listen();
 
   /* A flux "immediately turns a new Sooth card" (The Way, p13). The roller may
    * be a player and the board is a world setting, so the roll flags its message

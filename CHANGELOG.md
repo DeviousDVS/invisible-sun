@@ -86,6 +86,15 @@ be. See [Content](#content) below.
   puts it on the bar and then hides itself, returning if the macro is moved off
   or deleted.
 
+- **Movement in Action Mode follows the book.** "A normal character can move to
+  any nearby location as an action. They can move to something close as part of
+  another action" (The Gate, p26). A player moves only while holding the floor;
+  a close move costs nothing; going past close and up to near is the action, so
+  the go ends with it; past near is refused, because that is not one round's
+  worth. Measured across the round rather than per drag, so three short steps
+  still add up to a run. Players only — the GM moves what they like — and only
+  while Action Mode is running.
+
 - **A scene knows what a square is worth.** The manifest declares 10 feet to the
   square, so one square is exactly Close — the shortest of the book's four bands
   and the one a token most often needs to be inside. New scenes inherit it;

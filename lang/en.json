@@ -993,7 +993,10 @@
     "TakeActionOnBar": "Take Action is on your hotbar, slot {slot}.",
     "TakeActionBarFull": "Your hotbar is full; move something and try again.",
     "TakeActionAdd": "Put Take Action on my hotbar",
-    "TakeActionAlreadyOnBar": "Take Action is already on your hotbar, slot {slot}."
+    "TakeActionAlreadyOnBar": "Take Action is already on your hotbar, slot {slot}.",
+    "MoveNotYourGo": "It is not {name}'s go. Take the floor first.",
+    "MoveTooFar": "{name} cannot go further than {most} {units} in one round.",
+    "MoveSpentAction": "{name} moved, which was their action. Their go is over."
   },
   "TYPES": {
     "Actor": {
