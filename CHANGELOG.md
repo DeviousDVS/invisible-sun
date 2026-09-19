@@ -95,6 +95,13 @@ be. See [Content](#content) below.
   still add up to a run. Players only — the GM moves what they like — and only
   while Action Mode is running.
 
+- **The shipped scripts are minified** — about 1.1 MB of source down to 340 kB,
+  most of it comments, which are where this codebase keeps its reasoning and
+  which a player needs none of. Each file is minified in place rather than
+  bundled, so the manifest describes the same files it always did and the three
+  modules imported by name at runtime still resolve. Build with `--no-minify`
+  to ship the sources as they are.
+
 - **A scene knows what a square is worth.** The manifest declares 10 feet to the
   square, so one square is exactly Close — the shortest of the book's four bands
   and the one a token most often needs to be inside. New scenes inherit it;

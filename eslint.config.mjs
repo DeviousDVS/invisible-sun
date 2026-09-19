@@ -83,7 +83,9 @@ export default [
         // The importer reads PDFs and writes images in the browser.
         Blob: "readonly",
         File: "readonly",
-        Uint8Array: "readonly"
+        Uint8Array: "readonly",
+        // Measuring a script before and after minifying, in the build.
+        TextEncoder: "readonly"
       }
     },
     linterOptions: { reportUnusedDisableDirectives: true },

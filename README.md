@@ -434,6 +434,14 @@ matches a commit. It also asserts that the manifest version matches the tag you
 pass, since a release tagged one thing and declaring another installs as the
 wrong version.
 
+**The shipped scripts are minified** — around 1.1 MB of source down to 340 kB,
+most of it the comments, which are where this codebase keeps its reasoning and
+which a player needs none of. Each file is minified in place rather than bundled,
+so the manifest describes the same files it always did and the three modules
+that are imported by name at runtime still resolve. Class names are kept, because
+Foundry puts them in its own errors and a legible stack trace is worth the bytes.
+Build with `--no-minify` to ship the sources as they are.
+
 **What ends up in the archive is an allowlist, derived from the manifest** —
 the modules reached by following imports out of the declared entry point, the
 stylesheets and language files `system.json` names, the licence it points at,

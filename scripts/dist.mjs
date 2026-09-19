@@ -32,10 +32,26 @@
  * their contents: a table fills them by reading their own copies of the books
  * through the Content Importer.
  *
+ * ── Why the shipped scripts are minified ──
+ * This codebase is mostly prose. The comments are where the rules live and why
+ * they are the rules — 111 modules of it — and a player downloading the system
+ * needs none of that to play. It is the repository that keeps it.
+ *
+ * Minified rather than bundled, one file to one file. Bundling would have to
+ * rewrite the import graph, and three places reach for a module by name at
+ * runtime: the optional quirks list that is supposed to 404 on a clean install,
+ * and two cycles broken by importing late. One-to-one leaves all of that alone
+ * and leaves the manifest describing the same files it always did.
+ *
+ * Class names are kept. Nothing in this system reads its own, but Foundry names
+ * classes in its own errors and sheet registration, and the few bytes are worth
+ * more as a legible stack trace than as a saving.
+ *
  * Usage:
  *   npm run dist                 build from the current HEAD
  *   npm run dist -- --tag v0.1.0 also assert the manifest version matches
  *   npm run dist -- --allow-dirty  build anyway; the archive is then unverified
+ *   npm run dist -- --no-minify  ship the sources as they are, comments and all
  *
  * Requires the `zip` binary, as the extraction pipeline already requires
  * pdftotext.
@@ -47,6 +63,7 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { minify } from "terser";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(ROOT, "dist");
@@ -201,7 +218,63 @@ if (shipped.flags?.hotReload) {
 writeFileSync(path.join(STAGE, "system.json"), JSON.stringify(shipped, null, 2) + "\n");
 writeFileSync(path.join(DIST, "system.json"), JSON.stringify(shipped, null, 2) + "\n");
 
-/* ── 6. Refuse to ship what must never ship ──
+/* ── 6. Minify the scripts ──
+ *
+ * In place in the staging tree, so the file the manifest names is the file that
+ * ships. Terser is asked to parse as a module, because every one of these is:
+ * a parser told otherwise reads `import` as an identifier and fails on the
+ * first line of every file.
+ *
+ * A failure here stops the build. A half-minified archive is worse than an
+ * unminified one — it installs, and then breaks somewhere nobody can read.
+ */
+/* Node has Buffer as a global, but the lint config lists only what a Foundry
+ * client supplies. TextEncoder is in both, and this needs one number. */
+const byteLength = (text) => new TextEncoder().encode(text).length;
+
+const minified = { files: 0, before: 0, after: 0 };
+if (flag("no-minify") !== true) {
+  const scripts = [];
+  (function walk(dir) {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name.endsWith(".mjs")) scripts.push(p);
+    }
+  })(STAGE);
+
+  for (const file of scripts) {
+    const source = readFileSync(file, "utf8");
+    let result;
+    try {
+      result = await minify(source, {
+        module: true,
+        ecma: 2022,
+        compress: true,
+        mangle: true,
+        /* Foundry names classes in its own errors and in sheet registration,
+         * and a stack trace naming ISUNVislaeSheet is worth more than the
+         * bytes its name costs. */
+        keep_classnames: true,
+        format: { comments: false }
+      });
+    } catch (err) {
+      console.error(`\nCould not minify ${path.relative(STAGE, file)}:\n  ${err.message}\n`
+        + `Build with --no-minify to ship the sources as they are.\n`);
+      process.exit(1);
+    }
+    if (typeof result.code !== "string") {
+      console.error(`\nMinifying ${path.relative(STAGE, file)} produced nothing.\n`);
+      process.exit(1);
+    }
+    minified.files++;
+    minified.before += byteLength(source);
+    minified.after += byteLength(result.code);
+    writeFileSync(file, result.code);
+  }
+}
+
+/* ── 7. Refuse to ship what must never ship ──
  *
  * The allowlist should already have made this impossible. It runs anyway: this
  * is the guarantee the fan-use position rests on, and a guarantee that is only
@@ -235,7 +308,7 @@ if (smuggled.length) {
   process.exit(1);
 }
 
-/* ── 7. Archive, with the manifest at its root ── */
+/* ── 8. Archive, with the manifest at its root ── */
 const zipName = `${id}.zip`;
 try {
   execFileSync("zip", ["-r", "-q", path.join(DIST, zipName), "."], { cwd: STAGE });
@@ -246,7 +319,7 @@ try {
 }
 rmSync(STAGE, { recursive: true, force: true });
 
-/* ── 8. Say what was built ── */
+/* ── 9. Say what was built ── */
 const size = statSync(path.join(DIST, zipName)).size;
 const mb = (size / 1024 / 1024).toFixed(1);
 say(`\n${id} ${version}\n`);
@@ -254,6 +327,14 @@ say(`  ${moduleFiles.length} modules reached from ${manifest.esmodules.join(", "
 say(`  ${(manifest.styles ?? []).length} stylesheets, ${(manifest.languages ?? []).length} language(s), `
   + `${packDirs.length} compendia declared and shipped empty`);
 say(`  ${staged.length} files, ${mb} MB`);
+if (minified.files) {
+  const saved = minified.before - minified.after;
+  const pct = Math.round((saved / minified.before) * 100);
+  say(`  ${minified.files} scripts minified, `
+    + `${(minified.before / 1024).toFixed(0)} kB down to ${(minified.after / 1024).toFixed(0)} kB (${pct}% off)`);
+} else {
+  say(`  scripts shipped unminified`);
+}
 
 if (orphans.length) {
   say(`\n  ${orphans.length} module(s) on disk that nothing imports, left out:`);
