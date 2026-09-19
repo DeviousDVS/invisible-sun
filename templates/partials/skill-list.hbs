@@ -21,7 +21,8 @@
       {{#if group.skills.length}}
         <div class="item-list skill-list">
           {{#each group.skills as |item|}}
-            <div class="item skill" data-item-id="{{item.id}}">
+            <div class="item skill draggable" data-item-id="{{item.id}}"
+                 data-tooltip="{{localize 'ISUN.MacroDragHint'}}">
               <a class="name rollable" data-action="roll-skill"
                  data-tooltip="{{localize 'ISUN.SkillRollHint'}}">
                 <img src="{{item.img}}" alt="" width="20" height="20" />

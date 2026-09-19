@@ -46,11 +46,13 @@ import { CompendiumBrowser } from "./module/apps/CompendiumBrowser.mjs";
 import { ContentImporter } from "./module/apps/ContentImporter.mjs";
 import { PortraitMatcher, PORTRAIT_SETTING } from "./module/apps/PortraitMatcher.mjs";
 import { ActionTracker } from "./module/apps/ActionTracker.mjs";
+import { UseItem } from "./module/apps/UseItem.mjs";
 import { PathOfSuns } from "./module/apps/PathOfSuns.mjs";
 import { DepletionTracker, SETTING as TRACKER_SETTING, EMPTY as TRACKER_EMPTY }
   from "./module/apps/DepletionTracker.mjs";
 import { MakerMatrix } from "./module/apps/MakerMatrix.mjs";
 import * as flux from "./module/helpers/flux.mjs";
+import { isPractice } from "./module/helpers/practice.mjs";
 import { FluxPicker } from "./module/apps/FluxPicker.mjs";
 import { DEFAULT_STATE as PATH_OF_SUNS } from "./module/helpers/sooth.mjs";
 
@@ -120,6 +122,11 @@ Hooks.once("init", () => {
     NewDay,
     ChallengeDeclaration,
     ActionTracker,
+    UseItem,
+    /* What a hotbar macro calls. Kept short because it is written into every
+     * macro this system makes, and a macro is a line of code a player can
+     * read and may well edit. */
+    useItem: (uuid) => UseItem.byUuid(uuid),
     PathOfSuns,
     DepletionTracker,
     MakerMatrix
@@ -279,6 +286,27 @@ Hooks.once("init", () => {
         }
       }
     };
+  });
+
+  /* A skill or a practice dropped on the hotbar becomes a macro that uses it.
+   *
+   * Core's own answer to an Item dropped there is a macro that opens its sheet,
+   * which is the right answer for a coat and the wrong one for a spell. So the
+   * two kinds a character *does* things with are intercepted and everything
+   * else is left alone — a piece of gear on the bar still opens its sheet.
+   *
+   * Read synchronously, because the hook is: `Hooks.call` cannot await, and
+   * returning false is what stops core making its own macro. fromUuidSync
+   * answers for anything embedded in a world actor, which is every row this
+   * can be dragged from.
+   */
+  Hooks.on("hotbarDrop", (bar, data, slot) => {
+    if (data?.type !== "Item") return;
+    const item = fromUuidSync(data.uuid);
+    if (!item?.parent) return;
+    if (item.type !== "Skill" && !isPractice(item)) return;
+    UseItem.toHotbar(item, slot);
+    return false;
   });
 
   /* Declaring a challenge belongs with chat, because the card is a chat message

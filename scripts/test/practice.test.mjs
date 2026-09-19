@@ -236,6 +236,42 @@ describe("whether a depletion can be rolled at all", () => {
   });
 });
 
+describe("what counts as a practice", () => {
+
+  /* The four things a character casts or uses as an action. The hotbar asks
+   * this question of anything dropped on it: a spell becomes a macro that
+   * casts, and a coat is left to core, which makes one that opens its sheet. */
+  test("the four kinds", () => {
+    for (const type of ["Spell", "Incantation", "ForteAbility", "MinorMagic"]) {
+      assert.equal(practice.isPractice({ type }), true, type);
+    }
+  });
+
+  test("a skill is not one of them", () => {
+    // It is used, and it goes on the bar, but it costs no Sorcery and is
+    // rolled rather than cast. The two paths part here.
+    assert.equal(practice.isPractice({ type: "Skill" }), false);
+  });
+
+  test("nor is anything merely held", () => {
+    for (const type of ["Gear", "Ephemera", "ObjectOfPower", "Secret", "Heart"]) {
+      assert.equal(practice.isPractice({ type }), false, type);
+    }
+  });
+
+  test("nothing at all is not one either", () => {
+    assert.equal(practice.isPractice(null), false);
+    assert.equal(practice.isPractice({}), false);
+  });
+
+  test("the list is the one the cost rule uses", () => {
+    // They coincide across the whole of the books, so there is one list; a
+    // second that drifted would cast something for free that should pay.
+    assert.deepEqual([...practice.PRACTICE_TYPES].sort(),
+      ["ForteAbility", "Incantation", "MinorMagic", "Spell"]);
+  });
+});
+
 describe("the challenge a practice faces", () => {
 
   test("the level of what is targeted", () => {

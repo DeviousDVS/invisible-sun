@@ -63,6 +63,14 @@ be. See [Content](#content) below.
   rather than as a number, so the defence line is shown beside the field instead
   of being guessed at, and the field stays editable.
 
+- **Skills and practices on the hotbar.** Drag either row onto the bar and it
+  becomes a macro that uses it — the venture dialog with the skill already
+  ticked, or the whole cast, paid for and offered back to a Vance to keep.
+  Anything else dropped there still does what Foundry does with it, so a piece
+  of gear on the bar opens its sheet. Macros name the item by uuid and resolve
+  it when pressed, so a skill whose level has gone up rolls at the level it is
+  now, and two abilities sharing a name across two fortes stay distinct.
+
 - **Scourge and vex reach the dice.** Both were modelled but unreachable until
   the pool an action draws on was declared: a scourge subtracts from every
   action drawing on its pool, and a vex is the lesser of the GM's ceiling and

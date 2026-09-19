@@ -59,7 +59,8 @@
     </div>
 
     {{#each practices as |p|}}
-      <div class="item practice" data-item-id="{{p.item.id}}" data-kind="{{p.kind}}">
+      <div class="item practice draggable" data-item-id="{{p.item.id}}" data-kind="{{p.kind}}"
+           data-tooltip="{{localize 'ISUN.MacroDragHint'}}">
         {{!-- The level, which is also what the practice costs in Sorcery to
               use — the two were separate columns saying the same number. The
               badge marks the exceptions rather than a column carrying one word

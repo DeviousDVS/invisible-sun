@@ -17,8 +17,23 @@
  * to the spell all belong to the sheet, which has the dialogs.
  */
 
-/** Practices whose Sorcery cost is their level. */
-const COSTS_ITS_LEVEL = new Set(["Spell", "Incantation", "ForteAbility", "MinorMagic"]);
+/**
+ * The four kinds of magical practice.
+ *
+ * Also, and separately, the four whose Sorcery cost is their level — the two
+ * facts coincide across the whole of the books, so there is one list. What
+ * makes a thing a practice is that it is cast or used as an action; what makes
+ * it cost its level is The Way, p8. `costOf` still has to answer the exceptions
+ * within them, which is where a Vancian spell and a no-cost ability differ.
+ */
+export const PRACTICE_TYPES = Object.freeze(["Spell", "Incantation", "ForteAbility", "MinorMagic"]);
+
+const COSTS_ITS_LEVEL = new Set(PRACTICE_TYPES);
+
+/** Whether this is something cast or used rather than merely held. */
+export function isPractice(item) {
+  return COSTS_ITS_LEVEL.has(item?.type);
+}
 
 /* A Vancian spell — the one practice that is free to cast — and the same
  * question the mind asks when it works out what it is holding. It was answered

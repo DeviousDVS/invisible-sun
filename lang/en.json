@@ -969,7 +969,12 @@
     "ActionRoundOver": "Everyone has acted",
     "ActionNobody": "Drag tokens in, or add them from the token menu.",
     "TargetLevel": "Challenge from {name}, level {level}.",
-    "TargetHardest": "Challenge from {name}, level {level} — the hardest of {count} others targeted."
+    "TargetHardest": "Challenge from {name}, level {level} — the hardest of {count} others targeted.",
+    "MacroNotUsable": "{name} is not something that can be used from the bar.",
+    "MacroNoItem": "That is no longer on the character sheet.",
+    "MacroNotYours": "{name} belongs to a character you do not control.",
+    "MacroNoCreate": "You do not have permission to create macros, so it cannot go on the bar.",
+    "MacroDragHint": "Drag onto the hotbar for quick use"
   },
   "TYPES": {
     "Actor": {
