@@ -12,7 +12,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
 import { sideOf, hasActed, canAct, canTakeFloor, counted, tally, roundComplete,
-         orderRows, PLAYERS, OPPOSITION }
+         orderRows, nextAction, PLAYERS, OPPOSITION }
   from "../../module/helpers/action-round.mjs";
 
 /** A row, as much of one as these rules ever look at. */
@@ -135,6 +135,42 @@ describe("taking the floor", () => {
   test("nor anyone who has acted or is defeated", () => {
     assert.equal(canTakeFloor(row("Vaquith", { actedIn: 3 }), 3, null), false);
     assert.equal(canTakeFloor(row("Vaquith", { defeated: true }), 3, null), false);
+  });
+});
+
+describe("what one press of take action means", () => {
+
+  /* Two moves is the whole of a round from a player's side, so one control can
+   * be both if it knows which it is. */
+  test("a free floor and an action left means take it", () => {
+    assert.equal(nextAction(row("Vaquith"), 3, null), "take");
+    assert.equal(nextAction(row("Vaquith"), 3, ""), "take");
+  });
+
+  test("holding it already means done", () => {
+    const holder = row("Vaquith");
+    assert.equal(nextAction(holder, 3, holder.id), "finish");
+  });
+
+  test("somebody else holding it means wait", () => {
+    assert.equal(nextAction(row("Vaquith"), 3, "accursed-cube"), "wait");
+  });
+
+  test("having acted means the round has moved on without you", () => {
+    assert.equal(nextAction(row("Vaquith", { actedIn: 3 }), 3, null), "acted");
+  });
+
+  /* Checked before anything else: a defeated combatant that somehow still held
+   * the floor should be told they are out, not offered Done. */
+  test("being out of the fight beats everything else", () => {
+    const down = row("Vaquith", { defeated: true });
+    assert.equal(nextAction(down, 3, null), "defeated");
+    assert.equal(nextAction(down, 3, down.id), "defeated");
+    assert.equal(nextAction(row("Vaquith", { defeated: true, actedIn: 3 }), 3, null), "defeated");
+  });
+
+  test("nobody is nothing to do", () => {
+    assert.equal(nextAction(null, 3, null), null);
   });
 });
 

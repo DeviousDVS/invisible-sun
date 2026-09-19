@@ -91,6 +91,29 @@ export function canTakeFloor(row, round, floor) {
 }
 
 /**
+ * What one press of "take action" should do, as a word.
+ *
+ * The whole of Action Mode from a player's side is two moves — take the floor,
+ * and say you are done — so one control can be both if it knows which. The
+ * words are returned rather than acted on so that the caller decides what to
+ * say and this stays testable.
+ *
+ *   take      the floor is free and they have an action left
+ *   finish    they are holding it, so pressing again is "done"
+ *   wait      somebody else is mid-sentence
+ *   acted     they have already had their action this round
+ *   defeated  they are out of the fight and get none
+ */
+export function nextAction(row, round, floor) {
+  if (!row) return null;
+  if (row.defeated) return "defeated";
+  if (hasActed(row, round)) return "acted";
+  if (floor && floor === row.id) return "finish";
+  if (floor) return "wait";
+  return "take";
+}
+
+/**
  * Does this one count towards "has everyone acted yet"?
  *
  * Two exclusions, for two different reasons.

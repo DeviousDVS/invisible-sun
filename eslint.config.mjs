@@ -52,6 +52,7 @@ const foundryGlobals = {
 
   // Bundled libraries
   Handlebars: "readonly",
+  PIXI: "readonly",
 
   // Deprecated but still referenced in places core has not yet removed
   FormDataExtended: "readonly"

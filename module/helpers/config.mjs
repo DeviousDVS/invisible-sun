@@ -217,12 +217,29 @@ export const ISUN = Object.freeze({
     "VeryLong": "ISUN.RangeVeryLong",
   },
 
-  /** Distances behind each range band, and the area of the matching size. */
+  /**
+   * Distances behind each range band, and the area of the matching size.
+   *
+   * ── Two sets of names, and why both are here ──
+   * The Gate gives each band a name and an alias in the same breath: "Something
+   * you could reach fairly quickly is near. Often referred to as 'nearby' or
+   * 'short range'". The keys are the aliases, because a spell's Range field was
+   * built on them and the packs are full of them; `name` is the book's leading
+   * name, which is what the canvas overlay prints, because that is the word a
+   * GM says out loud.
+   *
+   * ── Metres are the book's own, not a conversion ──
+   * 10 feet is 3.048 metres and the book says 3; 100 feet is 30.48 and the book
+   * says 30. Converting would give a metric table the book never printed and
+   * numbers no one at a metric table would say, so its roundings are kept.
+   *
+   * The colours run the suns: green, blue, gold, indigo outwards.
+   */
   rangeDetails: {
-    "Close":    { distance: 10,  area: 10,  hint: "ISUN.RangeCloseHint" },
-    "Short":    { distance: 50,  area: 50,  hint: "ISUN.RangeShortHint" },
-    "Long":     { distance: 100, area: 100, hint: "ISUN.RangeLongHint" },
-    "VeryLong": { distance: 500, area: 500, hint: "ISUN.RangeVeryLongHint" },
+    "Close":    { name: "ISUN.RangeClose",   distance: 10,  metres: 3,   area: 10,  colour: 0x2ecc71, hint: "ISUN.RangeCloseHint" },
+    "Short":    { name: "ISUN.RangeNear",    distance: 50,  metres: 15,  area: 50,  colour: 0x5b9bd5, hint: "ISUN.RangeShortHint" },
+    "Long":     { name: "ISUN.RangeFar",     distance: 100, metres: 30,  area: 100, colour: 0xd4af37, hint: "ISUN.RangeLongHint" },
+    "VeryLong": { name: "ISUN.RangeVeryFar", distance: 500, metres: 150, area: 500, colour: 0x8e6fbf, hint: "ISUN.RangeVeryLongHint" },
   },
 
   /* ──────────────────────────────────────────────

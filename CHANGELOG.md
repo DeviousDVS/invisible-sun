@@ -71,6 +71,21 @@ be. See [Content](#content) below.
   it when pressed, so a skill whose level has gone up rolls at the level it is
   now, and two abilities sharing a name across two fortes stay distinct.
 
+- **The four distances, drawn.** "In Invisible Sun, distances are divided into
+  four categories" (The Gate, p22) and nobody measures them — which works at a
+  table with no map and goes wrong quietly on a canvas, where everyone privately
+  decides a different thing is "near". While Action Mode runs, the controlled
+  token carries Close, Near, Far and Very Far as nested rings, scaled off the
+  scene's own grid and labelled with the distance and the scene's units. Metres
+  are the book's roundings rather than conversions. A toggle in the Invisible Sun
+  scene controls turns them off, per client.
+- **Take Action.** A round from a player's side is two moves — take the floor,
+  then say you are done — and both live on a sidebar tab nobody is looking at
+  mid-fight. One hotbar macro is both: press to take the floor, press again for
+  done, and it says out loud when it can do neither. The scene-control button
+  puts it on the bar and then hides itself, returning if the macro is moved off
+  or deleted.
+
 - **Scourge and vex reach the dice.** Both were modelled but unreachable until
   the pool an action draws on was declared: a scourge subtracts from every
   action drawing on its pool, and a vex is the lesser of the GM's ceiling and

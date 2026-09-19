@@ -47,6 +47,8 @@ import { ContentImporter } from "./module/apps/ContentImporter.mjs";
 import { PortraitMatcher, PORTRAIT_SETTING } from "./module/apps/PortraitMatcher.mjs";
 import { ActionTracker } from "./module/apps/ActionTracker.mjs";
 import { UseItem } from "./module/apps/UseItem.mjs";
+import { RangeOverlay, RANGE_SETTING } from "./module/apps/RangeOverlay.mjs";
+import { TakeAction } from "./module/apps/TakeAction.mjs";
 import { PathOfSuns } from "./module/apps/PathOfSuns.mjs";
 import { DepletionTracker, SETTING as TRACKER_SETTING, EMPTY as TRACKER_EMPTY }
   from "./module/apps/DepletionTracker.mjs";
@@ -122,6 +124,11 @@ Hooks.once("init", () => {
     NewDay,
     ChallengeDeclaration,
     ActionTracker,
+    RangeOverlay,
+    TakeAction,
+    /* The one line the Take Action macro runs. Short and stable, because it is
+     * written into a macro a player can open and read. */
+    takeAction: () => TakeAction.run(),
     UseItem,
     /* What a hotbar macro calls. Kept short because it is written into every
      * macro this system makes, and a macro is a line of code a player can
@@ -275,9 +282,43 @@ Hooks.once("init", () => {
           onChange: () => DepletionTracker.open()
         },
 
+        /* The four distances, drawn from whoever is selected. A toggle rather
+         * than a button: it is a thing that is on or off, not a thing that
+         * happens, and a GM who wants the rings out of combat or never should
+         * not have to press it each time. Everyone sees it — the point of the
+         * rings is that the table agrees what "near" means. */
+        rangeOverlay: {
+          name: "rangeOverlay",
+          order: 4,
+          title: "ISUN.RangeOverlay",
+          icon: "fa-solid fa-circle-dot",
+          toggle: true,
+          active: RangeOverlay.enabled,
+          onChange: (event, toggled) => RangeOverlay.setEnabled(toggled)
+        },
+
+        /* Two presses are the whole of a round from a player's side — take the
+         * floor, then say you are done — and both live on a sidebar tab nobody
+         * is looking at mid-fight. This is the same two under one button, and
+         * pressing it puts a macro on the bar so it need not be found here
+         * again. Everyone sees it: taking your action is not a GM act. */
+        takeAction: {
+          name: "takeAction",
+          order: 5,
+          title: "ISUN.TakeActionAdd",
+          icon: "fa-solid fa-hand-fist",
+          button: true,
+          /* Gone once it is on the bar. Offering to put something where it
+           * already is is not an offer, and the tool's whole job is done the
+           * first time it is pressed. It comes back if the macro is dragged
+           * off, replaced or deleted — see TakeAction.listen. */
+          visible: !TakeAction.onHotbar,
+          onChange: () => TakeAction.toHotbar()
+        },
+
         newDay: {
           name: "newDay",
-          order: 4,
+          order: 6,
           title: "ISUN.NewDayButton",
           icon: "fa-solid fa-bed",
           button: true,
@@ -463,6 +504,21 @@ Hooks.once("init", () => {
     default: true
   });
 
+  /* Whether the four distance bands are drawn round the selected token. A
+   * client setting, not a world one: the rings are a reading aid rather than a
+   * ruling, and one player wanting them is not a decision for the table. It is
+   * out of the settings menu because the scene controls carry the toggle, and
+   * two places to turn one thing on is one too many. */
+  game.settings.register("invisible-sun", RANGE_SETTING, {
+    name: "ISUN.RangeOverlay",
+    hint: "ISUN.RangeOverlayHint",
+    scope: "client",
+    config: false,
+    type: Boolean,
+    default: true,
+    onChange: () => RangeOverlay.refresh()
+  });
+
   /* The board is state, not a preference, so it is not in the settings menu.
    * A world setting is the right home for it: one board for the table, written
    * by the GM and read by everyone, arriving on the other clients as a document
@@ -535,6 +591,14 @@ Hooks.once("ready", async () => {
    * other open board redraw when they do. */
   PathOfSuns.listen();
   DepletionTracker.listen();
+
+  /* The range rings redraw on a token moving, a selection changing, Action Mode
+   * starting or stopping, and the scene's grid being re-measured. */
+  RangeOverlay.listen();
+
+  /* The Take Action button hides itself once its macro is on the bar, so the
+   * controls have to be rebuilt when the bar changes. */
+  TakeAction.listen();
 
   /* A flux "immediately turns a new Sooth card" (The Way, p13). The roller may
    * be a player and the board is a world setting, so the roll flags its message
