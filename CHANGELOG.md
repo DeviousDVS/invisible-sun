@@ -16,7 +16,7 @@ reserved for 1.0.0.
 ## [0.1.0] — Silver — unreleased
 
 First public release. Built for Foundry VTT v14 (minimum 14.366, verified
-against 14.367).
+against 14.368).
 
 **No Invisible Sun rules text is distributed with this system**, and none will
 be. See [Content](#content) below.

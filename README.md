@@ -24,7 +24,7 @@ cites them; where the books leave a call to the table, the system leaves it too.
 
 ## Requirements
 
-- **Foundry VTT v14** — minimum `14.366`, verified against `14.367`.
+- **Foundry VTT v14** — minimum `14.366`, verified against `14.368`.
 - **Your own copy of the Invisible Sun books.** The compendia arrive empty and
   you fill them from the PDFs you bought; see *Content and the books*.
 - Nothing else to run it. [Dice So
@@ -540,7 +540,7 @@ A few habits this codebase keeps, which are worth keeping:
 | | |
 |---|---|
 | Foundry VTT minimum | `14.366` |
-| Foundry VTT verified | `14.367` |
+| Foundry VTT verified | `14.368` |
 | Node (development only) | 20+ |
 
 ## Author
