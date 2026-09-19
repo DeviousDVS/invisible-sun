@@ -13,6 +13,10 @@
     "minimum": "14.366",
     "verified": "14.368"
   },
+  "grid": {
+    "distance": 5,
+    "units": "ft"
+  },
   "version": "0.1.0",
   "license": "LICENSE",
   "readme": "https://github.com/DeviousDVS/invisible-sun#readme",

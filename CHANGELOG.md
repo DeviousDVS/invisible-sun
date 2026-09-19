@@ -86,6 +86,11 @@ be. See [Content](#content) below.
   puts it on the bar and then hides itself, returning if the macro is moved off
   or deleted.
 
+- **A scene knows what a square is worth.** The manifest declares 10 feet to the
+  square, so one square is exactly Close — the shortest of the book's four bands
+  and the one a token most often needs to be inside. New scenes inherit it;
+  existing ones keep whatever they were set to.
+
 - **Scourge and vex reach the dice.** Both were modelled but unreachable until
   the pool an action draws on was declared: a scourge subtracts from every
   action drawing on its pool, and a vex is the lesser of the GM's ceiling and
