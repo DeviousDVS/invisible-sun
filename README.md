@@ -5,565 +5,218 @@ An unofficial system for playing **Invisible Sun** by Monte Cook Games on
 surreal world where ideas have power, magic is real, and the ordinary is
 extraordinary.
 
-It aims to be a system that knows the rules rather than a set of digital note
-cards — scourges reach the dice, vexes are spent against actions, a heart's
-starting points are placed rather than typed, and the incantation ledger answers
-the day-bounded rules from one place. Where the books are explicit, the code
-cites them; where the books leave a call to the table, the system leaves it too.
+I wanted a system that knows the rules rather than a set of digital note cards.
+Scourges reach the dice. Vexes are spent against actions. A heart's starting
+points are placed rather than typed. Where the books are explicit, the code
+follows them and says which page; where the books leave a call to the table,
+so does the system.
 
-> **Status: pre-release.** The mechanics below work and have been played with,
-> but this has not been released yet and stored data may still change shape
-> between versions. Where it does, the system migrates existing worlds and says
-> so in the [changelog](CHANGELOG.md).
->
-> **The content tooling is not finished.** See [Content and the
-> books](#content-and-the-books) — this is the main thing standing between here
-> and a first release.
+> **This system ships no Invisible Sun text.** The compendia arrive empty and
+> fill themselves from the PDFs you already own, on your machine, for your
+> table. See [Content and the books](#content-and-the-books).
 
 ---
 
-## Requirements
+## What you need
 
-- **Foundry VTT v14** — minimum `14.366`, verified against `14.368`.
-- **Your own copy of the Invisible Sun books.** The compendia arrive empty and
-  you fill them from the PDFs you bought; see *Content and the books*.
-- Nothing else to run it. [Dice So
-  Nice!](https://foundryvtt.com/packages/dice-so-nice) is supported if you have
-  it — magic dice are tinted by the sun being drawn on — but it is entirely
-  optional.
+- **Foundry VTT v14** — minimum `14.366`, tested against `14.368`.
+- **Your own copy of the Invisible Sun books and decks**, as PDFs.
+- Nothing else. [Dice So Nice!](https://foundryvtt.com/packages/dice-so-nice)
+  is supported if you have it — magic dice are tinted by the sun being drawn
+  on — but it is entirely optional.
 
-Filling the compendia needs nothing else either: the importer is in Foundry and
-reads your PDFs where they lie. The command-line pipeline under `scripts/` does
-still want Python 3, Node, and `pdftotext` and `pdftoppm` from poppler — but
-that is for working on the system, not for playing it.
+## Installing
 
-## Installation
-
-Once released, paste this manifest URL into Foundry's **Install System** dialog:
+Paste this into Foundry's **Install System** dialog:
 
 ```
 https://github.com/DeviousDVS/invisible-sun/releases/latest/download/system.json
 ```
 
-To install from source in the meantime:
-
-1. Clone this repository into your Foundry `Data/systems/` directory as a folder
-   named `invisible-sun`.
-2. Run `npm install`.
-3. Restart Foundry and pick **Invisible Sun** when creating a world.
-4. The compendia arrive empty. Fill them from your own PDFs with the **Content
-   Importer** — see *Importing from your PDFs* below.
-
----
-
-## What it does
-
-**Three actor types.** Vislae for player characters, plus NPCs and Creatures,
-which use level and an effective level shifted by scourge rather than pools.
-
-**Eighteen item types**, covering a vislae completely: Heart, Foundation, Soul,
-Order, Forte and Forte Abilities; Spells, Incantations, Minor Magic and Secrets;
-Skills, Character Arcs, Connections, Ephemera, Objects of Power, Aggregates,
-Gear and Sooth cards.
-
-**Health as the books describe it.** Injuries fill one ordered track, and the
-last of each set decides whether it becomes a Wound or an Anguish — so two
-mental and one physical is a Wound. Armor reduces physical damage before
-anything is recorded. A bene may be spent to negate a Wound or Anguish at the
-moment it lands, from the pool the rules name and only while the window is open.
-
-**Rests and days.** Four rests a day, the two longer ones able to recover a Wound
-or an Anguish, and a night's sleep that refreshes every pool and clears vexes —
-but never a scourge, which has to be got rid of some other way.
-
-**The challenge flow.** Only players roll dice in Invisible Sun, so every roll
-starts with the GM: declare a pool, a challenge rating and who it is put to; the
-player answers with skills, bene and Sortilege, and rolls. One chat card carries
-the whole exchange and stays as the record of it. A defence is the same card with
-another label, so combat needs no second mechanism.
-
-**The Path of Suns.** The Sooth Deck's board, where the GM turns a card and
-everyone can see which one is up: the nine positions with the card sitting on
-each, the Testament of Suns holding whatever last landed on the Invisible Sun,
-and a readout of what is currently in play — which colour of spell is enhanced
-or diminished, whether the card's own sun doubles it, and what the card is worth
-to a heart linked to its family. The Nightside Path is the same board in
-reverse.
-
-Every card turn is announced in chat as well, so the table sees it without
-having the board open: the sun it was played on, the card and its write-up, and
-the total of everything in play underneath — including whatever is still
-sitting in the Testament.
-
-**What the board is worth reaches the dice.** A card of your heart's family is
-+1 to every action, and a royalty card moves everyone's — so the answer dialog
-shows what the Path of Suns is giving you before you decide what to spend, and
-the challenge card records it with the card it came from, because that is the
-part of a venture nobody chose. It is read when you answer rather than when the
-dice land: the GM may turn a card while you are deciding, and the number you
-decided against is the number you get. A world setting turns all of it off for a
-table that would rather do the arithmetic themselves.
-
-What a card does to *magic* is shown and not applied. Your spells carry a badge
-saying what the board is doing to their colour — `+2` on a Blue spell while Blue
-is enhanced and doubled — because the effect is a choice between a level and a
-Sorcery cost that only the caster can make, and the book is plain that "the
-Sooth Deck is a tool, not an obligation". Forgetting one has to stay possible.
-
-**Scourge and vex actually apply.** Naming the pool an action draws on is what
-makes that possible: a scourge subtracts from every action drawing on its pool,
-and a vex is the lesser of the GM's ceiling and what the pool holds.
-
-**Magic in one list.** Spells, incantations, forte abilities and minor magics
-share a sortable table, because the rules treat their level, cost, dice and
-depletion the same way. Magic dice flux on a 0, with intensity following how many
-were cast, and the Experimental Die is supported — it never succeeds, it only
-ever fluxes.
-
-**Character building that follows the text.** A dropped Foundation or Heart
-applies what it grants; a heart's two starting skills are offered as a choice,
-because that is what the book asks for; stat points are placed into pools rather
-than typed, with the heart's free six spendable either way and the rest tied to
-their own stat.
-
-**Order subsystems.** Each order's six-degree ladder is read from the Order item
-rather than hardcoded, so a GM who edits it is followed. The Apostate's
-purchasable abilities are handled separately, as they should be.
-
-**An economy** of nine denominations, with magecoins deliberately not converted
-into orbs — the books are explicit that no exchange rate exists — and the
-bloodsilver curse tracked.
-
-**A compendium browser** for searching across the system's packs.
+Then create a world with **Invisible Sun** as its system. The compendia will be
+empty; the next section is how you fill them.
 
 ---
 
 ## Content and the books
 
-**This system ships no Invisible Sun rules text**, and it never will. Spell
-descriptions, secrets, forte abilities and the rest are Monte Cook Games'
+Spell descriptions, secrets, forte abilities and the rest are Monte Cook Games'
 copyright, and redistributing them is not something the [Fan Use
-Policy](https://www.montecookgames.com/fan-support/fan-use-policy/) allows.
+Policy](https://www.montecookgames.com/fan-support/fan-use-policy/) allows. So
+none of it is here — not in this download, not in the repository, and not in its
+history either, which was rewritten to remove it. The release build refuses to
+assemble an archive if any appears.
 
-That is enforced rather than promised. None of it is in this repository — not
-in the working tree and not in the history either, which was rewritten to
-remove it. The release build refuses to assemble an archive if any appears, and
-`npm test` fails if the quirks list that ships stops being empty.
+What you get instead is a reader. Put your PDFs in one folder, open **Import
+Content** from the compendium sidebar, and point it at that folder. It works out
+what each file is from what is printed on its first page, so renamed and
+re-dated downloads are recognised, and anything it cannot read is named in the
+log rather than skipped in silence. **Your files are read where they lie** —
+nothing is uploaded, and nothing but the card art is written anywhere.
 
-So the compendia arrive empty, and you fill them **from your own copy of the
-books**, on your own machine, for your own table. The tooling to do that is
-below. Every item type also has a working sheet, so anything you would rather
-enter by hand, you can.
-
-Content you generate this way remains the property of Monte Cook Games. Keep it
-to your own table and do not redistribute it.
-
-**If you do not own Invisible Sun**, [buy it from Monte Cook
-Games](https://www.montecookgames.com/store/product-category/invisible-sun/).
-This system is no substitute for the books and is not much use without them.
-
-### Importing from your PDFs
-
-The compendia fill themselves from the PDFs you bought, inside Foundry. Put
-them in one folder, open **Import Content** from the compendium sidebar, and
-point it at that folder. Every file is identified by what is printed on its
-first page rather than by its name, so renamed and re-dated downloads are
-recognised; anything it cannot read yet is named in the log rather than
-silently skipped. Your files are read where they lie — nothing is uploaded or
-copied into Foundry.
-
-It reads every compendium this system ships:
+It fills every compendium the system ships:
 
 | From | What it brings in |
 |---|---|
 | Sooth Deck | the 60 cards, each with its face cut out and the sheet masked away |
 | The Gate | the write-up behind every Sooth card — meanings, divination, Joy, Despair |
-| Spell Deck, Vance Spell Deck, Book M spell cards | 390 spells; the Vancian ones with the class their card size records |
-| Objects of Power, Ephemera, Incantations, Weaver Aggregates, and the Book M cards for each | the rest of the decks |
+| Spell Deck, Vance Spell Deck, Book M | 390 spells, the Vancian ones with the class their card size records |
+| Objects of Power, Ephemera, Incantations, Weaver Aggregates | the rest of the decks |
 | The Nightside | its five kinds of card, sorted by the livery on the back |
-| The Key | the goods lists — 401 items of gear, and the price of the 50 kindled objects the deck already holds; the four hearts, thirteen souls and eight foundations; 31 fortes and their 297 abilities; 37 character arcs, the 60-skill starting library, and the five orders with their degrees |
+| The Key | 401 goods; the hearts, souls and foundations; 31 fortes and their 297 abilities; character arcs, the starting skill library, and the orders with their degrees |
 | Book M, The Nightside, The Threshold | 20 more fortes and their 194 abilities |
-| The Threshold, Secrets of Silent Streets | the nine objects and ephemera that were never printed on a card |
+| The Threshold, Secrets of Silent Streets | the objects and ephemera never printed on a card |
 | The Van Hauten Collection | 279 secrets — character, house and changery |
+| Teratology, The Nightside, The Path | creatures and NPCs, with the artwork from their own pages |
 
-A forte's **ability tree** is the one thing no PDF can give up. The books draw
-it as a diagram facing the ability text and its arrows are vector art — there
-is no text on the page saying which ability leads to which, and the levels do
-not imply it, since the paths cross. So the importer writes every field an
-ability has *except* `unlocks`, and leaves that exactly as it finds it. The
-tree in the compendium was built by hand and cannot be rebuilt; a re-import
-will not touch it.
+Order does not matter, and running it twice is safe: entries are matched by name
+and updated rather than duplicated, and a book only writes the fields it
+actually states — so anything you edit by hand survives a re-import. If you need
+to start over, **Empty the compendia** sits beside the import button, counts
+what it would delete, and lets you clear one deck rather than all twenty.
 
-Order does not matter: decks are imported before the books that annotate them.
-Running it twice is safe — entries are matched by name and updated, not
-duplicated — and a book only ever writes the fields it actually states, so
-anything you have edited by hand survives a re-import.
+Two things worth knowing. A forte's **ability tree** is the one thing no PDF can
+give up — the books draw it as a diagram and its arrows are vector art, so the
+tree was built by hand and a re-import will not touch it. And your imported
+compendia are the only copy there is; if you ever reinstall the system, run the
+importer again. The card art lives outside the system folder, so it survives an
+update and links straight back up.
 
-**Starting over.** Because an import updates and never deletes, an entry
-written under a name the books do not use cannot be got rid of by importing
-again: the next run writes the right entry alongside it. **Empty the
-compendia**, beside the import button, is the way back to nothing — it counts
-what it would delete, names it a compendium at a time, and lets you clear one
-deck rather than all eighteen. It asks first, and it opens on Cancel. The card
-art is kept; the next import links it straight back up.
+Content you generate this way remains Monte Cook Games' property. Keep it to
+your own table.
 
-The compendia are the only copy of an import. `npm run data:backup` is what
-stands between a mistake here and doing the whole thing again.
-
-### Generating the content
-
-The compendia ship empty and are filled by reading your own PDFs. That is the
-only way they are filled: the books and the cards are the arbiter, and nothing
-else writes a compendium.
-
-```
-source/books/*.pdf        your own copy of the books
-source/cards/*.pdf        your own copy of the card decks
-        │
-        │  the Content Importer, inside Foundry
-        ▼
-packs/<pack>/             LevelDB databases Foundry reads
-        │
-        │  npm run packs:audit           ⚠ Foundry must be stopped
-        ▼
-                          counts, names and art held against what
-                          the decks print
-
-  ─ and, alongside ─
-
-source/cards/*.pdf
-        │
-        │  scripts/extract_card_images.py
-        ▼
-Data/invisible-sun/cards/<deck>/   the card faces, outside the system folder
-```
-
-**Every one of those paths is gitignored**, and the release archive carries
-none of them. All of it is Monte Cook Games' text and artwork, so none of it is
-in the repository at any stage — which means git is not protecting it either.
-See *Backing up what you generate*.
-
-The card images are separate from the import because they take about a minute a
-deck and only change when MCG reissues a PDF; they go into Foundry's data folder
-rather than the system folder, so a system update cannot delete them.
-
-**There used to be a second path** — Python extractors into `source/data/*.json`,
-built by `build_compendia.js` into `packs/_source`, compiled over the top by
-`npm run packs`. It was months out of date, and running it reverted five packs
-in one go: 355 spells and 211 incantations lost their names to the ALL CAPS the
-cards are printed in, and around 860 entries lost their card art for a generic
-rune. Nothing said so; every stage reported success. That path is gone, and
-`npm run packs:audit` is what stands in its place.
-
-**Which stage do I edit?**
-
-| To change | Edit | Then |
-|---|---|---|
-| a description, cost, level — anything in an entry | the compendium entry itself | nothing; it is the only copy |
-| how an entry is *read* out of a book or card | `module/importers/*.mjs` | re-import that source |
-| which sources exist and how many cards each prints | `module/importers/sources.mjs` | re-import |
-| the quirks list | `source/data/quirks.json` | `python3 scripts/build_quirks.py` |
-| the card faces | — | `python3 scripts/extract_card_images.py <deck.pdf> <cards.json> <out>` |
-
-A re-import is safe: entries are matched by name and updated rather than
-duplicated, and a book only writes the fields it actually states. Editing an
-entry by hand survives one.
-
-**Two constraints worth knowing before you hit them:**
-
-- **`packs:audit` needs Foundry stopped.** LevelDB permits a single
-  reader-writer, so a pack the server holds cannot be read. It says so and
-  changes nothing.
-- **The card extractor is Python**; everything else is Node. You need both
-  toolchains only if you are cutting card art.
-
-### Backing up what you generate
-
-The generated content is not in git and never will be — it is Monte Cook Games'
-text and artwork, pulled out of books you own. That means git is not protecting
-it, and a bad rebuild or a wrong path loses the lot.
-
-```
-npm run data:backup                  write a new archive
-npm run data:list                    what has been kept, newest first
-npm run data:verify                  check the newest archive is intact
-npm run data:verify -- --disk        compare the newest archive to disk
-npm run data:restore                 restore the newest archive in place
-npm run data:restore -- --to /tmp/x  restore beside the real data instead
-```
-
-Archives go to `~/invisible-sun-backups` (`ISUN_BACKUP_DIR` to change that),
-carrying `source/data`, `source/forte-trees`, `source/isdata_2026.json`, the
-extracted card art, and **the compendia themselves**.
-Every file is checksummed individually, so a damaged archive names what broke
-rather than just failing. Restoring over data that is already there refuses and
-lists what it would replace; `--force` overrides, `--to` puts it somewhere
-harmless.
-
-**Stop Foundry before backing up.** The compendia are LevelDB, which permits
-one writer, so they cannot be read while a world is open. A backup taken with
-Foundry running captures everything else and says in as many words that it
-skipped them — it does not fail, because the rest is still worth having, but
-the archive is then incomplete in the way that matters most.
-
-They are captured as JSON, a file per document, rather than as the database.
-Partly so a restore stays possible whatever Foundry does to its storage next,
-and partly because LevelDB rewrites its own files as it compacts — checksums
-over the database would report every pack as changed every time, which would
-make `--disk` useless. Restoring compiles them back; `--to` drops the JSON as a
-fixture instead, and touches nothing live.
-
-The compendia are the only copy there is. Nothing rebuilds them from anything
-but the PDFs, so a compendium lost is a re-import — and anything you edited by
-hand is simply gone. A second copy used to be kept beside them in
-`packs/_source`, which mostly served to raise the question of which one was
-authoritative; answering it wrongly is what reverted five packs.
-
-The deck and book PDFs are **not** captured. They are large and you own them
-already. Nor is anything cheaply regenerated from what is here —
-`quirks.local.mjs` comes back from `build_quirks.py`.
-
-**`--disk` is the useful one.** It reports what on disk no longer matches the
-archive, file by file. That makes a backup taken today the reference for
-checking tomorrow's extractor against: run it, compare, and any drift is named
-rather than discovered months later in play.
-
-
-### Where this is going
-
-The pipeline above is a command line: Python, Node, and a shell that can find
-`pdftotext`. That is a reasonable thing to ask of someone editing the system
-and an unreasonable thing to ask of someone who just wants to play — so it is
-being replaced by the importer above, deck by deck and book by book.
-
-**Every compendium this system ships now fills itself from your PDFs.** The
-Python pipeline in the next section is no longer the only way to build any of
-them; it stays as the development and test harness — the same parsers, driven
-from a terminal instead of a dialog — and as the thing to check a new reader
-against.
-
-Three things it still does that the importer does not, all of them noted where
-they arise: a forte's ability tree, which no PDF contains; the eleven boxed
-sidebars beside the order entries; and the provenance stamped on each secret,
-which the compilation they are read from does not record.
+**If you do not own Invisible Sun**, [buy it from Monte Cook
+Games](https://www.montecookgames.com/store/product-category/invisible-sun/).
+This system is no substitute for the books and is not much use without them.
 
 ---
 
-## Contributing
+## What it does
 
-Contributions are welcome once this is public — issues, bug reports and pull
-requests alike. A few things worth knowing before you start.
+**Characters.** Vislae for player characters, plus NPCs and Creatures, which run
+on a level shifted by scourge rather than on pools. Nineteen item types cover a
+vislae completely — hearts, foundations, souls, orders, fortes and their
+abilities, spells, incantations, minor magic, secrets, skills, character arcs,
+connections, ephemera, objects of power, aggregates, goods and Sooth cards.
 
-### Where help is most wanted
+**Character building that follows the text.** A dropped Foundation or Heart
+applies what it grants. A heart's two starting skills are offered as a choice,
+because that is what the book asks for. Stat points are placed into pools rather
+than typed, with the heart's free six spendable either way and the rest tied to
+their own stat.
 
-- **Play reports.** More useful than almost anything else. If a rule is modelled
-  wrongly, say which rule and which book page.
-- **Known work**, with rationale and a suggested order, is written up in
-  [`source/architecture-review.md`](source/architecture-review.md). Anything in
-  there is fair game.
-- **Localisation.** All user-facing strings live in `lang/en.json`. Note that
-  some keys are composed at runtime (`ISUN.Outcome` + the outcome), so a bare
-  search will not find every use.
+**The challenge flow.** Only players roll dice in Invisible Sun, so every roll
+starts with you: declare a pool, a challenge rating and who it is put to; the
+player answers with skills, bene and Sortilege, and rolls. One chat card carries
+the whole exchange and stays as the record of it. A defence is the same card
+with another label, so combat needs no second mechanism.
 
-### Getting set up
+**Health as the books describe it.** Injuries fill one ordered track, and the
+last of each set decides whether it becomes a Wound or an Anguish — so two
+mental and one physical is a Wound. Armor reduces physical damage before
+anything is recorded. A bene may be spent to negate a Wound or an Anguish at the
+moment it lands, from the pool the rules name and only while the window is open.
 
-```bash
-npm install       # dependencies (all dev-only; nothing ships)
-npm test          # lint, check the tree against itself, run the unit tests
-npm run unit      # just the unit tests
-npm run smoke     # drive a running world and click everything
-```
+**Rests and days.** Four rests a day, the longer two able to recover a Wound or
+an Anguish, and a night's sleep that refreshes every pool and clears vexes — but
+never a scourge, which has to be got rid of some other way.
 
-**`npm test`** never launches anything. It lints, checks that the tree agrees
-with itself, and runs the unit tests. The tree checks: every module parses, the
-manifest declares no file that is missing, its version matches the release tag
-it points at, no `data-action` in a template lacks a handler, every registered
-item type is either collected by the vislae sheet or explicitly excluded, no
-localisation key is used without being defined, and the quirks list that ships
-is still empty. It is fast and safe to run at any time. Run it before you push.
+**Action Mode.** A round is a checklist, not a running order: nothing rolls for
+initiative, and the tracker shows who is still due an action and who has taken
+theirs. Narrative control is a floor — taken while it's free, given up when
+you're done, and the GM can take it back. The four distances are drawn on the
+canvas from the selected token, and movement is held to what a round is worth:
+a close move costs nothing, a near move is your action, and further than that
+takes another round.
 
-**`npm run unit`** is the rules, checked without a browser. `node --test` over
-`scripts/test/` — no test framework to install, since the runner is built into
-Node. The Path of Suns is covered: 44 cases over the sun shifts and their
-doubling, the six royalty cards, the Testament across a session, and the card
-turns an Adept or a Companion drags after it. They take about a tenth of a
-second.
+**The Path of Suns.** The Sooth Deck's board, where you turn a card and the whole
+table can see which one is up — the nine positions, the Testament of Suns
+holding whatever last landed on the Invisible Sun, and a readout of what is in
+play. Every turn is announced in chat with the card and its write-up, so nobody
+needs the board open. The Nightside Path is the same board in reverse.
 
-The fixtures are invented rather than read from `packs/`, which is gitignored
-and would make the suite pass only on the machine that built it — and each case
-says which rule it is asserting and where in the books it comes from, so a
-failure reads as *"this ruling changed"* rather than *"the code broke"*.
+**What the board is worth reaches the dice.** A card of your heart's family is
++1 to every action, and a royalty card moves everyone's — so the answer dialog
+shows what the Path is giving you before you decide what to spend, and the
+challenge card records it beside the card it came from. What a card does to
+*magic* is shown rather than applied: your spells carry a badge saying what the
+board is doing to their colour, because the book is plain that the Sooth Deck is
+a tool and not an obligation. A world setting turns all of it off for a table
+that would rather do the arithmetic themselves.
 
-**`npm run smoke`** needs a world running, and a GM password in the
-environment. It logs in, builds a throwaway vislae holding one of every item
-type, walks all six tabs clicking every control it can reach, rolls something,
-and fails on any console error or any control Foundry does not recognise.
+**Scourge and vex actually apply**, because naming the pool an action draws on
+makes them reachable: a scourge subtracts from every action drawing on its pool,
+and a vex is the lesser of your ceiling and what the pool holds.
 
-```bash
-export FOUNDRY_PASSWORD='...'          # never committed; read from the environment
-npm run smoke
-```
+**Magic in one list.** Spells, incantations, forte abilities and minor magics
+share a sortable table, because the rules treat their level, cost, dice and
+depletion the same way. Magic dice flux on a 0, with intensity following how
+many were cast, and the Experimental Die is supported — it never succeeds, it
+only ever fluxes. A depletion tracker keeps what is still running, grouped by
+the moment each card says to check it.
 
-The three catch different things, and all three are needed. A handler that
-references a name which does not exist is caught by the lint; one that reads a
-property of the wrong object is not, and only shows up when something clicks it.
-Four separate bugs in this project have been a control that rendered, clicked
-and did nothing — every one found weeks later by a human noticing. And neither
-of those would notice a rules helper quietly returning the wrong number, which
-is what the unit tests are for.
-
-### Cutting a release
-
-```bash
-npm run packs:audit  # counts, names and art against what the decks print —
-                     #   Foundry must be stopped
-npm test             # lint, check the tree, run the unit tests
-npm run dist         # build dist/invisible-sun.zip and dist/system.json
-```
-
-The audit is not a build step — the archive carries no compendium content — but
-it is what tells you the packs on this machine are a complete import before you
-tag anything.
-
-Both files go on the GitHub release: the zip is what Foundry downloads, and
-`system.json` has to be uploaded **as its own asset** or the manifest URL in
-the install dialog resolves to nothing.
-
-`dist` refuses to run against a dirty working tree, so the archive always
-matches a commit. It also asserts that the manifest version matches the tag you
-pass, since a release tagged one thing and declaring another installs as the
-wrong version.
-
-**The shipped scripts are minified** — around 1.1 MB of source down to 340 kB,
-most of it the comments, which are where this codebase keeps its reasoning and
-which a player needs none of. Each file is minified in place rather than bundled,
-so the manifest describes the same files it always did and the three modules
-that are imported by name at runtime still resolve. Class names are kept, because
-Foundry puts them in its own errors and a legible stack trace is worth the bytes.
-Build with `--no-minify` to ship the sources as they are.
-
-**What ends up in the archive is an allowlist, derived from the manifest** —
-the modules reached by following imports out of the declared entry point, the
-stylesheets and language files `system.json` names, the licence it points at,
-the compiled packs, and the templates and fonts that are referenced by string
-rather than imported. Nothing else is copied.
-
-That is deliberate rather than tidy. A list of things to *leave out* is one
-forgotten entry away from publishing `source/data`, which is the extracted text
-of somebody else's books. The build then re-checks the staged tree anyway and
-refuses outright if anything from `source/`, `scripts/`, `packs/`, any PDF, or
-any card image has found its way in.
-
-`packs/` is on that list because the compendia hold the books and the cards in
-full. The archive declares all eighteen and carries none of their contents;
-Foundry creates each database empty the first time a world opens it, and the
-Content Importer fills them from the reader's own PDFs.
-
-The shipped manifest also drops `hotReload`: watching files for changes is a
-convenience for whoever is writing the system, and costs everyone else.
-
-### Screenshots
-
-There is also a headless screenshot harness for checking sheets without
-eyeballing every one by hand:
-
-```bash
-export FOUNDRY_PASSWORD='...'          # never committed; read from the environment
-npm run shot -- actor "Some Vislae" --tab magic
-```
-
-### How the repository is laid out
-
-```
-invisible-sun.mjs      entry point: registration, hooks, migrations
-module/
-  data-models/         DataModel schemas — one per actor and item type
-  documents/           ISUNActor, ISUNItem: derivation and document methods
-  sheets/              ApplicationV2 sheets, plus the shared SheetMixin
-  apps/                dialogs, the challenge card, the content importer
-  importers/           one reader per PDF: the decks, and the books
-  helpers/             config, dice, Handlebars helpers
-templates/             Handlebars: actor/, item/, apps/, chat/, partials/
-styles/                invisible-sun.css (theme vars), sheets.css, components.css
-lang/                  localisation
-scripts/               developer tooling — extraction, pack building, checks
-  test/                unit tests, run by node --test
-source/                design notes and schemas (the extracted data is gitignored)
-```
-
-Several paths exist on a working machine but are in no commit, because what
-they hold is Monte Cook Games' text and artwork: `packs/` and `source/data/`,
-along with `source/books/`, `source/cards/` and the card faces under
-`Data/invisible-sun/`. `npm run data:backup` is what keeps them.
-
-The pre-v14 system this replaced is not in the working tree, but it is in the
-history. If you need it — its `template.json` records the data shape the
-migrations in `module/data-models/` migrate away from — it was removed in
-`7f84f7f`, so any commit before that has it:
-
-```bash
-git show 821067e:old_char_sheet/template.json
-```
-
-It is [Asacolips Projects' Boilerplate
-system](https://github.com/asacolips-projects/boilerplate), MIT licensed, and
-its licence travels with it in that directory.
-
-### Conventions
-
-A few habits this codebase keeps, which are worth keeping:
-
-- **Cite the rule.** Where code implements a ruling, the comment says which rule
-  and which page — `"you don't spend a scourge... you have to get rid of it
-  somehow" (The Key, p2242)`. It is how a future reader tells a deliberate
-  reading of the rules from an accident of implementation. Please do the same.
-- **Explain the non-obvious fix.** Several comments record a bug that was fixed
-  and why the obvious alternative fails. These have earned their place; do not
-  strip them in a tidy-up.
-- **Derive rather than store.** A stat's score is the sum of its pools, not a
-  field that could disagree with them. Prefer computing to duplicating.
-- **Bigger decisions get a design note** in `source/`, recording what was tried
-  and cut as well as what was built. See
-  [`challenge-flow.md`](source/challenge-flow.md) for the shape.
-- **The habits above are written out in full** in
-  [`source/style-guide.md`](source/style-guide.md) — naming, comments, the
-  layering, the importer interface, and the places the codebase currently
-  disagrees with itself. Worth a read before a first PR.
-- **Never open the packs from a script while Foundry is running.** LevelDB
-  permits one reader-writer; `packs:audit` and `data:backup` both refuse rather
-  than risk it, and changing nothing is the right outcome — do not fight it.
-- **`module/helpers/quirks.mjs` ships empty and must stay that way.** The list
-  is book text, so `scripts/build_quirks.py` writes it to `quirks.local.mjs`
-  beside it, gitignored and loaded at init when present. `npm test` fails if
-  the shipped stub ever gains an entry — which is exactly what an older copy of
-  the generator, or an old backup restored over the top, would do.
-- **Nothing generated is committed.** Not `packs/`, which used to be tracked
-  and no longer is, and not the extracted text under `source/data/`. The packs
-  come from the Content Importer reading the PDFs, and from nothing else.
+**Odds and ends.** Each order's six-degree ladder is read from the Order item
+rather than hardcoded, so editing it is followed. The Apostate's purchasable
+abilities are handled separately, as they should be. There is an economy of nine
+denominations, with magecoins deliberately not converted into orbs — the books
+are explicit that no exchange rate exists — and the bloodsilver curse tracked.
+Skills and practices can be dragged onto the hotbar. And there is a browser for
+searching across every compendium at once.
 
 ---
 
-## Compatibility
+## Known limitations
 
-| | |
-|---|---|
-| Foundry VTT minimum | `14.366` |
-| Foundry VTT verified | `14.368` |
-| Node (development only) | 20+ |
+Honest about what is not finished:
 
-## Author
+- **Acumen is not spent by anything.** The skills list quotes a price per level;
+  nothing deducts it.
+- **Casting does not route through the challenge flow**, so a depletion after a
+  cast has nowhere to hand back to.
+- **Challenge cards have no cancel handling.** An abandoned card stays in chat
+  until it is closed.
+- **Apostate entitlements are not tracked.** Their starting Ephemera Use and
+  purchasable Incantation carry real grants, but nothing records which apostate
+  abilities a character has taken.
+- **Enhancements outside Sortilege cannot be recorded.** A pool carries a single
+  value, which is bene everywhere except Sortilege.
 
-**DeviousDVS**
+Three things the importer cannot do, all of them because the source does not
+contain the answer: a forte's ability tree, the boxed sidebars beside the order
+entries, and the provenance stamped on each secret.
 
-Built originally from the [Boilerplate
+What changed in each release is in the [changelog](CHANGELOG.md). Where a
+version changes the shape of stored data, the system migrates existing worlds
+and says so there.
+
+---
+
+## Help and contributions
+
+Issues, bug reports and pull requests are all welcome.
+
+**Play reports are the most useful thing you can send me.** If a rule is
+modelled wrongly, tell me which rule and which book page — that is enough to fix
+it. If something is broken, what you did and what happened.
+
+If you want to work on the system itself, clone the repository into your Foundry
+`Data/systems/` directory, run `npm install`, and `npm test` before you open a
+pull request. All user-facing strings live in `lang/en.json`; some keys are
+composed at runtime, so a bare search will not find every use.
+
+---
+
+## Credits
+
+**DeviousDVS.** Built originally from the [Boilerplate
 system](https://github.com/asacolips-projects/boilerplate) by Asacolips Projects
 / Foundry Mods, since fully rewritten for Foundry v14's ApplicationV2 and
 DataModel APIs.
 
 ## Licence
 
-The system's code — sheets, templates, styles, and the tools under `scripts/` —
-is released under the [MIT licence](LICENSE). Use it, fork it, learn from it.
+The system's code — sheets, templates, styles and tooling — is released under
+the [MIT licence](LICENSE). Use it, fork it, learn from it.
 
 That licence covers the software only. It does not cover the game.
 
