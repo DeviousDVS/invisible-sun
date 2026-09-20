@@ -13,7 +13,7 @@ reserved for 1.0.0.
 
 ## [Unreleased]
 
-## [0.1.0] — Silver — unreleased
+## [0.1.0] — Silver — 2026-09-20
 
 First public release. Built for Foundry VTT v14 (minimum 14.366, verified
 against 14.368).
@@ -44,15 +44,6 @@ be. See [Content](#content) below.
   is put to; the player answers with skills, bene and Sortilege, and rolls. One
   chat card carries the whole exchange and stays as the record. A defence is the
   same card with another label, so combat needs no second mechanism.
-- **Action Mode.** A round is a checklist rather than a running order: nothing
-  rolls for initiative, and the tracker shows who is still due an action and who
-  has taken theirs, the players above what they are facing. Narrative control is
-  a floor — taken while it is free, given up with Done, and taken back by the GM
-  — and the round turns over when everyone who can act has. Defeated combatants
-  stay listed but get no action, and a combatant the players cannot see is in
-  nobody's tally, so the GM and the table read the same number. What a character
-  has done is stamped with the round it happened in, so stepping a round back
-  finds everyone exactly as they were.
 
 - **A target sets the challenge.** "Challenge is often very easy to determine
   because you can just use the level of the NPC, object, or whatever else is
@@ -63,22 +54,31 @@ be. See [Content](#content) below.
   rather than as a number, so the defence line is shown beside the field instead
   of being guessed at, and the field stays editable.
 
-- **Skills and practices on the hotbar.** Drag either row onto the bar and it
-  becomes a macro that uses it — the venture dialog with the skill already
-  ticked, or the whole cast, paid for and offered back to a Vance to keep.
-  Anything else dropped there still does what Foundry does with it, so a piece
-  of gear on the bar opens its sheet. Macros name the item by uuid and resolve
-  it when pressed, so a skill whose level has gone up rolls at the level it is
-  now, and two abilities sharing a name across two fortes stay distinct.
+- **Scourge and vex reach the dice.** Both were modelled but unreachable until
+  the pool an action draws on was declared: a scourge subtracts from every
+  action drawing on its pool, and a vex is the lesser of the GM's ceiling and
+  what the pool holds.
 
-- **The four distances, drawn.** "In Invisible Sun, distances are divided into
-  four categories" (The Gate, p22) and nobody measures them — which works at a
-  table with no map and goes wrong quietly on a canvas, where everyone privately
-  decides a different thing is "near". While Action Mode runs, the controlled
-  token carries Close, Near, Far and Very Far as nested rings, scaled off the
-  scene's own grid and labelled with the distance and the scene's units. Metres
-  are the book's roundings rather than conversions. A toggle in the Invisible Sun
-  scene controls turns them off, per client.
+- **Health that follows the books.** Injuries fill one ordered track and the
+  last of each set decides whether it becomes a Wound or an Anguish. Armor
+  reduces physical damage before anything is recorded; a bene may negate a Wound
+  or Anguish at the moment it lands, from the pool the rules name and only while
+  the window is open.
+
+- **Rests and a day counter.** Four rests a day, the longer two able to recover
+  a Wound or an Anguish, and a night's sleep that refreshes every pool and
+  clears vexes but never a scourge.
+
+- **Action Mode.** A round is a checklist rather than a running order: nothing
+  rolls for initiative, and the tracker shows who is still due an action and who
+  has taken theirs, the players above what they are facing. Narrative control is
+  a floor — taken while it is free, given up with Done, and taken back by the GM
+  — and the round turns over when everyone who can act has. Defeated combatants
+  stay listed but get no action, and a combatant the players cannot see is in
+  nobody's tally, so the GM and the table read the same number. What a character
+  has done is stamped with the round it happened in, so stepping a round back
+  finds everyone exactly as they were.
+
 - **Take Action.** A round from a player's side is two moves — take the floor,
   then say you are done — and both live on a sidebar tab nobody is looking at
   mid-fight. One hotbar macro is both: press to take the floor, press again for
@@ -95,30 +95,15 @@ be. See [Content](#content) below.
   still add up to a run. Players only — the GM moves what they like — and only
   while Action Mode is running.
 
-- **The shipped scripts are minified** — about 1.1 MB of source down to 340 kB,
-  most of it comments, which are where this codebase keeps its reasoning and
-  which a player needs none of. Each file is minified in place rather than
-  bundled, so the manifest describes the same files it always did and the three
-  modules imported by name at runtime still resolve. Build with `--no-minify`
-  to ship the sources as they are.
+- **The four distances, drawn.** "In Invisible Sun, distances are divided into
+  four categories" (The Gate, p22) and nobody measures them — which works at a
+  table with no map and goes wrong quietly on a canvas, where everyone privately
+  decides a different thing is "near". While Action Mode runs, the controlled
+  token carries Close, Near, Far and Very Far as nested rings, scaled off the
+  scene's own grid and labelled with the distance and the scene's units. Metres
+  are the book's roundings rather than conversions. A toggle in the Invisible Sun
+  scene controls turns them off, per client.
 
-- **A scene knows what a square is worth.** The manifest declares 10 feet to the
-  square, so one square is exactly Close — the shortest of the book's four bands
-  and the one a token most often needs to be inside. New scenes inherit it;
-  existing ones keep whatever they were set to.
-
-- **Scourge and vex reach the dice.** Both were modelled but unreachable until
-  the pool an action draws on was declared: a scourge subtracts from every
-  action drawing on its pool, and a vex is the lesser of the GM's ceiling and
-  what the pool holds.
-- **Health that follows the books.** Injuries fill one ordered track and the
-  last of each set decides whether it becomes a Wound or an Anguish. Armor
-  reduces physical damage before anything is recorded; a bene may negate a Wound
-  or Anguish at the moment it lands, from the pool the rules name and only while
-  the window is open.
-- **Rests and a day counter.** Four rests a day, the longer two able to recover
-  a Wound or an Anguish, and a night's sleep that refreshes every pool and
-  clears vexes but never a scourge.
 - **Magic.** Spells, incantations, forte abilities and minor magics in one
   sortable list, since the rules treat their level, cost, dice and depletion the
   same way. Magic dice flux on a 0, with intensity following how many were cast,
@@ -132,6 +117,7 @@ be. See [Content](#content) below.
   own sun, and the venture a card is worth to a heart of its family. Each turn
   is announced in chat with the card, its write-up and the running total, so the
   table follows it without the board open.
+
 - **The board reaches the dice.** The venture a card is worth to a character —
   their heart's family, and whatever a royalty card does to everyone — is shown
   in the answer dialog before they decide what to spend, added to the roll, and
@@ -141,6 +127,14 @@ be. See [Content](#content) below.
   for a table that would rather apply it themselves. What a card does to magic
   is shown against each spell of that colour and applied by nobody: choosing
   between the level and the Sorcery cost is the caster's.
+
+- **Skills and practices on the hotbar.** Drag either row onto the bar and it
+  becomes a macro that uses it — the venture dialog with the skill already
+  ticked, or the whole cast, paid for and offered back to a Vance to keep.
+  Anything else dropped there still does what Foundry does with it, so a piece
+  of gear on the bar opens its sheet. Macros name the item by uuid and resolve
+  it when pressed, so a skill whose level has gone up rolls at the level it is
+  now, and two abilities sharing a name across two fortes stay distinct.
 
 #### Progress
 
@@ -169,6 +163,16 @@ be. See [Content](#content) below.
 - **A compendium browser** for searching across the system's packs.
 - **Dice So Nice! support**, optional: magic dice are tinted by the sun being
   drawn on.
+- **A scene knows what a square is worth.** The manifest declares 10 feet to the
+  square, so one square is exactly Close — the shortest of the book's four bands
+  and the one a token most often needs to be inside. New scenes inherit it;
+  existing ones keep whatever they were set to.
+- **The shipped scripts are minified** — about 1.1 MB of source down to 340 kB,
+  most of it comments, which are where this codebase keeps its reasoning and
+  which a player needs none of. Each file is minified in place rather than
+  bundled, so the manifest describes the same files it always did and the three
+  modules imported by name at runtime still resolve. Build with `--no-minify`
+  to ship the sources as they are.
 
 ### Content
 
