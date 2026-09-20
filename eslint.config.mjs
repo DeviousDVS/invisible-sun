@@ -85,7 +85,9 @@ export default [
         File: "readonly",
         Uint8Array: "readonly",
         // Measuring a script before and after minifying, in the build.
-        TextEncoder: "readonly"
+        TextEncoder: "readonly",
+        // Foundry has it; so does Node 18 and up, which is what scripts/ runs on.
+        fetch: "readonly"
       }
     },
     linterOptions: { reportUnusedDisableDirectives: true },

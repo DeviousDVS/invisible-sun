@@ -13,6 +13,7 @@
     "data:verify": "node scripts/data.mjs verify",
     "data:restore": "node scripts/data.mjs restore",
     "dist": "node scripts/dist.mjs",
+    "release": "node scripts/release.mjs",
     "packs:audit": "node scripts/audit_packs.mjs",
     "shot": "node scripts/shoot.mjs"
   },
