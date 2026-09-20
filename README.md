@@ -5,12 +5,6 @@ An unofficial system for playing **Invisible Sun** by Monte Cook Games on
 surreal world where ideas have power, magic is real, and the ordinary is
 extraordinary.
 
-I wanted a system that knows the rules rather than a set of digital note cards.
-Scourges reach the dice. Vexes are spent against actions. A heart's starting
-points are placed rather than typed. Where the books are explicit, the code
-follows them and says which page; where the books leave a call to the table,
-so does the system.
-
 > **This system ships no Invisible Sun text.** The compendia arrive empty and
 > fill themselves from the PDFs you already own, on your machine, for your
 > table. See [Content and the books](#content-and-the-books).
@@ -75,7 +69,7 @@ actually states — so anything you edit by hand survives a re-import. If you ne
 to start over, **Empty the compendia** sits beside the import button, counts
 what it would delete, and lets you clear one deck rather than all twenty.
 
-Two things worth knowing. A forte's **ability tree** is the one thing no PDF can
+A forte's **ability tree** is the one thing no PDF can
 give up — the books draw it as a diagram and its arrows are vector art, so the
 tree was built by hand and a re-import will not touch it. And your imported
 compendia are the only copy there is; if you ever reinstall the system, run the
@@ -99,25 +93,25 @@ vislae completely — hearts, foundations, souls, orders, fortes and their
 abilities, spells, incantations, minor magic, secrets, skills, character arcs,
 connections, ephemera, objects of power, aggregates, goods and Sooth cards.
 
-**Character building that follows the text.** A dropped Foundation or Heart
+**Character building.** A dropped Foundation or Heart
 applies what it grants. A heart's two starting skills are offered as a choice,
 because that is what the book asks for. Stat points are placed into pools rather
 than typed, with the heart's free six spendable either way and the rest tied to
 their own stat.
 
-**The challenge flow.** Only players roll dice in Invisible Sun, so every roll
+**Challenges.** Only players roll dice in Invisible Sun, so every roll
 starts with you: declare a pool, a challenge rating and who it is put to; the
 player answers with skills, bene and Sortilege, and rolls. One chat card carries
 the whole exchange and stays as the record of it. A defence is the same card
 with another label, so combat needs no second mechanism.
 
-**Health as the books describe it.** Injuries fill one ordered track, and the
+**Health.** Injuries fill one ordered track, and the
 last of each set decides whether it becomes a Wound or an Anguish — so two
 mental and one physical is a Wound. Armor reduces physical damage before
 anything is recorded. A bene may be spent to negate a Wound or an Anguish at the
 moment it lands, from the pool the rules name and only while the window is open.
 
-**Rests and days.** Four rests a day, the longer two able to recover a Wound or
+**Rests.** Four rests a day, the longer two able to recover a Wound or
 an Anguish, and a night's sleep that refreshes every pool and clears vexes — but
 never a scourge, which has to be got rid of some other way.
 
@@ -135,7 +129,7 @@ holding whatever last landed on the Invisible Sun, and a readout of what is in
 play. Every turn is announced in chat with the card and its write-up, so nobody
 needs the board open. The Nightside Path is the same board in reverse.
 
-**What the board is worth reaches the dice.** A card of your heart's family is
+**Current Sun effects.** A card of your heart's family is
 +1 to every action, and a royalty card moves everyone's — so the answer dialog
 shows what the Path is giving you before you decide what to spend, and the
 challenge card records it beside the card it came from. What a card does to
@@ -144,35 +138,18 @@ board is doing to their colour, because the book is plain that the Sooth Deck is
 a tool and not an obligation. A world setting turns all of it off for a table
 that would rather do the arithmetic themselves.
 
-**Scourge and vex actually apply**, because naming the pool an action draws on
+**Scourge and vex apply(ish)**, because naming the pool an action draws on
 makes them reachable: a scourge subtracts from every action drawing on its pool,
 and a vex is the lesser of your ceiling and what the pool holds.
-
-**Magic in one list.** Spells, incantations, forte abilities and minor magics
-share a sortable table, because the rules treat their level, cost, dice and
-depletion the same way. Magic dice flux on a 0, with intensity following how
-many were cast, and the Experimental Die is supported — it never succeeds, it
-only ever fluxes. A depletion tracker keeps what is still running, grouped by
-the moment each card says to check it.
-
-**Odds and ends.** Each order's six-degree ladder is read from the Order item
-rather than hardcoded, so editing it is followed. The Apostate's purchasable
-abilities are handled separately, as they should be. There is an economy of nine
-denominations, with magecoins deliberately not converted into orbs — the books
-are explicit that no exchange rate exists — and the bloodsilver curse tracked.
-Skills and practices can be dragged onto the hotbar. And there is a browser for
-searching across every compendium at once.
 
 ---
 
 ## Known limitations
 
-Honest about what is not finished:
+What is not finished:
 
 - **Acumen is not spent by anything.** The skills list quotes a price per level;
   nothing deducts it.
-- **Casting does not route through the challenge flow**, so a depletion after a
-  cast has nowhere to hand back to.
 - **Challenge cards have no cancel handling.** An abandoned card stays in chat
   until it is closed.
 - **Apostate entitlements are not tracked.** Their starting Ephemera Use and
@@ -181,13 +158,8 @@ Honest about what is not finished:
 - **Enhancements outside Sortilege cannot be recorded.** A pool carries a single
   value, which is bene everywhere except Sortilege.
 
-Three things the importer cannot do, all of them because the source does not
-contain the answer: a forte's ability tree, the boxed sidebars beside the order
+Three things the importer doesn't do: a forte's ability tree, the boxed sidebars beside the order
 entries, and the provenance stamped on each secret.
-
-What changed in each release is in the [changelog](CHANGELOG.md). Where a
-version changes the shape of stored data, the system migrates existing worlds
-and says so there.
 
 ---
 
