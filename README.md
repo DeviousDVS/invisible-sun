@@ -1,4 +1,4 @@
-# Invisible Sun — a system for Foundry VTT
+# Invisible Sun - a system for Foundry VTT
 
 An unofficial system for playing **Invisible Sun** by Monte Cook Games on
 [Foundry Virtual Tabletop](https://foundryvtt.com/). Step into the Actuality: a
