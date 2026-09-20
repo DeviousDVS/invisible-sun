@@ -192,16 +192,17 @@ Hooks.once("init", () => {
     importer.addEventListener("click", () => new ContentImporter().render(true));
     footer.appendChild(importer);
 
-    /* And the portrait matcher beside it. It is the second half of importing:
-     * the books' pictures arrive with the books, and which one belongs to which
-     * creature is the one part of the job a person has to do. */
-    const portraits = document.createElement("button");
-    portraits.type = "button";
-    portraits.className = "isun-portraits-btn";
-    portraits.innerHTML = `<i class="fa-solid fa-image-portrait"></i> `
-      + game.i18n.localize("ISUN.PortraitsButton");
-    portraits.addEventListener("click", () => new PortraitMatcher().render(true));
-    footer.appendChild(portraits);
+    /* The portrait matcher has no button. It is an authoring tool rather than a
+     * table one: matching the books' pictures to the creatures they belong to
+     * is done once, by whoever is building the shipped mapping, and the result
+     * travels in module/importers/portraits-data.mjs. A GM importing their own
+     * books gets those portraits without ever opening it.
+     *
+     * Kept reachable, because the job is not finished — some creatures are
+     * still unmatched, and the next person to work on it needs the window:
+     *
+     *     new game.invisibleSun.PortraitMatcher().render(true)
+     */
   });
 
   /* The system's own group on the scene controls.
