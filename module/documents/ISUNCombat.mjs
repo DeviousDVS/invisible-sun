@@ -187,7 +187,17 @@ export class ISUNCombat extends Combat {
     this.turn = at === -1 ? null : at;
 
     this.current = this._getCurrentState(turns[at]);
-    this.previous ??= this.current;
+
+    /* A copy, not the same object. Core writes `{...this.current}` here and the
+     * difference is not cosmetic: `#recordStateChange` empties `previous` and
+     * refills it in place rather than reassigning it, and `debounceSetup`
+     * writes the round and turn straight onto `current`. Either one, with the
+     * two aliased, edits the other — so a round that had turned over would
+     * compare equal to itself and `_onEndRound`/`_onStartRound` would not fire.
+     *
+     * Only the first call can alias, since every later one assigns a fresh
+     * `current` above; one clone closes it. */
+    this.previous ??= { ...this.current };
     return turns;
   }
 

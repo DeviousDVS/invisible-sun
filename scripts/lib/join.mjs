@@ -43,16 +43,28 @@ export async function join(page, { user, password = "", base = "http://localhost
 /**
  * Put the user's name into whatever control the join page is offering.
  *
- * Up to 14.365 that is `<select name="userid">`, listing every user in the
- * world. From 14.366 it is `<input name="username">` with autocompletion — the
- * name is typed, and typing it in full is enough, so the suggestion list does
- * not have to be driven.
+ * This control has now changed three times, which is why it is asked about
+ * rather than assumed:
+ *
+ *   up to 14.365   `<select name="userid">`, listing every user in the world
+ *   14.366         `<input name="username">` with autocompletion — the name is
+ *                  typed, and typing it in full is enough, so the suggestion
+ *                  list does not have to be driven
+ *   14.369         back to `<select name="userId">` — the same control as
+ *                  before the change, under a name differing from the original
+ *                  only in the case of one letter
+ *
+ * That last one is why the names are matched case-insensitively with the CSS
+ * `i` flag. `[name=userid]` does not match `name="userId"`: attribute values
+ * are matched case-sensitively, so the field was there, under what reads as the
+ * same name, and the script reported the form had changed beyond recognition.
  */
 async function nameTheUser(page, user) {
-  const field = page.locator('[name=username], [name=userid]').first();
+  const field = page.locator('[name="username" i], [name="userid" i]').first();
   await field.waitFor({ state: "attached", timeout: 20_000 }).catch(() => {
     throw new Error("The join page has no user field under either name this "
-      + "script knows (username, userid). Foundry has changed the login form.");
+      + "script knows (username, userid, any casing). Foundry has changed the "
+      + "login form.");
   });
   const tag = await field.evaluate(el => el.tagName.toLowerCase());
 
