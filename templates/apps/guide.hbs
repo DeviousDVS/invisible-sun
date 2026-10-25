@@ -1,0 +1,100 @@
+{{!-- The introduction, and the tour behind it. One template for every chapter:
+      a contents rail that is only worth drawing once there is more than one
+      page, the page itself, and a footer whose checkbox is the only thing
+      standing between the reader and never seeing this again.
+
+      One root element, because an ApplicationV2 part must render exactly one —
+      the rail, the page and the footer are three, so they live inside it. --}}
+<div class="guide-book">
+
+  <div class="guide-layout">
+
+    {{#if chapters.length}}
+      <nav class="guide-contents" aria-label="{{localize 'ISUN.GuideContents'}}">
+        {{#each chapters as |c|}}
+          <a class="guide-chapter{{#if c.current}} on{{/if}}"
+             data-action="guide-goto" data-page="{{c.at}}">
+            <i class="{{c.icon}}"></i>
+            <span>{{localize c.title}}</span>
+          </a>
+        {{/each}}
+      </nav>
+    {{/if}}
+
+    <section class="guide-page">
+      <h2 class="guide-heading">{{localize chapter.title}}</h2>
+
+      {{#each chapter.paragraphs as |p|}}
+        <p>{{p}}</p>
+      {{/each}}
+
+      {{#if showBooks}}
+        {{!-- What is actually in the compendia, rather than an assurance that the
+              importer works. "Did it do anything" is the question, and this is
+              the only screen in the system that answers it without the reader
+              opening twenty packs to find out. --}}
+        <div class="guide-books">
+          <p class="guide-tally">
+            {{localize "ISUN.GuideBooksTally" filled=status.filled total=status.total}}
+          </p>
+
+          <ul class="guide-packs">
+            {{#each status.rows as |row|}}
+              <li class="guide-pack {{row.state}}">
+                <i class="{{row.icon}}"></i>
+                <span class="pack-name">{{row.label}}</span>
+                {{!-- A denominator only while it is being worked towards. A
+                      pack fed by books rather than decks never has one, and a
+                      pack past its deck target does not need one — see
+                      importStatus. --}}
+                <span class="pack-count">
+                  {{row.count}}{{#if row.target}} / {{row.target}}{{/if}}
+                </span>
+              </li>
+            {{/each}}
+          </ul>
+
+          <p class="hint">{{localize "ISUN.GuideBooksEmptyHint"}}</p>
+        </div>
+      {{/if}}
+
+      {{!-- The one place the guide stops describing and starts doing. Its icon
+            is the chapter's own, so the button on the page and the tool it
+            opens wear the same mark. --}}
+      {{#if chapter.opens}}
+        <button type="button" class="guide-do"
+                data-action="guide-open" data-opens="{{chapter.opens}}">
+          <i class="{{chapter.opensIcon}}"></i>
+          {{localize chapter.opensLabel}}
+        </button>
+      {{/if}}
+
+      {{#if chapter.link}}
+        <p class="guide-link">
+          <a href="{{chapter.link.href}}" target="_blank" rel="noopener">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            {{localize chapter.link.label}}
+          </a>
+        </p>
+      {{/if}}
+    </section>
+  </div>
+
+  <footer class="guide-footer">
+    <label class="guide-auto">
+      <input type="checkbox" name="autoShow" {{checked autoShow}} />
+      {{localize "ISUN.GuideAutoShow"}}
+    </label>
+
+    <div class="guide-turn">
+      <button type="button" data-action="guide-back" {{disabled first}}>
+        <i class="fa-solid fa-chevron-left"></i> {{localize "ISUN.GuideBack"}}
+      </button>
+      <span class="guide-where">{{add page 1}} / {{pages}}</span>
+      <button type="button" data-action="guide-next" {{disabled last}}>
+        {{localize "ISUN.GuideNext"}} <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+  </footer>
+
+</div>

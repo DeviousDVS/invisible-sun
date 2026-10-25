@@ -13,6 +13,61 @@ reserved for 1.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- **An introduction, which opens by itself.** Sixty people installed 0.1.0 and
+  almost nothing they reported was a fault — it was the same question in
+  different words: how does this work, and why are my compendia empty. So the
+  system now says. A paged guide opens on first login and keeps opening until
+  the reader unticks *Show this when I log in* in its footer; it comes back from
+  the cube in the scene controls, or from **Open the guide** in the system
+  settings. A player gets it too, and gets a page written for them.
+
+- **The first page is the import, and it reports rather than reassures.** It
+  lists every compendium the system ships and what is in each one now, so "did
+  it work" is answered on screen instead of by opening twenty packs. A deck
+  prints what it is filling to while it is short of it, and a bare count once it
+  has arrived — the decks' totals do not account for the books that write into
+  the same packs, and a finished Ephemera compendium reading `307 / 293` told a
+  GM who had done everything right that something had gone wrong. Empty packs
+  are stated rather than flagged: most of them are a book the reader does not
+  own. The page re-reads itself when the importer closes, so the ticks appear as
+  the books are read.
+
+- **It opens on the page you need.** A world with nothing imported is greeted by
+  the importer; one that has been imported is greeted by the tour instead,
+  because congratulating somebody on a finished job is not a first page. Pages
+  are pages rather than a Tour pinned to core's markup — core rebuilt the
+  sidebar in v13 and the combat tracker in v14, and a walkthrough that breaks
+  against a release we never tested reads as the system being broken. A page
+  that opens the real window it describes needs nothing but our own API.
+
+- **Seven pages, and six of them for everybody.** Behind the import: what a
+  sheet holds and why a stat is not a number you type; how a roll is put
+  together, since only players roll and so every roll starts with the GM; magic
+  and the Path of Suns; Action Mode; and where each of those things lives. A
+  player reads the same guide with the import page taken out, and a page that
+  addresses one audience says its extra sentence only to them — the GM is told
+  to name the pool an action draws on, because that is what makes a scourge or a
+  vex apply at all, and it is a field no player ever sets.
+
+- **Three pages do something as well as say it.** The import page opens the
+  importer, the magic page opens the Path of Suns, and the last opens the
+  compendium browser and links the issue tracker. That is the whole of the
+  walkthrough's coupling to the rest of the system: a chapter names a window and
+  one map resolves the name, so a page can be written before the window it
+  describes exists.
+
+- **A reader who switched it off still hears when it grows.** Not by reopening:
+  the footer says "show this when I log in", and a guide that comes back after
+  being told not to has lied to the person who told it. Instead one whispered
+  line in chat, once per edition, carrying a link back in. Being told is stored
+  separately from having read — conflating the two either records a reading that
+  never happened and buries the pages for good, or says it again on every login,
+  which is the behaviour they switched off arriving by another door. Exactly one
+  greeting happens, whatever the state; there is a test that walks every
+  combination to prove neither both nor none can fire.
+
 ## [0.1.0] — Silver — 2026-09-20
 
 First public release. Built for Foundry VTT v14 (minimum 14.366, verified

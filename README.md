@@ -30,6 +30,15 @@ https://github.com/DeviousDVS/invisible-sun/releases/latest/download/system.json
 Then create a world with **Invisible Sun** as its system. The compendia will be
 empty; the next section is how you fill them.
 
+The first time you log in, the system's own **Getting Started** guide opens and
+walks you through it. It begins with the import, reporting what is actually in
+your compendia as it goes, and then covers the sheet, how a roll is put
+together, magic and the Path of Suns, Action Mode, and where everything lives.
+Your players get the same guide without the import page. It opens each time
+until you untick *Show this when I log in* in its footer, and is always
+reachable afterwards from the cube in the scene controls or from the system
+settings.
+
 ---
 
 ## Content and the books

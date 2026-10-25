@@ -50,6 +50,8 @@ import { UseItem } from "./module/apps/UseItem.mjs";
 import { RangeOverlay, RANGE_SETTING } from "./module/apps/RangeOverlay.mjs";
 import { TakeAction } from "./module/apps/TakeAction.mjs";
 import { ActionMovement } from "./module/apps/ActionMovement.mjs";
+import { Guide, AUTO_SETTING as GUIDE_AUTO, SEEN_SETTING as GUIDE_SEEN,
+  TOLD_SETTING as GUIDE_TOLD } from "./module/apps/Guide.mjs";
 import { PathOfSuns } from "./module/apps/PathOfSuns.mjs";
 import { DepletionTracker, SETTING as TRACKER_SETTING, EMPTY as TRACKER_EMPTY }
   from "./module/apps/DepletionTracker.mjs";
@@ -128,6 +130,7 @@ Hooks.once("init", () => {
     RangeOverlay,
     TakeAction,
     ActionMovement,
+    Guide,
     /* The one line the Take Action macro runs. Short and stable, because it is
      * written into a macro a player can open and read. */
     takeAction: () => TakeAction.run(),
@@ -236,6 +239,20 @@ Hooks.once("init", () => {
        * nothing about what else is in it. */
       icon: "fa-solid fa-cube",
       tools: {
+        /* First, because it is the only tool here that explains the others.
+         * A reader who does not know what a venture is has no use for a Path
+         * of Suns button, and the guide is where they find out. Everyone sees
+         * it: a player needs the introduction more than the GM does, having
+         * read none of the documentation that came with the download. */
+        guide: {
+          name: "guide",
+          order: 0,
+          title: "ISUN.GuideButton",
+          icon: "fa-solid fa-book-open",
+          button: true,
+          onChange: () => Guide.open()
+        },
+
         /* A board, not an action: "the Path of Suns board needs to have a
          * prominent place at your game table" (The Gate, p71), and what a
          * player wants is to glance at it from wherever they are. */
@@ -522,6 +539,53 @@ Hooks.once("init", () => {
     onChange: () => RangeOverlay.refresh()
   });
 
+  /* Whether the introduction opens by itself. A client setting, because
+   * whether you have read something is not a fact about the world — a GM who
+   * has seen it four times should not be deciding that for a player joining
+   * tonight. One condition gates it and this is the condition: the guide's own
+   * footer writes the same setting, so the switch is in both the place you
+   * think of it and the place you are when you think of it. */
+  game.settings.register("invisible-sun", GUIDE_AUTO, {
+    name: "ISUN.SettingGuideAutoShow",
+    hint: "ISUN.SettingGuideAutoShowHint",
+    scope: "client",
+    config: true,
+    type: Boolean,
+    default: true
+  });
+
+  /* Which edition of the guide this user has closed. Nothing reads it yet.
+   * It is written from the first release because a stamp introduced later can
+   * only ever report the absence of itself — see module/helpers/guide.mjs. */
+  game.settings.register("invisible-sun", GUIDE_SEEN, {
+    scope: "client",
+    config: false,
+    type: Number,
+    default: 0
+  });
+
+  /* And which edition they were last told about in chat, which is a different
+   * fact from having read it. See shouldNudge in module/helpers/guide.mjs. */
+  game.settings.register("invisible-sun", GUIDE_TOLD, {
+    scope: "client",
+    config: false,
+    type: Number,
+    default: 0
+  });
+
+  /* A button rather than a checkbox. "Turn the walkthrough back on" is a thing
+   * somebody wants to happen now, not at their next login, and a menu entry
+   * that opens the window answers that where a tickbox sends them looking for
+   * it. Unrestricted: players need it more than the GM does. */
+  game.settings.registerMenu("invisible-sun", "guide", {
+    name: "ISUN.GuideMenuName",
+    label: "ISUN.GuideMenuLabel",
+    hint: "ISUN.GuideMenuHint",
+    icon: "fa-solid fa-book-open",
+    type: Guide,
+    restricted: false
+  });
+
   /* The board is state, not a preference, so it is not in the settings menu.
    * A world setting is the right home for it: one board for the table, written
    * by the GM and read by everyone, arriving on the other clients as a document
@@ -629,9 +693,19 @@ Hooks.once("ready", async () => {
     NegationCard.render(message, html);
   });
 
+  /* The books page reports what is in the compendia, so it has to be told when
+   * that changes. The importer closing is the signal. */
+  Guide.listen();
+
   /* Whatever this world has not had yet. Elects a single GM, runs only what is
    * outstanding, and records how far it got. See module/migrations/. */
   await runMigrations();
+
+  /* Last, and after the migrations, so that a world with something to report
+   * reports it into a foreground the guide has not already taken. Opens once
+   * per login until the reader unticks the box in its footer — and after that,
+   * says once per edition that there is more of it than they have read. */
+  await Guide.greet();
 });
 
 /* There was a /venture chat command here. It took a challenge rating and rolled

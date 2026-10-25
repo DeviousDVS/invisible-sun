@@ -161,6 +161,7 @@ export async function preloadHandlebarsTemplates() {
     "systems/invisible-sun/templates/apps/portrait-matcher.hbs",
     "systems/invisible-sun/templates/apps/path-of-suns.hbs",
     "systems/invisible-sun/templates/apps/depletion-tracker.hbs",
+    "systems/invisible-sun/templates/apps/guide.hbs",
     "systems/invisible-sun/templates/item/sooth-card-sheet.hbs",
     "systems/invisible-sun/templates/partials/character-arc-tracker.hbs",
     "systems/invisible-sun/templates/partials/inventory-list.hbs",
