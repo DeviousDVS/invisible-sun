@@ -13,6 +13,10 @@ reserved for 1.0.0.
 
 ## [Unreleased]
 
+## [0.2.0] — Green — 2026-10-25
+
+Built for Foundry VTT v14 (minimum 14.366, verified against 14.369).
+
 ### Added
 
 - **An introduction, which opens by itself.** Sixty people installed 0.1.0 and
@@ -67,6 +71,23 @@ reserved for 1.0.0.
   which is the behaviour they switched off arriving by another door. Exactly one
   greeting happens, whatever the state; there is a test that walks every
   combination to prove neither both nor none can fire.
+
+### Fixed
+
+- **Keeps step with Foundry 14.369.** The release restored the conditional
+  assignment of `Combat#previous`, and the shape of it matters: core keeps a
+  copy where this system kept the same object. On 369 the state recorder
+  empties `previous` and refills it in place rather than reassigning it, so
+  aliased, a round that had turned over compared equal to itself and neither
+  round event fired. Verified against the build; no deprecated API is called
+  anywhere in the system.
+
+- **5 feet to the square, as the manifest has always said.** Two pieces of
+  prose said 10 — the guide's Action Mode page, and the 0.1.0 entry describing
+  the declaration, which went on to conclude that one square is exactly Close.
+  Close is 10 feet, so at 5 feet to the square it is two of them. Nothing in
+  the code was affected: the distances come from `rangeDetails` and never from
+  the grid.
 
 ## [0.1.0] — Silver — 2026-09-20
 
@@ -279,5 +300,6 @@ hand, you can.
 - **Enhancements outside Sortilege cannot be recorded.** A pool carries a single
   value, which is bene everywhere except Sortilege.
 
-[Unreleased]: https://github.com/DeviousDVS/invisible-sun/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/DeviousDVS/invisible-sun/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/DeviousDVS/invisible-sun/releases/tag/v0.2.0
 [0.1.0]: https://github.com/DeviousDVS/invisible-sun/releases/tag/v0.1.0

@@ -1,6 +1,6 @@
 {
   "name": "invisible-sun",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A system for the Invisible Sun RPG by Monte Cook Games.",
   "scripts": {
     "lint": "eslint .",
