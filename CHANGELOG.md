@@ -218,9 +218,9 @@ be. See [Content](#content) below.
 - **A compendium browser** for searching across the system's packs.
 - **Dice So Nice! support**, optional: magic dice are tinted by the sun being
   drawn on.
-- **A scene knows what a square is worth.** The manifest declares 10 feet to the
-  square, so one square is exactly Close — the shortest of the book's four bands
-  and the one a token most often needs to be inside. New scenes inherit it;
+- **A scene knows what a square is worth.** The manifest declares 5 feet to the
+  square, so Close — the shortest of the book's four bands, and the one a token
+  most often needs to be inside — is two squares. New scenes inherit it;
   existing ones keep whatever they were set to.
 - **The shipped scripts are minified** — about 1.1 MB of source down to 340 kB,
   most of it comments, which are where this codebase keeps its reasoning and
